@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{bea0ba69-6e0c-4b6e-bac5-ca7643d42b95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{3dd6d8d6-4a57-4dae-8efb-2bde98e66f7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{3bf02e78-842d-4251-bfc8-131bdf05299a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory\BypaPH">
+      <UniqueIdentifier>{1cbdc3e0-6dbf-42da-8f62-8ce3b52351d4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GnamesFinder.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Color.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternScan.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Scanner.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="BypaPH.h">
+      <Filter>Memory\BypaPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Driver.h">
+      <Filter>Memory\BypaPH</Filter>
+    </ClInclude>
+    <ClInclude Include="KProcessHacker.h">
+      <Filter>Memory\BypaPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools.h">
+      <Filter>Memory\BypaPH</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UnrealFinderTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GnamesFinder.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Color.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="PatternScan.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Driver.cpp">
+      <Filter>Memory\BypaPH</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools.cpp">
+      <Filter>Memory\BypaPH</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
