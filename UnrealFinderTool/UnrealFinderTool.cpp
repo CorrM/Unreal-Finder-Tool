@@ -6,6 +6,7 @@
 #include "GnamesFinder.h"
 #include "PatternScan.h"
 #include <iostream>
+#include "TArrayFinder.h"
 
 int main()
 {
@@ -29,7 +30,8 @@ int main()
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << " - " << "Find Gnames array in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "	-  " << yellow << "Find GNames in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "TArray Finder" << "	-  " << yellow << "Find TArrays in ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
@@ -41,6 +43,7 @@ int main()
 		goto Tools;
 	}
 
+	// Get pID
 	pID:
 	std::cout << green << "[-] " << yellow << "input process ID: " << dgreen;
 	std::cin >> p_id;
@@ -51,6 +54,7 @@ int main()
 		goto pID;
 	}
 
+	// Use Kernal ???
 	char cUseKernal;
 	std::cout << green << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
 	std::cin >> cUseKernal;
@@ -68,11 +72,15 @@ int main()
 		GnamesFinder gf(memManager);
 		gf.Find();
 	}
+	else if (tool_id == 2) // TArray Finder
+	{
+		TArrayFinder taf(memManager);
+		taf.Find();
+	}
 
 	std::cout << def << "===================================" << std::endl;
 
 	delete memManager;
-
 	char cRestart;
 	std::cout << yellow << "[?] " << yellow << "RESTART (Y/N): " << dgreen;
 	std::cin >> cRestart;

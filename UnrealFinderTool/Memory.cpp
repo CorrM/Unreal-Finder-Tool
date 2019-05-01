@@ -181,11 +181,60 @@ int Memory::ReadInt(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
-	auto buffer = 0;
-	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 4
+	int buffer = 0;
+	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 4
 	SIZE_T numberOfBytesActuallyRead;
-	const auto success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
-	if (!success || numberOfBytesActuallyRead != numberOfBytesToRead) {
+	const BOOL success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+	if (!success || numberOfBytesActuallyRead != numberOfBytesToRead)
+	{
+		std::cout << "Memory Error!" << std::endl;
+		return -1;
+	}
+	return buffer;
+}
+
+INT64 Memory::ReadInt64(const uintptr_t address)
+{
+	if (address == static_cast<uintptr_t>(-1))
+		return -1;
+	INT64 buffer = 0;
+	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 8
+	SIZE_T numberOfBytesActuallyRead;
+	const BOOL success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+	if (!success || numberOfBytesActuallyRead != numberOfBytesToRead)
+	{
+		std::cout << "Memory Error!" << std::endl;
+		return -1;
+	}
+	return buffer;
+}
+
+UINT32 Memory::ReadUInt(const uintptr_t address)
+{
+	if (address == static_cast<uintptr_t>(-1))
+		return -1;
+	UINT32 buffer = 0;
+	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 4
+	SIZE_T numberOfBytesActuallyRead;
+	const BOOL success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+	if (!success || numberOfBytesActuallyRead != numberOfBytesToRead)
+	{
+		std::cout << "Memory Error!" << std::endl;
+		return -1;
+	}
+	return buffer;
+}
+
+UINT64 Memory::ReadUInt64(const uintptr_t address)
+{
+	if (address == static_cast<uintptr_t>(-1))
+		return -1;
+	UINT64 buffer = 0;
+	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 8
+	SIZE_T numberOfBytesActuallyRead;
+	const BOOL success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+	if (!success || numberOfBytesActuallyRead != numberOfBytesToRead)
+	{
 		std::cout << "Memory Error!" << std::endl;
 		return -1;
 	}

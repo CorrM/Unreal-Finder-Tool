@@ -60,6 +60,9 @@
     <ClInclude Include="Tools.h">
       <Filter>Memory\BypaPH</Filter>
     </ClInclude>
+    <ClInclude Include="TArrayFinder.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -91,6 +94,9 @@
     </ClCompile>
     <ClCompile Include="Tools.cpp">
       <Filter>Memory\BypaPH</Filter>
+    </ClCompile>
+    <ClCompile Include="TArrayFinder.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

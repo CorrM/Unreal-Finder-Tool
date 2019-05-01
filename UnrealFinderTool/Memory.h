@@ -27,6 +27,9 @@ public:
 	BOOL GetDebugPrivileges();
 	int ReadBytes(uintptr_t address, BYTE* buf, int len);
 	int ReadInt(uintptr_t address);
+	INT64 ReadInt64(uintptr_t address);
+	UINT32 ReadUInt(uintptr_t address);
+	UINT64 ReadUInt64(uintptr_t address);
 	int GetPointerAddress(uintptr_t address, const int offsets[], int offsetCount);
 	int ReadPointerInt(uintptr_t address, int offsets[], int offsetCount);
 	float ReadFloat(uintptr_t address);

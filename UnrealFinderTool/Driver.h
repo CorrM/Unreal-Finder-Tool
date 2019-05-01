@@ -20,7 +20,7 @@ public:
 	~Driver();
 
 	HANDLE GetHandle() const { return m_hDriver; }
-	bool removeAllOnExit = true;
+	bool removeAllOnExit = false;
 
 private:
 	bool Connect();
