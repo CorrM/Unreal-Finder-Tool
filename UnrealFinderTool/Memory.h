@@ -1,10 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include <TlHelp32.h>
 #include <string>
-#include <psapi.h>
-#include <iostream>
-#include "BypaPH.h"
 
 #pragma comment(lib, "psapi")
 using std::string;
@@ -21,11 +17,10 @@ public:
 	Memory(HANDLE processHandle, bool useKernal = false);
 	Memory(int processId, bool useKernal = false);
 	~Memory();
-	DWORD GetModuleBase(string sModuleName);
-	DWORD GetModules();
+	uintptr_t GetModuleBase(string sModuleName);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
-	int ReadBytes(uintptr_t address, BYTE* buf, int len);
+	SIZE_T ReadBytes(uintptr_t address, BYTE* buf, int len);
 	int ReadInt(uintptr_t address);
 	INT64 ReadInt64(uintptr_t address);
 	UINT32 ReadUInt(uintptr_t address);

@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "Memory.h"
 #include <vector>
+#include <TlHelp32.h>
+#include <psapi.h>
+#include <iostream>
 
 Memory::Memory(const HANDLE processHandle, const bool useKernal)
 {
@@ -35,6 +38,7 @@ Memory::Memory(const int processId, const bool useKernal)
 Memory::~Memory()
 {
 	delete bypa_ph;
+	CloseHandle(ProcessHandle);
 }
 
 int Memory::GetProcessIdByName(char* processName)
@@ -61,12 +65,12 @@ int Memory::GetProcessIdByName(char* processName)
 	return pe32.th32ProcessID;
 }
 
-DWORD Memory::GetModuleBase(const string sModuleName)  // NOLINT
+uintptr_t Memory::GetModuleBase(const string sModuleName)  // NOLINT
 {
 	HMODULE *hModules = nullptr;
 	char szBuf[50];
 	DWORD cModules;
-	DWORD dwBase = -1;
+	uintptr_t dwBase = -1;
 
 	EnumProcessModules(ProcessHandle, hModules, 0, &cModules);
 	hModules = new HMODULE[cModules / sizeof(HMODULE)];
@@ -75,34 +79,10 @@ DWORD Memory::GetModuleBase(const string sModuleName)  // NOLINT
 		for (size_t i = 0; i < cModules / sizeof(HMODULE); i++) {
 			if (GetModuleBaseNameA(ProcessHandle, hModules[i], szBuf, sizeof(szBuf))) {
 				if (sModuleName == szBuf) {
-					dwBase = reinterpret_cast<DWORD>(hModules[i]);
+					dwBase = reinterpret_cast<uintptr_t>(hModules[i]);
 					break;
 				}
 			}
-		}
-	}
-
-	delete[] hModules;
-	return dwBase;
-}
-
-DWORD Memory::GetModules()
-{
-	HMODULE *hModules = nullptr;
-	char szBuf[50];
-	DWORD cModules;
-	DWORD dwBase = -1;
-
-	MODULEINFO lpInfo;
-	BOOL enump = EnumProcessModules(ProcessHandle, hModules, 0, &cModules);
-	int lerror = GetLastError();
-	hModules = new HMODULE[cModules / sizeof(HMODULE)];
-
-	if (EnumProcessModules(ProcessHandle, hModules, cModules / sizeof(HMODULE), &cModules))
-	{
-		for (size_t i = 0; i < cModules / sizeof(HMODULE); i++)
-		{
-			GetModuleInformation(ProcessHandle, hModules[i], &lpInfo, sizeof(MODULEINFO));
 		}
 	}
 
@@ -149,7 +129,7 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-int Memory::ReadBytes(const uintptr_t address, BYTE* buf, const int len)
+SIZE_T Memory::ReadBytes(const uintptr_t address, BYTE* buf, const int len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -194,10 +174,7 @@ int Memory::ReadInt(const uintptr_t address)
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
-		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
-		}
 	}
 	else
 	{
@@ -227,10 +204,7 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
-		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
-		}
 	}
 	else
 	{
@@ -260,10 +234,7 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
-		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
-		}
 	}
 	else
 	{
@@ -292,10 +263,36 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
+			return -1;
+	}
+	else
+	{
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		if (!state)
 		{
 			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
+	}
+	return buffer;
+}
+
+float Memory::ReadFloat(const uintptr_t address) {
+	if (address == static_cast<uintptr_t>(-1))
+		return -1;
+
+	float buffer = 0.0;
+	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 4
+	SIZE_T numberOfBytesActuallyRead;
+	if (use_kernal)
+	{
+		const auto state = bypa_ph->RWVM(bypa_ph->m_hTarget,
+			reinterpret_cast<PVOID>(address),
+			&buffer,
+			numberOfBytesToRead,
+			&numberOfBytesActuallyRead);
+		if (state != STATUS_SUCCESS)
+			return -1;
 	}
 	else
 	{
@@ -328,38 +325,6 @@ int Memory::ReadPointerInt(const uintptr_t address, int offsets[], const int off
 	return ReadInt(GetPointerAddress(address, offsets, offsetCount));
 }
 
-float Memory::ReadFloat(const uintptr_t address) {
-	if (address == static_cast<uintptr_t>(-1))
-		return -1;
-
-	float buffer = 0.0;
-	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 4
-	SIZE_T numberOfBytesActuallyRead;
-	if (use_kernal)
-	{
-		const auto state = bypa_ph->RWVM(bypa_ph->m_hTarget,
-			reinterpret_cast<PVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
-		if (state != STATUS_SUCCESS)
-		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
-			return -1;
-		}
-	}
-	else
-	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
-		if (!state)
-		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
-			return -1;
-		}
-	}
-	return buffer;
-}
-
 float Memory::ReadPointerFloat(const uintptr_t address, int offsets[], int offsetCount) {
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
@@ -386,10 +351,7 @@ string Memory::ReadText(uintptr_t address)
 				numberOfBytesToRead,
 				&numberOfBytesActuallyRead);
 			if (state != STATUS_SUCCESS)
-			{
-				std::cout << "Memory Error! " << GetLastError() << std::endl;
 				return "-1";
-			}
 		}
 		else
 		{

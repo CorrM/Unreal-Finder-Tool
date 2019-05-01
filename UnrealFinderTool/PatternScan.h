@@ -11,7 +11,7 @@ struct Pattern
 {
 	std::string Name;
 	std::vector<uchar_t> Sig;
-	int Len;
+	size_t Len;
 	int Offset;
 	uchar_t Wildcard;
 };

@@ -77,7 +77,7 @@ std::map<string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, u
 		const auto pBuf = static_cast<PBYTE>(malloc(info.RegionSize));
 
 		// Read one page or skip if failed
-		const int dwOut = mem->ReadBytes(i, pBuf, info.RegionSize);
+		const SIZE_T dwOut = mem->ReadBytes(i, pBuf, info.RegionSize);
 		if (dwOut == 0)
 		{
 			free(pBuf);
