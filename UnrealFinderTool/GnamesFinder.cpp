@@ -18,7 +18,7 @@ void GnamesFinder::Find()
 	Color red(LightRed, Black);
 	Color dgreen(Green, Black);
 
-	const uintptr_t start = !_memory->Is64Bit ? 0x10000000 : static_cast<uintptr_t>(0x140000000);
+	const uintptr_t start = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
 	const uintptr_t end = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
 	std::cout << dgreen << "[!] " << def << "Start scan for GNames. (at 0x" << std::hex << start << ". to 0x" << std::hex << end  << ")" << std::endl << def;
@@ -52,7 +52,7 @@ void GnamesFinder::Find()
 	for (long long i : cmp3)
 	{
 		i = i - (!_memory->Is64Bit ? 0x8 : 0x10);
-		std::cout << green << "[+] " << def << "\t" << red << std::hex << i << std::endl;
+		std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::endl;
 	}
 
 }

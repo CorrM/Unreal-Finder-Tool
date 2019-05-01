@@ -30,16 +30,17 @@ int main()
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "	-  " << yellow << "Find GNames in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "2: " << def << "TArray Finder" << "	-  " << yellow << "Find TArrays in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "  -  " << yellow << "Find GNames in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "TArray Finder" << "  -  " << yellow << "Find TArrays in ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 1)
+	if (tool_id == 0 || tool_id > 2)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
+		std::cout << def << "===================================\n" << std::endl;
 		goto Tools;
 	}
 

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "TArrayFinder.h"
 #include "Color.h"
+#include <vector>
 
 
 TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
@@ -17,7 +18,7 @@ void TArrayFinder::Find()
 	Color red(LightRed, Black);
 	Color dgreen(Green, Black);
 
-	uintptr_t dwStart = !_memory->Is64Bit ? 0x10000000 : static_cast<uintptr_t>(0x140000000);
+	uintptr_t dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
 	uintptr_t dwEnd = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
 	std::cout << dgreen << "[!] " << def << "Start scan for TArrays. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
@@ -32,6 +33,7 @@ void TArrayFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
+	int found_count = 0;
 	MEMORY_BASIC_INFORMATION info;
 
 	// Cycle through memory based on RegionSize
@@ -42,6 +44,7 @@ void TArrayFinder::Find()
 		if (info.Type != MEM_PRIVATE) continue;
 		if (info.Protect != PAGE_READWRITE) continue;
 
+		// Alloc memory
 		const auto pBuf = static_cast<PBYTE>(malloc(info.RegionSize));
 
 		// Read one page or skip if failed
@@ -52,10 +55,21 @@ void TArrayFinder::Find()
 			continue;
 		}
 
-		// 
+		// loop through memory region based on 4 byte (even it 64bit pointer)
+		for (SIZE_T j = 0; j < info.RegionSize; j += 0x4)
+		{
+			const uintptr_t address = i + j;
+			if (IsValidTArray(address))
+			{
+				std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << address << std::endl;
+				found_count++;
+			}
+		}
 
 		free(pBuf);
 	}
+
+	std::cout << purple << "[!] " << yellow << "Found " << found_count << " Address." << std::endl << def;
 }
 
 bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointerVal)
@@ -67,7 +81,7 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointerVal
 	else
 		pointer = _memory->ReadUInt64(address);
 
-	if (pointer != NULL)
+	if (INVALID_POINTER_VALUE(pointer))
 		return false;
 
 	// Check memory state, type and permission

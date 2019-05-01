@@ -1,6 +1,8 @@
 #pragma once
 #include "Memory.h"
 
+#define INVALID_POINTER_VALUE(x) (x == (uintptr_t)-1) || x == NULL
+
 class TArrayFinder
 {
 	Memory* _memory = nullptr;
