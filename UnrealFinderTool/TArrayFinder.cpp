@@ -37,7 +37,7 @@ void TArrayFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	// dwStart = static_cast<uintptr_t>(0x250261B0000);
+	// dwStart = static_cast<uintptr_t>(0x1CE61B90000);
 	// dwEnd = static_cast<uintptr_t>(0x7ff7ccc25c68);
 
 	int found_count = 0;
@@ -116,16 +116,30 @@ bool TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray)
 	uintptr_t ptrUObject1;
 	if (!IsValidPointer(address + dwBetweenObjects, ptrUObject1, false)) return false;
 
+	// Check (UObject*) (Object2) Is Valid Pointer
+	uintptr_t ptrUObject2;
+	if (!IsValidPointer(address + (dwBetweenObjects * 2), ptrUObject2, false)) return false;
+
+	// Check (UObject*) (Object2) Is Valid Pointer
+	uintptr_t ptrUObject3;
+	if (!IsValidPointer(address + (dwBetweenObjects * 3), ptrUObject3, false)) return false;
+
 	// Check vfTableObject Is Valid Pointer
-	uintptr_t ptrVfTableObject0, ptrVfTableObject1;
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3;
 	if (!IsValidPointer(ptrUObject0, ptrVfTableObject0, false)) return false;
 	if (!IsValidPointer(ptrUObject1, ptrVfTableObject1, false)) return false;
+	if (!IsValidPointer(ptrUObject2, ptrVfTableObject2, false)) return false;
+	if (!IsValidPointer(ptrUObject3, ptrVfTableObject3, false)) return false;
 
 	// Check Objects (InternalIndex)
-	const int uObject1InternalIndex = _memory->ReadInt(ptrUObject0 + dwInternalIndex);
-	const int uObject2InternalIndex = _memory->ReadInt(ptrUObject1 + dwInternalIndex);
+	const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + dwInternalIndex);
+	const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + dwInternalIndex);
+	const int uObject2InternalIndex = _memory->ReadInt(ptrUObject2 + dwInternalIndex);
+	const int uObject3InternalIndex = _memory->ReadInt(ptrUObject3 + dwInternalIndex);
 
-	if (!(uObject1InternalIndex == 0 && (uObject2InternalIndex == 1 || uObject2InternalIndex == 3))) return false;
+	if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) return false;
+	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return false;
+	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return false;
 
 	tArray.Data = address;
 	tArray.Max = 0;

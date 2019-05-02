@@ -38,7 +38,12 @@ Memory::Memory(const int processId, const bool useKernal)
 Memory::~Memory()
 {
 	delete bypa_ph;
-	CloseHandle(ProcessHandle);
+	if (ProcessHandle != INVALID_HANDLE_VALUE) CloseHandle(ProcessHandle);
+}
+
+void Memory::UpdateHandle(const HANDLE processHandle)
+{
+	ProcessHandle = processHandle;
 }
 
 int Memory::GetProcessIdByName(char* processName)

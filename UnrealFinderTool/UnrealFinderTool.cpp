@@ -32,8 +32,8 @@ int main()
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "  -  " << yellow << "Find GNames in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "2: " << def << "TArray Finder" << "  -  " << yellow << "Find TArrays in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "   -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "  -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
@@ -71,21 +71,23 @@ int main()
 
 	// Setup Memory Stuff
 	memManager = memManager == nullptr ? new Memory(pHandle, bUseKernal) : memManager;
-	if (!bUseKernal)
-		memManager->GetDebugPrivileges();
+	memManager->UpdateHandle(pHandle);
+	if (!bUseKernal) memManager->GetDebugPrivileges();
 
 	if (tool_id == 1) // GNames Finder
 	{
 		GnamesFinder gf(memManager);
 		gf.Find();
 	}
-	else if (tool_id == 2) // TArray Finder
+	else if (tool_id == 2) // GObjects Finder
 	{
 		TArrayFinder taf(memManager);
 		taf.Find();
 	}
 
 	std::cout << def << "===================================" << std::endl;
+
+	CloseHandle(pHandle);
 
 	char cRestart;
 	std::cout << yellow << "[?] " << yellow << "RESTART (Y/N): " << dgreen;

@@ -17,6 +17,7 @@ public:
 	Memory(HANDLE processHandle, bool useKernal = false);
 	Memory(int processId, bool useKernal = false);
 	~Memory();
+	void UpdateHandle(HANDLE processHandle);
 	uintptr_t GetModuleBase(string sModuleName);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
