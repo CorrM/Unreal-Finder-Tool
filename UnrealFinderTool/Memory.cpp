@@ -157,6 +157,38 @@ SIZE_T Memory::ReadBytes(const uintptr_t address, BYTE* buf, const int len)
 	return numberOfBytesToRead;
 }
 
+bool Memory::ReadBool(const uintptr_t address)
+{
+	if (address == static_cast<uintptr_t>(-1))
+		return false;
+
+	bool buffer = true;
+	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 1
+	SIZE_T numberOfBytesActuallyRead;
+
+	if (use_kernal)
+	{
+		const auto state = bypa_ph->RWVM(bypa_ph->m_hTarget,
+			reinterpret_cast<PVOID>(address),
+			&buffer,
+			numberOfBytesToRead,
+			&numberOfBytesActuallyRead);
+		if (state != STATUS_SUCCESS)
+			return false;
+	}
+	else
+	{
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		if (!state)
+		{
+			std::cout << "Memory Error! " << GetLastError() << std::endl;
+			return false;
+		}
+	}
+
+	return buffer;
+}
+
 int Memory::ReadInt(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
@@ -270,7 +302,7 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
+			// std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
 	}

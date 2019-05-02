@@ -8,6 +8,8 @@
 #include <iostream>
 #include "TArrayFinder.h"
 
+Memory* memManager;
+
 int main()
 {
 	const HWND console = GetConsoleWindow();
@@ -55,6 +57,10 @@ int main()
 		goto pID;
 	}
 
+	const HANDLE pHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
+	DWORD exitCode;
+	if (GetExitCodeProcess(pHandle, &exitCode) == FALSE && exitCode != STILL_ACTIVE) goto pID;
+
 	// Use Kernal ???
 	char cUseKernal;
 	std::cout << green << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
@@ -64,7 +70,7 @@ int main()
 	std::cout << def << "===================================" << std::endl;
 
 	// Setup Memory Stuff
-	const auto memManager = new Memory(p_id, bUseKernal);
+	memManager = memManager == nullptr ? new Memory(pHandle, bUseKernal) : memManager;
 	if (!bUseKernal)
 		memManager->GetDebugPrivileges();
 
@@ -81,13 +87,14 @@ int main()
 
 	std::cout << def << "===================================" << std::endl;
 
-	delete memManager;
 	char cRestart;
 	std::cout << yellow << "[?] " << yellow << "RESTART (Y/N): " << dgreen;
 	std::cin >> cRestart;
 
 	if (cRestart == 'Y' || cRestart == 'y')
 		goto RESTART;
+
+	delete memManager;
 
 	return 0;
 }
