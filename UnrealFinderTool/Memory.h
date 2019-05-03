@@ -8,7 +8,7 @@ using std::string;
 class Memory
 {
 	bool use_kernal = false;
-	BypaPH* bypa_ph = nullptr;
+	static BypaPH* bypa_ph;
 public:
 	HANDLE ProcessHandle = nullptr;
 	int ProcessId = 0;

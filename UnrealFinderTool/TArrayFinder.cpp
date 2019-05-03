@@ -9,7 +9,7 @@ TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
 	dwStart = 0;
 	dwEnd = 0;
 	ptr_size = !_memory->Is64Bit ? 0x4 : 0x8;
-	dwBetweenObjects = ptr_size + 0x10;
+	dwBetweenObjects = ptr_size + (_memory->Is64Bit ? 0x10 : 0xC);
 	dwInternalIndex = ptr_size + 0x4;
 }
 
@@ -37,7 +37,7 @@ void TArrayFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	// dwStart = static_cast<uintptr_t>(0x1CE61B90000);
+	// dwStart = static_cast<uintptr_t>(0x07350000);
 	// dwEnd = static_cast<uintptr_t>(0x7ff7ccc25c68);
 
 	int found_count = 0;
@@ -60,6 +60,13 @@ void TArrayFinder::Find()
 	}
 
 	std::cout << purple << "[!] " << yellow << "Found " << found_count << " Address." << std::endl << def;
+
+	if (found_count > 0)
+	{
+		std::cout << red << "[?] " << green << "Address is first UObject in the array." << std::endl;
+		std::cout << red << "[?] " << green << "So u must get the pointer how point this address." << std::endl;
+		std::cout << red << "[?] " << green << "Maybe u need to find the pointer how point the pointer you get." << std::endl;
+	}
 }
 
 bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, const bool checkIsAllocationBase)
@@ -70,7 +77,7 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, c
 	else
 		pointer = _memory->ReadUInt64(address);
 
-	if (INVALID_POINTER_VALUE(pointer) /*|| pointer < dwStart || pointer > dwEnd*/ || pointer < 0x10000000)
+	if (INVALID_POINTER_VALUE(pointer) /*|| pointer < dwStart || pointer > dwEnd*/)
 		return false;
 
 	// Check memory state, type and permission
@@ -112,15 +119,12 @@ bool TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray)
 	uintptr_t ptrUObject0;
 	if (!IsValidPointer(address, ptrUObject0, false)) return false;
 
-	// Check (UObject*) (Object2) Is Valid Pointer
 	uintptr_t ptrUObject1;
 	if (!IsValidPointer(address + dwBetweenObjects, ptrUObject1, false)) return false;
 
-	// Check (UObject*) (Object2) Is Valid Pointer
 	uintptr_t ptrUObject2;
 	if (!IsValidPointer(address + (dwBetweenObjects * 2), ptrUObject2, false)) return false;
 
-	// Check (UObject*) (Object2) Is Valid Pointer
 	uintptr_t ptrUObject3;
 	if (!IsValidPointer(address + (dwBetweenObjects * 3), ptrUObject3, false)) return false;
 
@@ -140,6 +144,8 @@ bool TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray)
 	if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) return false;
 	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return false;
 	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return false;
+
+	if (uObject0InternalIndex != 0) return false;
 
 	tArray.Data = address;
 	tArray.Max = 0;

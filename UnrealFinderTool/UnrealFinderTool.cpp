@@ -8,8 +8,6 @@
 #include <iostream>
 #include "TArrayFinder.h"
 
-Memory* memManager;
-
 int main()
 {
 	const HWND console = GetConsoleWindow();
@@ -70,8 +68,7 @@ int main()
 	std::cout << def << "===================================" << std::endl;
 
 	// Setup Memory Stuff
-	memManager = memManager == nullptr ? new Memory(pHandle, bUseKernal) : memManager;
-	memManager->UpdateHandle(pHandle);
+	auto memManager = new Memory(pHandle, bUseKernal);
 	if (!bUseKernal) memManager->GetDebugPrivileges();
 
 	if (tool_id == 1) // GNames Finder
@@ -87,6 +84,7 @@ int main()
 
 	std::cout << def << "===================================" << std::endl;
 
+	delete memManager;
 	CloseHandle(pHandle);
 
 	char cRestart;
@@ -96,7 +94,5 @@ int main()
 	if (cRestart == 'Y' || cRestart == 'y')
 		goto RESTART;
 
-	delete memManager;
-	CloseHandle(pHandle);
 	return 0;
 }

@@ -5,6 +5,8 @@
 #include <psapi.h>
 #include <iostream>
 
+BypaPH* Memory::bypa_ph = nullptr;
+
 Memory::Memory(const HANDLE processHandle, const bool useKernal)
 {
 	if (processHandle == nullptr || processHandle == INVALID_HANDLE_VALUE)
@@ -13,7 +15,7 @@ Memory::Memory(const HANDLE processHandle, const bool useKernal)
 	ProcessHandle = processHandle;
 	ProcessId = GetProcessId(processHandle);
 	use_kernal = useKernal;
-	if (useKernal)
+	if (useKernal && bypa_ph != nullptr)
 		bypa_ph = new BypaPH(ProcessId);
 
 	IsWow64Process(ProcessHandle, &Is64Bit);
@@ -28,7 +30,7 @@ Memory::Memory(const int processId, const bool useKernal)
 	ProcessHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
 	ProcessId = GetProcessId(ProcessHandle);
 	use_kernal = useKernal;
-	if (useKernal)
+	if (useKernal && bypa_ph != nullptr)
 		bypa_ph = new BypaPH(ProcessId);
 
 	IsWow64Process(ProcessHandle, &Is64Bit);
