@@ -1,6 +1,11 @@
 #pragma once
 #include "Memory.h"
 
+#define SUCCESS_ERROR 0
+#define OBJECT_ERROR 1
+#define VFTABLE_ERROR 2
+#define INDEX_ERROR 3
+
 struct FUObjectArray
 {
 	uintptr_t Data;
@@ -16,8 +21,8 @@ class TArrayFinder
 	uintptr_t dwStart, dwEnd;
 
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
-	bool IsValidTArray(uintptr_t address, FUObjectArray& tArray);
-	bool IsValidTArray2(uintptr_t address, FUObjectArray& tArray);
+	DWORD IsValidTArray(uintptr_t address, FUObjectArray& tArray);
+	DWORD IsValidTArray2(uintptr_t address, FUObjectArray& tArray);
 public:
 	TArrayFinder(Memory* memory);
 	void Find();
