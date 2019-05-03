@@ -97,6 +97,6 @@ int main()
 		goto RESTART;
 
 	delete memManager;
-
+	CloseHandle(pHandle);
 	return 0;
 }
