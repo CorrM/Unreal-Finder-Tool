@@ -10,7 +10,7 @@ class TArrayFinder
 	Memory* _memory = nullptr;
 	int ptr_size = 0x0;
 	//const int min_size = 0x1;
-	int dwBetweenObjects, dwInternalIndex;
+	int dwBetweenObjects;
 	uintptr_t dwStart, dwEnd;
 
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);

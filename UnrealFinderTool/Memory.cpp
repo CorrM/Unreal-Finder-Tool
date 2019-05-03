@@ -214,7 +214,6 @@ int Memory::ReadInt(const uintptr_t address)
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
 	}
@@ -274,7 +273,6 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
 	}
