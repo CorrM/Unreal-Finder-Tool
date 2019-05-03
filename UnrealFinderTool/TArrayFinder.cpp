@@ -12,7 +12,6 @@ TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
 	dwStart = 0;
 	dwEnd = 0;
 	ptr_size = !_memory->Is64Bit ? 0x4 : 0x8;
-	dwBetweenObjects = ptr_size + (_memory->Is64Bit ? 0x10 : 0xC);
 }
 
 void TArrayFinder::Find()
@@ -32,7 +31,7 @@ void TArrayFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	// dwStart = static_cast<uintptr_t>(0x073A0000);
+	// dwStart = static_cast<uintptr_t>(0x176EDFE0000);
 	// dwEnd = static_cast<uintptr_t>(0x7ff7ccc25c68);
 
 	int found_count = 0;
@@ -71,7 +70,7 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, c
 	else
 		pointer = _memory->ReadUInt64(address);
 
-	if (INVALID_POINTER_VALUE(pointer) /*|| pointer < dwStart || pointer > dwEnd*/)
+	if (INVALID_POINTER_VALUE(pointer) /*|| pointer <= dwStart || pointer > dwEnd*/)
 		return false;
 
 	// Check memory state, type and permission
@@ -94,10 +93,12 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, c
 DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 {
 	DWORD ret = 1; // OBJECT_ERROR
-	// Check (UObject*) Is Valid Pointer
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-	for (int i = 0x0; i <= 0x14; i += 0x4)
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
+
+	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
+		// Check (UObject*) Is Valid Pointer
 		if (!IsValidPointer(address + (i * 0), ptrUObject0, false)) continue;
 		if (!IsValidPointer(address + (i * 1), ptrUObject1, false)) continue;
 		if (!IsValidPointer(address + (i * 2), ptrUObject2, false)) continue;
@@ -107,7 +108,6 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 		ret += 1; // VFTABLE_ERROR
 
 		// Check vfTableObject Is Valid Pointer
-		uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
 		if (!IsValidPointer(ptrUObject0, ptrVfTableObject0, false)) continue;
 		if (!IsValidPointer(ptrUObject1, ptrVfTableObject1, false)) continue;
 		if (!IsValidPointer(ptrUObject2, ptrVfTableObject2, false)) continue;
@@ -117,7 +117,7 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 		ret += 1; // INDEX_ERROR
 
 		// Check Objects (InternalIndex)
-		for (int io = 0x0; io < 0x20; io += 0x4)
+		for (int io = 0x0; io < 0x1C; io += 0x4)
 		{
 			const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + io);
 			const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + io);
@@ -126,7 +126,8 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 			const int uObject4InternalIndex = _memory->ReadInt(ptrUObject4 + io);
 			const int uObject5InternalIndex = _memory->ReadInt(ptrUObject5 + io);
 
-			if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) continue;
+			if (uObject0InternalIndex != 0) continue;
+			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
 			if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) continue;
 			if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) continue;
 			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
@@ -141,10 +142,11 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 DWORD TArrayFinder::IsValidTArray2(const uintptr_t address)
 {
 	DWORD ret = 1; // OBJECT_ERROR
-	// Check (UObject*) Is Valid Pointer
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-	for (int i = 0x0; i <= 0x14; i += 0x4)
+
+	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
+		// Check (UObject*) Is Valid Pointer
 		if (!IsValidPointer(address + (i * 0), ptrUObject0, false)) continue;
 		if (!IsValidPointer(address + (i * 1), ptrUObject1, false)) continue;
 		if (!IsValidPointer(address + (i * 2), ptrUObject2, false)) continue;
@@ -155,7 +157,7 @@ DWORD TArrayFinder::IsValidTArray2(const uintptr_t address)
 		ret += 1; // INDEX_ERROR
 
 		// Check Objects (InternalIndex)
-		for (int io = 0x0; io < 0x20; io += 0x4)
+		for (int io = 0x0; io < 0x1C; io += 0x4)
 		{
 			const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + io);
 			const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + io);
@@ -164,7 +166,8 @@ DWORD TArrayFinder::IsValidTArray2(const uintptr_t address)
 			const int uObject4InternalIndex = _memory->ReadInt(ptrUObject4 + io);
 			const int uObject5InternalIndex = _memory->ReadInt(ptrUObject5 + io);
 
-			if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) continue;
+			if (uObject0InternalIndex != 0) continue;
+			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
 			if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) continue;
 			if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) continue;
 			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
