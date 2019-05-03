@@ -17,6 +17,7 @@ class TArrayFinder
 
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
 	bool IsValidTArray(uintptr_t address, FUObjectArray& tArray);
+	bool IsValidTArray2(uintptr_t address, FUObjectArray& tArray);
 public:
 	TArrayFinder(Memory* memory);
 	void Find();

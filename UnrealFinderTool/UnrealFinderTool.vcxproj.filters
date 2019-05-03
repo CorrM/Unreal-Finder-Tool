@@ -63,6 +63,9 @@
     <ClInclude Include="TArrayFinder.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="StdColors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

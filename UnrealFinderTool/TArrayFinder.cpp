@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "TArrayFinder.h"
 #include "Color.h"
-#include <vector>
 
 
 TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
@@ -15,17 +14,10 @@ TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
 
 void TArrayFinder::Find()
 {
-	Color green(LightGreen, Black);
-	Color def(White, Black);
-	Color yellow(LightYellow, Black);
-	Color purple(LightPurple, Black);
-	Color red(LightRed, Black);
-	Color dgreen(Green, Black);
-
 	dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
-	std::cout << dgreen << "[!] " << def << "Start scan for TArrays. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
+	std::cout << dgreen << "[!] " << def << "Start scan for GObjects. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
 
 	// Start scan for TArrays
 	SYSTEM_INFO si = { 0 };
@@ -63,9 +55,9 @@ void TArrayFinder::Find()
 
 	if (found_count > 0)
 	{
-		std::cout << red << "[?] " << green << "Address is first UObject in the array." << std::endl;
-		std::cout << red << "[?] " << green << "So u must get the pointer how point this address." << std::endl;
-		std::cout << red << "[?] " << green << "Maybe u need to find the pointer how point the pointer you get." << std::endl;
+		std::cout << red << "[*] " << green << "Address is first UObject in the array." << std::endl;
+		std::cout << red << "[*] " << green << "So u must get the pointer how point this address." << std::endl;
+		std::cout << red << "[*] " << green << "Maybe u need to find the pointer how point the pointer you get." << std::endl;
 	}
 }
 
@@ -145,7 +137,38 @@ bool TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray)
 	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return false;
 	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return false;
 
-	if (uObject0InternalIndex != 0) return false;
+	tArray.Data = address;
+	tArray.Max = 0;
+	tArray.Num = 0;
+	return true;
+}
+
+bool TArrayFinder::IsValidTArray2(const uintptr_t address, FUObjectArray& tArray)
+{
+	tArray = { 0, 0, 0 };
+
+	// Check (UObject*) (Object1) Is Valid Pointer
+	uintptr_t ptrUObject0;
+	if (!IsValidPointer(address, ptrUObject0, false)) return false;
+
+	uintptr_t ptrUObject1;
+	if (!IsValidPointer(address + dwBetweenObjects, ptrUObject1, false)) return false;
+
+	uintptr_t ptrUObject2;
+	if (!IsValidPointer(address + (dwBetweenObjects * 2), ptrUObject2, false)) return false;
+
+	uintptr_t ptrUObject3;
+	if (!IsValidPointer(address + (dwBetweenObjects * 3), ptrUObject3, false)) return false;
+
+	// Check Objects (InternalIndex)
+	const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + dwInternalIndex);
+	const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + dwInternalIndex);
+	const int uObject2InternalIndex = _memory->ReadInt(ptrUObject2 + dwInternalIndex);
+	const int uObject3InternalIndex = _memory->ReadInt(ptrUObject3 + dwInternalIndex);
+
+	if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) return false;
+	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return false;
+	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return false;
 
 	tArray.Data = address;
 	tArray.Max = 0;

@@ -15,7 +15,7 @@ Memory::Memory(const HANDLE processHandle, const bool useKernal)
 	ProcessHandle = processHandle;
 	ProcessId = GetProcessId(processHandle);
 	use_kernal = useKernal;
-	if (useKernal && bypa_ph != nullptr)
+	if (useKernal && bypa_ph == nullptr)
 		bypa_ph = new BypaPH(ProcessId);
 
 	IsWow64Process(ProcessHandle, &Is64Bit);
@@ -30,16 +30,11 @@ Memory::Memory(const int processId, const bool useKernal)
 	ProcessHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
 	ProcessId = GetProcessId(ProcessHandle);
 	use_kernal = useKernal;
-	if (useKernal && bypa_ph != nullptr)
+	if (useKernal && bypa_ph == nullptr)
 		bypa_ph = new BypaPH(ProcessId);
 
 	IsWow64Process(ProcessHandle, &Is64Bit);
 	Is64Bit = !Is64Bit;
-}
-
-Memory::~Memory()
-{
-	delete bypa_ph;
 }
 
 void Memory::UpdateHandle(const HANDLE processHandle)

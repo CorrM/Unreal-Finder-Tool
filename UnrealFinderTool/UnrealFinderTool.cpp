@@ -17,13 +17,6 @@ int main()
 
 	int tool_id, p_id;
 
-	Color green(LightGreen, Black);
-	Color def(White, Black);
-	Color yellow(LightYellow, Black);
-	Color purple(LightPurple, Black);
-	Color red(LightRed, Black);
-	Color dgreen(Green, Black);
-
 	RESTART:
 	system("cls");
 	SetConsoleTitleA("Unreal Engine Finder Tool By CorrM");
