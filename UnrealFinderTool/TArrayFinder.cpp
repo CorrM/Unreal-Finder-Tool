@@ -34,7 +34,6 @@ void TArrayFinder::Find()
 
 	int found_count = 0;
 	MEMORY_BASIC_INFORMATION info;
-	FUObjectArray gObject;
 
 	// Cycle through memory based on RegionSize
 	for (uintptr_t i = dwStart; (VirtualQueryEx(_memory->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += info.RegionSize)
@@ -43,7 +42,7 @@ void TArrayFinder::Find()
 		if (info.State != MEM_COMMIT) continue;
 		if (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_READWRITE) continue;
 
-		if (IsValidTArray(i, gObject) == SUCCESS_ERROR)
+		if (IsValidTArray(i) == ERROR_SUCCESS)
 		{
 			std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::dec << def << std::endl;
 			// std::cout << " (" << yellow << "Max: " << gObject.Max << ", Num: " << gObject.Num << ", Data: " << std::hex << gObject.Data << def << ")" << std::dec << std::endl;
@@ -89,24 +88,8 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, c
 	return false;
 }
 
-DWORD TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray)
+DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 {
-	tArray = { 0, 0, 0 };
-
-	// Check GObjects
-	// ObjFirstGCIndex = (ObjLastNonGCIndex - 1) & MaxObjectsNotConsideredByGC = ObjFirstGCIndex, OpenForDisregardForGC = 0(not sure)
-	//const int obj_first_gc_index = _memory->ReadInt(address - 0x10);
-	//const int obj_last_non_gc_index = _memory->ReadInt(address - 0xC);
-	//const int max_objects_not_considered_by_gc = _memory->ReadInt(address - 0x8);
-	//const int openForDisregardForGC = _memory->ReadInt(address - 0x4);
-	//if (obj_first_gc_index < 0xF) return false;
-	//if (obj_last_non_gc_index < 0xF) return false;
-	//if (max_objects_not_considered_by_gc < 0xF) return false;
-	//if (openForDisregardForGC > 1 || openForDisregardForGC < 0) return false; // it's bool
-	//// if (obj_first_gc_index != obj_last_non_gc_index + 1) return false;
-	//// if (max_objects_not_considered_by_gc != obj_first_gc_index) return false;
-	//// if (openForDisregardForGC != 0) return false;
-
 	// Check (UObject*) (Object1) Is Valid Pointer
 	uintptr_t ptrUObject0;
 	if (!IsValidPointer(address, ptrUObject0, false)) return OBJECT_ERROR;
@@ -149,41 +132,42 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address, FUObjectArray& tArray
 	if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) return INDEX_ERROR;
 	if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) return INDEX_ERROR;
 
-	tArray.Data = address;
-	tArray.Max = 0;
-	tArray.Num = 0;
-	return SUCCESS_ERROR;
+	return ERROR_SUCCESS;
 }
 
-DWORD TArrayFinder::IsValidTArray2(const uintptr_t address, FUObjectArray& tArray)
+DWORD TArrayFinder::IsValidTArray2(const uintptr_t address)
 {
-	tArray = { 0, 0, 0 };
-
 	// Check (UObject*) (Object1) Is Valid Pointer
-	uintptr_t ptrUObject0;
-	if (!IsValidPointer(address, ptrUObject0, false)) return false;
+	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
+	if (!IsValidPointer(address, ptrUObject0, false)) return OBJECT_ERROR;
+	if (!IsValidPointer(address + dwBetweenObjects, ptrUObject1, false)) return OBJECT_ERROR;
+	if (!IsValidPointer(address + (dwBetweenObjects * 2), ptrUObject2, false)) return OBJECT_ERROR;
+	if (!IsValidPointer(address + (dwBetweenObjects * 3), ptrUObject3, false)) return OBJECT_ERROR;
+	if (!IsValidPointer(address + (dwBetweenObjects * 4), ptrUObject4, false)) return OBJECT_ERROR;
+	if (!IsValidPointer(address + (dwBetweenObjects * 5), ptrUObject5, false)) return OBJECT_ERROR;
 
-	uintptr_t ptrUObject1;
-	if (!IsValidPointer(address + dwBetweenObjects, ptrUObject1, false)) return false;
-
-	uintptr_t ptrUObject2;
-	if (!IsValidPointer(address + (dwBetweenObjects * 2), ptrUObject2, false)) return false;
-
-	uintptr_t ptrUObject3;
-	if (!IsValidPointer(address + (dwBetweenObjects * 3), ptrUObject3, false)) return false;
+	// Check vfTableObject Is Valid Pointer
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
+	if (!IsValidPointer(ptrUObject0, ptrVfTableObject0, false)) return VFTABLE_ERROR;
+	if (!IsValidPointer(ptrUObject1, ptrVfTableObject1, false)) return VFTABLE_ERROR;
+	if (!IsValidPointer(ptrUObject2, ptrVfTableObject2, false)) return VFTABLE_ERROR;
+	if (!IsValidPointer(ptrUObject3, ptrVfTableObject3, false)) return VFTABLE_ERROR;
+	if (!IsValidPointer(ptrUObject4, ptrVfTableObject4, false)) return VFTABLE_ERROR;
+	if (!IsValidPointer(ptrUObject5, ptrVfTableObject5, false)) return VFTABLE_ERROR;
 
 	// Check Objects (InternalIndex)
 	const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + dwInternalIndex);
 	const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + dwInternalIndex);
 	const int uObject2InternalIndex = _memory->ReadInt(ptrUObject2 + dwInternalIndex);
 	const int uObject3InternalIndex = _memory->ReadInt(ptrUObject3 + dwInternalIndex);
+	const int uObject4InternalIndex = _memory->ReadInt(ptrUObject4 + dwInternalIndex);
+	const int uObject5InternalIndex = _memory->ReadInt(ptrUObject5 + dwInternalIndex);
 
-	if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) return false;
-	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return false;
-	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return false;
+	if (!(uObject0InternalIndex == 0 && (uObject1InternalIndex == 1 || uObject1InternalIndex == 3))) return INDEX_ERROR;
+	if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) return INDEX_ERROR;
+	if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) return INDEX_ERROR;
+	if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) return INDEX_ERROR;
+	if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) return INDEX_ERROR;
 
-	tArray.Data = address;
-	tArray.Max = 0;
-	tArray.Num = 0;
-	return true;
+	return ERROR_SUCCESS;
 }
