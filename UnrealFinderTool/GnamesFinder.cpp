@@ -58,7 +58,7 @@ void GnamesFinder::Find()
 	if (!cmp3.empty())
 	{
 		std::cout << red << "[*] " << green << "Address is first FName." << std::endl;
-		std::cout << red << "[*] " << green << "So you must get the pointer how point the address. (FNameEntity)" << std::endl;
+		std::cout << red << "[*] " << green << "So you must get the pointer how point the address." << std::endl;
 		std::cout << red << "[*] " << green << "And then need to find the pointer how point the pointer you get. (GNames)" << std::endl;
 	}
 }
