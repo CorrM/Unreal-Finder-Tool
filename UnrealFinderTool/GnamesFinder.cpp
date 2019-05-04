@@ -48,13 +48,19 @@ void GnamesFinder::Find()
 	const auto cmp2 = GetNearNumbers(cmp1, int_r, 0x150);
 	const auto cmp3 = GetNearNumbers(cmp2, multicast_r, 0x400);
 
-	std::cout << purple << "[!] " << yellow << "Found " << cmp3.size() << " Address." << std::endl << def;
 	for (long long i : cmp3)
 	{
 		i = i - (!_memory->Is64Bit ? 0x8 : 0x10);
 		std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::endl;
 	}
+	std::cout << purple << "[!] " << yellow << "Found " << cmp3.size() << " Address." << std::endl << def;
 
+	if (!cmp3.empty())
+	{
+		std::cout << red << "[*] " << green << "Address is first FName." << std::endl;
+		std::cout << red << "[*] " << green << "So you must get the pointer how point the address. (FNameEntity)" << std::endl;
+		std::cout << red << "[*] " << green << "And then need to find the pointer how point the pointer you get. (GNames)" << std::endl;
+	}
 }
 
 std::vector<uintptr_t> GnamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, int maxValue)
