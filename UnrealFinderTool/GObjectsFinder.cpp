@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "TArrayFinder.h"
+#include "GObjectsFinder.h"
 #include "Color.h"
 
 /*
@@ -7,14 +7,14 @@
  * Some GObject use this syntax every 4byte/8byte (pointer) there is UObject
  */
 
-TArrayFinder::TArrayFinder(Memory* memory, const bool easyMethod) : _memory(memory), easyMethod(easyMethod)
+GObjectsFinder::GObjectsFinder(Memory* memory, const bool easyMethod) : _memory(memory), easyMethod(easyMethod)
 {
 	dwStart = 0;
 	dwEnd = 0;
 	ptrSize = !_memory->Is64Bit ? 0x4 : 0x8;
 }
 
-void TArrayFinder::Find()
+void GObjectsFinder::Find()
 {
 	dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
@@ -58,11 +58,11 @@ void TArrayFinder::Find()
 	{
 		std::cout << red << "[*] " << green << "Address is first UObject in the array." << std::endl;
 		std::cout << red << "[*] " << green << "So you must get the pointer how point the address." << std::endl;
-		std::cout << red << "[*] " << green << "Maybe you need to find the pointer how point the pointer you get." << std::endl;
+		std::cout << red << "[*] " << red << "Maybe you need to find the pointer how point the pointer you get." << std::endl;
 	}
 }
 
-bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, const bool checkIsAllocationBase)
+bool GObjectsFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, const bool checkIsAllocationBase)
 {
 	pointer = NULL;
 	if (!_memory->Is64Bit)
@@ -90,7 +90,7 @@ bool TArrayFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, c
 	return false;
 }
 
-DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
+DWORD GObjectsFinder::IsValidTArray(const uintptr_t address)
 {
 	DWORD ret = 1; // OBJECT_ERROR
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;

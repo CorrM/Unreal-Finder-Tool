@@ -5,7 +5,7 @@
 #define VFTABLE_ERROR 2
 #define INDEX_ERROR 3
 
-class TArrayFinder
+class GObjectsFinder
 {
 	Memory* _memory = nullptr;
 	bool easyMethod = false;
@@ -15,6 +15,6 @@ class TArrayFinder
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
 	DWORD IsValidTArray(uintptr_t address);
 public:
-	TArrayFinder(Memory* memory, bool easyMethod);
+	GObjectsFinder(Memory* memory, bool easyMethod);
 	void Find();
 };

@@ -6,7 +6,7 @@
 #include "GnamesFinder.h"
 #include "PatternScan.h"
 #include <iostream>
-#include "TArrayFinder.h"
+#include "GObjectsFinder.h"
 
 int main()
 {

@@ -165,7 +165,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="StdColors.h" />
-    <ClInclude Include="TArrayFinder.h" />
+    <ClInclude Include="GObjectsFinder.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
@@ -182,7 +182,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Scanner.cpp" />
-    <ClCompile Include="TArrayFinder.cpp" />
+    <ClCompile Include="GObjectsFinder.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="UnrealFinderTool.cpp" />
     <ClCompile Include="Utils.cpp" />

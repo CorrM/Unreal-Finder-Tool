@@ -60,11 +60,11 @@
     <ClInclude Include="Tools.h">
       <Filter>Memory\BypaPH</Filter>
     </ClInclude>
-    <ClInclude Include="TArrayFinder.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="StdColors.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GObjectsFinder.h">
+      <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -98,7 +98,7 @@
     <ClCompile Include="Tools.cpp">
       <Filter>Memory\BypaPH</Filter>
     </ClCompile>
-    <ClCompile Include="TArrayFinder.cpp">
+    <ClCompile Include="GObjectsFinder.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
