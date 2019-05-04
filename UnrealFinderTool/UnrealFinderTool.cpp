@@ -71,7 +71,13 @@ int main()
 	}
 	else if (tool_id == 2) // GObjects Finder
 	{
-		TArrayFinder taf(memManager);
+		std::cout << red << "[?] " << yellow << "First try EASY method. not work.? use HARD method and wait some time :D." << std::endl;
+		char cUseEz;
+		std::cout << green << "[-] " << yellow << "Use Easy Method (Y/N): " << dgreen;
+		std::cin >> cUseEz;
+		const bool bUseEz = cUseEz == 'Y' || cUseEz == 'y';
+
+		TArrayFinder taf(memManager, bUseEz);
 		taf.Find();
 	}
 

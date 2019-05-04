@@ -7,11 +7,11 @@
  * Some GObject use this syntax every 4byte/8byte (pointer) there is UObject
  */
 
-TArrayFinder::TArrayFinder(Memory* memory) : _memory(memory)
+TArrayFinder::TArrayFinder(Memory* memory, const bool easyMethod) : _memory(memory), easyMethod(easyMethod)
 {
 	dwStart = 0;
 	dwEnd = 0;
-	ptr_size = !_memory->Is64Bit ? 0x4 : 0x8;
+	ptrSize = !_memory->Is64Bit ? 0x4 : 0x8;
 }
 
 void TArrayFinder::Find()
@@ -31,14 +31,14 @@ void TArrayFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	// dwStart = static_cast<uintptr_t>(0x176EDFE0000);
+	// dwStart = static_cast<uintptr_t>(0x48356000);
 	// dwEnd = static_cast<uintptr_t>(0x7ff7ccc25c68);
 
 	int found_count = 0;
 	MEMORY_BASIC_INFORMATION info;
 
 	// Cycle through memory based on RegionSize
-	for (uintptr_t i = dwStart; (VirtualQueryEx(_memory->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += info.RegionSize)
+	for (uintptr_t i = dwStart; (VirtualQueryEx(_memory->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += easyMethod ? info.RegionSize : si.dwPageSize)
 	{
 		// Bad Memory
 		if (info.State != MEM_COMMIT) continue;
@@ -133,47 +133,19 @@ DWORD TArrayFinder::IsValidTArray(const uintptr_t address)
 			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
 			if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) continue;
 
-			return ERROR_SUCCESS;
-		}
-	}
-	return ret;
-}
+			// Check if 2nd UObject have FName_Index == 100
+			bool bFoundNameIndex = false;
+			for (int j = 0x4; j < 0x1C; j += 0x4)
+			{
+				const int uFNameIndex = _memory->ReadInt(ptrUObject1 + j);
+				if (uFNameIndex == 100)
+				{
+					bFoundNameIndex = true;
+					break;
+				}
+			}
 
-DWORD TArrayFinder::IsValidTArray2(const uintptr_t address)
-{
-	DWORD ret = 1; // OBJECT_ERROR
-	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-
-	for (int i = 0x0; i <= 0x20; i += 0x4)
-	{
-		// Check (UObject*) Is Valid Pointer
-		if (!IsValidPointer(address + (i * 0), ptrUObject0, false)) continue;
-		if (!IsValidPointer(address + (i * 1), ptrUObject1, false)) continue;
-		if (!IsValidPointer(address + (i * 2), ptrUObject2, false)) continue;
-		if (!IsValidPointer(address + (i * 3), ptrUObject3, false)) continue;
-		if (!IsValidPointer(address + (i * 4), ptrUObject4, false)) continue;
-		if (!IsValidPointer(address + (i * 5), ptrUObject5, false)) continue;
-		ret += 1; // VFTABLE_ERROR
-		ret += 1; // INDEX_ERROR
-
-		// Check Objects (InternalIndex)
-		for (int io = 0x0; io < 0x1C; io += 0x4)
-		{
-			const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + io);
-			const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + io);
-			const int uObject2InternalIndex = _memory->ReadInt(ptrUObject2 + io);
-			const int uObject3InternalIndex = _memory->ReadInt(ptrUObject3 + io);
-			const int uObject4InternalIndex = _memory->ReadInt(ptrUObject4 + io);
-			const int uObject5InternalIndex = _memory->ReadInt(ptrUObject5 + io);
-
-			if (uObject0InternalIndex != 0) continue;
-			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
-			if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) continue;
-			if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) continue;
-			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
-			if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) continue;
-
-			return ERROR_SUCCESS;
+			return bFoundNameIndex ? ERROR_SUCCESS : ret;
 		}
 	}
 	return ret;

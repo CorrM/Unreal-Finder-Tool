@@ -8,14 +8,13 @@
 class TArrayFinder
 {
 	Memory* _memory = nullptr;
-	int ptr_size = 0x0;
-	//const int min_size = 0x1;
+	bool easyMethod = false;
+	int ptrSize = 0x0;
 	uintptr_t dwStart, dwEnd;
 
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
 	DWORD IsValidTArray(uintptr_t address);
-	DWORD IsValidTArray2(uintptr_t address);
 public:
-	TArrayFinder(Memory* memory);
+	TArrayFinder(Memory* memory, bool easyMethod);
 	void Find();
 };
