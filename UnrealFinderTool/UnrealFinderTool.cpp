@@ -4,7 +4,6 @@
 #include "pch.h"
 #include "Color.h"
 #include "GnamesFinder.h"
-#include "PatternScan.h"
 #include <iostream>
 #include "GObjectsFinder.h"
 
@@ -77,7 +76,7 @@ int main()
 		std::cin >> cUseEz;
 		const bool bUseEz = cUseEz == 'Y' || cUseEz == 'y';
 
-		TArrayFinder taf(memManager, bUseEz);
+		GObjectsFinder taf(memManager, bUseEz);
 		taf.Find();
 	}
 
