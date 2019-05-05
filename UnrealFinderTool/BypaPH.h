@@ -23,7 +23,15 @@ public:
 	{
 		pID = dwTargetPid;
 		SetPrivilege(SE_DEBUG_NAME, TRUE);
-		m_drv = new Driver(PHACKER_DRIVER_FILE, PHACKER_DEVICE_NAME, PHACKER_SERVICE_NAME, KProcessHacker, KProcessHackerSize);
+
+		SYSTEM_INFO si;
+		GetNativeSystemInfo(&si);
+
+		if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
+			m_drv = new Driver(PHACKER_DRIVER_FILE, PHACKER_DEVICE_NAME, PHACKER_SERVICE_NAME, KProcessHacker_2_38_x64, KProcessHacker_2_38_x64_size);
+		else
+			m_drv = new Driver(PHACKER_DRIVER_FILE, PHACKER_DEVICE_NAME, PHACKER_SERVICE_NAME, KProcessHacker_2_38_x86, KProcessHacker_2_38_x86_size);
+
 		if (dwTargetPid)
 			Attach(dwTargetPid);
 	}
