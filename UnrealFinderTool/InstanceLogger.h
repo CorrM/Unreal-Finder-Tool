@@ -2,13 +2,6 @@
 #include "Memory.h"
 #include <vector>
 
-template <class T> struct TArray
-{
-	T*		Data;
-	DWORD   Num;
-	DWORD   Max;
-};
-
 #pragma region GObject
 struct UObject
 {
@@ -43,15 +36,20 @@ public:
 	FUObjectItem* Objects;
 	int MaxElements;
 	int NumElements;
+
+	~TUObjectArray()
+	{
+		delete[] Objects;
+	}
 };
 
 class FUObjectArray
 {
 public:
-	int ObjFirstGcIndex;				//0x0000
-	int ObjLastNonGcIndex;				//0x0004
-	int MaxObjectsNotConsideredByGc;	//0x0008
-	int OpenForDisregardForGc;			//0x000C
+	int ObjFirstGcIndex;
+	int ObjLastNonGcIndex;
+	int MaxObjectsNotConsideredByGc;
+	int OpenForDisregardForGc;
 
 	TUObjectArray ObjObjects;
 };
@@ -84,7 +82,6 @@ class InstanceLogger
 	uintptr_t gNamesOffset;
 	int ptrSize;
 
-	bool DataCompare(const BYTE* pData, const BYTE* bMask, const char* szMask);
 	char* GetName(UObject* object, bool& success);
 	void ObjectDump();
 	void NameDump();
@@ -92,7 +89,7 @@ class InstanceLogger
 	bool ReadGNameArray(uintptr_t address, GNameArray& gNames);
 	DWORD BufToInteger(void* buffer);
 	DWORD64 BufToInteger64(void* buffer);
-	bool IsValidAddress(const uintptr_t address);
+	bool IsValidAddress(uintptr_t address);
 	template <class ElementType>
 	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
 

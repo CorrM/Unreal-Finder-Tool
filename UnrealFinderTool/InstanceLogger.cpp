@@ -25,12 +25,6 @@ bool InstanceLogger::ProgramIs64()
 #endif
 }
 
-bool InstanceLogger::DataCompare(const BYTE *pData, const BYTE *bMask, const char *szMask)
-{
-	for (; *szMask; ++szMask, ++pData, ++bMask) if (*szMask == 'x' && *pData != *bMask) return false;
-	return (*szMask) == NULL;
-}
-
 char* InstanceLogger::GetName(UObject* object, bool& success)
 {
 	if (object->FNameIndex < 0 || object->FNameIndex > gNames.Names.size())
@@ -49,7 +43,7 @@ void InstanceLogger::ObjectDump()
 	FILE* log = nullptr;
 	fopen_s(&log, "ObjectDump.txt", "w+");
 
-	for (DWORD64 i = 0x0; i < gObjObjects.ObjObjects.NumElements; i++)
+	for (int i = 0x0; i < gObjObjects.ObjObjects.NumElements; i++)
 	{
 		if (gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress == NULL) { continue; }
 
@@ -207,7 +201,6 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 	for (uintptr_t chunkAddress : gNameChanks)
 	{
 		uintptr_t fnameAddress;
-		SIZE_T len = 0;
 
 		for (int j = 0; j < gNames.NumElements; ++j)
 		{
@@ -224,7 +217,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 			}
 
 			// Read FName
-			len = _memory->ReadBytes(fnameAddress, &name, sizeof(FName) - sizeof(string));
+			const SIZE_T len = _memory->ReadBytes(fnameAddress, &name, sizeof(FName) - sizeof(string));
 			if (len == NULL) return false;
 
 			// Set The Name
@@ -264,7 +257,7 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 	return false;
 }
 
-// You must pick the right `ElementType`, else will case some problems in the hole program
+// You must pick the right `ElementType`, else will case some memory problems in the hole program
 template<typename ElementType>
 void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
 {
