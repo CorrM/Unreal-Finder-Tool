@@ -22,7 +22,6 @@ public:
 	int			Flags;
 	int			ClusterIndex;
 	int			SerialNumber;
-	char		Unknowndata00[0x4];
 
 	~FUObjectItem()
 	{

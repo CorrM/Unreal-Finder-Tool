@@ -32,12 +32,13 @@ int main()
 	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
 	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
 	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Generate SDK for ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 3)
+	if (tool_id == 0 || tool_id > 4)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
 		std::cout << def << "===================================\n" << std::endl;
