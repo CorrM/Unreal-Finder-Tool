@@ -55,7 +55,7 @@ void InstanceLogger::ObjectDump()
 
 		bool state;
 		char* name = GetName(gObjObjects.ObjObjects.Objects[i].Object, state);
-		if (state) fprintf(log, "UObject[%06i] %-50s 0x%" PRIXPTR "\n", int(i), name, gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress);
+		/*if (state) */fprintf(log, "UObject[%06i] %-50s 0x%" PRIXPTR "\n", int(i), name, gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress);
 	}
 
 	fclose(log);
