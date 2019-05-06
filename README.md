@@ -4,6 +4,7 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 # Features
 - Find GNames.
 - Find GObjects.
+- Instance Logger.
 - Kenrnal to read process memory. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
 
 # Compatibility
