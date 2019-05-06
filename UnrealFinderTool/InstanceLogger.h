@@ -57,6 +57,7 @@ public:
 };
 #pragma endregion
 
+#pragma region GNames
 struct FName
 {
 	int Index;
@@ -70,7 +71,7 @@ class GNameArray
 public:
 	int d0, d1, d2, d3, d4, d5, d6;
 	std::vector<FName> Names;
-	int NumElements = 2 * 1024 * 1024;
+	int NumElements = 16384;
 };
 
 template<typename ElementType, int MaxTotalElements, int ElementsPerChunk>
@@ -101,6 +102,7 @@ private:
 	int numChunks;
 };
 using TNameEntryArray = TStaticIndirectArrayThreadSafeRead<FName, 2 * 1024 * 1024, 16384>; // 2
+#pragma endregion
 
 class InstanceLogger
 {

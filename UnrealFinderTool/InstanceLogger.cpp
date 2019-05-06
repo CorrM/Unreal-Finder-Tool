@@ -127,7 +127,6 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 	// Alloc
 	// ############################################
 	objectArray.ObjObjects.Objects = new FUObjectItem[objectArray.ObjObjects.NumElements];
-	objectArray.ObjObjects.NumElements *= 2;
 
 	uintptr_t currentUObjAddress = dwUObjectItem;
 	for (int i = 0; i < objectArray.ObjObjects.NumElements; ++i)
@@ -186,50 +185,52 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 {
 	const int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
 	if (!_memory->Is64Bit)
-	{
 		address = _memory->ReadInt(address);
-		address = _memory->ReadInt(address);
-	}
 	else
+		address = _memory->ReadInt64(address);
+
+	// Get GNames Chunks
+	std::vector<uintptr_t> gNameChanks;
+	for (int i = 0; i < ptrSize * 10; ++i)
 	{
-		address = _memory->ReadInt64(address);
-		address = _memory->ReadInt64(address);
+		uintptr_t addr;
+		if (!_memory->Is64Bit)
+			addr = _memory->ReadInt(address + i * ptrSize); // 4byte
+		else
+			addr = _memory->ReadInt64(address + i * ptrSize); // 8byte
+
+		if (!IsValidAddress(addr)) break;
+		gNameChanks.push_back(addr);
 	}
 
-	uintptr_t fnameAddress, firstEntity = 0;
-	SIZE_T len = 0;
-	int i = 0;
-
-
-	while (true)
+	// Dump GNames
+	for (uintptr_t chunkAddress : gNameChanks)
 	{
-		FName name;
-		if (!_memory->Is64Bit)
-			fnameAddress = _memory->ReadInt(address + i); // 4byte
-		else
-			fnameAddress = _memory->ReadInt64(address + i); // 8byte
+		uintptr_t fnameAddress;
+		SIZE_T len = 0;
 
-		if (firstEntity == NULL)
-			firstEntity = fnameAddress;
-
-		if (address + i >= firstEntity)
-			break;
-
-		if (!IsValidAddress(fnameAddress))
+		for (int j = 0; j < gNames.NumElements; ++j)
 		{
+			FName name;
+			if (!_memory->Is64Bit)
+				fnameAddress = _memory->ReadInt(chunkAddress + j * ptrSize); // 4byte
+			else
+				fnameAddress = _memory->ReadInt64(chunkAddress + j * ptrSize); // 8byte
+
+			if (!IsValidAddress(fnameAddress))
+			{
+				gNames.Names.push_back(name);
+				continue;
+			}
+
+			// Read FName
+			len = _memory->ReadBytes(fnameAddress, &name, sizeof(FName) - sizeof(string));
+			if (len == NULL) return false;
+
+			// Set The Name
+			name.AnsiName = _memory->ReadText(fnameAddress + (sizeof(FName) - sizeof(string) - (sSub * 2)));
 			gNames.Names.push_back(name);
-			i += ptrSize;
-			continue;
 		}
-
-		// Read FName
-		len = _memory->ReadBytes(fnameAddress, &name, sizeof(FName) - sizeof(string));
-		if (len == NULL) return false;
-
-		// Set The Name
-		name.AnsiName = _memory->ReadText(fnameAddress + (sizeof(FName) - sizeof(string) - (sSub * 2)));
-		gNames.Names.push_back(name);
-		i += ptrSize;
 	}
 
 	return true;
