@@ -93,8 +93,7 @@ void InstanceLogger::Start()
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& objectArray)
 {
 	const int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
-	SIZE_T len = _memory->ReadBytes(address, &objectArray, sizeof(FUObjectArray) - sSub);
-	if (len == NULL) return false;
+	if (_memory->ReadBytes(address, &objectArray, sizeof(FUObjectArray) - sSub) == NULL) return false;
 	uintptr_t dwUObjectItem, dwUObject;
 
 	// ############################################
@@ -126,8 +125,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 	for (int i = 0; i < objectArray.ObjObjects.NumElements; ++i)
 	{
 		// Read the address as class
-		len = _memory->ReadBytes(currentUObjAddress, &objectArray.ObjObjects.Objects[i], sizeof FUObjectItem);
-		if (len == NULL) return false;
+		if (_memory->ReadBytes(currentUObjAddress, &objectArray.ObjObjects.Objects[i], sizeof FUObjectItem) == NULL) return false;
 
 		// ############################################
 		// Convert class pointer to address
@@ -153,8 +151,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		// Alloc and Read the address as class
 		// ############################################
 		objectArray.ObjObjects.Objects[i].Object = new UObject();
-		len = _memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject));
-		if (len == NULL) return false;
+		if (_memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject) - sizeof(uintptr_t)) == NULL) return false;
 
 		// Fix UObject
 		if (!_memory->Is64Bit)
@@ -170,7 +167,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		}
 
 		objectArray.ObjObjects.Objects[i].Object->OriginalAddress = dwUObject;
-		currentUObjAddress += sizeof(FUObjectItem) - (sSub * 2);
+		currentUObjAddress += sizeof(FUObjectItem) - sSub * 2;
 	}
 	return true;
 }
@@ -189,9 +186,9 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 	{
 		uintptr_t addr;
 		if (!_memory->Is64Bit)
-			addr = _memory->ReadInt(address + i * ptrSize); // 4byte
+			addr = _memory->ReadInt(address + (i * ptrSize)); // 4byte
 		else
-			addr = _memory->ReadInt64(address + i * ptrSize); // 8byte
+			addr = _memory->ReadInt64(address + (i * ptrSize)); // 8byte
 
 		if (!IsValidAddress(addr)) break;
 		gNameChanks.push_back(addr);
@@ -206,9 +203,9 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 		{
 			FName name;
 			if (!_memory->Is64Bit)
-				fnameAddress = _memory->ReadInt(chunkAddress + j * ptrSize); // 4byte
+				fnameAddress = _memory->ReadInt(chunkAddress + (j * ptrSize)); // 4byte
 			else
-				fnameAddress = _memory->ReadInt64(chunkAddress + j * ptrSize); // 8byte
+				fnameAddress = _memory->ReadInt64(chunkAddress + (j * ptrSize)); // 8byte
 
 			if (!IsValidAddress(fnameAddress))
 			{
@@ -221,7 +218,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 			if (len == NULL) return false;
 
 			// Set The Name
-			name.AnsiName = _memory->ReadText(fnameAddress + (sizeof(FName) - sizeof(string) - (sSub * 2)));
+			name.AnsiName = _memory->ReadText(fnameAddress + (sizeof(FName) - sizeof(string) - sSub * 2));
 			gNames.Names.push_back(name);
 		}
 	}
@@ -257,7 +254,12 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 	return false;
 }
 
-// You must pick the right `ElementType`, else will case some memory problems in the hole program
+/// <summary>
+/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
+/// You must pick the right `ElementType`, else will case some memory problems in the hole program
+/// </summary>
+/// <param name="structBase">Pointer to instance of `ElementType`</param>
+/// <param name="varOffsetEach4Byte">Pointer position of `ElementType`</param>
 template<typename ElementType>
 void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
 {

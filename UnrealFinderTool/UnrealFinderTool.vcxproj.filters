@@ -25,6 +25,9 @@
     <Filter Include="Memory\BypaPH">
       <UniqueIdentifier>{1cbdc3e0-6dbf-42da-8f62-8ce3b52351d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SDKGen">
+      <UniqueIdentifier>{48c24de1-7113-4b68-b694-bbfd0d4b8f30}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
