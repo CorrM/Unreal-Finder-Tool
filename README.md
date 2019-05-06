@@ -1,14 +1,16 @@
-# Unreal-Finder-Tool
-it's useful tool to help you finding GObject, GNames in ue4 games.
-
-it's work for:
-  - all UE4 Games (32/64bit).
-  - all UE4 Versions.
+# Unreal Finder Tool
+Useful tool to help you fetch Unreal Engine 4 Games information.
 
 # Features
 - Find GNames.
 - Find GObjects.
 - Kenrnal to read process memory. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
+
+# Compatibility
+- Windows 64bit, (32/64bit) games.
+- Windows 32bit, (32bit) games Only.
+- All UE4 Games (32/64bit).
+- All UE4 Versions.
 
 # Tested with
 - PubgMobile (On TGB Emulator). (x32)
