@@ -21,4 +21,6 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 - Some Indie games. (64bit / 32bit)
 
 # Tut Video
-<a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank"><img src="https://img.youtube.com/vi/mc9plMorAlQ/0.jpg" alt="Overlay demo" width="300" height="200" border="10" /></a>
+<a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank">
+<img src="https://img.youtube.com/vi/mc9plMorAlQ/0.jpg" alt="Overlay demo" width="400" height="300" border="10" />
+</a>
