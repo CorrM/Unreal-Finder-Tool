@@ -69,39 +69,9 @@ struct FName
 class GNameArray
 {
 public:
-	int d0, d1, d2, d3, d4, d5, d6;
 	std::vector<FName> Names;
 	int NumElements = 16384;
 };
-
-template<typename ElementType, int MaxTotalElements, int ElementsPerChunk>
-class TStaticIndirectArrayThreadSafeRead
-{
-public:
-	int Num() const { return numElements; }
-	bool IsValidIndex(const int index) const { return index >= 0 && index < Num() && GetById(index) != nullptr; }
-	ElementType const* const& GetById(const int index) const { return *GetItemPtr(index); }
-
-private:
-	ElementType const* const* GetItemPtr(const int index) const
-	{
-		const int chunk_index = index / ElementsPerChunk;
-		const int within_chunk_index = index % ElementsPerChunk;
-		const auto chunk = chunks[chunk_index];
-		return chunk + within_chunk_index;
-	}
-
-	enum
-	{
-		ChunkTableSize = (MaxTotalElements + ElementsPerChunk - 1) / ElementsPerChunk
-	};
-
-	ElementType* chunks[ChunkTableSize]; // ElementType**
-	UCHAR Unknown00[4];
-	int numElements;
-	int numChunks;
-};
-using TNameEntryArray = TStaticIndirectArrayThreadSafeRead<FName, 2 * 1024 * 1024, 16384>; // 2
 #pragma endregion
 
 class InstanceLogger

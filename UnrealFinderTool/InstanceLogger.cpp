@@ -111,7 +111,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		if (ProgramIs64())
 		{
 			dwUObjectItem = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects); // 4byte
-			FixStructPointer<UObject>(static_cast<void*>(&objectArray.ObjObjects), 0);
+			FixStructPointer<TUObjectArray>(static_cast<void*>(&objectArray.ObjObjects), 0);
 		}
 		else
 		{
@@ -143,7 +143,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 			if (ProgramIs64())
 			{
 				dwUObject = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects[i].Object); // 4byte
-				FixStructPointer<UObject>(static_cast<void*>(&objectArray.ObjObjects.Objects[i]), 0);
+				FixStructPointer<FUObjectItem>(static_cast<void*>(&objectArray.ObjObjects.Objects[i]), 0);
 			}
 			else
 			{
@@ -191,7 +191,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gNameChanks;
-	for (int i = 0; i < ptrSize * 10; ++i)
+	for (int i = 0; i < ptrSize * 15; ++i)
 	{
 		uintptr_t addr;
 		if (!_memory->Is64Bit)
@@ -264,20 +264,20 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 	return false;
 }
 
+// You must pick the right `ElementType`, else will case some problems in the hole program
 template<typename ElementType>
 void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
 {
 	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
 	const int x2 = 0x4 * varOffsetEach4Byte;
 
-	const int x1x = abs(x1 - int(sizeof(ElementType)));
-	const int x2x = abs(x2 - int(sizeof(ElementType)));
+	const int size = abs(x1 - int(sizeof(ElementType)));
 	memcpy_s
 	(
 		static_cast<char*>(structBase) + x1,
-		x1x,
+		size,
 		static_cast<char*>(structBase) + x2,
-		x1x
+		size
 	);
 	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
 }
