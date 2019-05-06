@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef _WIN64
+#if INTPTR_MAX == INT32_MAX
 #define KProcessHacker KProcessHacker_2_38_x86
 #define KProcessHackerSize KProcessHacker_2_38_x86_size
 #else

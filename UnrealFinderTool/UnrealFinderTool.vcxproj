@@ -160,6 +160,7 @@
     <ClInclude Include="Color.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="GnamesFinder.h" />
+    <ClInclude Include="InstanceLogger.h" />
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="PatternScan.h" />
@@ -174,6 +175,7 @@
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="GnamesFinder.cpp" />
+    <ClCompile Include="InstanceLogger.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="pch.cpp">

@@ -3,6 +3,16 @@
 #include "GnamesFinder.h"
 #include <iostream>
 #include "GObjectsFinder.h"
+#include "InstanceLogger.h"
+
+bool is64()
+{
+#if _WIN64
+	return true;
+#else
+	return false;
+#endif
+}
 
 int main()
 {
@@ -11,7 +21,7 @@ int main()
 	GetWindowRect(console, &r);
 	MoveWindow(console, r.left, r.top, 650, 400, TRUE);
 
-	int tool_id, p_id;
+	int tool_id, p_id, old_pid = 0;
 
 	RESTART:
 	system("cls");
@@ -19,14 +29,15 @@ int main()
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "   -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "  -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 2)
+	if (tool_id == 0 || tool_id > 3)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
 		std::cout << def << "===================================\n" << std::endl;
@@ -38,15 +49,20 @@ int main()
 	std::cout << green << "[-] " << yellow << "input process ID: " << dgreen;
 	std::cin >> p_id;
 
-	if (p_id == 0)
+	if (p_id == 0 && old_pid != 0)
 	{
-		std::cout << red << "[*] " << def << "Input valid process ID." << std::endl << def;
-		goto pID;
+		p_id = old_pid;
 	}
 
 	const HANDLE pHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
 	DWORD exitCode;
-	if (GetExitCodeProcess(pHandle, &exitCode) == FALSE && exitCode != STILL_ACTIVE) goto pID;
+
+	if (p_id == 0 && old_pid == 0 || GetExitCodeProcess(pHandle, &exitCode) == FALSE && exitCode != STILL_ACTIVE)
+	{
+		std::cout << red << "[*] " << def << "Input valid process ID." << std::endl << def;
+		goto pID;
+	}
+	old_pid = p_id;
 
 	// Use Kernal ???
 	char cUseKernal;
@@ -76,7 +92,20 @@ int main()
 		GObjectsFinder taf(memManager, bUseEz);
 		taf.Find();
 	}
+	else if (tool_id == 3) // Instance Logger
+	{
+		uintptr_t objObjectsAddress, gNamesAddress;
+		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
+		std::cin >> std::hex >> objObjectsAddress;
 
+		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
+		std::cin >> std::hex >> gNamesAddress;
+
+		InstanceLogger il(memManager, objObjectsAddress, gNamesAddress);
+		il.Start();
+	}
+
+	Finished:
 	std::cout << def << "===================================" << std::endl;
 
 	delete memManager;

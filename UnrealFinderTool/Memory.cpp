@@ -3,7 +3,6 @@
 #include <vector>
 #include <TlHelp32.h>
 #include <psapi.h>
-#include <iostream>
 
 BypaPH* Memory::bypa_ph = nullptr;
 
@@ -66,29 +65,13 @@ int Memory::GetProcessIdByName(char* processName)
 	return pe32.th32ProcessID;
 }
 
-uintptr_t Memory::GetModuleBase(const string sModuleName)  // NOLINT
+MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 {
-	HMODULE *hModules = nullptr;
-	char szBuf[50];
-	DWORD cModules;
-	uintptr_t dwBase = -1;
+	MODULEINFO miInfos = { NULL };
+	const HMODULE hModule = GetModuleHandle(lpModuleName);
+	if (hModule) GetModuleInformation(GetCurrentProcess(), hModule, &miInfos, sizeof MODULEINFO);
 
-	EnumProcessModules(ProcessHandle, hModules, 0, &cModules);
-	hModules = new HMODULE[cModules / sizeof(HMODULE)];
-
-	if (EnumProcessModules(ProcessHandle, hModules, cModules / sizeof(HMODULE), &cModules)) {
-		for (size_t i = 0; i < cModules / sizeof(HMODULE); i++) {
-			if (GetModuleBaseNameA(ProcessHandle, hModules[i], szBuf, sizeof(szBuf))) {
-				if (sModuleName == szBuf) {
-					dwBase = reinterpret_cast<uintptr_t>(hModules[i]);
-					break;
-				}
-			}
-		}
-	}
-
-	delete[] hModules;
-	return dwBase;
+	return miInfos;
 }
 
 BOOL Memory::SetPrivilegeM(HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)
@@ -130,7 +113,7 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-SIZE_T Memory::ReadBytes(const uintptr_t address, BYTE* buf, const int len)
+SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const int len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -145,14 +128,14 @@ SIZE_T Memory::ReadBytes(const uintptr_t address, BYTE* buf, const int len)
 			buf,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
-		if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
+		/*if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
 	else
 	{
 		const auto success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), buf, numberOfBytesToRead, &numberOfBytesActuallyRead);
-		if (!success && GetLastError() != 299)
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
+		/*if (!success && GetLastError() != 299)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
 	
 	return numberOfBytesToRead;
@@ -182,7 +165,6 @@ bool Memory::ReadBool(const uintptr_t address)
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return false;
 		}
 	}
@@ -243,7 +225,6 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
 	}
@@ -330,7 +311,6 @@ float Memory::ReadFloat(const uintptr_t address) {
 		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
-			std::cout << "Memory Error! " << GetLastError() << std::endl;
 			return -1;
 		}
 	}
@@ -364,13 +344,14 @@ float Memory::ReadPointerFloat(const uintptr_t address, int offsets[], int offse
 
 string Memory::ReadText(uintptr_t address)
 {
+	string ret;
 	if (address == static_cast<uintptr_t>(-1))
-		return "-1";
+		return "";
 
 	char buffer = 1;
-	const auto stringToRead = new char[128];
-	const SIZE_T numberOfBytesToRead = sizeof(buffer);
+	const SIZE_T numberOfBytesToRead = sizeof buffer;
 	SIZE_T numberOfBytesActuallyRead;
+
 	auto i = 0;
 	while (buffer != 0)
 	{
@@ -382,26 +363,25 @@ string Memory::ReadText(uintptr_t address)
 				numberOfBytesToRead,
 				&numberOfBytesActuallyRead);
 			if (state != STATUS_SUCCESS)
-				return "-1";
+				return "";
 		}
 		else
 		{
 			const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 			if (!state)
 			{
-				std::cout << "Memory Error! " << GetLastError() << std::endl;
-				return "-1";
+				return "";
 			}
 		}
-		stringToRead[i] = buffer;
+		ret.push_back(buffer);
 		i++;
 		address++;
 	}
-	return stringToRead;
+	return ret;
 }
 
 string Memory::ReadPointerText(const uintptr_t address, int offsets[], int offsetCount) {
 	if (address == static_cast<uintptr_t>(-1))
-		return "-1";
+		return "";
 	return ReadText(GetPointerAddress(address, offsets, offsetCount));
 }

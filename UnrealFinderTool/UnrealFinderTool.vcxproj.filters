@@ -66,6 +66,9 @@
     <ClInclude Include="GObjectsFinder.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="InstanceLogger.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -99,6 +102,9 @@
       <Filter>Memory\BypaPH</Filter>
     </ClCompile>
     <ClCompile Include="GObjectsFinder.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="InstanceLogger.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
