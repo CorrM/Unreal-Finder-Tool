@@ -26,7 +26,7 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 </a>
 
 # Change Log
-##### 6-6-2019
+##### 06-06-2019
 - Add Instance Logger.
-##### 2-6-2019
+##### 02-06-2019
 - First version released
