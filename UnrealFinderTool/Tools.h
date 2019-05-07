@@ -11,8 +11,8 @@
 std::wstring str2wstr(std::string  in);
 std::string  wstr2str(std::wstring in);
 
-bool SetPrivilegeW(const LPCWSTR lpszPrivilege, const BOOL bEnablePrivilege);
+bool SetPrivilegeW(LPCWSTR lpszPrivilege, BOOL bEnablePrivilege);
 
-bool SetPrivilegeA(const LPCSTR lpszPrivilege, const BOOL bEnablePrivilege);
+bool SetPrivilegeA(LPCSTR lpszPrivilege, BOOL bEnablePrivilege);
 
-bool WriteDataToFile(const UCHAR pBuffer[], const DWORD dwSize, const std::string& strFileName, const DWORD dwCreationDisposition = CREATE_NEW);
+bool WriteDataToFile(const UCHAR pBuffer[], DWORD dwSize, const std::string& strFileName, DWORD dwCreationDisposition = CREATE_NEW);

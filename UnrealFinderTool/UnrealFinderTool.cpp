@@ -55,7 +55,7 @@ int main()
 		p_id = old_pid;
 	}
 
-	const HANDLE pHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
+	HANDLE pHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
 	DWORD exitCode;
 
 	if (p_id == 0 && old_pid == 0 || GetExitCodeProcess(pHandle, &exitCode) == FALSE && exitCode != STILL_ACTIVE)
@@ -106,7 +106,6 @@ int main()
 		il.Start();
 	}
 
-	Finished:
 	std::cout << def << "===================================" << std::endl;
 
 	delete memManager;

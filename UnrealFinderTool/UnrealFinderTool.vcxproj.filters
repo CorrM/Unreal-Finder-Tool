@@ -25,9 +25,6 @@
     <Filter Include="Memory\BypaPH">
       <UniqueIdentifier>{1cbdc3e0-6dbf-42da-8f62-8ce3b52351d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SDKGen">
-      <UniqueIdentifier>{48c24de1-7113-4b68-b694-bbfd0d4b8f30}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -63,14 +60,17 @@
     <ClInclude Include="Tools.h">
       <Filter>Memory\BypaPH</Filter>
     </ClInclude>
-    <ClInclude Include="StdColors.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GObjectsFinder.h">
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="InstanceLogger.h">
       <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGenerator.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="StdColors.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +108,9 @@
       <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="InstanceLogger.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGenerator.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>

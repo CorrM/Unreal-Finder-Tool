@@ -119,12 +119,12 @@ public:
 			return "";
 		}
 
-		char* buf = new char[ReadSize];
-		ZeroMemory(buf, sizeof(buf));
+		auto* buf = new char[ReadSize];
+		ZeroMemory(buf, sizeof(char) * ReadSize);
 		RWVM(m_hTarget, BaseAddress, buf, ReadSize, NumberOfBytesRead);
 		std::string ret(buf);
 
-		delete buf;
+		delete[] buf;
 		return ret;
 	}
 
@@ -136,12 +136,12 @@ public:
 			return L"";
 		}
 
-		wchar_t* buf = new wchar_t[ReadSize];
-		ZeroMemory(buf, sizeof(buf));
+		auto* buf = new wchar_t[ReadSize];
+		ZeroMemory(buf, sizeof(wchar_t) * ReadSize);
 		NTSTATUS gg = RWVM(m_hTarget, BaseAddress, buf, ReadSize, NumberOfBytesRead);
 		std::wstring ret(buf);
 
-		delete buf;
+		delete[] buf;
 		return ret;
 	}
 

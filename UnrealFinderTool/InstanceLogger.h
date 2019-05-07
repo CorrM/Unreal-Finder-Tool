@@ -58,7 +58,7 @@ public:
 struct FName
 {
 	int Index;
-	//char pad_0x0004[0x4];
+	char pad_0x0004[0x4];
 	uintptr_t HashNext; // FName*
 	string AnsiName;
 };
@@ -86,11 +86,11 @@ class InstanceLogger
 	void NameDump();
 	bool ReadUObjectArray(uintptr_t address, FUObjectArray& objectArray);
 	bool ReadGNameArray(uintptr_t address, GNameArray& gNames);
-	DWORD BufToInteger(void* buffer);
-	DWORD64 BufToInteger64(void* buffer);
-	bool IsValidAddress(uintptr_t address);
+	static DWORD BufToInteger(void* buffer);
+	static DWORD64 BufToInteger64(void* buffer);
+	bool IsValidAddress(uintptr_t address) const;
 	template <class ElementType>
-	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
+	void FixStructPointer(void* structBase, int varOffsetEach4Byte) const;
 
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);

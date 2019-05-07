@@ -31,7 +31,7 @@ char* InstanceLogger::GetName(UObject* object, bool& success)
 	{
 		success = false;
 		static char ret[256];
-		sprintf_s(ret, "INVALID NAME INDEX : %i > %i", object->FNameIndex, gNames.Names.size());
+		sprintf_s(ret, "INVALID NAME INDEX : %i > %zu", object->FNameIndex, gNames.Names.size());
 		return ret;
 	}
 	success = true;
@@ -43,13 +43,19 @@ void InstanceLogger::ObjectDump()
 	FILE* log = nullptr;
 	fopen_s(&log, "ObjectDump.txt", "w+");
 
+	if (log == nullptr)
+	{
+		MessageBoxA(nullptr, "Can't open 'ObjectDump.txt' for write.", "Wrong", MB_OK);
+		return;
+	}
+
 	for (int i = 0x0; i < gObjObjects.ObjObjects.NumElements; i++)
 	{
 		if (gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress == NULL) { continue; }
 
 		bool state;
 		char* name = GetName(gObjObjects.ObjObjects.Objects[i].Object, state);
-		/*if (state) */fprintf(log, "UObject[%06i] %-50s 0x%" PRIXPTR "\n", int(i), name, gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress);
+		/*if (state) */fprintf(log, "UObject[%06i] %-80s 0x%" PRIXPTR "\n", int(i), name, gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress);
 	}
 
 	fclose(log);
@@ -60,10 +66,15 @@ void InstanceLogger::NameDump()
 	FILE* log = nullptr;
 	fopen_s(&log, "NameDump.txt", "w+");
 
+	if (log == nullptr)
+	{
+		MessageBoxA(nullptr, "Can't open 'NameDump.txt' for write.", "Wrong", MB_OK);
+		return;
+	}
+
 	for (DWORD64 i = 0x0; i < gNames.Names.size(); i++)
 	{
 		// if (!gNames.Names[i]) { continue; }
-
 		fprintf(log, "Name[%06i] %s\n", int(i), gNames.Names[i].AnsiName.c_str());
 	}
 
@@ -92,7 +103,7 @@ void InstanceLogger::Start()
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& objectArray)
 {
-	const int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
+	const uint32_t sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
 	if (_memory->ReadBytes(address, &objectArray, sizeof(FUObjectArray) - sSub) == NULL) return false;
 	uintptr_t dwUObjectItem, dwUObject;
 
@@ -167,58 +178,63 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		}
 
 		objectArray.ObjObjects.Objects[i].Object->OriginalAddress = dwUObject;
-		currentUObjAddress += sizeof(FUObjectItem) - sSub * 2;
+		currentUObjAddress += sizeof(FUObjectItem) - (sSub * 2);
 	}
 	return true;
 }
 
 bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 {
-	const int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
+	int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
 	if (!_memory->Is64Bit)
 		address = _memory->ReadInt(address);
 	else
 		address = _memory->ReadInt64(address);
 
 	// Get GNames Chunks
-	std::vector<uintptr_t> gNameChanks;
+	std::vector<uintptr_t> gNameChunks;
 	for (int i = 0; i < ptrSize * 15; ++i)
 	{
 		uintptr_t addr;
+		const int offset = ptrSize * i;
+
 		if (!_memory->Is64Bit)
-			addr = _memory->ReadInt(address + (i * ptrSize)); // 4byte
+			addr = _memory->ReadInt(address + offset); // 4byte
 		else
-			addr = _memory->ReadInt64(address + (i * ptrSize)); // 8byte
+			addr = _memory->ReadInt64(address + offset); // 8byte
 
 		if (!IsValidAddress(addr)) break;
-		gNameChanks.push_back(addr);
+		gNameChunks.push_back(addr);
 	}
 
 	// Dump GNames
-	for (uintptr_t chunkAddress : gNameChanks)
+	const auto sizeToRead = sizeof(FName) - sizeof(string);
+	for (uintptr_t chunkAddress : gNameChunks)
 	{
-		uintptr_t fnameAddress;
+		uintptr_t fNameAddress;
 
 		for (int j = 0; j < gNames.NumElements; ++j)
 		{
 			FName name;
-			if (!_memory->Is64Bit)
-				fnameAddress = _memory->ReadInt(chunkAddress + (j * ptrSize)); // 4byte
-			else
-				fnameAddress = _memory->ReadInt64(chunkAddress + (j * ptrSize)); // 8byte
+			const int offset = ptrSize * j;
 
-			if (!IsValidAddress(fnameAddress))
+			if (!_memory->Is64Bit)
+				fNameAddress = _memory->ReadInt(chunkAddress + offset); // 4byte
+			else
+				fNameAddress = _memory->ReadInt64(chunkAddress + offset); // 8byte
+
+			if (!IsValidAddress(fNameAddress))
 			{
 				gNames.Names.push_back(name);
 				continue;
 			}
 
 			// Read FName
-			const SIZE_T len = _memory->ReadBytes(fnameAddress, &name, sizeof(FName) - sizeof(string));
+			const SIZE_T len = _memory->ReadBytes(fNameAddress, &name, sizeToRead);
 			if (len == NULL) return false;
 
 			// Set The Name
-			name.AnsiName = _memory->ReadText(fnameAddress + (sizeof(FName) - sizeof(string) - sSub * 2));
+			name.AnsiName = _memory->ReadText(fNameAddress + sizeToRead - sSub);
 			gNames.Names.push_back(name);
 		}
 	}
@@ -236,7 +252,7 @@ DWORD64 InstanceLogger::BufToInteger64(void* buffer)
 	return *reinterpret_cast<DWORD64*>(buffer);
 }
 
-bool InstanceLogger::IsValidAddress(const uintptr_t address)
+bool InstanceLogger::IsValidAddress(const uintptr_t address) const
 {
 	if (INVALID_POINTER_VALUE(address) /*|| pointer <= dwStart || pointer > dwEnd*/)
 		return false;
@@ -256,12 +272,12 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 
 /// <summary>
 /// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
-/// You must pick the right `ElementType`, else will case some memory problems in the hole program
+/// Must pick the right `ElementType`, else will case some memory problems in the hole program
 /// </summary>
 /// <param name="structBase">Pointer to instance of `ElementType`</param>
 /// <param name="varOffsetEach4Byte">Pointer position of `ElementType`</param>
 template<typename ElementType>
-void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
+void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte) const
 {
 	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
 	const int x2 = 0x4 * varOffsetEach4Byte;

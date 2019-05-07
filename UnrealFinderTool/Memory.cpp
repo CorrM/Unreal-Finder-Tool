@@ -113,7 +113,7 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const int len)
+SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;

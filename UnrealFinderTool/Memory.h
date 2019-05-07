@@ -20,7 +20,7 @@ public:
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
-	SIZE_T ReadBytes(uintptr_t address, PVOID buf, int len);
+	SIZE_T ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len);
 	bool ReadBool(uintptr_t address);
 	int ReadInt(uintptr_t address);
 	INT64 ReadInt64(uintptr_t address);
