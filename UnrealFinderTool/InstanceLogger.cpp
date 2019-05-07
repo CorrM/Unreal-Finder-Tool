@@ -277,7 +277,7 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address) const
 /// <param name="structBase">Pointer to instance of `ElementType`</param>
 /// <param name="varOffsetEach4Byte">Pointer position of `ElementType`</param>
 template<typename ElementType>
-void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte) const
+void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
 {
 	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
 	const int x2 = 0x4 * varOffsetEach4Byte;

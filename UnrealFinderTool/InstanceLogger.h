@@ -90,11 +90,11 @@ class InstanceLogger
 	static DWORD64 BufToInteger64(void* buffer);
 	bool IsValidAddress(uintptr_t address) const;
 	template <class ElementType>
-	void FixStructPointer(void* structBase, int varOffsetEach4Byte) const;
+	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
 
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	bool ProgramIs64();
+	static bool ProgramIs64();
 	void Start();
 };
 
