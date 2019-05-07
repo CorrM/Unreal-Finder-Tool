@@ -1,0 +1,22 @@
+{
+  "structs": [
+    {
+      "name": "TUObjectArray",
+      "vars": {
+          "Objects": "pointer",
+          "MaxElements": "int",
+          "NumElements": "int"
+        }
+    },
+    {
+      "name": "FUObjectArray",
+      "vars": {
+          "ObjFirstGcIndex": "int",
+          "ObjLastNonGcIndex": "int",
+          "MaxObjectsNotConsideredByGc": "int",
+          "OpenForDisregardForGc": "int",
+          "TUObjectArray": "TUObjectArray"
+        }
+    }
+  ]
+}

@@ -166,6 +166,7 @@
     <ClInclude Include="Driver.h" />
     <ClInclude Include="GnamesFinder.h" />
     <ClInclude Include="InstanceLogger.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="PatternScan.h" />
@@ -198,6 +199,5 @@
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

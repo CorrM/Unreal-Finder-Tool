@@ -3,9 +3,12 @@
 // 
 #include "pch.h"
 #include "InstanceLogger.h"
+#include "Utils.h"
+
 #include <iostream>
 #include <string>
 #include <cinttypes>
+using namespace nlohmann;
 
 InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(),
@@ -14,15 +17,6 @@ InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddres
 	gNamesOffset(gNamesAddress)
 {
 	ptrSize = _memory->Is64Bit ? 0x8 : 0x4;
-}
-
-bool InstanceLogger::ProgramIs64()
-{
-#if _WIN64
-	return true;
-#else
-	return false;
-#endif
 }
 
 char* InstanceLogger::GetName(UObject* object, bool& success)
@@ -103,7 +97,7 @@ void InstanceLogger::Start()
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& objectArray)
 {
-	const uint32_t sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
+	const uint32_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	if (_memory->ReadBytes(address, &objectArray, sizeof(FUObjectArray) - sSub) == NULL) return false;
 	uintptr_t dwUObjectItem, dwUObject;
 
@@ -112,7 +106,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 	// ############################################
 	if (!_memory->Is64Bit)
 	{
-		if (ProgramIs64())
+		if (Utils::ProgramIs64())
 		{
 			dwUObjectItem = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects); // 4byte
 			FixStructPointer<TUObjectArray>(static_cast<void*>(&objectArray.ObjObjects), 0);
@@ -143,7 +137,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		// ############################################
 		if (!_memory->Is64Bit)
 		{
-			if (ProgramIs64())
+			if (Utils::ProgramIs64())
 			{
 				dwUObject = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects[i].Object); // 4byte
 				FixStructPointer<FUObjectItem>(static_cast<void*>(&objectArray.ObjObjects.Objects[i]), 0);
@@ -167,7 +161,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 		// Fix UObject
 		if (!_memory->Is64Bit)
 		{
-			if (ProgramIs64())
+			if (Utils::ProgramIs64())
 			{
 				// Fix VfTable
 				FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 0);
@@ -185,7 +179,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, FUObjectArray& ob
 
 bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 {
-	int sSub = _memory->Is64Bit && ProgramIs64() ? 0x0 : 0x4;
+	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	if (!_memory->Is64Bit)
 		address = _memory->ReadInt(address);
 	else

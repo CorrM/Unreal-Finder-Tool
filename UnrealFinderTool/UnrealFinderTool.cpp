@@ -22,7 +22,7 @@ int main()
 	MoveWindow(console, r.left, r.top, 650, 400, TRUE);
 
 	int tool_id, p_id, old_pid = 0;
-
+	
 	RESTART:
 	system("cls");
 	SetConsoleTitleA("Unreal Engine Finder Tool By CorrM");
@@ -55,7 +55,7 @@ int main()
 		p_id = old_pid;
 	}
 
-	HANDLE pHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
+	HANDLE pHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
 	DWORD exitCode;
 
 	if (p_id == 0 && old_pid == 0 || GetExitCodeProcess(pHandle, &exitCode) == FALSE && exitCode != STILL_ACTIVE)

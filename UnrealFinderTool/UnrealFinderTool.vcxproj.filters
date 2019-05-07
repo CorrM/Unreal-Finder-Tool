@@ -72,6 +72,9 @@
     <ClInclude Include="StdColors.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

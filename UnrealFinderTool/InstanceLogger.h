@@ -1,6 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include <vector>
+#include "Utils.h"
 
 #pragma region GObject
 struct UObject
@@ -9,8 +10,8 @@ struct UObject
 	int		Flags;
 	int		InternalIndex;
 	void*	Unknown00;
-	DWORD	FNameIndex; // struct FName
-	DWORD	FNameUnknown;
+	int		FNameIndex; // struct FName
+	int		FNameUnknown;
 
 	uintptr_t	OriginalAddress; // Must be in last
 };
@@ -74,6 +75,7 @@ public:
 class InstanceLogger
 {
 	FUObjectArray gObjObjects;
+	//JsonStruct gObjObjects;
 	GNameArray gNames;
 
 	Memory* _memory;
@@ -94,7 +96,6 @@ class InstanceLogger
 
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	static bool ProgramIs64();
 	void Start();
 };
 

@@ -1,0 +1,28 @@
+{
+  "structs": [
+    {
+      "name": "UObject",
+      "vars": [
+        {
+          "VfTable": "pointer",
+          "Flags": "int",
+          "InternalIndex": "int",
+          "Unknown00": "pointer",
+          "FNameIndex": "int",
+          "FNameUnknown": "int"
+        }
+      ]
+    },
+    {
+      "name": "FUObjectItem",
+      "vars": [
+        {
+          "Object": "pointer",
+          "Flags": "int",
+          "ClusterIndex": "int",
+          "SerialNumber": "int"
+        }
+      ]
+    }
+  ]
+}
