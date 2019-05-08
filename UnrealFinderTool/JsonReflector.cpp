@@ -2,7 +2,7 @@
 #include "JsonReflector.h"
 #include <cassert>
 
-JsonStruct::JsonStructs JsonStruct::StructsList;
+JsonStructs JsonStruct::StructsList;
 nlohmann::json* JsonStruct::JsonObj;
 
 JsonStruct::JsonStruct() = default;

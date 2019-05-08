@@ -21,10 +21,11 @@ public:
 	JsonStruct& ReadAsStruct();
 };
 
+using JsonVariables = std::map<std::string, JsonVar>;
+using JsonStructs = std::map<std::string, JsonStruct>;
+
 class JsonStruct
 {
-	using JsonVariables = std::map<std::string, JsonVar>;
-	using JsonStructs = std::map<std::string, JsonStruct>;
 public:
 	static JsonStructs StructsList;
 	static nlohmann::json* JsonObj;
