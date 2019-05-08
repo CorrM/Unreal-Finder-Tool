@@ -6,7 +6,7 @@ class JsonStruct;
 class JsonVar
 {
 	JsonStruct* parent;
-	JsonStruct structVars;
+	JsonStruct* structVars;
 
 public:
 	std::string Name, Type;
@@ -16,9 +16,10 @@ public:
 
 	JsonVar();
 	JsonVar(const std::string& name, const std::string& type, size_t offset, bool isStruct);
+	~JsonVar();
 	void SetParent(JsonStruct* parentStruct);
 	template <class T> T ReadAs();
-	JsonStruct& ReadAsStruct();
+	JsonStruct ReadAsStruct();
 };
 
 using JsonVariables = std::map<std::string, JsonVar>;
@@ -33,13 +34,13 @@ public:
 	JsonVariables Vars;
 	size_t VarCount = 0;
 	// Pointer to alloc memory based on `StructSize`
-	void* StructPointer = nullptr;
+	void* StructAllocPointer = nullptr;
 	int StructSize = 0;
 
 	JsonStruct();
 	JsonVar& operator[](const std::string& varName);
 	JsonVar& GetVar(const std::string& varName);
-	static bool Read(const std::string& structName, JsonStruct& destStruct);
+	static bool Read(const std::string& structName, JsonStruct& destStruct, bool alloc = true);
 	static bool Load(void* jsonObj);
 	static int VarSizeFromJson(const std::string& typeName);
 	static bool IsStructType(const std::string& typeName);

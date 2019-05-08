@@ -106,13 +106,18 @@ void InstanceLogger::Start()
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
 	const uint32_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	if (_memory->ReadBytes(address, objectArray.StructPointer, objectArray.StructSize - sSub) == NULL) return false;
+	if (_memory->ReadBytes(address, objectArray.StructAllocPointer, objectArray.StructSize - sSub) == NULL) return false;
 
 	auto gg = objectArray["ObjFirstGcIndex"].ReadAs<int>();
 	gg = objectArray["ObjLastNonGcIndex"].ReadAs<int>();
 	gg = objectArray["MaxObjectsNotConsideredByGc"].ReadAs<int>();
 	gg = objectArray["OpenForDisregardForGc"].ReadAs<int>();
 	gg = JsonStruct::StructsList.size();
+
+	auto ggg = objectArray["ObjObjects"].ReadAsStruct();
+	auto max = ggg["MaxElements"].ReadAs<int>();
+	auto num = ggg["NumElements"].ReadAs<int>(); 
+	auto obj = ggg["Objects"].ReadAs<uintptr_t>();
 	return true;
 }
 
