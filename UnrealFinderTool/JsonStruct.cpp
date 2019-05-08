@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "JsonVar.h"
-#include "JsonStruct.h"
 
 JsonStruct::JsonStruct() = default;
 
