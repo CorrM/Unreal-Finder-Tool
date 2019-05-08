@@ -3,18 +3,19 @@
 #include "json.hpp"
 
 class JsonVar;
+class JsonStruct;
+
+using JsonVariables = std::map<std::string, JsonVar*>;
+using JsonStructs = std::map<std::string, JsonStruct>;
 
 class JsonStruct
 {
-	using JsonVariables = std::map<std::string, JsonVar*>;
-	using JsonStructs = std::map<std::string, class JsonStruct>;
-
 public:
 	static JsonStructs StructsList;
 	nlohmann::json* JsonObj;
 	std::string Name;
 	JsonVariables Vars;
-	int VarCount = 0;
+	size_t VarCount = 0;
 	// Pointer to alloc memory based on `StructSize`
 	void* StructPointer = nullptr;
 	int StructSize = 0;

@@ -9,7 +9,7 @@ class JsonVar
 public:
 	std::string Name, Type;
 	size_t Size;
-	int Offset;
+	size_t Offset;
 	bool IsStruct;
 
 	JsonVar();
