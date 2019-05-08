@@ -78,10 +78,7 @@
     <ClInclude Include="json.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="JsonStruct.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonVar.h">
+    <ClInclude Include="JsonReflector.h">
       <Filter>Json</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,10 +122,7 @@
     <ClCompile Include="SdkGenerator.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="JsonStruct.cpp">
-      <Filter>Json</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonVar.cpp">
+    <ClCompile Include="JsonReflector.cpp">
       <Filter>Json</Filter>
     </ClCompile>
   </ItemGroup>

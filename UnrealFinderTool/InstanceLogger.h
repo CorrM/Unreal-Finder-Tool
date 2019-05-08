@@ -1,7 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include <vector>
-#include "JsonStruct.h"
+#include "JsonReflector.h"
 
 #pragma region GObject
 struct UObject

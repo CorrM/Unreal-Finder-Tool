@@ -4,7 +4,6 @@
 #include "pch.h"
 #include "InstanceLogger.h"
 #include "Utils.h"
-#include "JsonStruct.h"
 
 #include <iostream>
 #include <string>
