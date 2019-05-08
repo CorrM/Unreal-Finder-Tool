@@ -5,7 +5,7 @@
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
 
-bool is64()
+bool Is64()
 {
 #if _WIN64
 	return true;
@@ -23,18 +23,18 @@ int main()
 
 	int tool_id, p_id, old_pid = 0;
 
-	/*
+	
 	// ##################
 	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 42476);
 	auto memManager1 = new Memory(pHandle1, false);
-	auto objObjectsAddress = uintptr_t(0x7FF6C9D91E70);
-	auto gNamesAddress = uintptr_t(0x7FF6C9D89A20);
+	auto objObjectsAddress = uintptr_t(0x7FF641A11E70);
+	auto gNamesAddress = uintptr_t(0x7FF641A09A20);
 	InstanceLogger il(memManager1, objObjectsAddress, gNamesAddress);
 	il.Start();
 	std::cin >> tool_id;
 	return 0;
 	// ##################
-	*/
+	
 
 	RESTART:
 	system("cls");
@@ -42,10 +42,10 @@ int main()
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Generate SDK for ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl;
+	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl;
+	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl;
+	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Generate SDK for ue4 game." << std::endl;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;

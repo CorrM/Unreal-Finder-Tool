@@ -1,10 +1,12 @@
+#ifndef JSON_VAR
+#define JSON_VAR
 #pragma once
 #include "JsonStruct.h"
 
 class JsonVar
 {
 	JsonStruct* parent;
-	JsonStruct varStruct;
+	JsonStruct structVars;
 
 public:
 	std::string Name, Type;
@@ -13,7 +15,9 @@ public:
 	bool IsStruct;
 
 	JsonVar();
-	JsonVar(JsonStruct* parentStruct, std::string name, std::string type, size_t offset, bool isStruct);
+	JsonVar(const std::string& name, const std::string& type, size_t offset, bool isStruct);
+	void SetParent(JsonStruct* parentStruct);
 	template <class T> T ReadAs();
 	JsonStruct& ReadAsStruct();
 };
+#endif

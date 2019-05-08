@@ -1,18 +1,21 @@
+#ifndef JSON_STRUCT
+#define JSON_STRUCT
 #pragma once
-#include <map>
+
 #include "json.hpp"
+#include "JsonVar.h"
 
 class JsonVar;
 class JsonStruct;
 
-using JsonVariables = std::map<std::string, JsonVar*>;
+using JsonVariables = std::map<std::string, JsonVar>;
 using JsonStructs = std::map<std::string, JsonStruct>;
 
 class JsonStruct
 {
 public:
 	static JsonStructs StructsList;
-	nlohmann::json* JsonObj;
+	static nlohmann::json* JsonObj;
 	std::string Name;
 	JsonVariables Vars;
 	size_t VarCount = 0;
@@ -21,11 +24,13 @@ public:
 	int StructSize = 0;
 
 	JsonStruct();
-	~JsonStruct();
 	JsonVar& operator[](const std::string& varName);
 	JsonVar& GetVar(const std::string& varName);
-	static bool Read(void* jsonObj, const std::string& structName, JsonStruct& destStruct);
-	static int VarSizeFromJson(JsonStruct& jsonStruct, const std::string& typeName);
+	static bool Read(const std::string& structName, JsonStruct& destStruct);
+	static bool Load(void* jsonObj);
+	static int VarSizeFromJson(const std::string& typeName);
 	static bool IsStructType(const std::string& typeName);
-	static JsonVar& GetVar(const JsonVariables& vars, const std::string& varName);
+private:
+	static bool Load(const std::string& structName);
 };
+#endif

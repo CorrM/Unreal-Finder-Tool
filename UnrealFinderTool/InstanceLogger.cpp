@@ -83,7 +83,9 @@ void InstanceLogger::Start()
 	if (!Utils::ReadJsonFile("Config\\Core\\GObjects.json", &gObjectCore))
 		std::cout << red << "[*] " << def << "Can't read core GObject file." << std::endl << def;
 
-	bool gg = JsonStruct::Read(&gObjectCore, "FUObjectArray", gObjObjects);
+	JsonStruct::Load(&gObjectCore);
+
+	bool gg = JsonStruct::Read("FUObjectArray", gObjObjects);
 	const bool bObjectConvert = ReadUObjectArray(gObjObjectsOffset, gObjObjects);
 	if (!bObjectConvert)
 	{
@@ -111,7 +113,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	gg = objectArray["ObjLastNonGcIndex"].ReadAs<int>();
 	gg = objectArray["MaxObjectsNotConsideredByGc"].ReadAs<int>();
 	gg = objectArray["OpenForDisregardForGc"].ReadAs<int>();
-
+	gg = JsonStruct::StructsList.size();
 	return true;
 }
 
