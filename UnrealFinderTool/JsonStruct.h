@@ -7,7 +7,7 @@ class JsonVar;
 class JsonStruct
 {
 	using JsonVariables = std::map<std::string, JsonVar*>;
-	using JsonStructs = std::map<std::string, JsonStruct>;
+	using JsonStructs = std::map<std::string, class JsonStruct>;
 
 public:
 	static JsonStructs StructsList;
