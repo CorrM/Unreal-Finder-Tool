@@ -1,5 +1,3 @@
-#ifndef JSON_VAR
-#define JSON_VAR
 #pragma once
 #include "JsonStruct.h"
 
@@ -20,4 +18,3 @@ public:
 	template <class T> T ReadAs();
 	JsonStruct& ReadAsStruct();
 };
-#endif

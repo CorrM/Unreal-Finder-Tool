@@ -9,7 +9,7 @@ JsonVar::JsonVar() : parent(nullptr), Size(0), Offset(0), IsStruct(false)
 	ReadAs<char*>();
 }
 
-JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t offset, const bool isStruct): parent(nullptr)
+JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t offset, const bool isStruct) : parent(nullptr)
 {
 	Name = name;
 	Type = type;

@@ -1,5 +1,3 @@
-#ifndef JSON_STRUCT
-#define JSON_STRUCT
 #pragma once
 
 #include "json.hpp"
@@ -8,11 +6,10 @@
 class JsonVar;
 class JsonStruct;
 
-using JsonVariables = std::map<std::string, JsonVar>;
-using JsonStructs = std::map<std::string, JsonStruct>;
-
 class JsonStruct
 {
+	using JsonVariables = std::map<std::string, JsonVar>;
+	using JsonStructs = std::map<std::string, JsonStruct>;
 public:
 	static JsonStructs StructsList;
 	static nlohmann::json* JsonObj;
@@ -33,4 +30,3 @@ public:
 private:
 	static bool Load(const std::string& structName);
 };
-#endif
