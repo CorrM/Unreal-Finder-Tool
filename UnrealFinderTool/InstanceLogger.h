@@ -1,7 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include <vector>
-#include "Utils.h"
+#include "JsonStruct.h"
 
 #pragma region GObject
 struct UObject
@@ -74,8 +74,8 @@ public:
 
 class InstanceLogger
 {
-	FUObjectArray gObjObjects;
-	//JsonStruct gObjObjects;
+	// FUObjectArray gObjObjects;
+	JsonStruct gObjObjects;
 	GNameArray gNames;
 
 	Memory* _memory;
@@ -86,12 +86,12 @@ class InstanceLogger
 	char* GetName(UObject* object, bool& success);
 	void ObjectDump();
 	void NameDump();
-	bool ReadUObjectArray(uintptr_t address, FUObjectArray& objectArray);
+	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
 	bool ReadGNameArray(uintptr_t address, GNameArray& gNames);
 	static DWORD BufToInteger(void* buffer);
 	static DWORD64 BufToInteger64(void* buffer);
-	bool IsValidAddress(uintptr_t address) const;
-	template <class ElementType>
+	bool IsValidAddress(uintptr_t address);
+	template <typename ElementType>
 	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
 
 public:

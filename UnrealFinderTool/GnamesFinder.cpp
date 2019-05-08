@@ -7,21 +7,16 @@ Pattern GnamesFinder::byte_sig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 7
 Pattern GnamesFinder::int_sig = PatternScan::Parse("Int", 0, "49 6E 74 50 72 6F 70 65 72 74 79 00", 0xFF);
 Pattern GnamesFinder::multicast_sig = PatternScan::Parse("MulticastDelegate", 0, "4D 75 6C 74 69 63 61 73 74 44 65 6C 65 67 61 74 65 50 72 6F 70 65 72 74 79", 0xFF);
 
-GnamesFinder::GnamesFinder(Memory* memory) : _memory(memory) { }
+GnamesFinder::GnamesFinder(Memory* memory) : _memory(memory), dwStart(0), dwEnd(0)
+{
+}
 
 void GnamesFinder::Find()
 {
-	Color green(LightGreen, Black);
-	Color def(White, Black);
-	Color yellow(LightYellow, Black);
-	Color purple(LightPurple, Black);
-	Color red(LightRed, Black);
-	Color dgreen(Green, Black);
+	// dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
+	dwEnd = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
-	const uintptr_t start = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
-	const uintptr_t end = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
-
-	std::cout << dgreen << "[!] " << def << "Start scan for GNames. (at 0x" << std::hex << start << ". to 0x" << std::hex << end  << ")" << std::endl << def;
+	std::cout << dgreen << "[!] " << def << "Start scan for GNames. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
 
 	// Scan
 	std::vector<Pattern> inputs;
@@ -30,7 +25,7 @@ void GnamesFinder::Find()
 	inputs.push_back(int_sig);
 	inputs.push_back(multicast_sig);
 
-	const auto searcher = PatternScan::FindPattern(_memory, start, end, inputs);
+	const auto searcher = PatternScan::FindPattern(_memory, dwStart, dwEnd, inputs);
 
 	if (searcher.find(none_sig.Name) == searcher.end())
 	{

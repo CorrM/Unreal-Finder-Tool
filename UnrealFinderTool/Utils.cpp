@@ -46,60 +46,6 @@ bool Utils::ReadJsonFile(const std::string& fileName, void* jsonObj)
 	return true;
 }
 
-JsonStruct Utils::ReadJsonStruct(void* jsonObj, const std::string& structName)
-{
-	auto j = *reinterpret_cast<nlohmann::json*>(jsonObj);
-	for (const auto& parent : j.at("structs").items())
-	{
-		const std::string eName = parent.value().at("name");
-		if (eName == structName)
-		{
-			JsonVariables vars;
-			int structSize = 0;
-
-			auto element = parent.value().at("vars");
-
-			// Init vars
-			for (const auto& var : element.items())
-			{
-				if (var.value().is_number_unsigned())
-					structSize += int(var.value());
-				else
-					structSize += VarSizeFromJson(jsonObj, var.value());
-
-				// Add Var
-				auto pointer = malloc(structSize);
-				//							   Type		    Pointer to local data
-				JsonVar jVar = std::make_tuple(var.value(), pointer);
-				vars[var.key()] = jVar;
-			}
-
-			// Init Struct
-			JsonStruct ret;
-			ret.Name = eName;
-			ret.Vars = vars;
-			ret.VarCount = vars.size();
-			ret.StructSize = structSize;
-
-			return ret;
-		}
-	}
-	return JsonStruct();
-}
-
-int Utils::VarSizeFromJson(void* jsonObj, const std::string& typeName)
-{
-	nlohmann::json j = *reinterpret_cast<nlohmann::json*>(jsonObj);
-
-	if (typeName == "int")
-		return sizeof(int);
-	if (typeName == "pointer")
-		return sizeof(uintptr_t);
-	
-	// Other type (usually) structs
-	return ReadJsonStruct(jsonObj, typeName).StructSize;
-}
-
 bool Utils::IsNumber(const std::string& s)
 {
 	return !s.empty() && std::find_if(s.begin(),
