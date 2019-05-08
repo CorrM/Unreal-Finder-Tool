@@ -1,10 +1,6 @@
 #pragma once
-
 #include "json.hpp"
 #include "JsonVar.h"
-
-class JsonVar;
-class JsonStruct;
 
 class JsonStruct
 {
