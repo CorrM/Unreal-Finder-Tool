@@ -12,6 +12,7 @@ using namespace nlohmann;
 
 InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
+	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
 	_memory(memory),
 	gObjObjectsOffset(gObjObjectsAddress),
 	gNamesOffset(gNamesAddress)
@@ -19,40 +20,41 @@ InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddres
 	ptrSize = _memory->Is64Bit ? 0x8 : 0x4;
 }
 
-char* InstanceLogger::GetName(UObject* object, bool& success)
+std::string InstanceLogger::GetName(const int fNameIndex, bool& success)
 {
-	if (object->FNameIndex < 0 || object->FNameIndex > gNames.Names.size())
+	if (fNameIndex < 0 || fNameIndex > gNamesChunkCount * gNamesChunks)
 	{
 		success = false;
 		static char ret[256];
-		sprintf_s(ret, "INVALID NAME INDEX : %i > %zu", object->FNameIndex, gNames.Names.size());
+		sprintf_s(ret, "INVALID NAME INDEX : %i > %i", fNameIndex, gNamesChunkCount * gNamesChunks);
 		return ret;
 	}
 	success = true;
-	return const_cast<char*>(gNames.Names[object->FNameIndex].AnsiName.c_str());
+	return gNames[fNameIndex].AnsiName;
 }
 
 void InstanceLogger::ObjectDump()
 {
-	//FILE* log = nullptr;
-	//fopen_s(&log, "ObjectDump.txt", "w+");
+	FILE* log = nullptr;
+	fopen_s(&log, "ObjectDump.txt", "w+");
 
-	//if (log == nullptr)
-	//{
-	//	MessageBoxA(nullptr, "Can't open 'ObjectDump.txt' for write.", "Wrong", MB_OK);
-	//	return;
-	//}
+	if (log == nullptr)
+	{
+		MessageBoxA(nullptr, "Can't open 'ObjectDump.txt' for write.", "Wrong", MB_OK);
+		return;
+	}
 
-	//for (int i = 0x0; i < gObjObjects.ObjObjects.NumElements; i++)
-	//{
-	//	if (gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress == NULL) { continue; }
+	for (int i = 0; i < gObjectsCount; i++)
+	{
+		if (gObjObjects[i].ObjAddress == NULL) { continue; }
 
-	//	bool state;
-	//	char* name = GetName(gObjObjects.ObjObjects.Objects[i].Object, state);
-	//	/*if (state) */fprintf(log, "UObject[%06i] %-80s 0x%" PRIXPTR "\n", int(i), name, gObjObjects.ObjObjects.Objects[i].Object->OriginalAddress);
-	//}
+		bool state;
+		std::string name = GetName(gObjObjects[i].FNameIndex, state);
+		/*if (state) */
+		fprintf(log, "UObject[%06i] %-80s 0x%" PRIXPTR "\n", int(i), name.c_str(), gObjObjects[i].ObjAddress);
+	}
 
-	//fclose(log);
+	fclose(log);
 }
 
 void InstanceLogger::NameDump()
@@ -66,46 +68,56 @@ void InstanceLogger::NameDump()
 		return;
 	}
 
-	for (DWORD64 i = 0x0; i < gNames.Names.size(); i++)
-	{
-		// if (!gNames.Names[i]) { continue; }
-		fprintf(log, "Name[%06i] %s\n", int(i), gNames.Names[i].AnsiName.c_str());
-	}
+	for (int i = 0; i < gNamesChunkCount * gNamesChunks; i++)
+		fprintf(log, "Name[%06i] %s\n", int(i), gNames[i].AnsiName.c_str());
 
 	fclose(log);
 }
 
 void InstanceLogger::Start()
 {
-	// Read core
-	json gObjectCore;
-	if (!Utils::ReadJsonFile("Config\\Core\\GObjects.json", &gObjectCore))
+	// Read core GObjects
+	json jsonCore;
+	if (!Utils::ReadJsonFile("Config\\Core\\GObjects.json", &jsonCore))
 	{
-		std::cout << red << "[*] " << def << "Can't read core GObject file." << std::endl << def;
+		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
 		return;
 	}
-	// Load Json Structs
-	if (!JsonStruct::Load(&gObjectCore))
+	// Load all json structs in file
+	if (!JsonStruct::Load(&jsonCore))
 	{
-		std::cout << red << "[*] " << def << "Can't load core GObject file." << std::endl << def;
+		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
 		return;
 	}
 
+	// Read core GNames
+	if (!Utils::ReadJsonFile("Config\\Core\\GNames.json", &jsonCore))
+	{
+		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
+		return;
+	}
+	// Load all json structs in file
+	if (!JsonStruct::Load(&jsonCore))
+	{
+		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
+		return;
+	}
+
+	// GObjects
 	JsonStruct jsonGObjectsReader;
 	if (!JsonStruct::Read("FUObjectArray", jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
 		return;
 	}
-
 	if (!ReadUObjectArray(gObjObjectsOffset, jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return;
 	}
 
-	const bool bNamesConvert = ReadGNameArray(gNamesOffset, gNames);
-	if (!bNamesConvert)
+	// GNames
+	if (!ReadGNameArray(gNamesOffset))
 	{
 		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
 		return;
@@ -113,6 +125,9 @@ void InstanceLogger::Start()
 
 	NameDump();
 	ObjectDump();
+
+	std::cout << green << "[+] " << purple << "Found [" << green << gObjectsCount << purple << "] Object." << std::endl;
+	std::cout << green << "[+] " << purple << "Found [" << green << gNamesChunkCount * gNamesChunks << purple << "] Name." << std::endl;
 }
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
@@ -121,14 +136,22 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	uintptr_t dwFUObjectAddress, dwUObject;
 	JsonStruct fUObjectItem, uObject;
 
-	JsonStruct::Read("FUObjectItem", fUObjectItem);
-	JsonStruct::Read("UObject", uObject);
+	if (!JsonStruct::Read("FUObjectItem", fUObjectItem))
+	{
+		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
+		return false;
+	}
+
+	if (!JsonStruct::Read("UObject", uObject))
+	{
+		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
+		return false;
+	}
 
 	if (_memory->ReadBytes(address, objectArray.StructAllocPointer, objectArray.StructSize - sSub) == NULL) return false;
 
 	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
-	auto obj = objObjects["Objects"].ReadAs<uintptr_t>();
-	auto num = objObjects["NumElements"].ReadAs<int>();
+	int num = objObjects["NumElements"].ReadAs<int>();
 
 	if (!_memory->Is64Bit)
 	{
@@ -207,99 +230,23 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	return true;
 }
 
-//bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
-//{
-//	const uint32_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-//	if (_memory->ReadBytes(address, objectArray.StructPointer, objectArray.StructSize - sSub) == NULL) return false;
-//	uintptr_t dwUObjectItem, dwUObject;
-//
-//	// ############################################
-//	// Convert class pointer to address
-//	// ############################################
-//	if (!_memory->Is64Bit)
-//	{
-//		if (Utils::ProgramIs64())
-//		{
-//			objectArray["ObjObjects"];
-//			dwUObjectItem = reinterpret_cast<DWORD>(objectArray["ObjObjects"].Objects); // 4byte
-//			FixStructPointer<TUObjectArray>(static_cast<void*>(&objectArray.ObjObjects), 0);
-//		}
-//		else
-//		{
-//			dwUObjectItem = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects); // 4byte
-//		}
-//	}
-//	else
-//	{
-//		dwUObjectItem = reinterpret_cast<DWORD64>(objectArray.ObjObjects.Objects); // 8byte
-//	}
-//
-//	// ############################################
-//	// Alloc
-//	// ############################################
-//	objectArray.ObjObjects.Objects = new FUObjectItem[objectArray.ObjObjects.NumElements];
-//
-//	uintptr_t currentUObjAddress = dwUObjectItem;
-//	for (int i = 0; i < objectArray.ObjObjects.NumElements; ++i)
-//	{
-//		// Read the address as class
-//		if (_memory->ReadBytes(currentUObjAddress, &objectArray.ObjObjects.Objects[i], sizeof FUObjectItem) == NULL) return false;
-//
-//		// ############################################
-//		// Convert class pointer to address
-//		// ############################################
-//		if (!_memory->Is64Bit)
-//		{
-//			if (Utils::ProgramIs64())
-//			{
-//				dwUObject = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects[i].Object); // 4byte
-//				FixStructPointer<FUObjectItem>(static_cast<void*>(&objectArray.ObjObjects.Objects[i]), 0);
-//			}
-//			else
-//			{
-//				dwUObject = reinterpret_cast<DWORD>(objectArray.ObjObjects.Objects[i].Object); // 4byte
-//			}
-//		}
-//		else
-//		{
-//			dwUObject = reinterpret_cast<DWORD64>(objectArray.ObjObjects.Objects[i].Object); // 8byte
-//		}
-//
-//		// ############################################
-//		// Alloc and Read the address as class
-//		// ############################################
-//		objectArray.ObjObjects.Objects[i].Object = new UObject();
-//		if (_memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject) - sizeof(uintptr_t)) == NULL) return false;
-//
-//		// Fix UObject
-//		if (!_memory->Is64Bit)
-//		{
-//			if (Utils::ProgramIs64())
-//			{
-//				// Fix VfTable
-//				FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 0);
-//
-//				// Fix Unknown00
-//				FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 4);
-//			}
-//		}
-//
-//		objectArray.ObjObjects.Objects[i].Object->OriginalAddress = dwUObject;
-//		currentUObjAddress += sizeof(FUObjectItem) - (sSub * 2);
-//	}
-//	return true;
-//}
-
-bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
+bool InstanceLogger::ReadGNameArray(uintptr_t address)
 {
 	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	JsonStruct fName;
+	if (!JsonStruct::Read("FName", fName))
+	{
+		std::cout << red << "[*] " << def << "Can't find struct `FName`." << std::endl << def;
+		return false;
+	}
+
 	if (!_memory->Is64Bit)
 		address = _memory->ReadInt(address);
 	else
 		address = _memory->ReadInt64(address);
 
 	// Get GNames Chunks
-	std::vector<uintptr_t> gNameChunks;
+	std::vector<uintptr_t> gChunks;
 	for (int i = 0; i < ptrSize * 15; ++i)
 	{
 		uintptr_t addr;
@@ -311,18 +258,20 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 			addr = _memory->ReadInt64(address + offset); // 8byte
 
 		if (!IsValidAddress(addr)) break;
-		gNameChunks.push_back(addr);
+		gChunks.push_back(addr);
+		gNamesChunks++;
 	}
 
+	// Alloc Size
+	gNames = new GName[gNamesChunkCount * gNamesChunks];
+
 	// Dump GNames
-	const auto sizeToRead = sizeof(FName) - sizeof(string);
-	for (uintptr_t chunkAddress : gNameChunks)
+	int i = 0;
+	for (uintptr_t chunkAddress : gChunks)
 	{
 		uintptr_t fNameAddress;
-
-		for (int j = 0; j < gNames.NumElements; ++j)
+		for (int j = 0; j < gNamesChunkCount; ++j)
 		{
-			FName name;
 			const int offset = ptrSize * j;
 
 			if (!_memory->Is64Bit)
@@ -332,17 +281,20 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address, GNameArray& gNames)
 
 			if (!IsValidAddress(fNameAddress))
 			{
-				gNames.Names.push_back(name);
+				gNames[i].Index = i;
+				gNames[i].AnsiName = "";
+				i++;
 				continue;
 			}
 
 			// Read FName
-			const SIZE_T len = _memory->ReadBytes(fNameAddress, &name, sizeToRead);
-			if (len == NULL) return false;
+			if (_memory->ReadBytes(fNameAddress, fName.StructAllocPointer, fName.StructSize) == NULL)
+				return false;
 
 			// Set The Name
-			name.AnsiName = _memory->ReadText(fNameAddress + sizeToRead - sSub);
-			gNames.Names.push_back(name);
+			gNames[i].Index = i;
+			gNames[i].AnsiName = _memory->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
+			i++;
 		}
 	}
 
@@ -377,12 +329,6 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 	return false;
 }
 
-/// <summary>
-/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
-/// Must pick the right `ElementType`, else will case some memory problems in the hole program
-/// </summary>
-/// <param name="structBase">Pointer to instance of `ElementType`</param>
-/// <param name="varOffsetEach4Byte">Pointer position of `ElementType`</param>
 template<typename ElementType>
 void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
 {

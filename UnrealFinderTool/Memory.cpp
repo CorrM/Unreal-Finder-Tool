@@ -114,7 +114,7 @@ BOOL Memory::GetDebugPrivileges()
 }
 
 template<typename T>
-SIZE_T Memory::Read(const uintptr_t address, T& type)
+int Memory::Read(const uintptr_t address, T& type)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -142,7 +142,7 @@ SIZE_T Memory::Read(const uintptr_t address, T& type)
 	return numberOfBytesActuallyRead;
 }
 
-SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len)
+int Memory::ReadBytes(const uintptr_t address, const PVOID buf, const uint32_t len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;

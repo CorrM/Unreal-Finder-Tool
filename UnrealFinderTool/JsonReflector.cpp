@@ -133,9 +133,12 @@ bool JsonStruct::Load(void* jsonObj)
 
 bool JsonStruct::Load(const std::string& structName)
 {
-	assert(JsonObj != nullptr);
+	// Check is already here
+	if (StructsList.find(structName) != StructsList.end()) return true;
 
+	assert(JsonObj != nullptr);
 	auto j = *JsonObj;
+
 	for (const auto& parent : j.at("structs").items())
 	{
 		const std::string eName = parent.value().at("name");
@@ -191,6 +194,8 @@ int JsonStruct::VarSizeFromJson(const std::string& typeName)
 		return sizeof(DWORD);
 	if (typeName == "DWORD64")
 		return sizeof(DWORD64);
+	if (typeName == "string")
+		return sizeof(uintptr_t);
 
 	// Other type (usually) structs
 	if (IsNumber(typeName))
@@ -212,7 +217,14 @@ int JsonStruct::VarSizeFromJson(const std::string& typeName)
 
 bool JsonStruct::IsStructType(const std::string& typeName)
 {
-	return !(typeName == "int" || typeName == "pointer");
+	const bool isStruct = 
+		typeName == "int" ||
+		typeName == "pointer" ||
+		typeName == "DWORD" ||
+		typeName == "DWORD64" ||
+		typeName == "string"
+	;
+	return !isStruct;
 }
 
 bool JsonStruct::IsNumber(const std::string& s)
@@ -222,6 +234,7 @@ bool JsonStruct::IsNumber(const std::string& s)
 }
 
 
+// ##############################################
 
 JsonVar::JsonVar() : parent(nullptr), structVars(nullptr), Size(0), Offset(0), IsStruct(false)
 {

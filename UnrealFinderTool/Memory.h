@@ -21,8 +21,8 @@ public:
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
 	template <class T>
-	SIZE_T Read(uintptr_t address, T& type);
-	SIZE_T ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len);
+	int Read(uintptr_t address, T& type);
+	int ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len);
 	bool ReadBool(uintptr_t address);
 	int ReadInt(uintptr_t address);
 	INT64 ReadInt64(uintptr_t address);

@@ -23,19 +23,6 @@ int main()
 
 	int tool_id, p_id, old_pid = 0;
 
-	
-	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 12844);
-	auto memManager1 = new Memory(pHandle1, false);
-	auto objObjectsAddress = uintptr_t(0x7FF77D731E70);
-	auto gNamesAddress = uintptr_t(0x7FF77D729A20);
-	InstanceLogger il(memManager1, objObjectsAddress, gNamesAddress);
-	il.Start();
-	std::cin >> tool_id;
-	return 0;
-	// ##################
-	
-
 	RESTART:
 	system("cls");
 	SetConsoleTitleA("Unreal Engine Finder Tool By CorrM");
@@ -45,13 +32,12 @@ int main()
 	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl;
 	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl;
 	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl;
-	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Generate SDK for ue4 game." << std::endl;
 
 	std::cout << std::endl;
-	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
+	std::cout << red << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 4)
+	if (tool_id == 0 || tool_id > 3)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
 		std::cout << def << "===================================\n" << std::endl;
@@ -60,7 +46,7 @@ int main()
 
 	// Get pID
 	pID:
-	std::cout << green << "[-] " << yellow << "input process ID: " << dgreen;
+	std::cout << red << "[-] " << yellow << "input process ID: " << dgreen;
 	std::cin >> p_id;
 
 	if (p_id == 0 && old_pid != 0)
@@ -80,7 +66,7 @@ int main()
 
 	// Use Kernal ???
 	char cUseKernal;
-	std::cout << green << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
+	std::cout << red << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
 	std::cin >> cUseKernal;
 	const bool bUseKernal = cUseKernal == 'Y' || cUseKernal == 'y';
 
@@ -99,7 +85,7 @@ int main()
 	{
 		std::cout << red << "[?] " << yellow << "First try EASY method. not work.? use HARD method and wait some time :D." << std::endl;
 		char cUseEz;
-		std::cout << green << "[-] " << yellow << "Use Easy Method (Y/N): " << dgreen;
+		std::cout << red << "[-] " << yellow << "Use Easy Method (Y/N): " << dgreen;
 		std::cin >> cUseEz;
 		const bool bUseEz = cUseEz == 'Y' || cUseEz == 'y';
 
@@ -109,10 +95,10 @@ int main()
 	else if (tool_id == 3) // Instance Logger
 	{
 		uintptr_t objObjectsAddress, gNamesAddress;
-		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
+		std::cout << red << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
 		std::cin >> std::hex >> objObjectsAddress;
 
-		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
+		std::cout << red << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
 
 		InstanceLogger il(memManager, objObjectsAddress, gNamesAddress);
