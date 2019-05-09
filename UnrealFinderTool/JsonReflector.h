@@ -3,6 +3,12 @@
 
 class JsonStruct;
 
+class JsonReflector
+{
+public:
+	static bool ReadJsonFile(const std::string& fileName, void* jsonObj);
+};
+
 class JsonVar
 {
 	// Parent of this variable
@@ -55,7 +61,7 @@ public:
 	// Variable count
 	size_t VarCount = 0;
 	// Pointer to alloc memory based on `StructSize`
-	void* StructAllocPointer = nullptr;
+	void* AllocPointer = nullptr;
 	// Size of this struct
 	size_t StructSize = 0;
 	// Check if new alloc address putted

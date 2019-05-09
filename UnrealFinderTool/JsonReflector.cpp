@@ -1,9 +1,21 @@
 #include "pch.h"
 #include "JsonReflector.h"
 #include <cassert>
+#include <fstream>
 
 JsonStructs JsonStruct::StructsList;
 nlohmann::json* JsonStruct::JsonObj;
+
+
+bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
+{
+	// read a JSON file
+	std::ifstream i(fileName.c_str());
+	i >> *reinterpret_cast<nlohmann::json*>(jsonObj);
+	return true;
+}
+
+// ##############################################
 
 JsonStruct::JsonStruct() = default;
 
@@ -15,10 +27,10 @@ JsonVar& JsonStruct::operator[](const std::string& varName)
 void JsonStruct::SetAllocAddress(void* newAddress)
 {
 	// Free old memory
-	if (StructAllocPointer != nullptr && !AllocAddressChanged)
-		free(StructAllocPointer);
+	if (AllocPointer != nullptr && !AllocAddressChanged)
+		free(AllocPointer);
 
-	StructAllocPointer = newAddress;
+	AllocPointer = newAddress;
 
 	// ReWrite StructAllocPointer for inside vars
 	if (!Read(Name, *this, false))
@@ -34,13 +46,13 @@ void JsonStruct::SetAllocAddress(const uintptr_t newAddress)
 
 void JsonStruct::MoveAllocNext()
 {
-	uintptr_t nextAddress = reinterpret_cast<uintptr_t>(StructAllocPointer) + StructSize;
+	uintptr_t nextAddress = reinterpret_cast<uintptr_t>(AllocPointer) + StructSize;
 	SetAllocAddress(nextAddress);
 }
 
 void JsonStruct::MoveAllocPrev()
 {
-	uintptr_t prevAddress = reinterpret_cast<uintptr_t>(StructAllocPointer) - StructSize;
+	uintptr_t prevAddress = reinterpret_cast<uintptr_t>(AllocPointer) - StructSize;
 	SetAllocAddress(prevAddress);
 }
 
@@ -59,9 +71,9 @@ bool JsonStruct::Read(const std::string& structName, JsonStruct& destStruct, con
 		auto s = StructsList.find(structName);
 		if (s != StructsList.end())
 		{
-			void* oldAddress = destStruct.StructAllocPointer;
+			void* oldAddress = destStruct.AllocPointer;
 			destStruct = s->second;
-			destStruct.StructAllocPointer = oldAddress;
+			destStruct.AllocPointer = oldAddress;
 
 			// Init Struct memory
 			if (destStruct.StructSize != 0)
@@ -71,7 +83,7 @@ bool JsonStruct::Read(const std::string& structName, JsonStruct& destStruct, con
 					void* structPointer = malloc(destStruct.StructSize);
 					if (structPointer == nullptr) return false;
 					ZeroMemory(structPointer, destStruct.StructSize);
-					destStruct.StructAllocPointer = structPointer;
+					destStruct.AllocPointer = structPointer;
 				}
 				destStruct.Vars = JsonVariables(s->second.Vars.begin(), s->second.Vars.end());
 
@@ -297,7 +309,7 @@ T JsonVar::ReadAs()
 	if (parent == nullptr)
 		return 0;
 
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->StructAllocPointer) + Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
 	return *reinterpret_cast<T*>(calcAddress);
 }
 
@@ -313,11 +325,11 @@ JsonStruct JsonVar::ReadAsStruct()
 	if (sStructIt == JsonStruct::StructsList.end())
 		throw std::exception(("Can't find this struct, When try read as " + Name).c_str());
 
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->StructAllocPointer) + Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
 
 	structVars = new JsonStruct();
 	*structVars = sStructIt->second;
-	structVars->StructAllocPointer = reinterpret_cast<void*>(calcAddress);
+	structVars->AllocPointer = reinterpret_cast<void*>(calcAddress);
 
 	if (!JsonStruct::Read(Type, *structVars, false))
 		throw std::exception(("Can't read the struct `" + Name + "`.").c_str());

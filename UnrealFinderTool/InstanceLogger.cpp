@@ -78,7 +78,7 @@ void InstanceLogger::Start()
 {
 	// Read core GObjects
 	json jsonCore;
-	if (!Utils::ReadJsonFile("Config\\InstanceLogger\\GObjects.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\InstanceLogger\\GObjects.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
 		return;
@@ -91,7 +91,7 @@ void InstanceLogger::Start()
 	}
 
 	// Read core GNames
-	if (!Utils::ReadJsonFile("Config\\InstanceLogger\\GNames.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\InstanceLogger\\GNames.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
 		return;
@@ -133,7 +133,6 @@ void InstanceLogger::Start()
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
 	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	uintptr_t dwFUObjectAddress, dwUObject;
 	JsonStruct fUObjectItem, uObject;
 
 	if (!JsonStruct::Read("FUObjectItem", fUObjectItem))
@@ -148,27 +147,12 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 		return false;
 	}
 
-	if (_memory->ReadBytes(address, objectArray.StructAllocPointer, objectArray.StructSize - sSub) == NULL) return false;
+	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == NULL) return false;
 
 	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
 
-	if (!_memory->Is64Bit)
-	{
-		if (Utils::ProgramIs64())
-		{
-			dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
-			FixStructPointer(objObjects.StructAllocPointer, 0, objObjects.StructSize);
-		}
-		else
-		{
-			dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
-		}
-	}
-	else
-	{
-		dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD64>(); // 8byte
-	}
+	uintptr_t dwFUObjectAddress = Utils::ReadSafePointer(objObjects.AllocPointer, 0, objObjects.StructSize, _memory->Is64Bit);
 
 	// Alloc all objects
 	gObjObjects = new GObject[num];
@@ -178,26 +162,12 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
-		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.StructAllocPointer, fUObjectItem.StructSize - sSub) == NULL)
+		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == NULL)
 			return false;
 
 		// Convert class pointer to address
-		if (!_memory->Is64Bit)
-		{
-			if (Utils::ProgramIs64())
-			{
-				dwUObject = fUObjectItem["Object"].ReadAs<DWORD>(); // 4byte
-				FixStructPointer(fUObjectItem.StructAllocPointer, 0, fUObjectItem.StructSize);
-			}
-			else
-			{
-				dwUObject = fUObjectItem["Object"].ReadAs<DWORD>(); // 4byte
-			}
-		}
-		else
-		{
-			dwUObject = fUObjectItem["Object"].ReadAs<DWORD64>(); // 8byte
-		}
+		uintptr_t dwUObject = Utils::ReadSafePointer(fUObjectItem.AllocPointer, 0, fUObjectItem.StructSize, _memory->Is64Bit);
+
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == NULL)
@@ -208,7 +178,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 		}
 
 		// Alloc and Read the address as class
-		if (_memory->ReadBytes(dwUObject, uObject.StructAllocPointer, uObject.StructSize - sSub) == NULL)
+		if (_memory->ReadBytes(dwUObject, uObject.AllocPointer, uObject.StructSize - sSub) == NULL)
 			return false;
 
 		// Fix UObject
@@ -217,7 +187,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 			if (Utils::ProgramIs64())
 			{
 				// Fix VfTable
-				FixStructPointer(uObject.StructAllocPointer, 0, uObject.StructSize);
+				Utils::FixStructPointer(uObject.AllocPointer, 0, uObject.StructSize);
 			}
 		}
 
@@ -288,7 +258,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (_memory->ReadBytes(fNameAddress, fName.StructAllocPointer, fName.StructSize) == NULL)
+			if (_memory->ReadBytes(fNameAddress, fName.AllocPointer, fName.StructSize) == NULL)
 				return false;
 
 			// Set The Name
@@ -327,37 +297,4 @@ bool InstanceLogger::IsValidAddress(const uintptr_t address)
 	}
 
 	return false;
-}
-
-template<typename ElementType>
-void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
-{
-	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
-	const int x2 = 0x4 * varOffsetEach4Byte;
-
-	const int size = abs(x1 - int(sizeof(ElementType)));
-	memcpy_s
-	(
-		static_cast<char*>(structBase) + x1,
-		size,
-		static_cast<char*>(structBase) + x2,
-		size
-	);
-	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
-}
-
-void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte, const int structSize)
-{
-	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
-	const int x2 = 0x4 * varOffsetEach4Byte;
-
-	const int size = abs(x1 - structSize);
-	memcpy_s
-	(
-		static_cast<char*>(structBase) + x1,
-		size,
-		static_cast<char*>(structBase) + x2,
-		size
-	);
-	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
 }
