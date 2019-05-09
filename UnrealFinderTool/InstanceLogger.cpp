@@ -1,6 +1,3 @@
-// Based on dano20zoo @ unknowncheats
-// Converted to external by CorrM @ Me
-// 
 #include "pch.h"
 #include "InstanceLogger.h"
 #include "Utils.h"
