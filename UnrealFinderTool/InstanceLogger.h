@@ -19,7 +19,7 @@ struct UObject
 class FUObjectItem
 {
 public:
-	UObject*	Object;
+	UObject*	Object; // Our Target
 	int			Flags;
 	int			ClusterIndex;
 	int			SerialNumber;
@@ -76,13 +76,14 @@ public:
 
 struct GObject
 {
-
+	uintptr_t ObjAddress;
+	int FNameIndex;
 };
 
 class InstanceLogger
 {
 	// FUObjectArray gObjObjects;
-	JsonStruct gObjObjects;
+	GObject* gObjObjects; int gObjectsCount;
 	GNameArray gNames;
 
 	Memory* _memory;

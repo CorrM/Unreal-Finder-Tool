@@ -128,7 +128,7 @@ bool JsonStruct::Load(void* jsonObj)
 		// [Copy] the struct to structs list
 		StructsList[eName] = tempToSave;
 	}
-	return false;
+	return true;
 }
 
 bool JsonStruct::Load(const std::string& structName)
