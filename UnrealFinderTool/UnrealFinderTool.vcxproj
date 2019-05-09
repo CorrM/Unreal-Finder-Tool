@@ -92,7 +92,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);.\SDKGen\;.\SDKGen\Engine\;.\SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,13 +105,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;UNREALENGINE_VERSION=0400;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <OpenMPSupport>false</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)SDKGen\;$(ProjectDir)SDKGen\Engine\;$(ProjectDir)SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);.\SDKGen\Engine;.\SDKGen\Engine\UE4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -131,7 +131,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);.\SDKGen\;.\SDKGen\Engine\;.\SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -153,7 +153,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)SDKGen\;$(ProjectDir)SDKGen\Engine\;$(ProjectDir)SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);.\SDKGen\;.\SDKGen\Engine\;.\SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -176,6 +176,20 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="SdkGenerator.h" />
+    <ClInclude Include="SdkGen\MainEngineClasses.hpp" />
+    <ClInclude Include="SdkGen\Engine\cpplinq.hpp" />
+    <ClInclude Include="SdkGen\Engine\IGenerator.hpp" />
+    <ClInclude Include="SdkGen\Engine\Logger.hpp" />
+    <ClInclude Include="SdkGen\Engine\NamesStore.hpp" />
+    <ClInclude Include="SdkGen\Engine\NameValidator.hpp" />
+    <ClInclude Include="SdkGen\Engine\ObjectsStore.hpp" />
+    <ClInclude Include="SdkGen\Engine\Package.hpp" />
+    <ClInclude Include="SdkGen\Engine\PatternFinder.hpp" />
+    <ClInclude Include="SdkGen\Engine\PrintHelper.hpp" />
+    <ClInclude Include="SdkGen\Engine\tinyformat.h" />
+    <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.hpp" />
+    <ClInclude Include="SdkGen\Engine\UE4\GenericTypes.hpp" />
+    <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.hpp" />
     <ClInclude Include="StdColors.h" />
     <ClInclude Include="GObjectsFinder.h" />
     <ClInclude Include="Tools.h" />
@@ -198,6 +212,21 @@
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="GObjectsFinder.cpp" />
     <ClCompile Include="SdkGenerator.cpp" />
+    <ClCompile Include="SdkGen\Engine\Logger.cpp" />
+    <ClCompile Include="SdkGen\Engine\NamesStore.cpp" />
+    <ClCompile Include="SdkGen\Engine\NameValidator.cpp" />
+    <ClCompile Include="SdkGen\Engine\ObjectsStore.cpp" />
+    <ClCompile Include="SdkGen\Engine\Package.cpp" />
+    <ClCompile Include="SdkGen\Engine\PatternFinder.cpp" />
+    <ClCompile Include="SdkGen\Engine\PrintHelper.cpp" />
+    <ClCompile Include="SdkGen\Engine\UE4\FunctionFlags.cpp" />
+    <ClCompile Include="SdkGen\Engine\UE4\GenericTypes.cpp" />
+    <ClCompile Include="SdkGen\Engine\UE4\PackageCore.cpp" />
+    <ClCompile Include="SdkGen\Engine\UE4\PropertyFlags.cpp" />
+    <ClCompile Include="SdkGen\MainGenerator.cpp" />
+    <ClCompile Include="SdkGen\MainGenericTypes.cpp" />
+    <ClCompile Include="SdkGen\MainNamesStore.cpp" />
+    <ClCompile Include="SdkGen\MainObjectsStore.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="UnrealFinderTool.cpp" />
     <ClCompile Include="Utils.cpp" />

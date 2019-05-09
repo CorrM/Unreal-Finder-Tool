@@ -1,18 +1,10 @@
 #include "pch.h"
 #include "Color.h"
 #include "GnamesFinder.h"
-#include <iostream>
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
-
-bool Is64()
-{
-#if _WIN64
-	return true;
-#else
-	return false;
-#endif
-}
+#include <iostream>
+#include "SdkGenerator.h"
 
 int main()
 {
@@ -28,8 +20,8 @@ int main()
 	auto memManager1 = new Memory(pHandle1, false);
 	auto objObjectsAddress = uintptr_t(0x7FF77D731E70);
 	auto gNamesAddress = uintptr_t(0x7FF77D729A20);
-	InstanceLogger il(memManager1, objObjectsAddress, gNamesAddress);
-	il.Start();
+	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
+	sg.Start();
 	std::cin >> tool_id;
 	return 0;
 	// ##################
@@ -43,12 +35,13 @@ int main()
 	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
 	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
 	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 3)
+	if (tool_id == 0 || tool_id > 4)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
 		std::cout << def << "===================================\n" << std::endl;
@@ -114,6 +107,18 @@ int main()
 
 		InstanceLogger il(memManager, objObjectsAddress, gNamesAddress);
 		il.Start();
+	}
+	else if (tool_id == 4)
+	{
+		uintptr_t objObjectsAddress, gNamesAddress;
+		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
+		std::cin >> std::hex >> objObjectsAddress;
+
+		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
+		std::cin >> std::hex >> gNamesAddress;
+
+		SdkGenerator sg(memManager, objObjectsAddress, gNamesAddress);
+		sg.Start();
 	}
 
 	std::cout << def << "===================================" << std::endl;
