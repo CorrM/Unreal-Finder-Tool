@@ -106,7 +106,7 @@ void InstanceLogger::Start()
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
 	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	uintptr_t dwUObjectItem, dwUObject;
+	uintptr_t dwFUObjectAddress, dwUObject;
 
 	if (_memory->ReadBytes(address, objectArray.StructAllocPointer, objectArray.StructSize - sSub) == NULL) return false;
 
@@ -118,17 +118,17 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	{
 		if (Utils::ProgramIs64())
 		{
-			dwUObjectItem = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
+			dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
 			FixStructPointer(objObjects.StructAllocPointer, 0, objObjects.StructSize);
 		}
 		else
 		{
-			dwUObjectItem = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
+			dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
 		}
 	}
 	else
 	{
-		dwUObjectItem = objObjects["Objects"].ReadAs<DWORD64>(); // 8byte
+		dwFUObjectAddress = objObjects["Objects"].ReadAs<DWORD64>(); // 8byte
 	}
 
 	// ############################################
@@ -136,15 +136,16 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	// ############################################
 	JsonStruct fUObjectItem;
 	JsonStruct::Read("FUObjectItem", fUObjectItem);
+
 	void* objectsAlloc = malloc(num * fUObjectItem.StructSize);
 	ZeroMemory(objectsAlloc, num * fUObjectItem.StructSize);
 	fUObjectItem.SetAllocAddress(objectsAlloc);
 
-	uintptr_t currentUObjAddress = dwUObjectItem;
+	uintptr_t currentFUObjAddress = dwFUObjectAddress;
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as class
-		if (_memory->ReadBytes(currentUObjAddress, fUObjectItem.StructAllocPointer, fUObjectItem.StructSize) == NULL) return false;
+		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.StructAllocPointer, fUObjectItem.StructSize - sSub) == NULL) return false;
 
 		// ############################################
 		// Convert class pointer to address
@@ -166,27 +167,27 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 			dwUObject = fUObjectItem["Object"].ReadAs<DWORD64>(); // 8byte
 		}
 
-		//// ############################################
-		//// Alloc and Read the address as class
-		//// ############################################
-		//objectArray.ObjObjects.Objects[i].Object = new UObject();
-		//if (_memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject) - sizeof(uintptr_t)) == NULL) return false;
+		// ############################################
+		// Alloc and Read the address as class
+		// ############################################
+		objectArray.ObjObjects.Objects[i].Object = new UObject();
+		if (_memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject) - sizeof(uintptr_t)) == NULL) return false;
 
-		//// Fix UObject
-		//if (!_memory->Is64Bit)
-		//{
-		//	if (Utils::ProgramIs64())
-		//	{
-		//		// Fix VfTable
-		//		FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 0);
+		// Fix UObject
+		if (!_memory->Is64Bit)
+		{
+			if (Utils::ProgramIs64())
+			{
+				// Fix VfTable
+				FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 0);
 
-		//		// Fix Unknown00
-		//		FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 4);
-		//	}
-		//}
+				// Fix Unknown00
+				FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 4);
+			}
+		}
 
 		//objectArray.ObjObjects.Objects[i].Object->OriginalAddress = dwUObject;
-		currentUObjAddress += objObjects.StructSize - (sSub * 2);
+		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		fUObjectItem.MoveAllocNext();
 	}
 	return true;

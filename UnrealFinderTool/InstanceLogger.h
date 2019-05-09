@@ -74,6 +74,11 @@ public:
 };
 #pragma endregion
 
+struct GObject
+{
+
+};
+
 class InstanceLogger
 {
 	// FUObjectArray gObjObjects;

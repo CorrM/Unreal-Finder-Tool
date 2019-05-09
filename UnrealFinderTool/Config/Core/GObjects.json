@@ -17,7 +17,8 @@
         { "Object": "pointer" },
         { "Flags": "int" },
         { "ClusterIndex": "int" },
-        { "SerialNumber": "int" }
+        { "SerialNumber": "int" },
+        { "Unknown_00": "4" }
       ]
     },
     {
