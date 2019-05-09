@@ -1,12 +1,31 @@
 #pragma once
 #include "json.hpp"
 
+class JsonVar;
 class JsonStruct;
+using JsonStructs = std::map<std::string, JsonStruct>;
+using JsonVariables = std::map<std::string, JsonVar>;
 
 class JsonReflector
 {
 public:
+	// Contains all loaded structs
+	static JsonStructs StructsList;
+	// Main json reader for structs
+	static nlohmann::json* JsonObj;
 	static bool ReadJsonFile(const std::string& fileName, void* jsonObj);
+	// Check variable type is struct
+	static bool IsStructType(const std::string& typeName);
+	// Load json struct by name
+	static bool Load(const std::string& structName);
+	// Read struct form loaded json structs
+	static bool Read(const std::string& structName, JsonStruct& destStruct, bool alloc = true);
+	// Load all json structs inside the JsonObject
+	static bool Load(void* jsonObj);
+	// Get json struct variable size
+	static int VarSizeFromJson(const std::string& typeName);
+	// Check if string is number, useful to calc struct size
+	static bool IsNumber(const std::string& s);
 };
 
 class JsonVar
@@ -44,16 +63,10 @@ private:
 	JsonVar& GetVar(const std::string& varName);
 };
 
-using JsonVariables = std::map<std::string, JsonVar>;
-using JsonStructs = std::map<std::string, JsonStruct>;
-
 class JsonStruct
 {
 public:
-	// Contains all loaded structs
-	static JsonStructs StructsList;
-	// Main json reader for structs
-	static nlohmann::json* JsonObj;
+	
 	// Struct Name
 	std::string Name;
 	// Variable inside this struct
@@ -78,19 +91,8 @@ public:
 	void MoveAllocNext();
 	// Move alloc address to prev value based on `StructSize`
 	void MoveAllocPrev();
-	// Read struct form loaded json structs
-	static bool Read(const std::string& structName, JsonStruct& destStruct, bool alloc = true);
-	// Load all json structs inside the JsonObject
-	static bool Load(void* jsonObj);
-	// Get json struct variable size
-	static int VarSizeFromJson(const std::string& typeName);
-	// Check if string is number, useful to calc struct size
-	static bool IsNumber(const std::string& s);
 private:
 	// Access to variable inside this struct
 	JsonVar& GetVar(const std::string& varName);
-	// Check variable type is struct
-	static bool IsStructType(const std::string& typeName);
-	// Load json struct by name
-	static bool Load(const std::string& structName);
+	
 };
