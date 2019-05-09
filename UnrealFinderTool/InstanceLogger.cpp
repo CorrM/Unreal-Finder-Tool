@@ -105,19 +105,90 @@ void InstanceLogger::Start()
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
-	const uint32_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	uintptr_t dwUObjectItem, dwUObject;
+
 	if (_memory->ReadBytes(address, objectArray.StructAllocPointer, objectArray.StructSize - sSub) == NULL) return false;
 
-	auto gg = objectArray["ObjFirstGcIndex"].ReadAs<int>();
-	gg = objectArray["ObjLastNonGcIndex"].ReadAs<int>();
-	gg = objectArray["MaxObjectsNotConsideredByGc"].ReadAs<int>();
-	gg = objectArray["OpenForDisregardForGc"].ReadAs<int>();
-	gg = JsonStruct::StructsList.size();
+	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
+	auto obj = objObjects["Objects"].ReadAs<uintptr_t>();
+	auto num = objObjects["NumElements"].ReadAs<int>();
 
-	auto ggg = objectArray["ObjObjects"].ReadAsStruct();
-	auto max = ggg["MaxElements"].ReadAs<int>();
-	auto num = ggg["NumElements"].ReadAs<int>(); 
-	auto obj = ggg["Objects"].ReadAs<uintptr_t>();
+	if (!_memory->Is64Bit)
+	{
+		if (Utils::ProgramIs64())
+		{
+			dwUObjectItem = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
+			FixStructPointer(objObjects.StructAllocPointer, 0, objObjects.StructSize);
+		}
+		else
+		{
+			dwUObjectItem = objObjects["Objects"].ReadAs<DWORD>(); // 4byte
+		}
+	}
+	else
+	{
+		dwUObjectItem = objObjects["Objects"].ReadAs<DWORD64>(); // 8byte
+	}
+
+	// ############################################
+	// Alloc
+	// ############################################
+	JsonStruct fUObjectItem;
+	JsonStruct::Read("FUObjectItem", fUObjectItem);
+	void* objectsAlloc = malloc(num * fUObjectItem.StructSize);
+	ZeroMemory(objectsAlloc, num * fUObjectItem.StructSize);
+	fUObjectItem.SetAllocAddress(objectsAlloc);
+
+	uintptr_t currentUObjAddress = dwUObjectItem;
+	for (int i = 0; i < num; ++i)
+	{
+		// Read the address as class
+		if (_memory->ReadBytes(currentUObjAddress, fUObjectItem.StructAllocPointer, fUObjectItem.StructSize) == NULL) return false;
+
+		// ############################################
+		// Convert class pointer to address
+		// ############################################
+		if (!_memory->Is64Bit)
+		{
+			if (Utils::ProgramIs64())
+			{
+				dwUObject = fUObjectItem["Object"].ReadAs<DWORD>(); // 4byte
+				FixStructPointer(fUObjectItem.StructAllocPointer, 0, fUObjectItem.StructSize);
+			}
+			else
+			{
+				dwUObject = fUObjectItem["Object"].ReadAs<DWORD>(); // 4byte
+			}
+		}
+		else
+		{
+			dwUObject = fUObjectItem["Object"].ReadAs<DWORD64>(); // 8byte
+		}
+
+		//// ############################################
+		//// Alloc and Read the address as class
+		//// ############################################
+		//objectArray.ObjObjects.Objects[i].Object = new UObject();
+		//if (_memory->ReadBytes(dwUObject, objectArray.ObjObjects.Objects[i].Object, sizeof(UObject) - sizeof(uintptr_t)) == NULL) return false;
+
+		//// Fix UObject
+		//if (!_memory->Is64Bit)
+		//{
+		//	if (Utils::ProgramIs64())
+		//	{
+		//		// Fix VfTable
+		//		FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 0);
+
+		//		// Fix Unknown00
+		//		FixStructPointer<UObject>(static_cast<void*>(objectArray.ObjObjects.Objects[i].Object), 4);
+		//	}
+		//}
+
+		//objectArray.ObjObjects.Objects[i].Object->OriginalAddress = dwUObject;
+		currentUObjAddress += objObjects.StructSize - (sSub * 2);
+		fUObjectItem.MoveAllocNext();
+	}
 	return true;
 }
 
@@ -304,6 +375,22 @@ void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4
 	const int x2 = 0x4 * varOffsetEach4Byte;
 
 	const int size = abs(x1 - int(sizeof(ElementType)));
+	memcpy_s
+	(
+		static_cast<char*>(structBase) + x1,
+		size,
+		static_cast<char*>(structBase) + x2,
+		size
+	);
+	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
+}
+
+void InstanceLogger::FixStructPointer(void* structBase, const int varOffsetEach4Byte, const int structSize)
+{
+	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
+	const int x2 = 0x4 * varOffsetEach4Byte;
+
+	const int size = abs(x1 - structSize);
 	memcpy_s
 	(
 		static_cast<char*>(structBase) + x1,

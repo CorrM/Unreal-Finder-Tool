@@ -53,6 +53,8 @@ public:
 
 	TUObjectArray ObjObjects;
 };
+
+
 #pragma endregion
 
 #pragma region GNames
@@ -93,6 +95,7 @@ class InstanceLogger
 	bool IsValidAddress(uintptr_t address);
 	template <typename ElementType>
 	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
+	void FixStructPointer(void* structBase, int varOffsetEach4Byte, int structSize);
 
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
