@@ -25,6 +25,9 @@
     <Filter Include="Memory\BypaPH">
       <UniqueIdentifier>{1cbdc3e0-6dbf-42da-8f62-8ce3b52351d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Json">
+      <UniqueIdentifier>{f7a4b776-72bf-4c4c-a16c-51c3691a2a59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -75,6 +78,9 @@
     <ClInclude Include="json.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="JsonReflector.h">
+      <Filter>Json</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -115,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="SdkGenerator.cpp">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonReflector.cpp">
+      <Filter>Json</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

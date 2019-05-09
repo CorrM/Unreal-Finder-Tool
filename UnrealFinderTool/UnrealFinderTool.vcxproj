@@ -112,6 +112,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)SDKGen\;$(ProjectDir)SDKGen\Engine\;$(ProjectDir)SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +167,7 @@
     <ClInclude Include="Driver.h" />
     <ClInclude Include="GnamesFinder.h" />
     <ClInclude Include="InstanceLogger.h" />
+    <ClInclude Include="JsonReflector.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Memory.h" />
@@ -183,6 +185,7 @@
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="GnamesFinder.cpp" />
     <ClCompile Include="InstanceLogger.cpp" />
+    <ClCompile Include="JsonReflector.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="pch.cpp">

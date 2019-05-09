@@ -113,7 +113,36 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len)
+template<typename T>
+int Memory::Read(const uintptr_t address, T& type)
+{
+	if (address == static_cast<uintptr_t>(-1))
+		return 0;
+
+	SIZE_T numberOfBytesActuallyRead = 0;
+	const SIZE_T numberOfBytesToRead = sizeof(T);
+
+	if (use_kernal)
+	{
+		const auto state = bypa_ph->RWVM(bypa_ph->m_hTarget,
+			reinterpret_cast<PVOID>(address),
+			type,
+			numberOfBytesToRead,
+			&numberOfBytesActuallyRead);
+		/*if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
+	}
+	else
+	{
+		const auto success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), type, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		/*if (!success && GetLastError() != 299)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
+	}
+
+	return numberOfBytesActuallyRead;
+}
+
+int Memory::ReadBytes(const uintptr_t address, const PVOID buf, const uint32_t len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -138,7 +167,7 @@ SIZE_T Memory::ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len)
 			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
 	
-	return numberOfBytesToRead;
+	return numberOfBytesActuallyRead;
 }
 
 bool Memory::ReadBool(const uintptr_t address)

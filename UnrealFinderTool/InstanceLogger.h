@@ -1,59 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include <vector>
-#include "Utils.h"
-
-#pragma region GObject
-struct UObject
-{
-	void*	VfTable;
-	int		Flags;
-	int		InternalIndex;
-	void*	Unknown00;
-	int		FNameIndex; // struct FName
-	int		FNameUnknown;
-
-	uintptr_t	OriginalAddress; // Must be in last
-};
-
-class FUObjectItem
-{
-public:
-	UObject*	Object;
-	int			Flags;
-	int			ClusterIndex;
-	int			SerialNumber;
-
-	~FUObjectItem()
-	{
-		delete Object;
-	}
-};
-
-class TUObjectArray
-{
-public:
-	FUObjectItem* Objects;
-	int MaxElements;
-	int NumElements;
-
-	~TUObjectArray()
-	{
-		delete[] Objects;
-	}
-};
-
-class FUObjectArray
-{
-public:
-	int ObjFirstGcIndex;
-	int ObjLastNonGcIndex;
-	int MaxObjectsNotConsideredByGc;
-	int OpenForDisregardForGc;
-
-	TUObjectArray ObjObjects;
-};
-#pragma endregion
+#include "JsonReflector.h"
 
 #pragma region GNames
 struct FName
@@ -64,38 +12,57 @@ struct FName
 	string AnsiName;
 };
 
-class GNameArray
+#pragma endregion
+
+struct GObject
+{
+	uintptr_t ObjAddress;
+	int FNameIndex;
+};
+
+class GName
 {
 public:
-	std::vector<FName> Names;
-	int NumElements = 16384;
+	int Index;
+	string AnsiName;
 };
-#pragma endregion
 
 class InstanceLogger
 {
-	FUObjectArray gObjObjects;
-	//JsonStruct gObjObjects;
-	GNameArray gNames;
+	// FUObjectArray gObjObjects;
+	GObject* gObjObjects; int gObjectsCount;
+	GName* gNames; int gNamesChunkCount, gNamesChunks;
 
 	Memory* _memory;
 	uintptr_t gObjObjectsOffset;
 	uintptr_t gNamesOffset;
 	int ptrSize;
 
-	char* GetName(UObject* object, bool& success);
+	std::string GetName(int fNameIndex, bool& success);
 	void ObjectDump();
 	void NameDump();
-	bool ReadUObjectArray(uintptr_t address, FUObjectArray& objectArray);
-	bool ReadGNameArray(uintptr_t address, GNameArray& gNames);
+	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	bool ReadGNameArray(uintptr_t address);
 	static DWORD BufToInteger(void* buffer);
 	static DWORD64 BufToInteger64(void* buffer);
-	bool IsValidAddress(uintptr_t address) const;
-	template <class ElementType>
-	void FixStructPointer(void* structBase, int varOffsetEach4Byte);
+	bool IsValidAddress(uintptr_t address);
+	/// <summary>
+	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
+	/// Must pick the right `ElementType`, else will case some memory problems in the hole program
+	/// </summary>
+	/// <param name="structBase">Pointer to instance of `ElementType`</param>
+	/// <param name="varOffsetEach4Byte">Offset to variable based on `ElementType`</param>
+	template <typename ElementType> void FixStructPointer(void* structBase, int varOffsetEach4Byte);
+	/// <summary>
+	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
+	/// Must pick the right struct Size, else will case some memory problems in the hole program
+	/// </summary>
+	/// <param name="structBase">Pointer to instance of struct</param>
+	/// <param name="varOffsetEach4Byte">Offset to variable based on `structBase`</param>
+	/// <param name="structSize">Size of struct</param>
+	void FixStructPointer(void* structBase, int varOffsetEach4Byte, int structSize);
 
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
 	void Start();
 };
-

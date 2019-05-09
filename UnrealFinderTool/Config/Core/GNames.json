@@ -1,0 +1,13 @@
+{
+  "structs": [
+    {
+      "name": "FName",
+      "vars": [
+        { "Index": "int" },
+        { "Unknown_00": "4" },
+        { "HashNext": "pointer" },
+        { "AnsiName": "string" }
+      ]
+    }
+  ]
+}

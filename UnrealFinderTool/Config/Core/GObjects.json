@@ -1,22 +1,43 @@
 {
   "structs": [
     {
+      "name": "UObject",
+      "vars": [
+        { "VfTable": "pointer" },
+        { "Flags": "int" },
+        { "InternalIndex": "int" },
+        { "Unknown00": "8" },
+        { "FNameIndex": "int" },
+        { "FNameUnknown": "int" }
+      ]
+    },
+    {
+      "name": "FUObjectItem",
+      "vars": [
+        { "Object": "pointer" },
+        { "Flags": "int" },
+        { "ClusterIndex": "int" },
+        { "SerialNumber": "int" },
+        { "Unknown_00": "4" }
+      ]
+    },
+    {
       "name": "TUObjectArray",
-      "vars": {
-          "Objects": "pointer",
-          "MaxElements": "int",
-          "NumElements": "int"
-        }
+      "vars": [
+        { "Objects": "pointer" },
+        { "MaxElements": "int" },
+        { "NumElements": "int" }
+      ]
     },
     {
       "name": "FUObjectArray",
-      "vars": {
-          "ObjFirstGcIndex": "int",
-          "ObjLastNonGcIndex": "int",
-          "MaxObjectsNotConsideredByGc": "int",
-          "OpenForDisregardForGc": "int",
-          "TUObjectArray": "TUObjectArray"
-        }
+      "vars": [
+        { "ObjFirstGcIndex": "int" },
+        { "ObjLastNonGcIndex": "int" },
+        { "MaxObjectsNotConsideredByGc": "int" },
+        { "OpenForDisregardForGc": "int" },
+        { "ObjObjects": "TUObjectArray" }
+      ]
     }
   ]
 }
