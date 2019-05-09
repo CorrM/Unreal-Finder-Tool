@@ -28,7 +28,10 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 </a>
 
 # Change Log
+##### 09-06-2019
+- [x] Add JSON reflctor.
+- [x] Convert Instance Logger to JSON reflector.
 ##### 06-06-2019
-- Add Instance Logger.
+- [x] Add Instance Logger.
 ##### 02-06-2019
-- First version released
+- [x] First version released
