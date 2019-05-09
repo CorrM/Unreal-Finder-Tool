@@ -1,10 +1,10 @@
 #include "pch.h"
 #include "InstanceLogger.h"
 #include "Utils.h"
-
 #include <iostream>
 #include <string>
 #include <cinttypes>
+
 using namespace nlohmann;
 
 InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
