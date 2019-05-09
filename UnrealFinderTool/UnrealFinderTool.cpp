@@ -5,7 +5,7 @@
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
 
-bool Is64()
+bool is64()
 {
 #if _WIN64
 	return true;
@@ -22,22 +22,23 @@ int main()
 	MoveWindow(console, r.left, r.top, 650, 400, TRUE);
 
 	int tool_id, p_id, old_pid = 0;
-
+	
 	RESTART:
 	system("cls");
 	SetConsoleTitleA("Unreal Engine Finder Tool By CorrM");
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl;
-	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl;
-	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Generate SDK for ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
-	std::cout << red << "[-] " << yellow << "Input tool ID: " << dgreen;
+	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
 	std::cin >> tool_id;
 
-	if (tool_id == 0 || tool_id > 3)
+	if (tool_id == 0 || tool_id > 4)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
 		std::cout << def << "===================================\n" << std::endl;
@@ -46,7 +47,7 @@ int main()
 
 	// Get pID
 	pID:
-	std::cout << red << "[-] " << yellow << "input process ID: " << dgreen;
+	std::cout << green << "[-] " << yellow << "input process ID: " << dgreen;
 	std::cin >> p_id;
 
 	if (p_id == 0 && old_pid != 0)
@@ -66,7 +67,7 @@ int main()
 
 	// Use Kernal ???
 	char cUseKernal;
-	std::cout << red << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
+	std::cout << green << "[-] " << yellow << "Use Kernal (Y/N): " << dgreen;
 	std::cin >> cUseKernal;
 	const bool bUseKernal = cUseKernal == 'Y' || cUseKernal == 'y';
 
@@ -85,7 +86,7 @@ int main()
 	{
 		std::cout << red << "[?] " << yellow << "First try EASY method. not work.? use HARD method and wait some time :D." << std::endl;
 		char cUseEz;
-		std::cout << red << "[-] " << yellow << "Use Easy Method (Y/N): " << dgreen;
+		std::cout << green << "[-] " << yellow << "Use Easy Method (Y/N): " << dgreen;
 		std::cin >> cUseEz;
 		const bool bUseEz = cUseEz == 'Y' || cUseEz == 'y';
 
@@ -95,10 +96,10 @@ int main()
 	else if (tool_id == 3) // Instance Logger
 	{
 		uintptr_t objObjectsAddress, gNamesAddress;
-		std::cout << red << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
+		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
 		std::cin >> std::hex >> objObjectsAddress;
 
-		std::cout << red << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
+		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
 
 		InstanceLogger il(memManager, objObjectsAddress, gNamesAddress);

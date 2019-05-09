@@ -78,7 +78,7 @@ void InstanceLogger::Start()
 {
 	// Read core GObjects
 	json jsonCore;
-	if (!Utils::ReadJsonFile("Config\\Core\\GObjects.json", &jsonCore))
+	if (!Utils::ReadJsonFile("Config\\InstanceLogger\\GObjects.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
 		return;
@@ -91,7 +91,7 @@ void InstanceLogger::Start()
 	}
 
 	// Read core GNames
-	if (!Utils::ReadJsonFile("Config\\Core\\GNames.json", &jsonCore))
+	if (!Utils::ReadJsonFile("Config\\InstanceLogger\\GNames.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
 		return;
