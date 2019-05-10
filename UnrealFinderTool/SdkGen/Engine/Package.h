@@ -6,7 +6,7 @@
 #include <filesystem>
 namespace fs = std::experimental::filesystem;
 
-#include "GenericTypes.hpp"
+#include "GenericTypes.h"
 
 class Package
 {

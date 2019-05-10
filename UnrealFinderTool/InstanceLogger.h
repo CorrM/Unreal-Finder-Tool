@@ -17,7 +17,7 @@ public:
 
 class InstanceLogger
 {
-	// FUObjectArray gObjObjects;
+	nlohmann::json jsonCore;
 	GObject* gObjObjects; int gObjectsCount;
 	GName* gNames; int gNamesChunkCount, gNamesChunks;
 
@@ -27,16 +27,16 @@ class InstanceLogger
 	int ptrSize;
 
 	std::string GetName(int fNameIndex, bool& success);
-	void ObjectDump();
-	void NameDump();
+	bool ObjectDump();
+	bool NameDump();
 	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
 	bool ReadGNameArray(uintptr_t address);
 	static DWORD BufToInteger(void* buffer);
 	static DWORD64 BufToInteger64(void* buffer);
 	bool IsValidAddress(uintptr_t address);
-	
-
 public:
 	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
 	void Start();
+	bool LoadCore();
+	bool FetchData();
 };

@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "PatternFinder.hpp"
-#include "NamesStore.hpp"
-#include "MainEngineClasses.hpp"
+#include "PatternFinder.h"
+#include "NamesStore.h"
+#include "MainEngineClasses.h"
 
 class FNameEntry
 {

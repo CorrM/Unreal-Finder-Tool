@@ -1,10 +1,10 @@
 #include "pch.h"
-#include "PrintHelper.hpp"
+#include "PrintHelper.h"
 
 #include <tinyformat.h>
 
-#include "IGenerator.hpp"
-#include "Package.hpp"
+#include "IGenerator.h"
+#include "Package.h"
 
 void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, bool isHeaderFile)
 {

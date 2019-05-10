@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "IGenerator.hpp"
-#include "ObjectsStore.hpp"
+#include "IGenerator.h"
+#include "ObjectsStore.h"
 
 class Generator final : public IGenerator
 {

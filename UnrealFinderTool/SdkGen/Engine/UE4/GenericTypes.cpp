@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "GenericTypes.hpp"
+#include "GenericTypes.h"
 
 void* UEObject::GetAddress() const
 {

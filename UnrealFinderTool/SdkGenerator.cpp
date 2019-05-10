@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Memory.h"
 #include "cpplinq.hpp"
-#include "NameValidator.hpp"
-#include "PrintHelper.hpp"
-#include "Logger.hpp"
-#include "ObjectsStore.hpp"
-#include "NamesStore.hpp"
+#include "NameValidator.h"
+#include "PrintHelper.h"
+#include "Logger.h"
+#include "ObjectsStore.h"
+#include "NamesStore.h"
 #include "SdkGenerator.h"
 
 #include <fstream>

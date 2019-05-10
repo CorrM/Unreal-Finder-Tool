@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "NameValidator.hpp"
+#include "NameValidator.h"
 
 #include <cctype>
 
-#include "ObjectsStore.hpp"
+#include "ObjectsStore.h"
 
 std::string MakeValidName(std::string&& name)
 {

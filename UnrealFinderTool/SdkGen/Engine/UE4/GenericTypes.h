@@ -4,9 +4,9 @@
 #include <vector>
 #include <array>
 
-#include "PropertyFlags.hpp"
-#include "FunctionFlags.hpp"
-#include "../IGenerator.hpp"
+#include "PropertyFlags.h"
+#include "FunctionFlags.h"
+#include "../IGenerator.h"
 
 class UObject;
 class UEClass;

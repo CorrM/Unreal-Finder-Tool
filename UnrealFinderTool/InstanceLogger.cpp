@@ -5,8 +5,6 @@
 #include <string>
 #include <cinttypes>
 
-using namespace nlohmann;
-
 InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
@@ -30,15 +28,15 @@ std::string InstanceLogger::GetName(const int fNameIndex, bool& success)
 	return gNames[fNameIndex].AnsiName;
 }
 
-void InstanceLogger::ObjectDump()
+bool InstanceLogger::ObjectDump()
 {
 	FILE* log = nullptr;
 	fopen_s(&log, "ObjectDump.txt", "w+");
 
 	if (log == nullptr)
 	{
-		MessageBoxA(nullptr, "Can't open 'ObjectDump.txt' for write.", "Wrong", MB_OK);
-		return;
+		std::cout << red << "[*] " << def << "Can't open 'ObjectDump.txt' for write." << std::endl;
+		return false;
 	}
 
 	for (int i = 0; i < gObjectsCount; i++)
@@ -52,79 +50,97 @@ void InstanceLogger::ObjectDump()
 	}
 
 	fclose(log);
+	return true;
 }
 
-void InstanceLogger::NameDump()
+bool InstanceLogger::NameDump()
 {
 	FILE* log = nullptr;
 	fopen_s(&log, "NameDump.txt", "w+");
 
 	if (log == nullptr)
 	{
-		MessageBoxA(nullptr, "Can't open 'NameDump.txt' for write.", "Wrong", MB_OK);
-		return;
+		std::cout << red << "[*] " << def << "Can't open 'NameDump.txt' for write." << std::endl;
+		return false;
 	}
 
 	for (int i = 0; i < gNamesChunkCount * gNamesChunks; i++)
 		fprintf(log, "Name[%06i] %s\n", int(i), gNames[i].AnsiName.c_str());
 
 	fclose(log);
+	return true;
 }
 
 void InstanceLogger::Start()
 {
+	if (!LoadCore())
+		return;
+
+	if (!FetchData())
+		return;
+
+	NameDump();
+	ObjectDump();
+
+	std::cout << std::endl;
+	std::cout << green << "[+] " << purple << "Found [ " << green << gObjectsCount << purple << " ] Object." << std::endl;
+	std::cout << green << "[+] " << purple << "Found [ " << green << gNamesChunkCount * gNamesChunks << purple << " ] Name." << std::endl;
+}
+
+bool InstanceLogger::LoadCore()
+{
 	// Read core GObjects
-	json jsonCore;
-	if (!JsonReflector::ReadJsonFile("Config\\InstanceLogger\\GObjects.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
-		return;
+		return false;
 	}
 	// Load all json structs in file
 	if (!JsonReflector::Load(&jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
-		return;
+		return false;
 	}
 
 	// Read core GNames
-	if (!JsonReflector::ReadJsonFile("Config\\InstanceLogger\\GNames.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", &jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
-		return;
+		return false;
 	}
 	// Load all json structs in file
 	if (!JsonReflector::Load(&jsonCore))
 	{
 		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
-		return;
+		return false;
 	}
 
+	return true;
+}
+
+bool InstanceLogger::FetchData()
+{
 	// GObjects
 	JsonStruct jsonGObjectsReader;
 	if (!JsonReflector::Read("FUObjectArray", jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
-		return;
+		return false;
 	}
 	if (!ReadUObjectArray(gObjObjectsOffset, jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
-		return;
+		return false;
 	}
 
 	// GNames
 	if (!ReadGNameArray(gNamesOffset))
 	{
 		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
-		return;
+		return false;
 	}
 
-	NameDump();
-	ObjectDump();
-
-	std::cout << green << "[+] " << purple << "Found [" << green << gObjectsCount << purple << "] Object." << std::endl;
-	std::cout << green << "[+] " << purple << "Found [" << green << gNamesChunkCount * gNamesChunks << purple << "] Name." << std::endl;
+	return true;
 }
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
@@ -144,7 +160,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 		return false;
 	}
 
-	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == NULL) return false;
+	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
 
 	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
@@ -159,15 +175,14 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
-		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == NULL)
+		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == 0)
 			return false;
 
 		// Convert class pointer to address
 		uintptr_t dwUObject = Utils::ReadSafePointer(fUObjectItem.AllocPointer, 0, fUObjectItem.StructSize, _memory->Is64Bit);
 
-
 		// Skip null pointer in GObjects array
-		if (dwUObject == NULL)
+		if (dwUObject == 0)
 		{
 			currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 			gObjectsCount++;
@@ -175,7 +190,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 		}
 
 		// Alloc and Read the address as class
-		if (_memory->ReadBytes(dwUObject, uObject.AllocPointer, uObject.StructSize - sSub) == NULL)
+		if (_memory->ReadBytes(dwUObject, uObject.AllocPointer, uObject.StructSize - sSub) == 0)
 			return false;
 
 		// Fix UObject
@@ -255,7 +270,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (_memory->ReadBytes(fNameAddress, fName.AllocPointer, fName.StructSize) == NULL)
+			if (_memory->ReadBytes(fNameAddress, fName.AllocPointer, fName.StructSize) == 0)
 				return false;
 
 			// Set The Name

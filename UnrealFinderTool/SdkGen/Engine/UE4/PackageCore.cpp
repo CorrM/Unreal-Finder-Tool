@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "../Package.hpp"
+#include "../Package.h"
 
 bool Package::Method::Parameter::MakeType(UEPropertyFlags flags, Type& type)
 {

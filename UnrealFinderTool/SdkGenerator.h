@@ -1,5 +1,5 @@
 #pragma once
-#include "Package.hpp"
+#include "Package.h"
 
 class SdkGenerator
 {
@@ -14,4 +14,3 @@ private:
 	void Dump(const fs::path& path);
 	void SaveSdkHeader(const fs::path& path, const std::unordered_map<UEObject, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages);
 };
-

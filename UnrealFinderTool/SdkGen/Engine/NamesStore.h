@@ -2,7 +2,7 @@
 
 #include <iterator>
 
-#include "GenericTypes.hpp"
+#include "GenericTypes.h"
 
 class NamesIterator;
 

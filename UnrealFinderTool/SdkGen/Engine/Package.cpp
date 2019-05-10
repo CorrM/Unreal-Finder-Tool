@@ -1,19 +1,19 @@
 #include "pch.h"
-#include "Package.hpp"
+#include "Package.h"
 
 #include <fstream>
 #include <unordered_set>
 #include "tinyformat.h"
 #include "cpplinq.hpp"
 
-#include "IGenerator.hpp"
-#include "Logger.hpp"
-#include "NameValidator.hpp"
-#include "PatternFinder.hpp"
-#include "ObjectsStore.hpp"
-#include "PropertyFlags.hpp"
-#include "FunctionFlags.hpp"
-#include "PrintHelper.hpp"
+#include "IGenerator.h"
+#include "Logger.h"
+#include "NameValidator.h"
+#include "PatternFinder.h"
+#include "ObjectsStore.h"
+#include "PropertyFlags.h"
+#include "FunctionFlags.h"
+#include "PrintHelper.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 

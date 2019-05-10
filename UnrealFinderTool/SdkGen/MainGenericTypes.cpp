@@ -1,10 +1,10 @@
 #include "pch.h"
-#include "../IGenerator.hpp"
-#include "GenericTypes.hpp"
-#include "ObjectsStore.hpp"
-#include "NamesStore.hpp"
-#include "NameValidator.hpp"
-#include "MainEngineClasses.hpp"
+#include "../IGenerator.h"
+#include "GenericTypes.h"
+#include "ObjectsStore.h"
+#include "NamesStore.h"
+#include "NameValidator.h"
+#include "MainEngineClasses.h"
 
 //---------------------------------------------------------------------------
 //UEObject

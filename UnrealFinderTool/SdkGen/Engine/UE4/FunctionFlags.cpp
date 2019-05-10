@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "FunctionFlags.hpp"
+#include "FunctionFlags.h"
 
 #include <vector>
 #include <sstream>

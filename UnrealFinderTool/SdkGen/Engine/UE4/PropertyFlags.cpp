@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "PropertyFlags.hpp"
+#include "PropertyFlags.h"
 
 #include <vector>
 #include <sstream>

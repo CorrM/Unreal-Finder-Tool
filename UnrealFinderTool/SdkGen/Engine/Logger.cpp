@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Logger.hpp"
+#include "Logger.h"
 
 std::ostream* Logger::stream = nullptr;
 

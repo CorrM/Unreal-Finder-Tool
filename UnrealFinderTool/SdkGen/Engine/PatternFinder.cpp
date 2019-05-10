@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "PatternFinder.hpp"
+#include "PatternFinder.h"
 
 #include <cstring>
 #include <psapi.h>

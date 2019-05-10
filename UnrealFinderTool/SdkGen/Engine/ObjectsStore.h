@@ -1,15 +1,12 @@
 #pragma once
-
+#include "GenericTypes.h"
 #include <unordered_map>
-
-#include "GenericTypes.hpp"
 
 class ObjectsIterator;
 
 class ObjectsStore
 {
 public:
-
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
@@ -17,45 +14,36 @@ public:
 	/// true if it succeeds, false if it fails.
 	/// </returns>
 	static bool Initialize();
-
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static void* GetAddress();
-
 	ObjectsIterator begin();
-
-	ObjectsIterator begin() const;
-
+	[[nodiscard]] ObjectsIterator begin() const;
 	ObjectsIterator end();
-
-	ObjectsIterator end() const;
-
+	[[nodiscard]] ObjectsIterator end() const;
 	/// <summary>
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	size_t GetObjectsNum() const;
-
+	[[nodiscard]] size_t GetObjectsNum() const;
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject GetById(size_t id) const;
-
+	[[nodiscard]] UEObject GetById(size_t id) const;
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>
 	/// <param name="name">The name of the class.</param>
 	/// <returns>The found class which is not valid if no class could be found.</returns>
-	UEClass FindClass(const std::string& name) const;
-
+	[[nodiscard]] UEClass FindClass(const std::string& name) const;
 	/// <summary>Count objects which have the same name and type.</summary>
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
 	template<class T>
-	size_t CountObjects(const std::string& name) const
+	[[nodiscard]] size_t CountObjects(const std::string& name) const
 	{
 		static std::unordered_map<std::string, size_t> cache;
 

@@ -1,7 +1,52 @@
 #include "pch.h"
-#include "ObjectsStore.hpp"
-#include <cassert>
+#include "ObjectsStore.h"
+#include "../MainEngineClasses.h"
 
+#include <cassert>
+#include "PatternFinder.h"
+
+#pragma region ObjectsStore
+bool ObjectsStore::Initialize()
+{
+	auto address = FindPattern(GetModuleHandleW(nullptr), reinterpret_cast<const unsigned char*>("\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x48\x8B\xD6\x48\x89\xB5"), "xxx????x????x????xxxxxx");
+	if (address == -1)
+	{
+		return false;
+	}
+	auto offset = *reinterpret_cast<uint32_t*>(address + 3);
+	GlobalObjects = reinterpret_cast<decltype(GlobalObjects)>(address + 7 + offset);
+
+	return true;
+}
+
+void* ObjectsStore::GetAddress()
+{
+	return GlobalObjects;
+}
+
+size_t ObjectsStore::GetObjectsNum() const
+{
+	return GlobalObjects->ObjObjects.NumElements;
+}
+
+UEObject ObjectsStore::GetById(size_t id) const
+{
+	return GlobalObjects->ObjObjects.Objects[id].Object;
+}
+
+UEClass ObjectsStore::FindClass(const std::string& name) const
+{
+	for (auto obj : *this)
+	{
+		if (obj.GetFullName() == name)
+		{
+			return obj.Cast<UEClass>();
+		}
+	}
+	return UEClass(nullptr);
+}
+
+#pragma region ObjectsIterator
 ObjectsIterator ObjectsStore::begin()
 {
 	return ObjectsIterator(*this, 0);
@@ -20,18 +65,6 @@ ObjectsIterator ObjectsStore::end()
 ObjectsIterator ObjectsStore::end() const
 {
 	return ObjectsIterator(*this);
-}
-
-UEClass ObjectsStore::FindClass(const std::string& name) const
-{
-	for (auto obj : *this)
-	{
-		if (obj.GetFullName() == name)
-		{
-			return obj.Cast<UEClass>();
-		}
-	}
-	return UEClass(nullptr);
 }
 
 ObjectsIterator::ObjectsIterator(const ObjectsStore& _store)
@@ -115,3 +148,4 @@ UEObject ObjectsIterator::operator->() const
 {
 	return operator*();
 }
+#pragma endregion
