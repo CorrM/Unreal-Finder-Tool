@@ -17,16 +17,16 @@
 
 extern IGenerator* generator;
 
-SdkGenerator::SdkGenerator(Memory* memory, uintptr_t gObjAddress, uintptr_t gNamesAddress)
-	: _memory(nullptr),
-	gObjAddress(0),
-	gNamesAddress(0)
+SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const uintptr_t gNamesAddress)
+	: _memory(memory),
+	gObjAddress(gObjAddress),
+	gNamesAddress(gNamesAddress)
 {
 }
 
 void SdkGenerator::Start()
 {
-	if (!ObjectsStore::Initialize())
+	if (!ObjectsStore::Initialize(_memory, gObjAddress))
 	{
 		MessageBoxA(nullptr, "ObjectsStore::Initialize failed", "Error", 0);
 		return;
@@ -41,7 +41,7 @@ void SdkGenerator::Start()
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
 		return;
 	}
-	
+
 	char buffer[2048];
 	if (GetModuleFileNameA(GetModuleHandle(nullptr), buffer, sizeof(buffer)) == 0)
 	{
@@ -64,7 +64,6 @@ void SdkGenerator::Start()
 	fs::create_directories(outputDirectory);
 	
 	const auto begin = std::chrono::system_clock::now();
-	
 	ProcessPackages(outputDirectory);
 	
 	Logger::Log("Finished, took %d seconds.", std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());

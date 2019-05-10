@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <vector>
 #include <algorithm>
+#include "Memory.h"
 
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
@@ -36,6 +37,16 @@ bool Utils::ProgramIs64()
 #else
 	return false;
 #endif
+}
+
+DWORD Utils::BufToInteger(void* buffer)
+{
+	return *reinterpret_cast<DWORD*>(buffer);
+}
+
+DWORD64 Utils::BufToInteger64(void* buffer)
+{
+	return *reinterpret_cast<DWORD64*>(buffer);
 }
 
 bool Utils::IsNumber(const std::string& s)
@@ -95,4 +106,9 @@ uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte,
 	}
 
 	return ret;
+}
+
+int Utils::PointerSize(Memory* mem)
+{
+	return mem->Is64Bit ? 0x8 : 0x4;
 }

@@ -2,12 +2,16 @@
 #include <string>
 #include <vector>
 
+class Memory;
+
 class Utils
 {
 public:
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
 	static bool ProgramIs64();
+	static DWORD BufToInteger(void* buffer);
+	static DWORD64 BufToInteger64(void* buffer);
 	static bool IsNumber(const std::string& s);
 	/// <summary>
 	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
@@ -25,4 +29,5 @@ public:
 	/// <param name="structSize">Size of struct</param>
 	static void FixStructPointer(void* structBase, int varOffsetEach4Byte, int structSize);
 	static uintptr_t ReadSafePointer(void* structBase, int varOffsetEach4Byte, int structSize, bool is64BitGame);
+	static int PointerSize(Memory* mem);
 };

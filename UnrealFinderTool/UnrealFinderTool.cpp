@@ -16,7 +16,7 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 12844);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 6444);
 	auto memManager1 = new Memory(pHandle1, false);
 	auto objObjectsAddress = uintptr_t(0x7FF77D731E70);
 	auto gNamesAddress = uintptr_t(0x7FF77D729A20);

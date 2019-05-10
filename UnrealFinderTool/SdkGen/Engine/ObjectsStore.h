@@ -1,49 +1,62 @@
 #pragma once
 #include "GenericTypes.h"
 #include <unordered_map>
+#include "JsonReflector.h"
 
 class ObjectsIterator;
+class Memory;
+
+struct SdkGObject
+{
+	uintptr_t ObjAddress;
+	int FNameIndex;
+};
 
 class ObjectsStore
 {
+	nlohmann::json jsonCore;
+	static SdkGObject* gObjObjects;
+	static int gObjectsCount;
+	static Memory* mem;
+	static uintptr_t gObjAddress;
+
 public:
+	bool LoadCore();
+	bool FetchData();
+	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
 	/// <returns>
 	/// true if it succeeds, false if it fails.
 	/// </returns>
-	static bool Initialize();
+	static bool Initialize(Memory* mem, const uintptr_t gObjAddress);
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static void* GetAddress();
-	ObjectsIterator begin();
-	[[nodiscard]] ObjectsIterator begin() const;
-	ObjectsIterator end();
-	[[nodiscard]] ObjectsIterator end() const;
 	/// <summary>
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	[[nodiscard]] size_t GetObjectsNum() const;
+	size_t GetObjectsNum() const;
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The object.</returns>
-	[[nodiscard]] UEObject GetById(size_t id) const;
+	UEObject GetById(size_t id) const;
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>
 	/// <param name="name">The name of the class.</param>
 	/// <returns>The found class which is not valid if no class could be found.</returns>
-	[[nodiscard]] UEClass FindClass(const std::string& name) const;
+	UEClass FindClass(const std::string& name) const;
 	/// <summary>Count objects which have the same name and type.</summary>
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
-	template<class T>
-	[[nodiscard]] size_t CountObjects(const std::string& name) const
+	template<class T> size_t CountObjects(const std::string& name) const
 	{
 		static std::unordered_map<std::string, size_t> cache;
 
@@ -66,6 +79,11 @@ public:
 
 		return count;
 	}
+
+	ObjectsIterator begin();
+	ObjectsIterator begin() const;
+	ObjectsIterator end();
+	ObjectsIterator end() const;
 };
 
 /// <summary>Holds information about an object.</summary>

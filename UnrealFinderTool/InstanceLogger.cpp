@@ -9,10 +9,9 @@ InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddres
 	gObjObjects(nullptr), gObjectsCount(0),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
 	_memory(memory),
-	gObjObjectsOffset(gObjObjectsAddress),
-	gNamesOffset(gNamesAddress)
+	gObjectsAddress(gObjObjectsAddress),
+	gNamesAddress(gNamesAddress)
 {
-	ptrSize = _memory->Is64Bit ? 0x8 : 0x4;
 }
 
 std::string InstanceLogger::GetName(const int fNameIndex, bool& success)
@@ -127,14 +126,14 @@ bool InstanceLogger::FetchData()
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
 		return false;
 	}
-	if (!ReadUObjectArray(gObjObjectsOffset, jsonGObjectsReader))
+	if (!ReadUObjectArray(gObjectsAddress, jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return false;
 	}
 
 	// GNames
-	if (!ReadGNameArray(gNamesOffset))
+	if (!ReadGNameArray(gNamesAddress))
 	{
 		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
 		return false;
@@ -214,6 +213,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 
 bool InstanceLogger::ReadGNameArray(uintptr_t address)
 {
+	int ptrSize = Utils::PointerSize(_memory);
 	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fName;
 	if (!JsonReflector::Read("FName", fName))
@@ -281,16 +281,6 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 	}
 
 	return true;
-}
-
-DWORD InstanceLogger::BufToInteger(void* buffer)
-{
-	return *reinterpret_cast<DWORD*>(buffer);
-}
-
-DWORD64 InstanceLogger::BufToInteger64(void* buffer)
-{
-	return *reinterpret_cast<DWORD64*>(buffer);
 }
 
 bool InstanceLogger::IsValidAddress(const uintptr_t address)
