@@ -55,7 +55,8 @@ void SdkGenerator::Start()
 	
 	std::ofstream log(outputDirectory / "Generator.log");
 	Logger::SetStream(&log);
-	
+
+	// TODO: Connect MainGenericType, GeneticType
 	if (generator->ShouldDumpArrays())
 	{
 		Dump(outputDirectory);
