@@ -18,9 +18,9 @@ int main()
 	// ##################
 	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 6444);
 	auto memManager1 = new Memory(pHandle1, false);
-	auto objObjectsAddress = uintptr_t(0x7FF77D731E70);
-	auto gNamesAddress = uintptr_t(0x7FF77D729A20);
-	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
+	auto objObjectsAddress = uintptr_t(0x7FF7389B1E70);
+	auto gNamesAddress = uintptr_t(0x7FF7389A9A20);
+	InstanceLogger sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
 	return 0;

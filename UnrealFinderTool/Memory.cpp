@@ -377,12 +377,11 @@ string Memory::ReadText(uintptr_t address)
 	if (address == static_cast<uintptr_t>(-1))
 		return "";
 
-	char buffer = 1;
+	char buffer = 0;
 	const SIZE_T numberOfBytesToRead = sizeof buffer;
 	SIZE_T numberOfBytesActuallyRead;
 
-	auto i = 0;
-	while (buffer != 0)
+	while (true)
 	{
 		if (use_kernal)
 		{
@@ -398,12 +397,12 @@ string Memory::ReadText(uintptr_t address)
 		{
 			const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
 			if (!state)
-			{
 				return "";
-			}
 		}
+
+		if (buffer == 0)
+			break;
 		ret.push_back(buffer);
-		i++;
 		address++;
 	}
 	return ret;

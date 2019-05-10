@@ -5,7 +5,8 @@
 struct GObject
 {
 	uintptr_t ObjAddress;
-	int FNameIndex;
+	int FNameIndexs[15];
+	int OuterCount;
 };
 
 class GName
@@ -25,14 +26,17 @@ class InstanceLogger
 	uintptr_t gObjectsAddress, gNamesAddress;
 
 	std::string GetName(int fNameIndex, bool& success);
+	std::string GetName(GObject obj);
 	bool IsValidAddress(uintptr_t address);
-public:
-	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	void Start();
 	bool LoadCore();
 	bool FetchData();
 	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();
+public:
+	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
+	~InstanceLogger();
+	void Start();
 };

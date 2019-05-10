@@ -88,23 +88,29 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	if (mem->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
 
 	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
-	gObjectsCount = objObjects["NumElements"].ReadAs<int>();
+	int num = objObjects["NumElements"].ReadAs<int>();
 
-	uintptr_t dwFUObjectAddress = Utils::ReadSafePointer(objObjects.AllocPointer, 0, objObjects.StructSize, mem->Is64Bit);
+	// Fix objObjects
+	Utils::FixPointersInStruct(&objObjects, mem->Is64Bit);
+
+	auto dwFUObjectAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 
 	// Alloc all objects
-	gObjObjects = new SdkGObject[gObjectsCount];
-	ZeroMemory(gObjObjects, sizeof(SdkGObject) * gObjectsCount);
+	gObjObjects = new SdkGObject[num];
+	ZeroMemory(gObjObjects, sizeof(SdkGObject) * num);
 
 	uintptr_t currentFUObjAddress = dwFUObjectAddress;
-	for (int i = 0; i < gObjectsCount; ++i)
+	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
 		if (mem->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == 0)
 			return false;
 
+		// Fix fUObjectItem
+		Utils::FixPointersInStruct(&fUObjectItem, mem->Is64Bit);
+
 		// Convert class pointer to address
-		uintptr_t dwUObject = Utils::ReadSafePointer(fUObjectItem.AllocPointer, 0, fUObjectItem.StructSize, mem->Is64Bit);
+		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
@@ -119,16 +125,12 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 			return false;
 
 		// Fix UObject
-		if (!mem->Is64Bit)
-		{
-			if (Utils::ProgramIs64())
-			{
-				// Fix VfTable
-				Utils::FixStructPointer(uObject.AllocPointer, 0, uObject.StructSize);
-			}
-		}
+		Utils::FixPointersInStruct(&uObject, mem->Is64Bit);
 
+		// Read Information
 		gObjObjects[i].ObjAddress = dwUObject;
+		// gObjObjects[i].Class = uObject["Class"].ReadAs<uintptr_t>();
+		// gObjObjects[i].Outer = uObject["Outer"].ReadAs<uintptr_t>();
 		gObjObjects[i].FNameIndex = uObject["FNameIndex"].ReadAs<int>();
 
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
@@ -149,7 +151,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject ObjectsStore::GetById(size_t id) const
 {
-	return GlobalObjects->ObjObjects.Objects[id].Object;
+	return UEObject();//GlobalObjects->ObjObjects.Objects[id].Object;
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

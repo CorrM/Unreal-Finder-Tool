@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "Utils.h"
+#include "Memory.h"
+#include "JsonReflector.h"
 #include <vector>
 #include <algorithm>
-#include "Memory.h"
 
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
@@ -106,6 +107,33 @@ uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte,
 	}
 
 	return ret;
+}
+
+uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
+{
+	uintptr_t ret = 0;
+	auto sStruct = *structBase;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->AllocPointer) + sStruct[varName].Offset;
+
+	if (!is64BitGame)
+	{
+		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
+		if (ProgramIs64())
+			FixStructPointer(structBase->AllocPointer, int(sStruct[varName].Offset / 4), structBase->StructSize);
+	}
+	else
+	{
+		ret = *reinterpret_cast<DWORD64*>(calcAddress); // 8byte
+	}
+
+	return ret;
+}
+
+void Utils::FixPointersInStruct(JsonStruct* structBase, const bool is64BitGame)
+{
+	for (const auto& var : structBase->Vars)
+		if (var.second.Type == "pointer")
+			ReadSafePointer(structBase, var.first, is64BitGame);
 }
 
 int Utils::PointerSize(Memory* mem)

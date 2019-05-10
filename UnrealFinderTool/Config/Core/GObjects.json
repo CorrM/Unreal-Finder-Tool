@@ -6,9 +6,10 @@
         { "VfTable": "pointer" },
         { "Flags": "int" },
         { "InternalIndex": "int" },
-        { "Unknown00": "8" },
+        { "Class": "pointer" },
         { "FNameIndex": "int" },
-        { "FNameUnknown": "int" }
+        { "FNameUnknown": "int" },
+        { "Outer": "pointer" }
       ]
     },
     {

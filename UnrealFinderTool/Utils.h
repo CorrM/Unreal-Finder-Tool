@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "JsonReflector.h"
 
 class Memory;
 
@@ -21,6 +22,15 @@ public:
 	/// <param name="varOffsetEach4Byte">Offset to variable based on `ElementType`</param>
 	template <typename ElementType> static void FixStructPointer(void* structBase, int varOffsetEach4Byte);
 	/// <summary>
+	/// Fix all pointers in struct to be safe to read as `uintptr_t`
+	/// </summary>
+	/// <param name="structBase">Pointer to instance of struct</param>
+	/// <param name="is64BitGame">Target game is 64bit game</param>
+	static void FixPointersInStruct(JsonStruct* structBase, bool is64BitGame);
+	static int PointerSize(Memory* mem);
+
+private:
+	/// <summary>
 	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
 	/// Must pick the right struct Size, else will case some memory problems in the hole program
 	/// </summary>
@@ -28,6 +38,19 @@ public:
 	/// <param name="varOffsetEach4Byte">Offset to variable based on `structBase`</param>
 	/// <param name="structSize">Size of struct</param>
 	static void FixStructPointer(void* structBase, int varOffsetEach4Byte, int structSize);
+	/// <summary>
+	/// Read pointer for 32bit and 64bit games
+	/// </summary>
+	/// <param name="structBase">Pointer to instance of struct</param>
+	/// <param name="varOffsetEach4Byte">Offset to variable based on `structBase`</param>
+	/// <param name="structSize">Size of struct</param>
+	/// <param name="is64BitGame">Target game is 64bit game</param>
 	static uintptr_t ReadSafePointer(void* structBase, int varOffsetEach4Byte, int structSize, bool is64BitGame);
-	static int PointerSize(Memory* mem);
+	/// <summary>
+	/// Read pointer for 32bit and 64bit games, Use `FixPointersInStruct` Instead
+	/// </summary>
+	/// <param name="structBase">Pointer to instance of struct</param>
+	/// <param name="varName">Size of struct</param>
+	/// <param name="is64BitGame">Target game is 64bit game</param>
+	static uintptr_t ReadSafePointer(JsonStruct* structBase, const std::string& varName, bool is64BitGame);
 };
