@@ -200,7 +200,6 @@ bool UEByteProperty::IsEnum() const
 //---------------------------------------------------------------------------
 //UEBoolProperty
 //---------------------------------------------------------------------------
-
 int GetBitPosition(uint8_t value)
 {
 	int i4 = !(value & 0xf) << 2;
@@ -215,7 +214,6 @@ int GetBitPosition(uint8_t value)
 
 	return i4 + i2 + i1 + i0;
 }
-
 std::array<int, 2> UEBoolProperty::GetMissingBitsCount(const UEBoolProperty& other) const
 {
 	// If there is no previous bitfield member, just calculate the missing bits.

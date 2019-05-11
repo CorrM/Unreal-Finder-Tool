@@ -2,7 +2,7 @@
   "structs": [
     {
       "name": "FUObjectItem",
-      "derived": "",
+      "super": "",
       "vars": [
         { "Object": "pointer" },
         { "Flags": "int" },
@@ -14,7 +14,7 @@
     },
     {
       "name": "TUObjectArray",
-      "derived": "",
+      "super": "",
       "vars": [
         { "Objects": "pointer" },
         { "MaxElements": "int" },
@@ -24,7 +24,7 @@
     },
     {
       "name": "FUObjectArray",
-      "derived": "",
+      "super": "",
       "vars": [
         { "ObjFirstGcIndex": "int" },
         { "ObjLastNonGcIndex": "int" },

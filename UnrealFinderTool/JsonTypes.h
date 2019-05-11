@@ -53,9 +53,21 @@ public:
 	auto InternalIndex() { return GetVar("InternalIndex").ReadAs<int>(); }
 	auto Class() { return GetVar("Class").ReadAs<uintptr_t>(); }
 	auto Name() { return *static_cast<JsonFName*>(GetVar("Name").ReadAsStruct()); }
-	auto Outer() { return GetVar("Outer").ReadAs<uintptr_t>(); }
+	auto Outer() { return static_cast<JsonUObject*>(GetVar("Outer").ReadAsPStruct()); }
 };
 
+ class JsonUField : public JsonStruct
+ {
+ public:
+	 auto VfTable() { return GetVar("VfTable").ReadAs<uintptr_t>(); }
+	 auto Flags() { return GetVar("Flags").ReadAs<int>(); }
+	 auto InternalIndex() { return GetVar("InternalIndex").ReadAs<int>(); }
+	 auto Class() { return GetVar("Class").ReadAs<uintptr_t>(); }
+	 auto Name() { return *static_cast<JsonFName*>(GetVar("Name").ReadAsStruct()); }
+	 auto Outer() { return static_cast<JsonUObject*>(GetVar("Outer").ReadAsPStruct()); }
+
+	 auto Next() { return static_cast<JsonUField*>(GetVar("Next").ReadAsPStruct()); }
+ };
 
 // class Json : public JsonStruct
 // {

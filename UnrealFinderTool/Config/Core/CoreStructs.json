@@ -2,7 +2,7 @@
   "structs": [
     {
       "name": "UObject",
-      "derived": "",
+      "super": "",
       "vars": [
         { "VfTable": "pointer" },
         { "Flags": "int" },
@@ -15,7 +15,7 @@
     },
     {
       "name": "UField",
-      "derived": "UObject",
+      "super": "UObject",
       "vars": [
         { "Next": "pointer" }
       ],

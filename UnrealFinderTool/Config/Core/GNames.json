@@ -2,7 +2,7 @@
   "structs": [
     {
       "name": "FNameEntity",
-      "derived": "",
+      "super": "",
       "vars": [
         { "Index": "int" },
         { "Number": "int" },
@@ -13,7 +13,7 @@
     },
     {
       "name": "FName",
-      "derived": "",
+      "super": "",
       "vars": [
         { "Index": "int" },
         { "Number": "int" }

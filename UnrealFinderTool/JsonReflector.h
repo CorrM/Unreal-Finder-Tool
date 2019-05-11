@@ -3,6 +3,7 @@
 
 class JsonVar;
 class JsonStruct;
+class Memory;
 using JsonStructs = std::map<std::string, JsonStruct>;
 using JsonVariables = std::map<std::string, JsonVar>;
 
@@ -11,6 +12,8 @@ class JsonReflector
 	// Main json reader for structs
 	static nlohmann::json jsonObj;
 public:
+	// Main Memory reader for read game memory props
+	static Memory* MemoryObj;
 	// Contains all loaded structs
 	static JsonStructs StructsList;
 	// Read Json file into memory to be ready to load structs inside them
@@ -64,8 +67,10 @@ public:
 	void SetParent(JsonStruct* parentStruct);
 	// Read variable as type [int, DWORD, ..etc]
 	template <typename T> T ReadAs();
-	// Read variable as struct, ONLY work if this variable is struct
+	// Read variable as struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
 	JsonStruct* ReadAsStruct();
+	// Read variable as struct, ONLY work if this variable is [POINTER TO STRUCT]
+	JsonStruct* ReadAsPStruct();
 private:
 	// Access variable in this variable if this variable is struct
 	JsonVar& GetVar(const std::string& varName);
@@ -76,6 +81,8 @@ class JsonStruct
 public:
 	// Struct Name
 	std::string Name = "";
+	// Super Name
+	std::string Super = "";
 	// Check if this struct is child for other struct, Good to free the memory of struct
 	bool IsChild = false;
 	// Variable inside this struct

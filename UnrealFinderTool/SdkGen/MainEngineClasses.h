@@ -178,6 +178,7 @@ struct FScriptMulticastDelegate
 };
 
 class UClass;
+
 /*
 class UObject
 {
@@ -189,13 +190,14 @@ public:
 	FName Name;
 	UObject* Outer;
 };
-*/
+
 
 class UField : public UObject
 {
 public:
 	UField* Next;
 };
+*/
 
 class UEnum : public UField
 {
