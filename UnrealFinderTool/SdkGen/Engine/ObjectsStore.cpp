@@ -115,14 +115,14 @@ void* ObjectsStore::GetAddress()
 	return reinterpret_cast<void*>(gObjAddress);
 }
 
-size_t ObjectsStore::GetObjectsNum() const
+size_t ObjectsStore::GetObjectsNum()
 {
 	return gObjectsCount;
 }
 
-UEObject ObjectsStore::GetById(size_t id) const
+UEObject ObjectsStore::GetById(const size_t id)
 {
-	return UEObject();//GlobalObjects->ObjObjects.Objects[id].Object;
+	return UEObject(&gObjObjects[id]);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -159,17 +159,17 @@ ObjectsIterator ObjectsStore::end() const
 	return ObjectsIterator(*this);
 }
 
-ObjectsIterator::ObjectsIterator(const ObjectsStore& _store)
-	: store(_store),
-	  index(_store.GetObjectsNum())
+ObjectsIterator::ObjectsIterator(const ObjectsStore& store)
+	: store(store),
+	  index(ObjectsStore(store).GetObjectsNum())
 {
 }
 
-ObjectsIterator::ObjectsIterator(const ObjectsStore& _store, size_t _index)
-	: store(_store),
-	  index(_index),
-	  current(_store.GetById(_index))
+ObjectsIterator::ObjectsIterator(const ObjectsStore& store, const size_t index)
+	: store(store),
+	index(index)
 {
+	current = ObjectsStore(store).GetById(index);
 }
 
 ObjectsIterator::ObjectsIterator(const ObjectsIterator& other)
@@ -201,9 +201,9 @@ void ObjectsIterator::swap(ObjectsIterator& other) noexcept
 
 ObjectsIterator& ObjectsIterator::operator++()
 {
-	for (++index; index < store.GetObjectsNum(); ++index)
+	for (++index; index < ObjectsStore(store).GetObjectsNum(); ++index)
 	{
-		current = store.GetById(index);
+		current = ObjectsStore(store).GetById(index);
 		if (current.IsValid())
 		{
 			break;

@@ -209,9 +209,6 @@
     <ClCompile Include="SdkGen\Engine\PrintHelper.cpp">
       <Filter>SdkGen\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="SdkGen\MainNamesStore.cpp">
-      <Filter>SdkGen</Filter>
-    </ClCompile>
     <ClCompile Include="SdkGen\MainGenericTypes.cpp">
       <Filter>SdkGen</Filter>
     </ClCompile>

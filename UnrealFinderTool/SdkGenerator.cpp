@@ -36,7 +36,7 @@ void SdkGenerator::Start()
 	std::cout << green << "[+] " << yellow << "Getting Objects Successfully." << std::endl;
 
 	std::cout << red << "[*] " << green << "Start Getting Names." << std::endl;
-	if (!NamesStore::Initialize())
+	if (!NamesStore::Initialize(,))
 	{
 		std::cout << red << "[*] " << def << "Failed To Get Names." << std::endl << def;
 		return;
@@ -102,7 +102,7 @@ void SdkGenerator::Dump(const fs::path& path)
 
 		for (const auto& name : NamesStore())
 		{
-			tfm::format(o, "[%06i] %s\n", name.Index, name.Name);
+			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
 		}
 	}
 }

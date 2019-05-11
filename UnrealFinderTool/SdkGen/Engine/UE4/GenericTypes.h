@@ -8,18 +8,16 @@
 #include "FunctionFlags.h"
 #include "../IGenerator.h"
 
-class UObject;
+class JsonUObject;
 class UEClass;
 
 class UEObject
 {
 public:
-	UEObject()
-		: object(nullptr)
+	UEObject() : object(nullptr)
 	{
 	}
-	UEObject(UObject *_object)
-		: object(_object)
+	UEObject(JsonUObject* object) : object(object)
 	{
 	}
 
@@ -48,7 +46,7 @@ public:
 	static UEClass StaticClass();
 
 protected:
-	UObject* object;
+	JsonUObject* object;
 };
 
 namespace std

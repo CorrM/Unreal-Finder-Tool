@@ -14,8 +14,8 @@ class ObjectsStore
 	static uintptr_t gObjAddress;
 
 	static bool FetchData();
-	static bool ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& objectArray);
-	static bool ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject);
+	static bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject);
 public:
 
 	/// <summary>
@@ -32,13 +32,13 @@ public:
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	size_t GetObjectsNum() const;
+	size_t GetObjectsNum();
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject GetById(size_t id) const;
+	UEObject GetById(size_t id);
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>
@@ -77,16 +77,6 @@ public:
 	ObjectsIterator begin() const;
 	ObjectsIterator end();
 	ObjectsIterator end() const;
-};
-
-/// <summary>Holds information about an object.</summary>
-struct UEObjectInfo
-{
-	/// <summary>Zero-based index of the object in the global objects store.</summary>
-	size_t Index;
-
-	/// <summary>The object.</summary>
-	UEObject Object;
 };
 
 /// <summary>An iterator for objects.</summary>

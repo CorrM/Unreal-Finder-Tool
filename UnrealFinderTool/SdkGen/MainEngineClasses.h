@@ -1,5 +1,4 @@
 #pragma once
-#include <set>
 #include <string>
 #include <windows.h>
 
@@ -80,16 +79,16 @@ struct FString : public TArray<wchar_t>
 class FScriptInterface
 {
 private:
-	UObject* ObjectPointer;
+	JsonUObject* ObjectPointer;
 	void* InterfacePointer;
 
 public:
-	UObject* GetObject() const
+	JsonUObject* GetObject() const
 	{
 		return ObjectPointer;
 	}
 
-	UObject*& GetObjectRef()
+	JsonUObject*& GetObjectRef()
 	{
 		return ObjectPointer;
 	}
@@ -179,7 +178,7 @@ struct FScriptMulticastDelegate
 };
 
 class UClass;
-
+/*
 class UObject
 {
 public:
@@ -190,6 +189,7 @@ public:
 	FName Name;
 	UObject* Outer;
 };
+*/
 
 class UField : public UObject
 {

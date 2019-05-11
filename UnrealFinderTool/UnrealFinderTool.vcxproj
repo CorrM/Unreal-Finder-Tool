@@ -226,7 +226,6 @@
     <ClCompile Include="SdkGen\Engine\UE4\PropertyFlags.cpp" />
     <ClCompile Include="SdkGen\MainGenerator.cpp" />
     <ClCompile Include="SdkGen\MainGenericTypes.cpp" />
-    <ClCompile Include="SdkGen\MainNamesStore.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="UnrealFinderTool.cpp" />
     <ClCompile Include="Utils.cpp" />

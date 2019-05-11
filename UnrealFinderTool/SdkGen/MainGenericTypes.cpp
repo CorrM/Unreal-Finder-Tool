@@ -11,22 +11,22 @@
 //---------------------------------------------------------------------------
 size_t UEObject::GetIndex() const
 {
-	return object->InternalIndex;
+	return object->InternalIndex();
 }
 UEClass UEObject::GetClass() const
 {
-	return UEClass(object->Class);
+	return UEClass(object->Class());
 }
 UEObject UEObject::GetOuter() const
 {
-	return UEObject(object->Outer);
+	return UEObject(object->Outer());
 }
 std::string UEObject::GetName() const
 {
-	auto name = NamesStore().GetById(object->Name.ComparisonIndex);
-	if (object->Name.Number > 0)
+	auto name = NamesStore().GetById(object->Name().Index());
+	if (object->Name().Number() > 0)
 	{
-		name += '_' + std::to_string(object->Name.Number);
+		name += '_' + std::to_string(object->Name().Number());
 	}
 
 	auto pos = name.rfind('/');
