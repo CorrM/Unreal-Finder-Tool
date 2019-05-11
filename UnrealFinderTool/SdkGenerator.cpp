@@ -243,7 +243,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	SaveSdkHeader(path, processedObjects, packages);
 }
 
-DWORD SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut)
+uintptr_t SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut)
 {
 	MODULEENTRY32 lpModuleEntry = { 0 };
 	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
@@ -257,7 +257,7 @@ DWORD SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleNam
 		{
 			CloseHandle(hSnapShot);
 			*sizeOut = lpModuleEntry.modBaseSize;
-			return reinterpret_cast<DWORD>(lpModuleEntry.modBaseAddr);
+			return reinterpret_cast<uintptr_t>(lpModuleEntry.modBaseAddr);
 		}
 		bModule = Module32Next(hSnapShot, &lpModuleEntry);
 	}

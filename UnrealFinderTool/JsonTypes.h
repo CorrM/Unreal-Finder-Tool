@@ -49,11 +49,11 @@ class JsonUObject : public JsonStruct
 {
 public:
 	auto VfTable() { return GetVar("VfTable").ReadAs<uintptr_t>(); }
-	auto Flags() { return GetVar("VfTable").ReadAs<int>(); }
-	auto InternalIndex() { return GetVar("VfTable").ReadAs<int>(); }
-	auto Class() { return GetVar("VfTable").ReadAs<uintptr_t>(); }
-	auto Name() { return *static_cast<JsonFName*>(GetVar("VfTable").ReadAsStruct()); }
-	auto Outer() { return GetVar("Outer").ReadAsStruct(); }
+	auto Flags() { return GetVar("Flags").ReadAs<int>(); }
+	auto InternalIndex() { return GetVar("InternalIndex").ReadAs<int>(); }
+	auto Class() { return GetVar("Class").ReadAs<uintptr_t>(); }
+	auto Name() { return *static_cast<JsonFName*>(GetVar("Name").ReadAsStruct()); }
+	auto Outer() { return GetVar("Outer").ReadAs<uintptr_t>(); }
 };
 
 

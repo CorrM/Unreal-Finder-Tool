@@ -28,8 +28,8 @@ class InstanceLogger
 	std::string GetName(GObject obj);
 	bool IsValidAddress(uintptr_t address);
 	bool FetchData();
-	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
+	bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
+	bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();

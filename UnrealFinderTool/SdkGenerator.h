@@ -10,7 +10,7 @@ public:
 	void Start();
 private:
 	void ProcessPackages(const fs::path& path);
-	DWORD GetModuleBase(DWORD processId, LPSTR lpModuleName, int* sizeOut);
+	uintptr_t GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut);
 	void Dump(const fs::path& path);
 	void SaveSdkHeader(const fs::path& path, const std::unordered_map<UEObject, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages);
 };
