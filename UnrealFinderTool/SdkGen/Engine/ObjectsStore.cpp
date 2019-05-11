@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "ObjectsStore.h"
 #include "../MainEngineClasses.h"
-#include "JsonReflector.h"
+#include "JsonTypes.h"
 #include "Utils.h"
 #include "Memory.h"
 #include <cassert>
 
-JsonStruct* ObjectsStore::gObjObjects;
+JsonUObject* ObjectsStore::gObjObjects;
 Memory* ObjectsStore::mem;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
@@ -17,20 +17,13 @@ bool ObjectsStore::Initialize(Memory* mem, const uintptr_t gObjAddress)
 	ObjectsStore::mem = mem;
 	ObjectsStore::gObjAddress = gObjAddress;
 
-	if (!FetchData())
-		return false;
-
-	std::cout << std::endl;
-	std::cout << green << "[+] " << purple << "Found [ " << green << gObjectsCount << purple << " ] Object." << std::endl;
-
-
-	return true;
+	return FetchData();
 }
 
 bool ObjectsStore::FetchData()
 {
 	// GObjects
-	JsonStruct jsonGObjectsReader;
+	JsonFUObjectArray jsonGObjectsReader;
 	if (!JsonReflector::ReadStruct("FUObjectArray", jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
@@ -45,10 +38,11 @@ bool ObjectsStore::FetchData()
 	return true;
 }
 
-bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
+bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& objectArray)
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonStruct fUObjectItem, uObject;
+	JsonFUObjectItem fUObjectItem;
+	JsonUObject uObject;
 
 	if (!JsonReflector::ReadStruct("FUObjectItem", fUObjectItem))
 	{
@@ -63,16 +57,16 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 
 	if (mem->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
 
-	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
-	int num = objObjects["NumElements"].ReadAs<int>();
+	auto objObjects = objectArray.ObjObjects();
+	int num = objObjects.NumElements();
 
 	// Fix objObjects
 	Utils::FixPointersInStruct(&objObjects, mem->Is64Bit);
 
-	auto dwFUObjectAddress = objObjects["Objects"].ReadAs<uintptr_t>();
+	uintptr_t dwFUObjectAddress = objObjects.Objects();
 
 	// Alloc all objects
-	gObjObjects = new JsonStruct[num];
+	gObjObjects = new JsonUObject[num];
 
 	uintptr_t currentFUObjAddress = dwFUObjectAddress;
 	for (int i = 0; i < num; ++i)
@@ -85,7 +79,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 		Utils::FixPointersInStruct(&fUObjectItem, mem->Is64Bit);
 
 		// Convert class pointer to address
-		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
+		uintptr_t dwUObject = fUObjectItem.Object();
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
@@ -103,7 +97,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	return true;
 }
 
-bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject)
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject)
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 

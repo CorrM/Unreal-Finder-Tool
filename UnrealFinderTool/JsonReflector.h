@@ -63,9 +63,9 @@ public:
 	// Change parent of this variable, useful for init this variable if is struct
 	void SetParent(JsonStruct* parentStruct);
 	// Read variable as type [int, DWORD, ..etc]
-	template <class T> T ReadAs();
+	template <typename T> T ReadAs();
 	// Read variable as struct, ONLY work if this variable is struct
-	JsonStruct ReadAsStruct();
+	JsonStruct* ReadAsStruct();
 private:
 	// Access variable in this variable if this variable is struct
 	JsonVar& GetVar(const std::string& varName);

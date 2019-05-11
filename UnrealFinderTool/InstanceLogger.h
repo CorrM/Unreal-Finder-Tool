@@ -1,6 +1,6 @@
 #pragma once
 #include "Memory.h"
-#include "JsonReflector.h"
+#include "JsonTypes.h"
 
 struct GObject
 {

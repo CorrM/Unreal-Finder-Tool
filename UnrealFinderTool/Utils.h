@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "JsonReflector.h"
+#include "JsonTypes.h"
 
 class Memory;
 

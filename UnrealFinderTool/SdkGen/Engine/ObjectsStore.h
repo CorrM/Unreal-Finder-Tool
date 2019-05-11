@@ -1,21 +1,21 @@
 #pragma once
 #include "GenericTypes.h"
 #include <unordered_map>
+#include "JsonTypes.h"
 
-class JsonStruct;
 class ObjectsIterator;
 class Memory;
 
 class ObjectsStore
 {
-	static JsonStruct* gObjObjects;
+	static JsonUObject* gObjObjects;
 	static int gObjectsCount;
 	static Memory* mem;
 	static uintptr_t gObjAddress;
 
 	static bool FetchData();
-	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject);
+	static bool ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& objectArray);
+	static bool ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject);
 public:
 
 	/// <summary>

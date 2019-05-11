@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <tlhelp32.h>
 #include <bitset>
-#include "JsonReflector.h"
+#include "JsonTypes.h"
 
 extern IGenerator* generator;
 

@@ -146,7 +146,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 
 	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
 
-	auto objObjects = objectArray["ObjObjects"].ReadAsStruct();
+	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
 
 	// Fix objObjects

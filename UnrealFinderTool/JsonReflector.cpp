@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "JsonReflector.h"
+#include "JsonTypes.h"
 #include <fstream>
 
 JsonStructs JsonReflector::StructsList;
@@ -214,9 +214,8 @@ bool JsonReflector::IsNumber(const std::string & s)
 // -------------------------------------------------
 // JsonStruct
 // -------------------------------------------------
-JsonStruct::JsonStruct()
-{
-}
+JsonStruct::JsonStruct() = default;
+
 /*
 {
 	// TODO: Need some work here
@@ -319,7 +318,7 @@ void JsonVar::SetParent(JsonStruct* parentStruct)
 {
 	parent = parentStruct;
 }
-template <class T> T JsonVar::ReadAs()
+template <typename T> T JsonVar::ReadAs()
 {
 	if (parent == nullptr)
 		return 0;
@@ -327,13 +326,13 @@ template <class T> T JsonVar::ReadAs()
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
 	return *reinterpret_cast<T*>(calcAddress);
 }
-JsonStruct JsonVar::ReadAsStruct()
+JsonStruct* JsonVar::ReadAsStruct()
 {
 	if (!IsStruct)
 		throw std::exception((Name + " Not a struct.").c_str());
 
 	if (StructVars != nullptr)
-		return *StructVars;
+		return StructVars;
 
 	auto sStructIt = JsonReflector::StructsList.find(Type);
 	if (sStructIt == JsonReflector::StructsList.end())
@@ -350,5 +349,5 @@ JsonStruct JsonVar::ReadAsStruct()
 	if (!JsonReflector::ReadStruct(Type, *StructVars, false))
 		throw std::exception(("Can't read the struct `" + Name + "`.").c_str());
 
-	return *StructVars;
+	return StructVars;
 }
