@@ -8,6 +8,7 @@ class Memory;
 class Utils
 {
 public:
+	static bool LoadJsonCore();
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
 	static bool ProgramIs64();

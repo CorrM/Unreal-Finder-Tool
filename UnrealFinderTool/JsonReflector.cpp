@@ -1,10 +1,9 @@
 #include "pch.h"
 #include "JsonReflector.h"
-#include <cassert>
 #include <fstream>
 
 JsonStructs JsonReflector::StructsList;
-nlohmann::json* JsonReflector::JsonObj;
+nlohmann::json JsonReflector::jsonObj;
 
 // -------------------------------------------------
 // JsonReflector
@@ -16,16 +15,25 @@ bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 	i >> *reinterpret_cast<nlohmann::json*>(jsonObj);
 	return true;
 }
-bool JsonReflector::Read(const std::string& structName, JsonStruct& destStruct, const bool alloc)
+bool JsonReflector::ReadJsonFile(const std::string& fileName)
 {
-	if (Load(structName))
+	return ReadJsonFile(fileName, &jsonObj);
+}
+bool JsonReflector::ReadStruct(const std::string& structName, JsonStruct& destStruct, const bool alloc)
+{
+	if (LoadStruct(structName))
 	{
 		auto s = StructsList.find(structName);
 		if (s != StructsList.end())
 		{
+			// Old info to keep
 			void* oldAddress = destStruct.AllocPointer;
+			bool isChild = destStruct.IsChild;
+
+			// Get Copy From StructsList and Fill Struct
 			destStruct = s->second;
 			destStruct.AllocPointer = oldAddress;
+			destStruct.IsChild = isChild;
 
 			// Init Struct memory
 			if (destStruct.StructSize != 0)
@@ -47,59 +55,11 @@ bool JsonReflector::Read(const std::string& structName, JsonStruct& destStruct, 
 	}
 	return false;
 }
-bool JsonReflector::Load(void* jsonObj)
-{
-	JsonObj = reinterpret_cast<nlohmann::json*>(jsonObj);
-	auto j = *JsonObj;
-
-	for (const auto& parent : j.at("structs").items())
-	{
-		const std::string eName = parent.value().at("name");
-		// Check is already here
-		if (StructsList.find(eName) != StructsList.end()) continue;
-
-		JsonStruct tempToSave;
-		JsonVariables vars;
-		int structSize = 0;
-		size_t offset = 0;
-
-		// Init vars
-		auto element = parent.value().at("vars");
-		for (const auto& var : element.items())
-		{
-			nlohmann::json::iterator it = var.value().begin();
-
-			if (it.value().is_number_unsigned())
-				structSize += static_cast<int>(var.value());
-			else
-				structSize += VarSizeFromJson(it.value());
-
-			const std::string& name = it.key();
-			std::string type = it.value();
-
-			auto jVar = JsonVar(name, type, offset, IsStructType(type));
-			vars[name] = jVar;
-			offset += jVar.Size;
-		}
-
-		// Init struct
-		tempToSave.Name = eName;
-		tempToSave.Vars = vars;
-		tempToSave.VarCount = vars.size();
-		tempToSave.StructSize = structSize;
-
-		// [Copy] the struct to structs list
-		StructsList[eName] = tempToSave;
-	}
-	return true;
-}
-bool JsonReflector::Load(const std::string & structName)
+bool JsonReflector::LoadStruct(const std::string& structName)
 {
 	// Check is already here
 	if (StructsList.find(structName) != StructsList.end()) return true;
-
-	assert(JsonObj != nullptr);
-	auto j = *JsonObj;
+	auto j = jsonObj;
 
 	for (const auto& parent : j.at("structs").items())
 	{
@@ -145,10 +105,70 @@ bool JsonReflector::Load(const std::string & structName)
 
 	return false;
 }
+bool JsonReflector::Load(void* jsonObj)
+{
+	auto jObj = reinterpret_cast<nlohmann::json*>(jsonObj);
+	auto j = *jObj;
+
+	for (const auto& parent : j.at("structs").items())
+	{
+		const std::string eName = parent.value().at("name");
+		// Check is already here
+		if (StructsList.find(eName) != StructsList.end()) continue;
+
+		JsonStruct tempToSave;
+		JsonVariables vars;
+		int structSize = 0;
+		size_t offset = 0;
+
+		// Init vars
+		auto element = parent.value().at("vars");
+		for (const auto& var : element.items())
+		{
+			nlohmann::json::iterator it = var.value().begin();
+
+			if (it.value().is_number_unsigned())
+				structSize += static_cast<int>(var.value());
+			else
+				structSize += VarSizeFromJson(it.value());
+
+			const std::string& name = it.key();
+			std::string type = it.value();
+
+			auto jVar = JsonVar(name, type, offset, IsStructType(type));
+			vars[name] = jVar;
+			offset += jVar.Size;
+		}
+
+		// Init struct
+		tempToSave.Name = eName;
+		tempToSave.Vars = vars;
+		tempToSave.VarCount = vars.size();
+		tempToSave.StructSize = structSize;
+
+		// [Copy] the struct to structs list
+		StructsList[eName] = tempToSave;
+	}
+	return true;
+}
+bool JsonReflector::Load()
+{
+	return Load(&jsonObj);
+}
+bool JsonReflector::ReadAndLoadFile(const std::string& fileName, void* jsonObj)
+{
+	return ReadJsonFile(fileName, jsonObj) && Load(jsonObj);
+}
+bool JsonReflector::ReadAndLoadFile(const std::string& fileName)
+{
+	return ReadAndLoadFile(fileName, reinterpret_cast<void*>(&jsonObj));
+}
 int JsonReflector::VarSizeFromJson(const std::string & typeName)
 {
 	if (typeName == "int")
-		return sizeof(int);
+		return sizeof(int32_t);
+	if (typeName == "int64")
+		return sizeof(int64_t);
 	if (typeName == "pointer")
 		return sizeof(uintptr_t);
 	if (typeName == "DWORD")
@@ -164,7 +184,7 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 
 	if (IsStructType(typeName))
 	{
-		if (Load(typeName))
+		if (LoadStruct(typeName))
 		{
 			auto s = StructsList.find(typeName);
 			if (s != StructsList.end())
@@ -172,16 +192,16 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 		}
 		throw std::exception(("Cant find struct `" + typeName + "`.").c_str());
 	}
-
 	throw std::exception(("Cant detect size of `" + typeName + "`.").c_str());
 }
 bool JsonReflector::IsStructType(const std::string & typeName)
 {
 	const bool isStruct =
-		typeName == "int" ||
-		typeName == "pointer" ||
-		typeName == "DWORD" ||
-		typeName == "DWORD64" ||
+		typeName == "int"		||
+		typeName == "int64"		||
+		typeName == "pointer"	||
+		typeName == "DWORD"		||
+		typeName == "DWORD64"	||
 		typeName == "string"
 		;
 	return !isStruct;
@@ -194,7 +214,16 @@ bool JsonReflector::IsNumber(const std::string & s)
 // -------------------------------------------------
 // JsonStruct
 // -------------------------------------------------
-JsonStruct::JsonStruct() = default;
+JsonStruct::JsonStruct(): IsChild(false)
+{
+}
+/*
+{
+	// TODO: Need some work here
+	if (AllocPointer != nullptr && !IsChild)
+		free(AllocPointer);
+}
+*/
 JsonVar& JsonStruct::operator[](const std::string& varName)
 {
 	return GetVar(varName);
@@ -208,7 +237,7 @@ void JsonStruct::SetAllocAddress(void* newAddress)
 	AllocPointer = newAddress;
 
 	// ReWrite StructAllocPointer for inside vars
-	if (!JsonReflector::Read(Name, *this, false))
+	if (!JsonReflector::ReadStruct(Name, *this, false))
 		throw std::exception(("Can't read `"+ Name + "`.").c_str());
 
 	AllocAddressChanged = true;
@@ -237,16 +266,20 @@ JsonVar& JsonStruct::GetVar(const std::string& varName)
 // -------------------------------------------------
 // JsonVar
 // -------------------------------------------------
-JsonVar::JsonVar() : parent(nullptr), structVars(nullptr), Size(0), Offset(0), IsStruct(false)
+JsonVar::JsonVar() : parent(nullptr), Size(0), Offset(0), IsStruct(false), StructVars(nullptr)
 {
 	// Solve unresolved problem
 	ReadAs<int>();
+	ReadAs<__int32>();
+	ReadAs<__int64>();
+	ReadAs<int32_t>();
+	ReadAs<int64_t>();
 	ReadAs<DWORD>();
 	ReadAs<DWORD64>();
 	ReadAs<uintptr_t>();
 	ReadAs<char*>();
 }
-JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t offset, const bool isStruct) : parent(nullptr), structVars(nullptr)
+JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t offset, const bool isStruct) : parent(nullptr), StructVars(nullptr)
 {
 	Name = name;
 	Type = type;
@@ -256,8 +289,9 @@ JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t 
 }
 JsonVar::~JsonVar()
 {
-	if (IsStruct && structVars != nullptr)
-		delete structVars;
+	JsonReflector::StructsList;
+	if (IsStruct && StructVars != nullptr)
+		delete StructVars;
 }
 JsonVar& JsonVar::operator[](const std::string& varName)
 {
@@ -271,13 +305,13 @@ JsonVar& JsonVar::GetVar(const std::string& varName)
 	if (!IsStruct)
 		throw std::exception((Name + " not a struct.").c_str());
 
-	if (structVars == nullptr)
+	if (StructVars == nullptr)
 		auto readonly = ReadAsStruct();
 
-	if (structVars != nullptr)
+	if (StructVars != nullptr)
 	{
-		if (structVars->Vars.find(varName) != structVars->Vars.end())
-			return structVars->Vars.find(varName)->second;
+		if (StructVars->Vars.find(varName) != StructVars->Vars.end())
+			return StructVars->Vars.find(varName)->second;
 	}
 
 	throw std::exception(("Not found " + varName + " in JsonVariables").c_str());
@@ -299,8 +333,8 @@ JsonStruct JsonVar::ReadAsStruct()
 	if (!IsStruct)
 		throw std::exception((Name + " Not a struct.").c_str());
 
-	if (structVars != nullptr)
-		return *structVars;
+	if (StructVars != nullptr)
+		return *StructVars;
 
 	auto sStructIt = JsonReflector::StructsList.find(Type);
 	if (sStructIt == JsonReflector::StructsList.end())
@@ -308,12 +342,14 @@ JsonStruct JsonVar::ReadAsStruct()
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
 
-	structVars = new JsonStruct();
-	*structVars = sStructIt->second;
-	structVars->AllocPointer = reinterpret_cast<void*>(calcAddress);
+	StructVars = new JsonStruct();
+	*StructVars = sStructIt->second;
+	StructVars->AllocPointer = reinterpret_cast<void*>(calcAddress);
+	// TODO: Need some work here
+	// StructVars->IsChild = true;
 
-	if (!JsonReflector::Read(Type, *structVars, false))
+	if (!JsonReflector::ReadStruct(Type, *StructVars, false))
 		throw std::exception(("Can't read the struct `" + Name + "`.").c_str());
 
-	return *structVars;
+	return *StructVars;
 }

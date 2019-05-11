@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <tlhelp32.h>
 #include <bitset>
+#include "JsonReflector.h"
 
 extern IGenerator* generator;
 
@@ -26,16 +27,22 @@ SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const ui
 
 void SdkGenerator::Start()
 {
+	std::cout << red << "[*] " << green << "Start Getting Objects." << std::endl;
 	if (!ObjectsStore::Initialize(_memory, gObjAddress))
 	{
-		MessageBoxA(nullptr, "ObjectsStore::Initialize failed", "Error", 0);
+		std::cout << red << "[*] " << def << "Failed To Get Objects." << std::endl << def;
 		return;
 	}
+	std::cout << green << "[+] " << yellow << "Getting Objects Successfully." << std::endl;
+
+	std::cout << red << "[*] " << green << "Start Getting Names." << std::endl;
 	if (!NamesStore::Initialize())
 	{
-		MessageBoxA(nullptr, "NamesStore::Initialize failed", "Error", 0);
+		std::cout << red << "[*] " << def << "Failed To Get Names." << std::endl << def;
 		return;
 	}
+	std::cout << green << "[+] " << yellow << "Getting Names Successfully." << std::endl;
+
 	if (!generator->Initialize())
 	{
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);

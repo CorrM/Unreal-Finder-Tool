@@ -1,14 +1,24 @@
 {
   "structs": [
     {
-      "name": "FName",
-      "derived": null,
+      "name": "FNameEntity",
+      "derived": "",
       "vars": [
         { "Index": "int" },
-        { "Unknown_00": "4" },
+        { "Number": "int" },
         { "HashNext": "pointer" },
         { "AnsiName": "string" }
-      ]
+      ],
+      "NOTE": "That's for GNames"
+    },
+    {
+      "name": "FName",
+      "derived": "",
+      "vars": [
+        { "Index": "int" },
+        { "Number": "int" }
+      ],
+      "NOTE": "That's for GObjects"
     }
   ]
 }

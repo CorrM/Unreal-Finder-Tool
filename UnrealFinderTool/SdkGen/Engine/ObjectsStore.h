@@ -1,15 +1,16 @@
 #pragma once
 #include "GenericTypes.h"
 #include <unordered_map>
-#include "JsonReflector.h"
 
+class JsonStruct;
 class ObjectsIterator;
 class Memory;
 
 struct SdkGObject
 {
 	uintptr_t ObjAddress, Class, Outer;
-	int FNameIndex;
+	int FNameIndexs[15];
+	int OuterCount;
 };
 
 class ObjectsStore
@@ -19,11 +20,10 @@ class ObjectsStore
 	static Memory* mem;
 	static uintptr_t gObjAddress;
 
+	static bool FetchData();
+	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj);
 public:
-	bool LoadCore();
-	bool FetchData();
-	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj);
 
 	/// <summary>
 	/// Initializes this object.

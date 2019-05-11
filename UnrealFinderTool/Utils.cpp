@@ -5,6 +5,32 @@
 #include <vector>
 #include <algorithm>
 
+bool Utils::LoadJsonCore()
+{
+	// Read core GNames
+	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GNames.json"))
+	{
+		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
+		return false;
+	}
+
+	// Read core GObjects
+	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GObjects.json"))
+	{
+		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
+		return false;
+	}
+
+	// Read core CoreStructs
+	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\CoreStructs.json"))
+	{
+		std::cout << red << "[*] " << def << "Can't read CoreStructs file." << std::endl << def;
+		return false;
+	}
+
+	return true;
+}
+
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
 	std::vector<std::string> strings;
@@ -112,14 +138,13 @@ uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte,
 uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
 {
 	uintptr_t ret = 0;
-	auto sStruct = *structBase;
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->AllocPointer) + sStruct[varName].Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->AllocPointer) + structBase->GetVar(varName).Offset;
 
 	if (!is64BitGame)
 	{
 		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
 		if (ProgramIs64())
-			FixStructPointer(structBase->AllocPointer, int(sStruct[varName].Offset / 4), structBase->StructSize);
+			FixStructPointer(structBase->AllocPointer, int(structBase->GetVar(varName).Offset / 4), structBase->StructSize);
 	}
 	else
 	{

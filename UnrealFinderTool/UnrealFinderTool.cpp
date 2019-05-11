@@ -3,9 +3,10 @@
 #include "GnamesFinder.h"
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
-#include <iostream>
 #include "SdkGenerator.h"
+#include "Utils.h"
 
+#include <iostream>
 int main()
 {
 	const HWND console = GetConsoleWindow();
@@ -13,13 +14,16 @@ int main()
 	GetWindowRect(console, &r);
 	MoveWindow(console, r.left, r.top, 650, 400, TRUE);
 
+	if (!Utils::LoadJsonCore())
+		return 0;
+
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 6444);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 13844);
 	auto memManager1 = new Memory(pHandle1, false);
-	auto objObjectsAddress = uintptr_t(0x7FF7389B1E70);
-	auto gNamesAddress = uintptr_t(0x7FF7389A9A20);
+	auto objObjectsAddress = uintptr_t(0x7FF69B231E70);
+	auto gNamesAddress = uintptr_t(0x7FF69B229A20);
 	InstanceLogger sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;

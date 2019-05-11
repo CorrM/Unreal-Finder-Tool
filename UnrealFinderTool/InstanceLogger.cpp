@@ -92,9 +92,6 @@ bool InstanceLogger::NameDump()
 
 void InstanceLogger::Start()
 {
-	if (!LoadCore())
-		return;
-
 	if (!FetchData())
 		return;
 
@@ -106,42 +103,11 @@ void InstanceLogger::Start()
 	std::cout << green << "[+] " << purple << "Found [ " << green << gNamesChunkCount * gNamesChunks << purple << " ] Name." << std::endl;
 }
 
-bool InstanceLogger::LoadCore()
-{
-	// Read core GObjects
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
-		return false;
-	}
-	// Load all json structs in file
-	if (!JsonReflector::Load(JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
-		return false;
-	}
-
-	// Read core GNames
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
-		return false;
-	}
-	// Load all json structs in file
-	if (!JsonReflector::Load(JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
-		return false;
-	}
-
-	return true;
-}
-
 bool InstanceLogger::FetchData()
 {
 	// GObjects
 	JsonStruct jsonGObjectsReader;
-	if (!JsonReflector::Read("FUObjectArray", jsonGObjectsReader))
+	if (!JsonReflector::ReadStruct("FUObjectArray", jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
 		return false;
@@ -167,13 +133,12 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fUObjectItem, uObject;
 
-	if (!JsonReflector::Read("FUObjectItem", fUObjectItem))
+	if (!JsonReflector::ReadStruct("FUObjectItem", fUObjectItem))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
 		return false;
 	}
-
-	if (!JsonReflector::Read("UObject", uObject))
+	if (!JsonReflector::ReadStruct("UObject", uObject))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
 		return false;
@@ -226,7 +191,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 {
 	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct tmpUObject;
-	JsonReflector::Read("UObject", tmpUObject, false);
+	JsonReflector::ReadStruct("UObject", tmpUObject, false);
 	tmpUObject = uObject;
 
 	int i = 0;
@@ -241,7 +206,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 		Utils::FixPointersInStruct(&tmpUObject, _memory->Is64Bit);
 
 		outer = tmpUObject["Outer"].ReadAs<uintptr_t>();
-		retObj.FNameIndexs[i] = tmpUObject["FNameIndex"].ReadAs<int>();
+		retObj.FNameIndexs[i] = tmpUObject["FNameInfo"]["Index"].ReadAs<int>();
 		i++;
 	} while (outer != NULL);
 
@@ -255,9 +220,9 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 	int ptrSize = Utils::PointerSize(_memory);
 	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fName;
-	if (!JsonReflector::Read("FName", fName))
+	if (!JsonReflector::ReadStruct("FNameEntity", fName))
 	{
-		std::cout << red << "[*] " << def << "Can't find struct `FName`." << std::endl << def;
+		std::cout << red << "[*] " << def << "Can't find struct `FNameEntity`." << std::endl << def;
 		return false;
 	}
 

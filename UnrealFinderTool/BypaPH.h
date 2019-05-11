@@ -2,6 +2,7 @@
 #include "Driver.h"
 #include "KProcessHacker.h"
 #include <string>
+#include <winioctl.h>
 
 #define KPH_DEVICE_TYPE 0x9999
 #define KPH_CTL_CODE(x) CTL_CODE(KPH_DEVICE_TYPE, 0x800 + x, METHOD_NEITHER, FILE_ANY_ACCESS)

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "ObjectsStore.h"
 #include "../MainEngineClasses.h"
+#include "JsonReflector.h"
 #include "Utils.h"
 #include "Memory.h"
 #include <cassert>
@@ -16,36 +17,12 @@ bool ObjectsStore::Initialize(Memory* mem, const uintptr_t gObjAddress)
 	ObjectsStore::mem = mem;
 	ObjectsStore::gObjAddress = gObjAddress;
 
-	return true;
-}
+	if (!FetchData())
+		return false;
 
-bool ObjectsStore::LoadCore()
-{
-	// Read core GObjects
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
-		return false;
-	}
-	// Load all json structs in file
-	if (!JsonReflector::Load(&JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
-		return false;
-	}
+	std::cout << std::endl;
+	std::cout << green << "[+] " << purple << "Found [ " << green << gObjectsCount << purple << " ] Object." << std::endl;
 
-	// Read core GNames
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
-		return false;
-	}
-	// Load all json structs in file
-	if (!JsonReflector::Load(&JsonReflector::JsonObj))
-	{
-		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
-		return false;
-	}
 
 	return true;
 }
@@ -54,7 +31,7 @@ bool ObjectsStore::FetchData()
 {
 	// GObjects
 	JsonStruct jsonGObjectsReader;
-	if (!JsonReflector::Read("FUObjectArray", jsonGObjectsReader))
+	if (!JsonReflector::ReadStruct("FUObjectArray", jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
 		return false;
@@ -73,13 +50,13 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fUObjectItem, uObject;
 
-	if (!JsonReflector::Read("FUObjectItem", fUObjectItem))
+	if (!JsonReflector::ReadStruct("FUObjectItem", fUObjectItem))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
 		return false;
 	}
 
-	if (!JsonReflector::Read("UObject", uObject))
+	if (!JsonReflector::ReadStruct("UObject", uObject))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
 		return false;
@@ -132,7 +109,7 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct tmpUObject;
-	JsonReflector::Read("UObject", tmpUObject, false);
+	JsonReflector::ReadStruct("UObject", tmpUObject, false);
 	tmpUObject = uObject;
 
 	int i = 0;

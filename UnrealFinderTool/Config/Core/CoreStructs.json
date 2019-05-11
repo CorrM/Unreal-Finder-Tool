@@ -1,0 +1,25 @@
+{
+  "structs": [
+    {
+      "name": "UObject",
+      "derived": "",
+      "vars": [
+        { "VfTable": "pointer" },
+        { "Flags": "int" },
+        { "InternalIndex": "int" },
+        { "Class": "pointer" },
+        { "FNameInfo": "FName" },
+        { "Outer": "pointer" }
+      ],
+      "NOTE": "VfTable => FPointer|Class => UClass*|Outer => UObject*"
+    },
+    {
+      "name": "UField",
+      "derived": "UObject",
+      "vars": [
+        { "Next": "pointer" }
+      ],
+      "NOTE": "Next => UField*"
+    }
+  ]
+}
