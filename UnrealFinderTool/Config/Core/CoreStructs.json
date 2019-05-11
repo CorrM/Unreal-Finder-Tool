@@ -8,7 +8,7 @@
         { "Flags": "int" },
         { "InternalIndex": "int" },
         { "Class": "pointer" },
-        { "FNameInfo": "FName" },
+        { "Name": "FName" },
         { "Outer": "pointer" }
       ],
       "NOTE": "VfTable => FPointer|Class => UClass*|Outer => UObject*"

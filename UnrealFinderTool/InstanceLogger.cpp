@@ -65,7 +65,7 @@ bool InstanceLogger::ObjectDump()
 	{
 		bool state;
 		if (gObjObjects[i].ObjAddress != NULL)
-			fprintf(log, "UObject[%06i] %-80s 0x%" PRIXPTR "\n", int(i), GetName(gObjObjects[i]).c_str(), gObjObjects[i].ObjAddress);
+			fprintf(log, "[%06i] %-80s 0x%" PRIXPTR "\n", int(i), GetName(gObjObjects[i]).c_str(), gObjObjects[i].ObjAddress);
 	}
 
 	fclose(log);
@@ -84,7 +84,7 @@ bool InstanceLogger::NameDump()
 	}
 
 	for (int i = 0; i < gNamesChunkCount * gNamesChunks; i++)
-		fprintf(log, "Name[%06i] %s\n", int(i), gNames[i].AnsiName.c_str());
+		fprintf(log, "[%06i] %s\n", int(i), gNames[i].AnsiName.c_str());
 
 	fclose(log);
 	return true;
@@ -206,7 +206,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 		Utils::FixPointersInStruct(&tmpUObject, _memory->Is64Bit);
 
 		outer = tmpUObject["Outer"].ReadAs<uintptr_t>();
-		retObj.FNameIndexs[i] = tmpUObject["FNameInfo"]["Index"].ReadAs<int>();
+		retObj.FNameIndexs[i] = tmpUObject["Name"]["Index"].ReadAs<int>();
 		i++;
 	} while (outer != NULL);
 

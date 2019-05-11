@@ -6,7 +6,7 @@
 #include "Memory.h"
 #include <cassert>
 
-SdkGObject* ObjectsStore::gObjObjects;
+JsonStruct* ObjectsStore::gObjObjects;
 Memory* ObjectsStore::mem;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
@@ -55,7 +55,6 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
 		return false;
 	}
-
 	if (!JsonReflector::ReadStruct("UObject", uObject))
 	{
 		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
@@ -73,8 +72,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	auto dwFUObjectAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 
 	// Alloc all objects
-	gObjObjects = new SdkGObject[num];
-	ZeroMemory(gObjObjects, sizeof(SdkGObject) * num);
+	gObjObjects = new JsonStruct[num];
 
 	uintptr_t currentFUObjAddress = dwFUObjectAddress;
 	for (int i = 0; i < num; ++i)
@@ -97,7 +95,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 			continue;
 		}
 
-		ReadUObject(dwUObject, uObject, gObjObjects[i]);
+		ReadUObject(dwUObject, uObject);
 
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		gObjectsCount++;
@@ -105,31 +103,16 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	return true;
 }
 
-bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj)
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject)
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonStruct tmpUObject;
-	JsonReflector::ReadStruct("UObject", tmpUObject, false);
-	tmpUObject = uObject;
 
-	int i = 0;
-	uintptr_t outer = uObjectAddress;
-	do
-	{
-		// Alloc and Read the address as class
-		if (mem->ReadBytes(outer, tmpUObject.AllocPointer, tmpUObject.StructSize - sSub) == 0)
-			return false;
+	// Alloc and Read the address as class
+	if (mem->ReadBytes(uObjectAddress, uObject.AllocPointer, uObject.StructSize - sSub) == 0)
+		return false;
 
-		// Fix UObject
-		Utils::FixPointersInStruct(&tmpUObject, mem->Is64Bit);
-
-		outer = tmpUObject["Outer"].ReadAs<uintptr_t>();
-		retObj.FNameIndexs[i] = tmpUObject["FNameIndex"].ReadAs<int>();
-		i++;
-	} while (outer != NULL);
-
-	retObj.ObjAddress = uObjectAddress;
-	retObj.OuterCount = i - 1;
+	// Fix UObject
+	Utils::FixPointersInStruct(&uObject, mem->Is64Bit);
 	return true;
 }
 

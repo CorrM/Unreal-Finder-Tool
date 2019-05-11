@@ -24,7 +24,7 @@ int main()
 	auto memManager1 = new Memory(pHandle1, false);
 	auto objObjectsAddress = uintptr_t(0x7FF69B231E70);
 	auto gNamesAddress = uintptr_t(0x7FF69B229A20);
-	InstanceLogger sg(memManager1, objObjectsAddress, gNamesAddress);
+	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
 	return 0;

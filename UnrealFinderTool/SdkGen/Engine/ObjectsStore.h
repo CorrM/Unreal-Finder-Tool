@@ -6,23 +6,16 @@ class JsonStruct;
 class ObjectsIterator;
 class Memory;
 
-struct SdkGObject
-{
-	uintptr_t ObjAddress, Class, Outer;
-	int FNameIndexs[15];
-	int OuterCount;
-};
-
 class ObjectsStore
 {
-	static SdkGObject* gObjObjects;
+	static JsonStruct* gObjObjects;
 	static int gObjectsCount;
 	static Memory* mem;
 	static uintptr_t gObjAddress;
 
 	static bool FetchData();
 	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject);
 public:
 
 	/// <summary>

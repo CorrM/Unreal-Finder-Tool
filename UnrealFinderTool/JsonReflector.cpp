@@ -214,7 +214,7 @@ bool JsonReflector::IsNumber(const std::string & s)
 // -------------------------------------------------
 // JsonStruct
 // -------------------------------------------------
-JsonStruct::JsonStruct(): IsChild(false)
+JsonStruct::JsonStruct()
 {
 }
 /*

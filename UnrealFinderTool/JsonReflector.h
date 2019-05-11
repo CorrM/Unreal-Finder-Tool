@@ -75,9 +75,9 @@ class JsonStruct
 {
 public:
 	// Struct Name
-	std::string Name;
+	std::string Name = "";
 	// Check if this struct is child for other struct, Good to free the memory of struct
-	bool IsChild;
+	bool IsChild = false;
 	// Variable inside this struct
 	JsonVariables Vars;
 	// Variable count
