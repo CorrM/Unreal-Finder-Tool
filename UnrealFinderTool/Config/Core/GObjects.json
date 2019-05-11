@@ -2,18 +2,20 @@
   "structs": [
     {
       "name": "UObject",
+      "derived": null,
       "vars": [
         { "VfTable": "pointer" },
         { "Flags": "int" },
         { "InternalIndex": "int" },
         { "Class": "pointer" },
         { "FNameIndex": "int" },
-        { "FNameUnknown": "int" },
+        { "FNameNumber": "int" },
         { "Outer": "pointer" }
       ]
     },
     {
       "name": "FUObjectItem",
+      "derived": null,
       "vars": [
         { "Object": "pointer" },
         { "Flags": "int" },
@@ -24,6 +26,7 @@
     },
     {
       "name": "TUObjectArray",
+      "derived": null,
       "vars": [
         { "Objects": "pointer" },
         { "MaxElements": "int" },
@@ -32,6 +35,7 @@
     },
     {
       "name": "FUObjectArray",
+      "derived": null,
       "vars": [
         { "ObjFirstGcIndex": "int" },
         { "ObjLastNonGcIndex": "int" },

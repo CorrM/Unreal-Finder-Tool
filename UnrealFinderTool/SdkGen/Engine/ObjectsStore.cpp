@@ -22,26 +22,26 @@ bool ObjectsStore::Initialize(Memory* mem, const uintptr_t gObjAddress)
 bool ObjectsStore::LoadCore()
 {
 	// Read core GObjects
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
 		return false;
 	}
 	// Load all json structs in file
-	if (!JsonReflector::Load(&jsonCore))
+	if (!JsonReflector::Load(&JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
 		return false;
 	}
 
 	// Read core GNames
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
 		return false;
 	}
 	// Load all json structs in file
-	if (!JsonReflector::Load(&jsonCore))
+	if (!JsonReflector::Load(&JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
 		return false;
@@ -120,22 +120,39 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 			continue;
 		}
 
-		// Alloc and Read the address as class
-		if (mem->ReadBytes(dwUObject, uObject.AllocPointer, uObject.StructSize - sSub) == 0)
-			return false;
-
-		// Fix UObject
-		Utils::FixPointersInStruct(&uObject, mem->Is64Bit);
-
-		// Read Information
-		gObjObjects[i].ObjAddress = dwUObject;
-		// gObjObjects[i].Class = uObject["Class"].ReadAs<uintptr_t>();
-		// gObjObjects[i].Outer = uObject["Outer"].ReadAs<uintptr_t>();
-		gObjObjects[i].FNameIndex = uObject["FNameIndex"].ReadAs<int>();
+		ReadUObject(dwUObject, uObject, gObjObjects[i]);
 
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		gObjectsCount++;
 	}
+	return true;
+}
+
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj)
+{
+	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	JsonStruct tmpUObject;
+	JsonReflector::Read("UObject", tmpUObject, false);
+	tmpUObject = uObject;
+
+	int i = 0;
+	uintptr_t outer = uObjectAddress;
+	do
+	{
+		// Alloc and Read the address as class
+		if (mem->ReadBytes(outer, tmpUObject.AllocPointer, tmpUObject.StructSize - sSub) == 0)
+			return false;
+
+		// Fix UObject
+		Utils::FixPointersInStruct(&tmpUObject, mem->Is64Bit);
+
+		outer = tmpUObject["Outer"].ReadAs<uintptr_t>();
+		retObj.FNameIndexs[i] = tmpUObject["FNameIndex"].ReadAs<int>();
+		i++;
+	} while (outer != NULL);
+
+	retObj.ObjAddress = uObjectAddress;
+	retObj.OuterCount = i - 1;
 	return true;
 }
 

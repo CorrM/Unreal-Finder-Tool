@@ -6,7 +6,9 @@
 JsonStructs JsonReflector::StructsList;
 nlohmann::json* JsonReflector::JsonObj;
 
-
+// -------------------------------------------------
+// JsonReflector
+// -------------------------------------------------
 bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 {
 	// read a JSON file
@@ -14,7 +16,6 @@ bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 	i >> *reinterpret_cast<nlohmann::json*>(jsonObj);
 	return true;
 }
-
 bool JsonReflector::Read(const std::string& structName, JsonStruct& destStruct, const bool alloc)
 {
 	if (Load(structName))
@@ -46,7 +47,6 @@ bool JsonReflector::Read(const std::string& structName, JsonStruct& destStruct, 
 	}
 	return false;
 }
-
 bool JsonReflector::Load(void* jsonObj)
 {
 	JsonObj = reinterpret_cast<nlohmann::json*>(jsonObj);
@@ -93,7 +93,6 @@ bool JsonReflector::Load(void* jsonObj)
 	}
 	return true;
 }
-
 bool JsonReflector::Load(const std::string & structName)
 {
 	// Check is already here
@@ -146,7 +145,6 @@ bool JsonReflector::Load(const std::string & structName)
 
 	return false;
 }
-
 int JsonReflector::VarSizeFromJson(const std::string & typeName)
 {
 	if (typeName == "int")
@@ -177,7 +175,6 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 
 	throw std::exception(("Cant detect size of `" + typeName + "`.").c_str());
 }
-
 bool JsonReflector::IsStructType(const std::string & typeName)
 {
 	const bool isStruct =
@@ -189,22 +186,19 @@ bool JsonReflector::IsStructType(const std::string & typeName)
 		;
 	return !isStruct;
 }
-
 bool JsonReflector::IsNumber(const std::string & s)
 {
 	return !s.empty() && std::find_if(s.begin(),
 		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
-
-// ##############################################
-
+// -------------------------------------------------
+// JsonStruct
+// -------------------------------------------------
 JsonStruct::JsonStruct() = default;
-
 JsonVar& JsonStruct::operator[](const std::string& varName)
 {
 	return GetVar(varName);
 }
-
 void JsonStruct::SetAllocAddress(void* newAddress)
 {
 	// Free old memory
@@ -219,24 +213,20 @@ void JsonStruct::SetAllocAddress(void* newAddress)
 
 	AllocAddressChanged = true;
 }
-
 void JsonStruct::SetAllocAddress(const uintptr_t newAddress)
 {
 	SetAllocAddress(reinterpret_cast<void*>(newAddress));
 }
-
 void JsonStruct::MoveAllocNext()
 {
 	uintptr_t nextAddress = reinterpret_cast<uintptr_t>(AllocPointer) + StructSize;
 	SetAllocAddress(nextAddress);
 }
-
 void JsonStruct::MoveAllocPrev()
 {
 	uintptr_t prevAddress = reinterpret_cast<uintptr_t>(AllocPointer) - StructSize;
 	SetAllocAddress(prevAddress);
 }
-
 JsonVar& JsonStruct::GetVar(const std::string& varName)
 {
 	if (Vars.find(varName) != Vars.end())
@@ -244,9 +234,9 @@ JsonVar& JsonStruct::GetVar(const std::string& varName)
 
 	throw std::exception(("Not found " + varName + " in JsonVariables").c_str());
 }
-
-// ##############################################
-
+// -------------------------------------------------
+// JsonVar
+// -------------------------------------------------
 JsonVar::JsonVar() : parent(nullptr), structVars(nullptr), Size(0), Offset(0), IsStruct(false)
 {
 	// Solve unresolved problem
@@ -256,7 +246,6 @@ JsonVar::JsonVar() : parent(nullptr), structVars(nullptr), Size(0), Offset(0), I
 	ReadAs<uintptr_t>();
 	ReadAs<char*>();
 }
-
 JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t offset, const bool isStruct) : parent(nullptr), structVars(nullptr)
 {
 	Name = name;
@@ -265,13 +254,11 @@ JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t 
 	Offset = offset;
 	IsStruct = isStruct;
 }
-
 JsonVar::~JsonVar()
 {
 	if (IsStruct && structVars != nullptr)
 		delete structVars;
 }
-
 JsonVar& JsonVar::operator[](const std::string& varName)
 {
 	if (!IsStruct)
@@ -279,7 +266,6 @@ JsonVar& JsonVar::operator[](const std::string& varName)
 
 	return GetVar(varName);
 }
-
 JsonVar& JsonVar::GetVar(const std::string& varName)
 {
 	if (!IsStruct)
@@ -296,14 +282,11 @@ JsonVar& JsonVar::GetVar(const std::string& varName)
 
 	throw std::exception(("Not found " + varName + " in JsonVariables").c_str());
 }
-
 void JsonVar::SetParent(JsonStruct* parentStruct)
 {
 	parent = parentStruct;
 }
-
-template <class T>
-T JsonVar::ReadAs()
+template <class T> T JsonVar::ReadAs()
 {
 	if (parent == nullptr)
 		return 0;
@@ -311,7 +294,6 @@ T JsonVar::ReadAs()
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
 	return *reinterpret_cast<T*>(calcAddress);
 }
-
 JsonStruct JsonVar::ReadAsStruct()
 {
 	if (!IsStruct)

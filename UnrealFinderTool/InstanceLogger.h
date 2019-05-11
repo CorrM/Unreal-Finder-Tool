@@ -18,7 +18,6 @@ public:
 
 class InstanceLogger
 {
-	nlohmann::json jsonCore;
 	GObject* gObjObjects; int gObjectsCount;
 	GName* gNames; int gNamesChunkCount, gNamesChunks;
 

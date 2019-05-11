@@ -2,6 +2,7 @@
   "structs": [
     {
       "name": "FName",
+      "derived": null,
       "vars": [
         { "Index": "int" },
         { "Unknown_00": "4" },

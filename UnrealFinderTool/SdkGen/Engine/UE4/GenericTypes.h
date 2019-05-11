@@ -27,21 +27,13 @@ public:
 	{
 		return object != nullptr;
 	}
-
 	size_t GetIndex() const;
-
 	UEClass GetClass() const;
-
 	UEObject GetOuter() const;
-
 	std::string GetName() const;
-
 	std::string GetFullName() const;
-
 	std::string GetNameCPP() const;
-
 	UEObject GetPackageObject() const;
-
 	void* GetAddress() const;
 
 	template<typename Base>

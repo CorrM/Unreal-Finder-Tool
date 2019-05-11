@@ -109,26 +109,26 @@ void InstanceLogger::Start()
 bool InstanceLogger::LoadCore()
 {
 	// Read core GObjects
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GObjects.json", JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
 		return false;
 	}
 	// Load all json structs in file
-	if (!JsonReflector::Load(&jsonCore))
+	if (!JsonReflector::Load(JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't load GObject file." << std::endl << def;
 		return false;
 	}
 
 	// Read core GNames
-	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", &jsonCore))
+	if (!JsonReflector::ReadJsonFile("Config\\Core\\GNames.json", JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
 		return false;
 	}
 	// Load all json structs in file
-	if (!JsonReflector::Load(&jsonCore))
+	if (!JsonReflector::Load(JsonReflector::JsonObj))
 	{
 		std::cout << red << "[*] " << def << "Can't load GNames file." << std::endl << def;
 		return false;

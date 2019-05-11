@@ -8,13 +8,12 @@ class Memory;
 
 struct SdkGObject
 {
-	uintptr_t ObjAddress;
+	uintptr_t ObjAddress, Class, Outer;
 	int FNameIndex;
 };
 
 class ObjectsStore
 {
-	nlohmann::json jsonCore;
 	static SdkGObject* gObjObjects;
 	static int gObjectsCount;
 	static Memory* mem;
@@ -24,6 +23,7 @@ public:
 	bool LoadCore();
 	bool FetchData();
 	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkGObject& retObj);
 
 	/// <summary>
 	/// Initializes this object.
@@ -31,7 +31,7 @@ public:
 	/// <returns>
 	/// true if it succeeds, false if it fails.
 	/// </returns>
-	static bool Initialize(Memory* mem, const uintptr_t gObjAddress);
+	static bool Initialize(Memory* mem, uintptr_t gObjAddress);
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static void* GetAddress();
