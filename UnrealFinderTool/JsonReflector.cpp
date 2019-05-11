@@ -289,7 +289,6 @@ JsonVar::JsonVar(const std::string& name, const std::string& type, const size_t 
 }
 JsonVar::~JsonVar()
 {
-	JsonReflector::StructsList;
 	if (IsStruct && StructVars != nullptr)
 		delete StructVars;
 }
