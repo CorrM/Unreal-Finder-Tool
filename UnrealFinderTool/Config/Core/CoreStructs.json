@@ -1,6 +1,15 @@
 {
   "structs": [
     {
+      "name": "FQWord",
+      "super": "",
+      "vars": [
+        { "A": "int" },
+        { "B": "int" }
+      ],
+      "NOTE": ""
+    },
+    {
       "name": "UObject",
       "super": "",
       "vars": [
@@ -20,6 +29,288 @@
         { "Next": "pointer" }
       ],
       "NOTE": "Next => UField*"
+    },
+    {
+      "name": "UStruct",
+      "super": "UField",
+      "vars": [
+        { "SuperField": "pointer" },
+        { "Children": "pointer" },
+        { "PropertySize": "int" },
+        { "MinAlignment": "int" },
+        { "pad_0x0048": "64" }
+      ],
+      "NOTE": "SuperField => UStruct*|Children => UField*"
+    },
+    {
+      "name": "UScriptStruct",
+      "super": "UStruct",
+      "vars": [
+        { "pad_0x0088": "16" }
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UFunction",
+      "super": "UStruct",
+      "vars": [
+        { "FunctionFlags": "int" },
+        { "RepOffset": "int16" },
+        { "NumParms": "int8" },
+        { "pad_0x008F": "1" },
+        { "ParmsSize": "int16" },
+        { "ReturnValueOffset": "int16" },
+        { "RPCId": "int16" },
+        { "RPCResponseId": "int16" },
+        { "FirstPropertyToInit": "pointer" },
+        { "EventGraphFunction": "pointer" },
+        { "EventGraphCallOffset": "int" },
+        { "pad_0x00AC": "4" },
+        { "Func": "pointer" }
+      ],
+      "NOTE": "FirstPropertyToInit => UProperty*|EventGraphFunction => UFunction*"
+    },
+    {
+      "name": "UClass",
+      "super": "UStruct",
+      "vars": [
+        { "pad_0x0088": "408" }
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UProperty",
+      "super": "UField",
+      "vars": [
+        { "ArrayDim": "int" },
+        { "ElementSize": "int" },
+        { "PropertyFlags": "FQWord" },
+        { "PropertySize": "int" },
+        { "pad_0x0044": "12" },
+        { "Offset": "int" },
+        { "pad_0x0054": "36" }
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UNumericProperty",
+      "super": "UProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UByteProperty",
+      "super": "UNumericProperty",
+      "vars": [
+        { "Enum": "pointer" }
+      ],
+      "NOTE": "Enum => UEnum*"
+    },
+    {
+      "name": "UUInt16Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UUInt32Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UUInt64Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UInt8Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UInt16Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UIntProperty",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UInt64Property",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UFloatProperty",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UDoubleProperty",
+      "super": "UNumericProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UBoolProperty",
+      "super": "UProperty",
+      "vars": [
+        { "FieldSize": "uint8" },
+        { "ByteOffset": "uint8" },
+        { "ByteMask": "uint8" },
+        { "FieldMask": "uint8" }
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UObjectPropertyBase",
+      "super": "UProperty",
+      "vars": [
+        { "PropertyClass": "pointer" }
+      ],
+      "NOTE": "PropertyClass => UClass*"
+    },
+    {
+      "name": "UObjectProperty",
+      "super": "UObjectPropertyBase",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UClassProperty",
+      "super": "UObjectProperty",
+      "vars": [
+        { "MetaClass": "pointer" }
+      ],
+      "NOTE": "MetaClass => UClass*"
+    },
+    {
+      "name": "UInterfaceProperty",
+      "super": "UProperty",
+      "vars": [
+        { "InterfaceClass": "pointer" }
+      ],
+      "NOTE": "InterfaceClass => UClass*"
+    },
+    {
+      "name": "UWeakObjectProperty",
+      "super": "UObjectPropertyBase",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "ULazyObjectProperty",
+      "super": "UObjectPropertyBase",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UAssetObjectProperty",
+      "super": "UObjectPropertyBase",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UAssetClassProperty",
+      "super": "UAssetObjectProperty",
+      "vars": [
+        { "MetaClass": "pointer" }
+      ],
+      "NOTE": "MetaClass => UClass*"
+    },
+    {
+      "name": "UNameProperty",
+      "super": "UProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UStructProperty",
+      "super": "UProperty",
+      "vars": [
+        { "Struct": "pointer" }
+      ],
+      "NOTE": "Struct => UScriptStruct*"
+    },
+    {
+      "name": "UStrProperty",
+      "super": "UProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UTextProperty",
+      "super": "UProperty",
+      "vars": [
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "UArrayProperty",
+      "super": "UProperty",
+      "vars": [
+        { "Inner": "pointer" }
+      ],
+      "NOTE": "Inner => UProperty*"
+    },
+    {
+      "name": "UMapProperty",
+      "super": "UProperty",
+      "vars": [
+        { "KeyProp": "pointer" },
+        { "ValueProp": "pointer" }
+      ],
+      "NOTE": "KeyProp => UProperty*| ValueProp => UProperty*"
+    },
+    {
+      "name": "UDelegateProperty",
+      "super": "UProperty",
+      "vars": [
+        { "SignatureFunction": "pointer" }
+      ],
+      "NOTE": "SignatureFunction => UFunction*"
+    },
+    {
+      "name": "UMulticastDelegateProperty",
+      "super": "UProperty",
+      "vars": [
+        { "SignatureFunction": "pointer" }
+      ],
+      "NOTE": "SignatureFunction => UFunction*"
+    },
+    {
+      "name": "UEnumProperty",
+      "super": "UProperty",
+      "vars": [
+        { "UnderlyingProp": "pointer" },
+        { "Enum": "pointer" }
+      ],
+      "NOTE": "UnderlyingProp => UNumericProperty*|Enum => UEnum*"
     }
   ]
 }

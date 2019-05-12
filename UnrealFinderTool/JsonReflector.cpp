@@ -235,10 +235,24 @@ bool JsonReflector::ReadAndLoadFile(const std::string& fileName)
 }
 int JsonReflector::VarSizeFromJson(const std::string & typeName)
 {
-	if (typeName == "int")
+	if (typeName == "int8")
+		return sizeof(int8_t);
+	if (typeName == "int16")
+		return sizeof(int16_t);
+	if (typeName == "int" || typeName == "int32")
 		return sizeof(int32_t);
 	if (typeName == "int64")
 		return sizeof(int64_t);
+
+	if (typeName == "uint8")
+		return sizeof(uint8_t);
+	if (typeName == "uint16")
+		return sizeof(uint16_t);
+	if (typeName == "uint" || typeName == "uint32")
+		return sizeof(uint32_t);
+	if (typeName == "uint64")
+		return sizeof(uint64_t);
+
 	if (typeName == "pointer")
 		return sizeof(uintptr_t);
 	if (typeName == "DWORD")
@@ -267,13 +281,22 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 bool JsonReflector::IsStructType(const std::string & typeName)
 {
 	const bool isStruct =
+		typeName == "int8"		||
+		typeName == "int16"		||
 		typeName == "int"		||
+		typeName == "int32"		||
 		typeName == "int64"		||
+
+		typeName == "uint8"		||
+		typeName == "uint16"	||
+		typeName == "uint"		||
+		typeName == "uint32"	||
+		typeName == "uint64"	||
+
 		typeName == "pointer"	||
 		typeName == "DWORD"		||
 		typeName == "DWORD64"	||
-		typeName == "string"
-		;
+		typeName == "string";
 	return !isStruct;
 }
 bool JsonReflector::IsNumber(const std::string & s)

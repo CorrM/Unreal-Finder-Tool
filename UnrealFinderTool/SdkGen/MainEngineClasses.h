@@ -2,6 +2,7 @@
 #include <string>
 #include <windows.h>
 
+/*
 struct FPointer
 {
 	uintptr_t Dummy;
@@ -18,6 +19,7 @@ struct FName
 	int32_t ComparisonIndex;
 	int32_t Number;
 };
+*/
 
 template<class T>
 struct TArray
@@ -207,6 +209,7 @@ public:
 	__int64 CppForm; //0x0050 
 };
 
+/*
 class UStruct : public UField
 {
 public:
@@ -216,6 +219,7 @@ public:
 	int32_t MinAlignment;
 	char pad_0x0048[0x40];
 };
+
 
 class UScriptStruct : public UStruct
 {
@@ -400,6 +404,7 @@ public:
 
 };
 
+
 class UTextProperty : public UProperty
 {
 public:
@@ -437,3 +442,4 @@ public:
 	class UNumericProperty* UnderlyingProp; //0x0070
 	class UEnum* Enum; //0x0078
 }; //Size: 0x0080
+*/
