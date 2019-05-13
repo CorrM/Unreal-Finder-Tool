@@ -23,6 +23,10 @@ UEObject UEObject::GetOuter() const
 }
 std::string UEObject::GetName() const
 {
+	if (object == nullptr)
+	{
+		MessageBoxA(nullptr, "", "", MB_OK);
+	}
 	auto cName = object->Name();
 	if (cName.Index() == 0)
 		return "";
@@ -43,7 +47,7 @@ std::string UEObject::GetName() const
 }
 bool UEObject::IsValid() const
 {
-	return object != nullptr && object->AllocPointer != nullptr && !object->StructName.empty();
+	return object != nullptr && object->GetAllocPointer() != nullptr && !object->StructName.empty();
 }
 UEClass UEObject::StaticClass()
 {

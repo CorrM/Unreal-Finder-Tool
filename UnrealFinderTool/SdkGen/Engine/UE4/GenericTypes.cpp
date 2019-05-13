@@ -25,9 +25,11 @@ std::string UEObject::GetFullName() const
 	{
 		std::string temp;
 
-		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+		auto outer = GetOuter();
+		while (outer.IsValid())
 		{
 			temp = outer.GetName() + "." + temp;
+			outer = outer.GetOuter();
 		}
 
 		std::string name = cClass.GetName();

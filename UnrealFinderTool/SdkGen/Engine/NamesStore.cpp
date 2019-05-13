@@ -84,7 +84,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (mem->ReadBytes(fNameAddress, fName.AllocPointer, fName.StructSize) == 0)
+			if (mem->ReadBytes(fNameAddress, fName.GetAllocPointer(), fName.StructSize) == 0)
 				return false;
 
 			// Set The Name

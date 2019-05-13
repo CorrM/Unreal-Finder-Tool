@@ -211,7 +211,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		>> distinct()
 		>> to_vector();
 
-	for (auto obj : packageObjects)
+	for (const auto& obj : packageObjects)
 	{
 		auto package = std::make_unique<Package>(obj);
 

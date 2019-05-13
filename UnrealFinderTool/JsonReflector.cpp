@@ -30,11 +30,11 @@ bool JsonReflector::ReadStruct(const std::string& structName, JsonStruct& destSt
 	if (s != StructsList.end())
 	{
 		// Old info to keep
-		void* oldAddress = destStruct.AllocPointer;
+		void* oldAddress = destStruct.GetAllocPointer();
 
 		// Get Copy From StructsList and Fill Struct
 		destStruct = s->second;
-		destStruct.AllocPointer = oldAddress;
+		destStruct.SetAllocPointer(oldAddress);
 
 		// Init Struct memory
 		if (alloc)
@@ -42,7 +42,7 @@ bool JsonReflector::ReadStruct(const std::string& structName, JsonStruct& destSt
 			void* structPointer = malloc(destStruct.StructSize);
 			if (structPointer == nullptr) return false;
 			ZeroMemory(structPointer, destStruct.StructSize);
-			destStruct.AllocPointer = structPointer;
+			destStruct.SetAllocPointer(structPointer);
 		}
 		destStruct.Vars = JsonVariables(s->second.Vars.begin(), s->second.Vars.end());
 		for (auto& kv : destStruct.Vars)
@@ -313,8 +313,18 @@ JsonStruct::JsonStruct() = default;
 
 JsonStruct::~JsonStruct()
 {
-	if (_init)
-		free(AllocPointer);
+	if (_init && !AllocChanged && IsPointerStruct)
+		free(allocPointer);
+}
+
+void JsonStruct::SetAllocPointer(void* newAddress)
+{
+	allocPointer = newAddress;
+}
+
+void* JsonStruct::GetAllocPointer()
+{
+	return allocPointer;
 }
 
 JsonVar& JsonStruct::operator[](const std::string& varName)
@@ -420,7 +430,7 @@ template <typename T> T JsonVar::ReadAs()
 	if (parent == nullptr)
 		return 0;
 
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 	return *reinterpret_cast<T*>(calcAddress);
 }
 
@@ -429,22 +439,22 @@ JsonStruct* JsonVar::ReadAsStruct()
 	if (!IsStruct)
 		throw std::exception((Name + " Not a struct.").c_str());
 
-	if (StructVars != nullptr)
-		return StructVars;
+	//if (StructVars != nullptr)
+	//	return StructVars;
 
 	auto sStructIt = JsonReflector::StructsList.find(Type);
 	if (sStructIt == JsonReflector::StructsList.end())
 		throw std::exception(("Can't find struct When try read as " + Type).c_str());
 
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 
-	StructVars = new JsonStruct(sStructIt->second);
-	StructVars->AllocPointer = reinterpret_cast<void*>(calcAddress);
+	auto structVars = new JsonStruct(sStructIt->second);
+	structVars->AllocChanged = true;
+	structVars->Init(Type, false);
+	structVars->SetAllocPointer(reinterpret_cast<void*>(calcAddress));
+	structVars->IsPointerStruct = false;
 
-	if (!JsonReflector::ReadStruct(Type, *StructVars, false))
-		throw std::exception(("Can't read the struct `" + Type + "`.").c_str());
-
-	return StructVars;
+	return structVars;
 }
 
 JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
@@ -458,14 +468,15 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 
 	auto structPoint = new JsonStruct(sStructIt->second);
 	structPoint->Init(ptrType);
+	structPoint->IsPointerStruct = true;
 
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->AllocPointer) + Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 	calcAddress = *reinterpret_cast<uintptr_t*>(calcAddress);
 
 	if (calcAddress == NULL)
 		return nullptr;
 
-	if (JsonReflector::MemoryObj->ReadBytes(calcAddress, structPoint->AllocPointer, structPoint->StructSize) == 0)
+	if (JsonReflector::MemoryObj->ReadBytes(calcAddress, structPoint->GetAllocPointer(), structPoint->StructSize) == 0)
 		throw std::exception(("Can't read game memory `" + std::to_string(calcAddress) + "`.").c_str());
 
 	Utils::FixPointersInStruct(structPoint, JsonReflector::MemoryObj->Is64Bit);

@@ -55,7 +55,7 @@ public:
 	auto ObjLastNonGcIndex() { return GetVar("ObjLastNonGcIndex").ReadAs<int>(); }
 	auto MaxObjectsNotConsideredByGc() { return GetVar("MaxObjectsNotConsideredByGc").ReadAs<int>(); }
 	auto OpenForDisregardForGc() { return GetVar("OpenForDisregardForGc").ReadAs<int>(); }
-	auto ObjObjects() { return *static_cast<JsonTUObjectArray*>(GetVar("ObjObjects").ReadAsStruct()); }
+	auto ObjObjects() { return GetVar("ObjObjects").ReadAsStruct<JsonTUObjectArray>(); }
 };
 
 class JsonUClass;
@@ -64,13 +64,11 @@ class JsonUObject : public JsonStruct
 {
 public:
 	JsonUObject() { Init("UObject"); }
-	uintptr_t GG = GetVar("VfTable").ReadAs<uintptr_t>();
-
 	auto VfTable() { return GetVar("VfTable").ReadAs<uintptr_t>(); }
 	auto Flags() { return GetVar("Flags").ReadAs<int>(); }
 	auto InternalIndex() { return GetVar("InternalIndex").ReadAs<int>(); }
 	auto Class() { return GetVar("Class").ReadAsPStruct<JsonUClass>(); }
-	auto Name() { return *static_cast<JsonFName*>(GetVar("Name").ReadAsStruct()); }
+	auto Name() { return GetVar("Name").ReadAsStruct<JsonFName>(); }
 	auto Outer() { return GetVar("Outer").ReadAsPStruct<JsonUObject>(); }
 };
 
@@ -101,7 +99,7 @@ class JsonFUEnumItem : public JsonStruct
 {
 public:
 	JsonFUEnumItem() { Init("FUEnumItem"); }
-	auto Key() { return *static_cast<JsonFQWord*>(GetVar("Key").ReadAsStruct()); }
+	auto Key() { return GetVar("Key").ReadAsStruct<JsonFQWord>(); }
 	auto Value() { return GetVar("Value").ReadAs<int>(); }
 };
 
@@ -119,7 +117,7 @@ class JsonUEnum : public JsonUField
 public:
 	JsonUEnum() { Init("UEnum"); }
 	auto Children() { return GetVar("Children").ReadAsPStruct<JsonUField>(); }
-	auto Names() { return *static_cast<JsonTUEnumArray*>(GetVar("Names").ReadAsStruct()); }
+	auto Names() { return GetVar("Names").ReadAsStruct<JsonTUEnumArray>(); }
 	auto CppForm() { return GetVar("CppForm").ReadAs<int64_t>(); }
 };
 
@@ -135,7 +133,7 @@ public:
 	JsonUProperty() { Init("UProperty"); }
 	auto ArrayDim() { return GetVar("ArrayDim").ReadAs<int>(); }
 	auto ElementSize() { return GetVar("ElementSize").ReadAs<int>(); }
-	auto PropertyFlags() { return *static_cast<JsonFQWord*>(GetVar("PropertyFlags").ReadAsStruct()); }
+	auto PropertyFlags() { return GetVar("PropertyFlags").ReadAsStruct<JsonFQWord>(); }
 	auto PropertySize() { return GetVar("PropertySize").ReadAs<int>(); }
 	auto Offset() { return GetVar("Offset").ReadAs<int>(); }
 };
@@ -354,5 +352,5 @@ public:
 // public:
 // 	auto VfTable() { return GetVar("VfTable").ReadAs<int>(); }
 //	auto Children() { return static_cast<JsonUField*>(GetVar("Children").ReadAsPStruct<>()); }
-//  auto PropertyFlags() { return *static_cast<JsonFQWord*>(GetVar("PropertyFlags").ReadAsStruct()); }
+//  auto PropertyFlags() { return GetVar("PropertyFlags").ReadAsStruct<JsonFQWord>(); }
 // };

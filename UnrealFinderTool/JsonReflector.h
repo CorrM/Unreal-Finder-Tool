@@ -1,6 +1,5 @@
 #pragma once
 #include "json.hpp"
-#include "JsonTypes.h"
 
 class JsonVar;
 class JsonStruct;
@@ -71,9 +70,14 @@ public:
 	template <typename T> T ReadAs();
 	// Read variable as struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
 	JsonStruct* ReadAsStruct();
+	// Read variable as [derived] struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
+	template <typename T> T ReadAsStruct()
+	{
+		return *reinterpret_cast<T*>(ReadAsStruct());
+	}
 	// Read variable as struct, ONLY work if this variable is [POINTER TO STRUCT]
 	JsonStruct* ReadAsPStruct(const std::string& ptrType);
-	// Read variable as dived json struct, ONLY work if this variable is [POINTER TO STRUCT]
+	// Read variable as [derived] pointer json struct, ONLY work if this variable is [POINTER TO STRUCT]
 	template <typename T> T* ReadAsPStruct()
 	{
 		T obj;
@@ -87,6 +91,8 @@ private:
 class JsonStruct
 {
 	bool _init = false;
+	// Pointer to alloc memory based on `StructSize`
+	void* allocPointer = nullptr;
 public:
 	// Struct Name
 	std::string StructName = "";
@@ -94,19 +100,23 @@ public:
 	std::string StructSuper = "";
 	// Variable inside this struct
 	JsonVariables Vars;
-	// Pointer to alloc memory based on `StructSize`
-	void* AllocPointer = nullptr;
 	// Size of this struct
 	size_t StructSize = 0;
 	// Check if new alloc address putted
-	bool AllocAddressChanged = false;
+	bool AllocChanged = false;
+	// If this variable is struct, this var check if it's pointer or local struct
+	bool IsPointerStruct = false;
 
 	JsonStruct();
 	~JsonStruct();
+	// allocPointer Setter
+	void SetAllocPointer(void* newAddress);
+	// allocPointer Getter
+	void* GetAllocPointer();
 	// Access to variable inside this struct
 	JsonVar& operator[](const std::string& varName);
 	// Access to variable inside this struct
 	JsonVar& GetVar(const std::string& varName);
-	// Initialize the struct (alloc and init variables), Don't use for temp struct
+	// Initialize the struct (alloc and init variables), Don't use for temp struct or not allocated struct
 	void Init(const std::string& structName, bool alloc = true);
 };

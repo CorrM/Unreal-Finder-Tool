@@ -138,13 +138,13 @@ uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte,
 uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
 {
 	uintptr_t ret = 0;
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->AllocPointer) + structBase->GetVar(varName).Offset;
+	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->GetAllocPointer()) + structBase->GetVar(varName).Offset;
 
 	if (!is64BitGame)
 	{
 		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
 		if (ProgramIs64())
-			FixStructPointer(structBase->AllocPointer, int(structBase->GetVar(varName).Offset / 4), structBase->StructSize);
+			FixStructPointer(structBase->GetAllocPointer(), int(structBase->GetVar(varName).Offset / 4), structBase->StructSize);
 	}
 	else
 	{

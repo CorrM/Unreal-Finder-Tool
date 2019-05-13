@@ -23,7 +23,7 @@ public:
 	}
 	~UEObject()
 	{
-		if (delAfterUse)
+		if (delAfterUse && object != nullptr && !object->AllocChanged && object->IsPointerStruct)
 			delete object;
 	}
 	bool IsValid() const;

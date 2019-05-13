@@ -133,7 +133,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 	JsonFUObjectItem fUObjectItem;
 	JsonUObject uObject;
 
-	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
+	if (_memory->ReadBytes(address, objectArray.GetAllocPointer(), objectArray.StructSize - sSub) == 0) return false;
 
 	auto objObjects = objectArray.ObjObjects();
 	int num = objObjects.NumElements();
@@ -151,7 +151,7 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
-		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == 0)
+		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.GetAllocPointer(), fUObjectItem.StructSize - sSub) == 0)
 			return false;
 
 		// Fix fUObjectItem
@@ -185,7 +185,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uO
 	do
 	{
 		// Alloc and Read the address as class
-		if (_memory->ReadBytes(outer, uObject.AllocPointer, uObject.StructSize - sSub) == 0)
+		if (_memory->ReadBytes(outer, uObject.GetAllocPointer(), uObject.StructSize - sSub) == 0)
 			return false;
 
 		// Fix UObject
@@ -255,7 +255,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (_memory->ReadBytes(fNameAddress, fName.AllocPointer, fName.StructSize) == 0)
+			if (_memory->ReadBytes(fNameAddress, fName.GetAllocPointer(), fName.StructSize) == 0)
 				return false;
 
 			// Set The Name
