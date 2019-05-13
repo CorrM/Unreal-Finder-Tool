@@ -14,7 +14,7 @@ bool NamesStore::Initialize(Memory* mem, const uintptr_t gNamesAddress)
 {
 	NamesStore::mem = mem;
 	NamesStore::gNamesAddress = gNamesAddress;
-
+	NamesStore::gNamesChunkCount = 16384;
 	return FetchData();
 }
 
@@ -34,12 +34,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize(mem);
 	int sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonStruct fName;
-	if (!JsonReflector::ReadStruct("FNameEntity", fName))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `FNameEntity`." << std::endl << def;
-		return false;
-	}
+	JsonFNameEntity fName;
 
 	if (!mem->Is64Bit)
 		address = mem->ReadInt(address);
@@ -183,7 +178,7 @@ NamesIterator& NamesIterator::operator++()
 {
 	for (++index; index < store.GetNamesNum(); ++index)
 	{
-		if (store.IsValid(index))
+		if (NamesStore(store).IsValid(index))
 		{
 			break;
 		}

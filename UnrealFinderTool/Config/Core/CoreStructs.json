@@ -43,6 +43,35 @@
       "NOTE": "SuperField => UStruct*|Children => UField*"
     },
     {
+      "name": "FUEnumItem",
+      "super": "",
+      "vars": [
+        { "Key": "FName" },
+        { "Value": "uint64" }
+      ],
+      "NOTE": ""
+    },
+    {
+      "name": "TUEnumArray",
+      "super": "",
+      "vars": [
+        { "Data": "pointer" },
+        { "Count": "int" },
+        { "Max": "int" }
+      ],
+      "NOTE": "Data => FUEnumItem*"
+    },
+    {
+      "name": "UEnum",
+      "super": "UField",
+      "vars": [
+        { "CppType": "pointer" },
+        { "Names": "TUEnumArray" },
+        { "CppForm": "int64" }
+      ],
+      "NOTE": "CppType => FString"
+    },
+    {
       "name": "UScriptStruct",
       "super": "UStruct",
       "vars": [

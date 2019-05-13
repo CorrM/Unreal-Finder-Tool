@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "ObjectsStore.h"
 #include "../MainEngineClasses.h"
-#include "JsonTypes.h"
 #include "Utils.h"
 #include "Memory.h"
 #include <cassert>
@@ -24,11 +23,6 @@ bool ObjectsStore::FetchData()
 {
 	// GObjects
 	JsonFUObjectArray jsonGObjectsReader;
-	if (!JsonReflector::ReadStruct("FUObjectArray", jsonGObjectsReader))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `FUObjectArray`." << std::endl << def;
-		return false;
-	}
 	if (!ReadUObjectArray(gObjAddress, jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
@@ -42,39 +36,22 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonFUObjectItem fUObjectItem;
-	JsonUObject uObject;
-
-	if (!JsonReflector::ReadStruct("FUObjectItem", fUObjectItem))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
-		return false;
-	}
-	if (!JsonReflector::ReadStruct("UObject", uObject))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
-		return false;
-	}
 
 	if (mem->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
-
 	auto objObjects = objectArray.ObjObjects();
 	int num = objObjects.NumElements();
 
 	// Fix objObjects
 	Utils::FixPointersInStruct(&objObjects, mem->Is64Bit);
 
-	uintptr_t dwFUObjectAddress = objObjects.Objects();
-
-	// Alloc all objects
 	gObjObjects = new JsonUObject[num];
 
-	uintptr_t currentFUObjAddress = dwFUObjectAddress;
+	uintptr_t currentFUObjAddress = objObjects.Objects();
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
 		if (mem->ReadBytes(currentFUObjAddress, fUObjectItem.AllocPointer, fUObjectItem.StructSize - sSub) == 0)
 			return false;
-
 		// Fix fUObjectItem
 		Utils::FixPointersInStruct(&fUObjectItem, mem->Is64Bit);
 
@@ -85,12 +62,10 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 		if (dwUObject == 0)
 		{
 			currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-			gObjectsCount++;
 			continue;
 		}
 
-		ReadUObject(dwUObject, uObject);
-
+		ReadUObject(dwUObject, gObjObjects[i]);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		gObjectsCount++;
 	}
@@ -100,6 +75,11 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject)
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	if (!JsonReflector::ReadStruct("UObject", uObject))
+	{
+		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
+		return false;
+	}
 
 	// Alloc and Read the address as class
 	if (mem->ReadBytes(uObjectAddress, uObject.AllocPointer, uObject.StructSize - sSub) == 0)
@@ -115,26 +95,26 @@ void* ObjectsStore::GetAddress()
 	return reinterpret_cast<void*>(gObjAddress);
 }
 
-size_t ObjectsStore::GetObjectsNum()
+size_t ObjectsStore::GetObjectsNum() const 
 {
 	return gObjectsCount;
 }
 
-UEObject ObjectsStore::GetById(const size_t id)
+UEObject ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(&gObjObjects[id]);
+	return UEObject(&gObjObjects[id], false);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
-	for (auto obj : *this)
+	for (const auto& obj : *this)
 	{
 		if (obj.GetFullName() == name)
 		{
 			return obj.Cast<UEClass>();
 		}
 	}
-	return UEClass(nullptr);
+	return UEClass(nullptr, false);
 }
 #pragma endregion
 
@@ -161,7 +141,7 @@ ObjectsIterator ObjectsStore::end() const
 
 ObjectsIterator::ObjectsIterator(const ObjectsStore& store)
 	: store(store),
-	  index(ObjectsStore(store).GetObjectsNum())
+	  index(store.GetObjectsNum())
 {
 }
 
@@ -169,7 +149,7 @@ ObjectsIterator::ObjectsIterator(const ObjectsStore& store, const size_t index)
 	: store(store),
 	index(index)
 {
-	current = ObjectsStore(store).GetById(index);
+	current = store.GetById(index);
 }
 
 ObjectsIterator::ObjectsIterator(const ObjectsIterator& other)
@@ -203,7 +183,7 @@ ObjectsIterator& ObjectsIterator::operator++()
 {
 	for (++index; index < ObjectsStore(store).GetObjectsNum(); ++index)
 	{
-		current = ObjectsStore(store).GetById(index);
+		current = store.GetById(index);
 		if (current.IsValid())
 		{
 			break;
@@ -232,7 +212,6 @@ bool ObjectsIterator::operator!=(const ObjectsIterator& rhs) const
 UEObject ObjectsIterator::operator*() const
 {
 	assert(current.IsValid() && "ObjectsIterator::current is not valid!");
-
 	return current;
 }
 

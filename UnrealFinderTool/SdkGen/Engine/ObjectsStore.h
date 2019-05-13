@@ -17,7 +17,6 @@ class ObjectsStore
 	static bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject);
 public:
-
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
@@ -32,13 +31,13 @@ public:
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	size_t GetObjectsNum();
+	size_t GetObjectsNum() const;
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject GetById(size_t id);
+	UEObject GetById(size_t id) const;
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>

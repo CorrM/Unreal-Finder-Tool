@@ -31,7 +31,7 @@ bool ComparePropertyLess(const UEProperty& lhs, const UEProperty& rhs)
 	{
 		return lhs.Cast<UEBoolProperty>() < rhs.Cast<UEBoolProperty>();
 	}
-	
+
 	return lhs.GetOffset() < rhs.GetOffset();
 }
 
@@ -75,11 +75,11 @@ bool Package::Save(const fs::path& path) const
 
 	//check if package is empty (no enums, structs or classes without members)
 	if (generator->ShouldGenerateEmptyFiles()
-		|| (from(enums) >> where([](auto&& e) { return !e.Values.empty(); }) >> any()
-			|| from(scriptStructs) >> where([](auto&& s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
-			|| from(classes) >> where([](auto&& c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
+		|| (from(enums) >> where([](auto && e) { return !e.Values.empty(); }) >> any()
+			|| from(scriptStructs) >> where([](auto && s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
+			|| from(classes) >> where([](auto && c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
+			)
 		)
-	)
 	{
 		SaveStructs(path);
 		SaveClasses(path);
@@ -87,7 +87,7 @@ bool Package::Save(const fs::path& path) const
 
 		return true;
 	}
-	
+
 	Logger::Log("skip empty Package: %s", packageObj.GetName());
 
 	return false;
@@ -213,7 +213,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 			}
 
 			for (auto innerProp : from(innerProperties)
-				>> where([](auto&& p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
+				>> where([](auto && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
 				>> experimental::container())
 			{
 				GeneratePrerequisites(innerProp.Cast<UEStructProperty>().GetStruct(), processedObjects);
@@ -271,7 +271,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 			&& !prop.IsA<UEFunction>()
 			&& !prop.IsA<UEEnum>()
 			&& !prop.IsA<UEConst>()
-		)
+			)
 		{
 			properties.push_back(prop);
 		}
@@ -319,7 +319,7 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 	enums.emplace_back(std::move(e));
 }
 
-void Package::GenerateConst(const UEConst& constObj)
+void Package::GenerateConst(const UEConst & constObj)
 {
 	//auto name = MakeValidName(constObj.GetName());
 	auto name = MakeUniqueCppName(constObj);
@@ -333,7 +333,7 @@ void Package::GenerateConst(const UEConst& constObj)
 	constants[name] = constObj.GetValue();
 }
 
-void Package::GenerateClass(const UEClass& classObj)
+void Package::GenerateClass(const UEClass & classObj)
 {
 	extern IGenerator* generator;
 
@@ -413,7 +413,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	}
 
 	generator->GetPredefinedClassMethods(c.FullName, c.PredefinedMethods);
-	
+
 	if (generator->ShouldUseStrings())
 	{
 		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static UClass* StaticClass()
@@ -437,7 +437,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	IGenerator::VirtualFunctionPatterns patterns;
 	if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 	{
-		const auto vtable = *reinterpret_cast<uintptr_t**>(classObj.GetAddress());
+		const auto vtable = *reinterpret_cast<uintptr_t * *>(classObj.GetAddress());
 
 		size_t methodCount = 0;
 		while (true)
@@ -488,7 +488,7 @@ Package::Member Package::CreateBitfieldPadding(size_t id, size_t offset, std::st
 	return ss;
 }
 
-void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const std::vector<UEProperty>& properties, std::vector<Member>& members) const
+void Package::GenerateMembers(const UEStruct & structObj, size_t offset, const std::vector<UEProperty> & properties, std::vector<Member> & members) const
 {
 	extern IGenerator* generator;
 
@@ -548,7 +548,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 						members.emplace_back(CreateBitfieldPadding(unknownDataCounter++, sp.Offset, info.CppType, missingBits[1]));
 					}
 				}
-				else if(missingBits[0] > 0)
+				else if (missingBits[0] > 0)
 				{
 					members.emplace_back(CreateBitfieldPadding(unknownDataCounter++, sp.Offset, info.CppType, missingBits[0]));
 				}
@@ -589,7 +589,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 	}
 }
 
-void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const
+void Package::GenerateMethods(const UEClass & classObj, std::vector<Method> & methods) const
 {
 	extern IGenerator* generator;
 
@@ -664,23 +664,23 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 					}
 					switch (p.ParamType)
 					{
-						case Type::Default:
-							if (prop.GetArrayDim() > 1)
-							{
-								p.CppType = p.CppType + "*";
-							}
-							else if (info.CanBeReference)
-							{
-								p.PassByReference = true;
-							}
-							break;
+					case Type::Default:
+						if (prop.GetArrayDim() > 1)
+						{
+							p.CppType = p.CppType + "*";
+						}
+						else if (info.CanBeReference)
+						{
+							p.PassByReference = true;
+						}
+						break;
 					}
 
 					parameters.emplace_back(std::make_pair(prop, std::move(p)));
 				}
 			}
-			
-			std::sort(std::begin(parameters), std::end(parameters), [](auto&& lhs, auto&& rhs) { return ComparePropertyLess(lhs.first, rhs.first); });
+
+			std::sort(std::begin(parameters), std::end(parameters), [](auto && lhs, auto && rhs) { return ComparePropertyLess(lhs.first, rhs.first); });
 
 			for (auto& param : parameters)
 			{
@@ -692,7 +692,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 	}
 }
 
-void Package::SaveStructs(const fs::path& path) const
+void Package::SaveStructs(const fs::path & path) const
 {
 	extern IGenerator* generator;
 
@@ -725,7 +725,7 @@ void Package::SaveStructs(const fs::path& path) const
 	PrintFileFooter(os);
 }
 
-void Package::SaveClasses(const fs::path& path) const
+void Package::SaveClasses(const fs::path & path) const
 {
 	extern IGenerator* generator;
 
@@ -742,7 +742,7 @@ void Package::SaveClasses(const fs::path& path) const
 	PrintFileFooter(os);
 }
 
-void Package::SaveFunctions(const fs::path& path) const
+void Package::SaveFunctions(const fs::path & path) const
 {
 	extern IGenerator* generator;
 
@@ -779,7 +779,7 @@ void Package::SaveFunctions(const fs::path& path) const
 				os << m.Body << "\n\n";
 			}
 		}
-		
+
 		for (auto&& m : c.Methods)
 		{
 			//Method Info
@@ -803,7 +803,7 @@ void Package::SaveFunctions(const fs::path& path) const
 	PrintFileFooter(os);
 }
 
-void Package::SaveFunctionParameters(const fs::path& path) const
+void Package::SaveFunctionParameters(const fs::path & path) const
 {
 	using namespace cpplinq;
 
@@ -830,23 +830,23 @@ void Package::SaveFunctionParameters(const fs::path& path) const
 	PrintFileFooter(os);
 }
 
-void Package::PrintConstant(std::ostream& os, const std::pair<std::string, std::string>& c) const
+void Package::PrintConstant(std::ostream & os, const std::pair<std::string, std::string> & c) const
 {
 	tfm::format(os, "#define CONST_%-50s %s\n", c.first, c.second);
 }
 
-void Package::PrintEnum(std::ostream& os, const Enum& e) const
+void Package::PrintEnum(std::ostream & os, const Enum & e) const
 {
 	using namespace cpplinq;
 
 	os << "// " << e.FullName << "\nenum class " << e.Name << " : uint8_t\n{\n";
 	os << (from(e.Values)
-		>> select([](auto&& name, auto&& i) { return tfm::format("\t%-30s = %d", name, i); })
+		>> select([](auto && name, auto && i) { return tfm::format("\t%-30s = %d", name, i); })
 		>> concatenate(",\n"))
 		<< "\n};\n\n";
 }
 
-void Package::PrintStruct(std::ostream& os, const ScriptStruct& ss) const
+void Package::PrintStruct(std::ostream & os, const ScriptStruct & ss) const
 {
 	using namespace cpplinq;
 
@@ -864,39 +864,39 @@ void Package::PrintStruct(std::ostream& os, const ScriptStruct& ss) const
 
 	//Member
 	os << (from(ss.Members)
-		>> select([](auto&& m) {
-				return tfm::format("\t%-50s %-58s// 0x%04X(0x%04X)", m.Type, m.Name + ";", m.Offset, m.Size)
-					+ (!m.Comment.empty() ? " " + m.Comment : "")
-					+ (!m.FlagsString.empty() ? " (" + m.FlagsString + ")" : "");
+		>> select([](auto && m) {
+			return tfm::format("\t%-50s %-58s// 0x%04X(0x%04X)", m.Type, m.Name + ";", m.Offset, m.Size)
+				+ (!m.Comment.empty() ? " " + m.Comment : "")
+				+ (!m.FlagsString.empty() ? " (" + m.FlagsString + ")" : "");
 			})
 		>> concatenate("\n"))
 		<< "\n";
 
-	//Predefined Methods
-	if (!ss.PredefinedMethods.empty())
-	{
-		os << "\n";
-		for (auto&& m : ss.PredefinedMethods)
-		{
-			if (m.MethodType == IGenerator::PredefinedMethod::Type::Inline)
+			//Predefined Methods
+			if (!ss.PredefinedMethods.empty())
 			{
-				os << m.Body;
+				os << "\n";
+				for (auto&& m : ss.PredefinedMethods)
+				{
+					if (m.MethodType == IGenerator::PredefinedMethod::Type::Inline)
+					{
+						os << m.Body;
+					}
+					else
+					{
+						os << "\t" << m.Signature << ";";
+					}
+					os << "\n\n";
+				}
 			}
-			else
-			{
-				os << "\t" << m.Signature << ";";
-			}
-			os << "\n\n";
-		}
-	}
 
-	os << "};\n";
+			os << "};\n";
 }
 
-void Package::PrintClass(std::ostream& os, const Class& c) const
+void Package::PrintClass(std::ostream & os, const Class & c) const
 {
 	using namespace cpplinq;
-	
+
 	os << "// " << c.FullName << "\n// ";
 	if (c.InheritedSize)
 	{
@@ -956,7 +956,7 @@ void Package::PrintClass(std::ostream& os, const Class& c) const
 	os << "};\n\n";
 }
 
-std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool inHeader) const
+std::string Package::BuildMethodSignature(const Method & m, const Class & c, bool inHeader) const
 {
 	extern IGenerator* generator;
 
@@ -971,7 +971,7 @@ std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool 
 	}
 
 	//Return Type
-	auto retn = from(m.Parameters) >> where([](auto&& param) { return param.ParamType == Type::Return; });
+	auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
 	if (retn >> any())
 	{
 		ss << (retn >> first()).CppType;
@@ -995,16 +995,16 @@ std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool 
 	//Parameters
 	ss << "(";
 	ss << (from(m.Parameters)
-		>> where([](auto&& param) { return param.ParamType != Type::Return; })
-		>> orderby([](auto&& param) { return param.ParamType; })
-		>> select([](auto&& param) { return (param.PassByReference ? "const " : "") + param.CppType + (param.PassByReference ? "& " : param.ParamType == Type::Out ? "* " : " ") + param.Name; })
+		>> where([](auto && param) { return param.ParamType != Type::Return; })
+		>> orderby([](auto && param) { return param.ParamType; })
+		>> select([](auto && param) { return (param.PassByReference ? "const " : "") + param.CppType + (param.PassByReference ? "& " : param.ParamType == Type::Out ? "* " : " ") + param.Name; })
 		>> concatenate(", "));
 	ss << ")";
 
 	return ss.str();
 }
 
-std::string Package::BuildMethodBody(const Class& c, const Method& m) const
+std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 {
 	extern IGenerator* generator;
 
@@ -1051,7 +1051,7 @@ std::string Package::BuildMethodBody(const Class& c, const Method& m) const
 		ss << "\t} params;\n";
 	}
 
-	auto defaultParameters = from(m.Parameters) >> where([](auto&& param) { return param.ParamType == Type::Default; });
+	auto defaultParameters = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Default; });
 	if (defaultParameters >> any())
 	{
 		for (auto&& param : defaultParameters >> experimental::container())
@@ -1084,7 +1084,7 @@ std::string Package::BuildMethodBody(const Class& c, const Method& m) const
 	ss << "\tfn->FunctionFlags = flags;\n";
 
 	//Out Parameters
-	auto out = from(m.Parameters) >> where([](auto&& param) { return param.ParamType == Type::Out; });
+	auto out = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Out; });
 	if (out >> any())
 	{
 		ss << "\n";
@@ -1097,7 +1097,7 @@ std::string Package::BuildMethodBody(const Class& c, const Method& m) const
 	}
 
 	//Return Value
-	auto retn = from(m.Parameters) >> where([](auto&& param) { return param.ParamType == Type::Return; });
+	auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
 	if (retn >> any())
 	{
 		ss << "\n\treturn params." << (retn >> first()).Name << ";\n";

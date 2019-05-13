@@ -8,7 +8,7 @@ void* UEObject::GetAddress() const
 
 UEObject UEObject::GetPackageObject() const
 {
-	UEObject package(nullptr);
+	UEObject package(nullptr, false);
 
 	for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 	{
@@ -20,7 +20,8 @@ UEObject UEObject::GetPackageObject() const
 
 std::string UEObject::GetFullName() const
 {
-	if (GetClass().IsValid())
+	auto cClass = GetClass();
+	if (cClass.IsValid())
 	{
 		std::string temp;
 
@@ -29,7 +30,7 @@ std::string UEObject::GetFullName() const
 			temp = outer.GetName() + "." + temp;
 		}
 
-		std::string name = GetClass().GetName();
+		std::string name = cClass.GetName();
 		name += " ";
 		name += temp;
 		name += GetName();

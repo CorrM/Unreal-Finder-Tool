@@ -1,9 +1,11 @@
 #pragma once
 #include "json.hpp"
+#include "JsonTypes.h"
 
 class JsonVar;
 class JsonStruct;
 class Memory;
+
 using JsonStructs = std::map<std::string, JsonStruct>;
 using JsonVariables = std::map<std::string, JsonVar>;
 
@@ -70,7 +72,13 @@ public:
 	// Read variable as struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
 	JsonStruct* ReadAsStruct();
 	// Read variable as struct, ONLY work if this variable is [POINTER TO STRUCT]
-	JsonStruct* ReadAsPStruct();
+	JsonStruct* ReadAsPStruct(const std::string& ptrType);
+	// Read variable as dived json struct, ONLY work if this variable is [POINTER TO STRUCT]
+	template <typename T> T* ReadAsPStruct()
+	{
+		T obj;
+		return reinterpret_cast<T*>(ReadAsPStruct(obj.StructName));
+	}
 private:
 	// Access variable in this variable if this variable is struct
 	JsonVar& GetVar(const std::string& varName);
@@ -78,17 +86,14 @@ private:
 
 class JsonStruct
 {
+	bool _init = false;
 public:
 	// Struct Name
-	std::string Name = "";
+	std::string StructName = "";
 	// Super Name
-	std::string Super = "";
-	// Check if this struct is child for other struct, Good to free the memory of struct
-	bool IsChild = false;
+	std::string StructSuper = "";
 	// Variable inside this struct
 	JsonVariables Vars;
-	// Variable count
-	size_t VarCount = 0;
 	// Pointer to alloc memory based on `StructSize`
 	void* AllocPointer = nullptr;
 	// Size of this struct
@@ -97,16 +102,11 @@ public:
 	bool AllocAddressChanged = false;
 
 	JsonStruct();
+	~JsonStruct();
 	// Access to variable inside this struct
 	JsonVar& operator[](const std::string& varName);
 	// Access to variable inside this struct
 	JsonVar& GetVar(const std::string& varName);
-	// Use this function when u alloc array of this struct to change alloc address
-	void SetAllocAddress(void* newAddress);
-	// Use this function when u alloc array of this struct to change alloc address
-	void SetAllocAddress(uintptr_t newAddress);
-	// Move alloc address to next value based on `StructSize`
-	void MoveAllocNext();
-	// Move alloc address to prev value based on `StructSize`
-	void MoveAllocPrev();
+	// Initialize the struct (alloc and init variables), Don't use for temp struct
+	void Init(const std::string& structName, bool alloc = true);
 };

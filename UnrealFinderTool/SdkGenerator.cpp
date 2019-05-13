@@ -33,15 +33,15 @@ void SdkGenerator::Start()
 		std::cout << red << "[*] " << def << "Failed To Get Objects." << std::endl << def;
 		return;
 	}
-	std::cout << green << "[+] " << yellow << "Getting Objects Successfully." << std::endl;
+	std::cout << green << "[+] " << yellow << "Getting Objects Successfully. Found [ " << red << ObjectsStore().GetObjectsNum() << yellow << " ]" << std::endl;
 
 	std::cout << red << "[*] " << green << "Start Getting Names." << std::endl;
-	if (!NamesStore::Initialize(,))
+	if (!NamesStore::Initialize(_memory, gNamesAddress))
 	{
 		std::cout << red << "[*] " << def << "Failed To Get Names." << std::endl << def;
 		return;
 	}
-	std::cout << green << "[+] " << yellow << "Getting Names Successfully." << std::endl;
+	std::cout << green << "[+] " << yellow << "Getting Names Successfully.   Found [ " << red << NamesStore().GetNamesNum() << yellow << " ]" << std::endl;
 
 	if (!generator->Initialize())
 	{
@@ -90,9 +90,10 @@ void SdkGenerator::Dump(const fs::path& path)
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GetAddress());
 
-		for (auto obj : ObjectsStore())
+		for (const auto& obj : ObjectsStore())
 		{
-			tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+			if (obj.IsValid())
+				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
 	}
 

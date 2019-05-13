@@ -63,7 +63,6 @@ bool InstanceLogger::ObjectDump()
 
 	for (int i = 0; i < gObjectsCount; ++i)
 	{
-		bool state;
 		if (gObjObjects[i].ObjAddress != NULL)
 			fprintf(log, "[%06i] %-80s 0x%" PRIXPTR "\n", int(i), GetName(gObjObjects[i]).c_str(), gObjObjects[i].ObjAddress);
 	}
@@ -134,17 +133,6 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 	JsonFUObjectItem fUObjectItem;
 	JsonUObject uObject;
 
-	if (!JsonReflector::ReadStruct("FUObjectItem", fUObjectItem))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `FUObjectItem`." << std::endl << def;
-		return false;
-	}
-	if (!JsonReflector::ReadStruct("UObject", uObject))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
-		return false;
-	}
-
 	if (_memory->ReadBytes(address, objectArray.AllocPointer, objectArray.StructSize - sSub) == 0) return false;
 
 	auto objObjects = objectArray.ObjObjects();
@@ -203,7 +191,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uO
 		// Fix UObject
 		Utils::FixPointersInStruct(&uObject, _memory->Is64Bit);
 
-		outer = uObject.Outer();
+		outer = uObject["Outer"].ReadAs<uintptr_t>();
 		retObj.FNameIndexs[i] = uObject.Name().Index();
 		i++;
 	} while (outer != NULL);
@@ -217,12 +205,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize(_memory);
 	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonStruct fName;
-	if (!JsonReflector::ReadStruct("FNameEntity", fName))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `FNameEntity`." << std::endl << def;
-		return false;
-	}
+	JsonFNameEntity fName;
 
 	if (!_memory->Is64Bit)
 		address = _memory->ReadInt(address);

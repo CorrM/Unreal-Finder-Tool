@@ -2,24 +2,24 @@
 #include <string>
 #include <windows.h>
 
-/*
 struct FPointer
 {
 	uintptr_t Dummy;
 };
 
+/*
 struct FQWord
 {
 	int A;
 	int B;
 };
+*/
 
 struct FName
 {
 	int32_t ComparisonIndex;
 	int32_t Number;
 };
-*/
 
 template<class T>
 struct TArray
@@ -179,9 +179,8 @@ struct FScriptMulticastDelegate
 	unsigned char UnknownData[16];
 };
 
-class UClass;
-
 /*
+class UClass;
 class UObject
 {
 public:
@@ -199,7 +198,7 @@ class UField : public UObject
 public:
 	UField* Next;
 };
-*/
+
 
 class UEnum : public UField
 {
@@ -209,7 +208,7 @@ public:
 	__int64 CppForm; //0x0050 
 };
 
-/*
+
 class UStruct : public UField
 {
 public:

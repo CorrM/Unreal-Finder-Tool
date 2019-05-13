@@ -7,24 +7,26 @@
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
 #include "../IGenerator.h"
+#include "JsonTypes.h"
 
-class JsonUObject;
 class UEClass;
 
 class UEObject
 {
+	bool delAfterUse;
 public:
-	UEObject() : object(nullptr)
+	UEObject() : delAfterUse(false), object(nullptr)
 	{
 	}
-	UEObject(JsonUObject* object) : object(object)
+	UEObject(JsonUObject* object, const bool delAfterUse) : delAfterUse(delAfterUse), object(object)
 	{
 	}
-
-	bool IsValid() const
+	~UEObject()
 	{
-		return object != nullptr;
+		if (delAfterUse)
+			delete object;
 	}
+	bool IsValid() const;
 	size_t GetIndex() const;
 	UEClass GetClass() const;
 	UEObject GetOuter() const;
@@ -37,7 +39,7 @@ public:
 	template<typename Base>
 	Base Cast() const
 	{
-		return Base(object);
+		return Base(object, false);
 	}
 
 	template<typename T>
