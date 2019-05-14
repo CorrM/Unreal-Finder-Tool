@@ -9,19 +9,12 @@ void* UEObject::GetAddress() const
 UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	UEObject package(nullptr, true);
+	UEObject package(nullptr, false);
 
 	for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 	{
-		package = outer;
+		package = outer.object;
 	}
-
-	/*UEObject outer = GetOuter();
-	while (outer.IsValid())
-	{
-		package = outer;
-		outer = outer.GetOuter().object;
-	}*/
 
 	return package;
 }

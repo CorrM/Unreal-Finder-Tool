@@ -42,7 +42,7 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
-	for (auto obj : ObjectsStore())
+	for (const auto& obj : ObjectsStore())
 	{
 		const auto package = obj.GetPackageObject();
 		if (packageObj == package)

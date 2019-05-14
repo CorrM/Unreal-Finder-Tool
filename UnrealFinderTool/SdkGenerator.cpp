@@ -109,6 +109,60 @@ void SdkGenerator::Dump(const fs::path& path)
 }
 
 /// <summary>
+/// Process the packages.
+/// </summary>
+/// <param name="path">The path where to create the package files.</param>
+void SdkGenerator::ProcessPackages(const fs::path& path)
+{
+	using namespace cpplinq;
+
+	const auto sdkPath = path / "SDK";
+	fs::create_directories(sdkPath);
+
+	std::vector<std::unique_ptr<Package>> packages;
+	std::unordered_map<UEObject, bool> processedObjects;
+
+	auto packageObjects = from(ObjectsStore())
+		>> select([](auto && o) { return o.GetPackageObject(); })
+		>> where([](auto && o) { return o.IsValid(); })
+		>> distinct()
+		>> to_vector();
+
+	for (const auto& obj : packageObjects)
+	{
+		auto package = std::make_unique<Package>(obj);
+
+		package->Process(processedObjects);
+		if (package->Save(sdkPath))
+		{
+			Package::PackageMap[obj] = package.get();
+
+			packages.emplace_back(std::move(package));
+		}
+	}
+
+	if (!packages.empty())
+	{
+		// std::sort doesn't work, so use a simple bubble sort
+		//std::sort(std::begin(packages), std::end(packages), PackageDependencyComparer());
+		const PackageDependencyComparer comparer;
+		for (auto i = 0u; i < packages.size() - 1; ++i)
+		{
+			for (auto j = 0u; j < packages.size() - i - 1; ++j)
+			{
+				if (!comparer(packages[j], packages[j + 1]))
+				{
+					std::swap(packages[j], packages[j + 1]);
+				}
+			}
+		}
+	}
+
+	SaveSdkHeader(path, processedObjects, packages);
+}
+
+
+/// <summary>
 /// Generates the sdk header.
 /// </summary>
 /// <param name="path">The path where to create the sdk header.</param>
@@ -188,60 +242,6 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 			os << R"(#include "SDK/)" << GenerateFileName(FileContentType::FunctionParameters, *package) << "\"\n";
 		}
 	}
-}
-
-/// <summary>
-/// Process the packages.
-/// </summary>
-/// <param name="path">The path where to create the package files.</param>
-void SdkGenerator::ProcessPackages(const fs::path& path)
-{
-	using namespace cpplinq;
-
-	const auto sdkPath = path / "SDK";
-	fs::create_directories(sdkPath);
-
-	std::vector<std::unique_ptr<Package>> packages;
-
-	std::unordered_map<UEObject, bool> processedObjects;
-
-	auto packageObjects = from(ObjectsStore())
-		>> select([](auto && o) { return o.GetPackageObject(); })
-		>> where([](auto && o) { return o.IsValid(); })
-		>> distinct()
-		>> to_vector();
-
-	for (const auto& obj : packageObjects)
-	{
-		auto package = std::make_unique<Package>(obj);
-
-		package->Process(processedObjects);
-		if (package->Save(sdkPath))
-		{
-			Package::PackageMap[obj] = package.get();
-
-			packages.emplace_back(std::move(package));
-		}
-	}
-
-	if (!packages.empty())
-	{
-		// std::sort doesn't work, so use a simple bubble sort
-		//std::sort(std::begin(packages), std::end(packages), PackageDependencyComparer());
-		const PackageDependencyComparer comparer;
-		for (auto i = 0u; i < packages.size() - 1; ++i)
-		{
-			for (auto j = 0u; j < packages.size() - i - 1; ++j)
-			{
-				if (!comparer(packages[j], packages[j + 1]))
-				{
-					std::swap(packages[j], packages[j + 1]);
-				}
-			}
-		}
-	}
-
-	SaveSdkHeader(path, processedObjects, packages);
 }
 
 uintptr_t SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut)
