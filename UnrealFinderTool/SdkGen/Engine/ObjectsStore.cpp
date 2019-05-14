@@ -5,9 +5,9 @@
 #include "Memory.h"
 #include <cassert>
 
-JsonUObject* ObjectsStore::gObjObjects;
+JsonUObject* ObjectsStore::GObjObjects;
 Memory* ObjectsStore::mem;
-int ObjectsStore::gObjectsCount;
+int ObjectsStore::GObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
 #pragma region ObjectsStore
@@ -44,8 +44,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 	// Fix objObjects
 	Utils::FixPointersInStruct(&objObjects, mem->Is64Bit);
 
-	gObjObjects = new JsonUObject[num];
-
+	GObjObjects = new JsonUObject[num];
 	uintptr_t currentFUObjAddress = objObjects.Objects();
 	for (int i = 0; i < num; ++i)
 	{
@@ -65,9 +64,9 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 			continue;
 		}
 
-		ReadUObject(dwUObject, gObjObjects[i]);
+		ReadUObject(dwUObject, GObjObjects[i]);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-		gObjectsCount++;
+		GObjectsCount++;
 	}
 	return true;
 }
@@ -75,11 +74,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject)
 {
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	if (!JsonReflector::ReadStruct("UObject", uObject))
-	{
-		std::cout << red << "[*] " << def << "Can't find struct `UObject`." << std::endl << def;
-		return false;
-	}
+	uObject.Init("UObject");
 
 	// Alloc and Read the address as class
 	if (mem->ReadBytes(uObjectAddress, uObject.GetAllocPointer(), uObject.StructSize - sSub) == 0)
@@ -97,12 +92,12 @@ void* ObjectsStore::GetAddress()
 
 size_t ObjectsStore::GetObjectsNum() const 
 {
-	return gObjectsCount;
+	return GObjectsCount;
 }
 
 UEObject ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(&gObjObjects[id], false);
+	return UEObject(&GObjObjects[id], false);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

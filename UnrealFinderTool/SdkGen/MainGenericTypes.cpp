@@ -19,14 +19,10 @@ UEClass UEObject::GetClass() const
 }
 UEObject UEObject::GetOuter() const
 {
-	return UEObject(object->Outer(), true);
+	return UEObject(object->Outer(), false);
 }
 std::string UEObject::GetName() const
 {
-	if (object == nullptr)
-	{
-		MessageBoxA(nullptr, "", "", MB_OK);
-	}
 	auto cName = object->Name();
 	if (cName.Index() == 0)
 		return "";
@@ -47,7 +43,7 @@ std::string UEObject::GetName() const
 }
 bool UEObject::IsValid() const
 {
-	return object != nullptr && object->GetAllocPointer() != nullptr && !object->StructName.empty();
+	return object != nullptr && object->GetAllocPointer() != nullptr;
 }
 UEClass UEObject::StaticClass()
 {
@@ -515,7 +511,7 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 
 		return Info::Create(PropertyType::Container, sizeof(TArray<void*>), false, "TArray<" + generator->GetOverrideType(inner.CppType) + ">");
 	}
-	
+
 	return { PropertyType::Unknown };
 }
 UEClass UEArrayProperty::StaticClass()

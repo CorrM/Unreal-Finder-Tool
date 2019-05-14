@@ -37,8 +37,6 @@ public:
 	static bool LoadStruct(const std::string& structName);
 	// Get json struct variable size
 	static int VarSizeFromJson(const std::string& typeName);
-	// Check if string is number, useful to calc struct size
-	static bool IsNumber(const std::string& s);
 };
 
 class JsonVar

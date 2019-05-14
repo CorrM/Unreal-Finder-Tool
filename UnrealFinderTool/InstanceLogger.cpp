@@ -224,7 +224,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 		else
 			addr = _memory->ReadInt64(address + offset); // 8byte
 
-		if (!IsValidAddress(addr)) break;
+		if (!Utils::IsValidAddress(_memory, addr)) break;
 		gChunks.push_back(addr);
 		gNamesChunks++;
 	}
@@ -246,7 +246,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			else
 				fNameAddress = _memory->ReadInt64(chunkAddress + offset); // 8byte
 
-			if (!IsValidAddress(fNameAddress))
+			if (!Utils::IsValidAddress(_memory, fNameAddress))
 			{
 				gNames[i].Index = i;
 				gNames[i].AnsiName = "";
@@ -266,22 +266,4 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 	}
 
 	return true;
-}
-
-bool InstanceLogger::IsValidAddress(const uintptr_t address)
-{
-	if (INVALID_POINTER_VALUE(address) /*|| pointer <= dwStart || pointer > dwEnd*/)
-		return false;
-
-	// Check memory state, type and permission
-	MEMORY_BASIC_INFORMATION info;
-
-	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
-	if (VirtualQueryEx(_memory->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
-	{
-		// Bad Memory
-		return info.Protect != PAGE_NOACCESS;
-	}
-
-	return false;
 }

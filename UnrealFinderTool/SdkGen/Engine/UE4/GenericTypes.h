@@ -23,8 +23,10 @@ public:
 	}
 	~UEObject()
 	{
-		if (delAfterUse && object != nullptr && !object->AllocChanged && object->IsPointerStruct)
+		if (delAfterUse && object != nullptr && object->IsPointerStruct)
+		{
 			delete object;
+		}
 	}
 	bool IsValid() const;
 	size_t GetIndex() const;
@@ -35,6 +37,14 @@ public:
 	std::string GetNameCPP() const;
 	UEObject GetPackageObject() const;
 	void* GetAddress() const;
+
+	// Don't delete the full UEObject just set a new JsonUObject / Good for safe memory delete.
+	// Best example is get outer of another outer.
+	void operator=(JsonUObject* newObj)
+	{
+		delete object;
+		object = newObj;
+	}
 
 	template<typename Base>
 	Base Cast() const
@@ -102,7 +112,7 @@ public:
 	using UEField::UEField;
 
 	UEStruct GetSuper() const;
-	
+
 	UEField GetChildren() const;
 
 	size_t GetPropertySize() const;
@@ -314,7 +324,7 @@ public:
 	static UEClass StaticClass();
 };
 
-inline bool operator<(const UEBoolProperty& lhs, const UEBoolProperty& rhs)
+inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
 {
 	if (lhs.GetByteOffset() == rhs.GetByteOffset())
 	{

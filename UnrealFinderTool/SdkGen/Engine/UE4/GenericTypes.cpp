@@ -8,12 +8,20 @@ void* UEObject::GetAddress() const
 
 UEObject UEObject::GetPackageObject() const
 {
-	UEObject package(nullptr, false);
+	// Package Is The Last Outer
+	UEObject package(nullptr, true);
 
 	for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 	{
 		package = outer;
 	}
+
+	/*UEObject outer = GetOuter();
+	while (outer.IsValid())
+	{
+		package = outer;
+		outer = outer.GetOuter().object;
+	}*/
 
 	return package;
 }
@@ -25,11 +33,11 @@ std::string UEObject::GetFullName() const
 	{
 		std::string temp;
 
-		auto outer = GetOuter();
+		UEObject outer = GetOuter();
 		while (outer.IsValid())
 		{
 			temp = outer.GetName() + "." + temp;
-			outer = outer.GetOuter();
+			outer = outer.GetOuter().object;
 		}
 
 		std::string name = cClass.GetName();
@@ -217,7 +225,7 @@ int GetBitPosition(uint8_t value)
 
 	return i4 + i2 + i1 + i0;
 }
-std::array<int, 2> UEBoolProperty::GetMissingBitsCount(const UEBoolProperty& other) const
+std::array<int, 2> UEBoolProperty::GetMissingBitsCount(const UEBoolProperty & other) const
 {
 	// If there is no previous bitfield member, just calculate the missing bits.
 	if (!other.IsValid())
@@ -235,6 +243,6 @@ std::array<int, 2> UEBoolProperty::GetMissingBitsCount(const UEBoolProperty& oth
 	// |00001000|00100000|
 	// 1.   ^---^
 	// 2.       ^--^
-	
+
 	return { std::numeric_limits<uint8_t>::digits - GetBitPosition(other.GetByteMask()) - 1, GetBitPosition(GetByteMask()) };
 }

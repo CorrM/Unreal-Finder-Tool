@@ -29,6 +29,7 @@ public:
 	/// <param name="is64BitGame">Target game is 64bit game</param>
 	static void FixPointersInStruct(JsonStruct* structBase, bool is64BitGame);
 	static int PointerSize(Memory* mem);
+	static bool IsValidAddress(Memory* mem, uintptr_t address);
 
 private:
 	/// <summary>

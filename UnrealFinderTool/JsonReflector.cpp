@@ -262,7 +262,7 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 		return sizeof(uintptr_t);
 
 	// Other type (usually) structs
-	if (IsNumber(typeName))
+	if (Utils::IsNumber(typeName))
 		return std::stoi(typeName);
 
 	if (IsStructType(typeName))
@@ -298,12 +298,6 @@ bool JsonReflector::IsStructType(const std::string & typeName)
 		typeName == "DWORD64"	||
 		typeName == "string";
 	return !isStruct;
-}
-
-bool JsonReflector::IsNumber(const std::string & s)
-{
-	return !s.empty() && std::find_if(s.begin(),
-		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
 // -------------------------------------------------
@@ -439,8 +433,8 @@ JsonStruct* JsonVar::ReadAsStruct()
 	if (!IsStruct)
 		throw std::exception((Name + " Not a struct.").c_str());
 
-	//if (StructVars != nullptr)
-	//	return StructVars;
+	if (StructVars != nullptr)
+		return StructVars;
 
 	auto sStructIt = JsonReflector::StructsList.find(Type);
 	if (sStructIt == JsonReflector::StructsList.end())
@@ -448,13 +442,13 @@ JsonStruct* JsonVar::ReadAsStruct()
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 
-	auto structVars = new JsonStruct(sStructIt->second);
-	structVars->AllocChanged = true;
-	structVars->Init(Type, false);
-	structVars->SetAllocPointer(reinterpret_cast<void*>(calcAddress));
-	structVars->IsPointerStruct = false;
+	StructVars = new JsonStruct(sStructIt->second);
+	StructVars->AllocChanged = true;
+	StructVars->Init(Type, false);
+	StructVars->SetAllocPointer(reinterpret_cast<void*>(calcAddress));
+	StructVars->IsPointerStruct = false;
 
-	return structVars;
+	return StructVars;
 }
 
 JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
@@ -462,13 +456,12 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 	if (Type != "pointer")
 		throw std::exception((Type + " Not a pointer.!").c_str());
 
+	if (StructVars != nullptr)
+		return StructVars;
+
 	auto sStructIt = JsonReflector::StructsList.find(ptrType);
 	if (sStructIt == JsonReflector::StructsList.end())
 		throw std::exception(("Can't find struct When try read as " + ptrType).c_str());
-
-	auto structPoint = new JsonStruct(sStructIt->second);
-	structPoint->Init(ptrType);
-	structPoint->IsPointerStruct = true;
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 	calcAddress = *reinterpret_cast<uintptr_t*>(calcAddress);
@@ -476,10 +469,14 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 	if (calcAddress == NULL)
 		return nullptr;
 
-	if (JsonReflector::MemoryObj->ReadBytes(calcAddress, structPoint->GetAllocPointer(), structPoint->StructSize) == 0)
+	StructVars = new JsonStruct(sStructIt->second);
+	StructVars->Init(ptrType);
+	StructVars->IsPointerStruct = true;
+
+	if (JsonReflector::MemoryObj->ReadBytes(calcAddress, StructVars->GetAllocPointer(), StructVars->StructSize) == 0)
 		throw std::exception(("Can't read game memory `" + std::to_string(calcAddress) + "`.").c_str());
 
-	Utils::FixPointersInStruct(structPoint, JsonReflector::MemoryObj->Is64Bit);
+	Utils::FixPointersInStruct(StructVars, JsonReflector::MemoryObj->Is64Bit);
 
-	return structPoint;
+	return StructVars;
 }

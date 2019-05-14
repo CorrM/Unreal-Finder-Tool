@@ -8,8 +8,6 @@ class Memory;
 
 class ObjectsStore
 {
-	static JsonUObject* gObjObjects;
-	static int gObjectsCount;
 	static Memory* mem;
 	static uintptr_t gObjAddress;
 
@@ -17,6 +15,8 @@ class ObjectsStore
 	static bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject);
 public:
+	static JsonUObject* GObjObjects;
+	static int GObjectsCount;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
@@ -82,7 +82,7 @@ public:
 class ObjectsIterator : public std::iterator<std::forward_iterator_tag, UEObject>
 {
 	const ObjectsStore& store;
-	size_t index;
+	int index;
 	UEObject current;
 
 public:

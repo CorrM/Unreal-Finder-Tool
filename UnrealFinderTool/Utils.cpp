@@ -166,3 +166,21 @@ int Utils::PointerSize(Memory* mem)
 {
 	return mem->Is64Bit ? 0x8 : 0x4;
 }
+
+bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
+{
+	if (INVALID_POINTER_VALUE(address) /*|| pointer <= dwStart || pointer > dwEnd*/)
+		return false;
+
+	// Check memory state, type and permission
+	MEMORY_BASIC_INFORMATION info;
+
+	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
+	if (VirtualQueryEx(mem->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
+	{
+		// Bad Memory
+		return info.Protect != PAGE_NOACCESS;
+	}
+
+	return false;
+}
