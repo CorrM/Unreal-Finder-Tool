@@ -2,60 +2,114 @@
 #pragma once
 #include "JsonReflector.h"
 
+class JsonDefault : public JsonStruct
+{
+
+	void InitData() override
+	{
+	}
+};
+
 class JsonFQWord : public JsonStruct
 {
 public:
 	JsonFQWord() { Init("FQWord"); }
-	auto A() { return GetVar("A").ReadAs<int>(); }
-	auto B() { return GetVar("B").ReadAs<int>(); }
+	int A = 0;
+	int B = 0;
+
+	void InitData() override
+	{
+		A = GetVar("A").ReadAs<int>();
+		B = GetVar("B").ReadAs<int>();
+	}
 };
 
 class JsonFNameEntity : public JsonStruct
 {
 public:
 	JsonFNameEntity() { Init("FNameEntity"); }
-	auto Index() { return GetVar("Index").ReadAs<int>(); }
-	auto Number() { return GetVar("Number").ReadAs<int>(); }
-	auto HashNext() { return GetVar("HashNext").ReadAs<uintptr_t>(); }
-	auto AnsiName() { return GetVar("AnsiName").ReadAs<uintptr_t>(); }
+	int Index = 0;
+	int Number = 0;
+	uintptr_t HashNext = 0;
+	uintptr_t AnsiName = 0;
+
+	void InitData() override
+	{
+		Index = GetVar("Index").ReadAs<int>();
+		Number = GetVar("Number").ReadAs<int>();
+		HashNext = GetVar("HashNext").ReadAs<uintptr_t>();
+		AnsiName = GetVar("AnsiName").ReadAs<uintptr_t>();
+	}
 };
 
 class JsonFName : public JsonStruct
 {
 public:
 	JsonFName() { Init("FName"); }
-	auto Index() { return GetVar("Index").ReadAs<int>(); }
-	auto Number() { return GetVar("Number").ReadAs<int>(); }
+	int Index = 0;
+	int Number = 0;
+
+	void InitData() override
+	{
+		Index = GetVar("Index").ReadAs<int>();
+		Number = GetVar("Number").ReadAs<int>();
+	}
 };
 
 class JsonFUObjectItem : public JsonStruct
 {
 public:
 	JsonFUObjectItem() { Init("FUObjectItem"); }
-	auto Object() { return GetVar("Object").ReadAs<uintptr_t>(); }
-	auto Flags() { return GetVar("Flags").ReadAs<int>(); }
-	auto ClusterIndex() { return GetVar("ClusterIndex").ReadAs<int>(); }
-	auto SerialNumber() { return GetVar("SerialNumber").ReadAs<int>(); }
+	uintptr_t Object = 0;
+	int Flags = 0;
+	int ClusterIndex = 0;
+	int SerialNumber = 0;
+
+	void InitData() override
+	{
+		Object = GetVar("Object").ReadAs<uintptr_t>();
+		Flags = GetVar("Flags").ReadAs<int>();
+		ClusterIndex = GetVar("ClusterIndex").ReadAs<int>();
+		SerialNumber = GetVar("SerialNumber").ReadAs<int>();
+	}
 };
 
 class JsonTUObjectArray : public JsonStruct
 {
 public:
 	JsonTUObjectArray() { Init("TUObjectArray"); }
-	auto Objects() { return GetVar("Objects").ReadAs<uintptr_t>(); }
-	auto MaxElements() { return GetVar("MaxElements").ReadAs<int>(); }
-	auto NumElements() { return GetVar("NumElements").ReadAs<int>(); }
+	uintptr_t Objects = 0;
+	int MaxElements = 0;
+	int NumElements = 0;
+
+
+	void InitData() override
+	{
+		Objects = GetVar("Objects").ReadAs<uintptr_t>();
+		MaxElements = GetVar("MaxElements").ReadAs<int>();
+		NumElements = GetVar("NumElements").ReadAs<int>();
+	}
 };
 
 class JsonFUObjectArray : public JsonStruct
 {
 public:
 	JsonFUObjectArray() { Init("FUObjectArray"); }
-	auto ObjFirstGcIndex() { return GetVar("ObjFirstGcIndex").ReadAs<int>(); }
-	auto ObjLastNonGcIndex() { return GetVar("ObjLastNonGcIndex").ReadAs<int>(); }
-	auto MaxObjectsNotConsideredByGc() { return GetVar("MaxObjectsNotConsideredByGc").ReadAs<int>(); }
-	auto OpenForDisregardForGc() { return GetVar("OpenForDisregardForGc").ReadAs<int>(); }
-	auto ObjObjects() { return GetVar("ObjObjects").ReadAsStruct<JsonTUObjectArray>(); }
+	int ObjFirstGcIndex = 0;
+	int ObjLastNonGcIndex = 0;
+	int MaxObjectsNotConsideredByGc = 0;
+	int OpenForDisregardForGc = 0;
+	JsonTUObjectArray ObjObjects;
+
+
+	void InitData() override
+	{
+		ObjFirstGcIndex = GetVar("ObjFirstGcIndex").ReadAs<int>();
+		ObjLastNonGcIndex = GetVar("ObjLastNonGcIndex").ReadAs<int>();
+		MaxObjectsNotConsideredByGc = GetVar("MaxObjectsNotConsideredByGc").ReadAs<int>();
+		OpenForDisregardForGc = GetVar("OpenForDisregardForGc").ReadAs<int>();
+		ObjObjects = GetVar("ObjObjects").ReadAsStruct<JsonTUObjectArray>();
+	}
 };
 
 class JsonUClass;
@@ -64,293 +118,512 @@ class JsonUObject : public JsonStruct
 {
 public:
 	JsonUObject() { Init("UObject"); }
-	auto VfTable() { return GetVar("VfTable").ReadAs<uintptr_t>(); }
-	auto Flags() { return GetVar("Flags").ReadAs<int>(); }
-	auto InternalIndex() { return GetVar("InternalIndex").ReadAs<int>(); }
-	auto Class() { return GetVar("Class").ReadAsPStruct<JsonUClass>(); }
-	auto Name() { return GetVar("Name").ReadAsStruct<JsonFName>(); }
-	auto Outer() { return GetVar("Outer").ReadAsPStruct<JsonUObject>(); }
+	uintptr_t VfTable = 0;
+	int Flags = 0;
+	int InternalIndex = 0;
+	JsonUClass* Class = nullptr;
+	JsonFName Name;
+	JsonUObject* Outer = nullptr;
+
+	void InitData() override
+	{
+		VfTable = GetVar("VfTable").ReadAs<uintptr_t>();
+		Flags = GetVar("Flags").ReadAs<int>();
+		InternalIndex = GetVar("InternalIndex").ReadAs<int>();
+		Class = GetVar("Class").ReadAsPStruct<JsonUClass>();
+		Name = GetVar("Name").ReadAsStruct<JsonFName>();
+		Outer = GetVar("Outer").ReadAsPStruct<JsonUObject>();
+	}
 };
 
 class JsonUField : public JsonUObject
 {
 public:
 	JsonUField() { Init("UField"); }
-	auto Next() { return GetVar("Next").ReadAsPStruct<JsonUField>(); }
+	JsonUField* Next = nullptr;
+
+	void InitData() override
+	{
+		Next = GetVar("Next").ReadAsPStruct<JsonUField>();
+	}
 };
 
 class JsonUStruct : public JsonUField
 {
 public:
 	JsonUStruct() { Init("UStruct"); }
-	auto SuperField() { return GetVar("SuperField").ReadAsPStruct<JsonUStruct>(); }
-	auto Children() { return GetVar("Children").ReadAsPStruct<JsonUField>(); }
-	auto PropertySize() { return GetVar("PropertySize").ReadAs<int>(); }
-	auto MinAlignment() { return GetVar("MinAlignment").ReadAs<int>(); }
+	JsonUStruct* SuperField = nullptr;
+	JsonUField* Children = nullptr;
+	int PropertySize = 0;
+	int MinAlignment = 0;
+
+	void InitData() override
+	{
+		SuperField = GetVar("SuperField").ReadAsPStruct<JsonUStruct>();
+		Children = GetVar("Children").ReadAsPStruct<JsonUField>();
+		PropertySize = GetVar("PropertySize").ReadAs<int>();
+		MinAlignment = GetVar("MinAlignment").ReadAs<int>();
+	}
 };
 
 class JsonUClass : public JsonUStruct
 {
 public:
 	JsonUClass() { Init("UClass"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonFUEnumItem : public JsonStruct
 {
 public:
 	JsonFUEnumItem() { Init("FUEnumItem"); }
-	auto Key() { return GetVar("Key").ReadAsStruct<JsonFQWord>(); }
-	auto Value() { return GetVar("Value").ReadAs<int>(); }
+	JsonFQWord Key;
+	int Value = 0;
+
+	void InitData() override
+	{
+		Key = GetVar("Key").ReadAsStruct<JsonFQWord>();
+		Value = GetVar("Value").ReadAs<int>();
+	}
 };
 
 class JsonTUEnumArray : public JsonStruct
 {
 public:
 	JsonTUEnumArray() { Init("TUEnumArray"); }
-	auto Data() { return GetVar("Data").ReadAsPStruct<JsonFUEnumItem>(); }
-	auto Count() { return GetVar("Count").ReadAs<int>(); }
-	auto Max() { return GetVar("Max").ReadAs<int>(); }
+	JsonFUEnumItem* Data = nullptr;
+	int Count = 0;
+	int Max = 0;
+
+	void InitData() override
+	{
+		Data = GetVar("Data").ReadAsPStruct<JsonFUEnumItem>();
+		Count = GetVar("Count").ReadAs<int>();
+		Max = GetVar("Max").ReadAs<int>();
+	}
 };
 
 class JsonUEnum : public JsonUField
 {
 public:
 	JsonUEnum() { Init("UEnum"); }
-	auto Children() { return GetVar("Children").ReadAsPStruct<JsonUField>(); }
-	auto Names() { return GetVar("Names").ReadAsStruct<JsonTUEnumArray>(); }
-	auto CppForm() { return GetVar("CppForm").ReadAs<int64_t>(); }
+	JsonUField* Children = nullptr;
+	JsonTUEnumArray Names;
+	int64_t CppForm = 0;
+
+	void InitData() override
+	{
+		Children = GetVar("Children").ReadAsPStruct<JsonUField>();
+		Names = GetVar("Names").ReadAsStruct<JsonTUEnumArray>();
+		CppForm = GetVar("CppForm").ReadAs<int64_t>();
+	}
 };
 
 class JsonUScriptStruct : public JsonUStruct
 {
 public:
 	JsonUScriptStruct() { Init("UScriptStruct"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUProperty : public JsonUField
 {
 public:
 	JsonUProperty() { Init("UProperty"); }
-	auto ArrayDim() { return GetVar("ArrayDim").ReadAs<int>(); }
-	auto ElementSize() { return GetVar("ElementSize").ReadAs<int>(); }
-	auto PropertyFlags() { return GetVar("PropertyFlags").ReadAsStruct<JsonFQWord>(); }
-	auto PropertySize() { return GetVar("PropertySize").ReadAs<int>(); }
-	auto Offset() { return GetVar("Offset").ReadAs<int>(); }
+	int ArrayDim = 0;
+	int ElementSize = 0;
+	JsonFQWord PropertyFlags;
+	int PropertySize = 0;
+	int Offset = 0;
+
+	void InitData() override
+	{
+		ArrayDim = GetVar("ArrayDim").ReadAs<int>();
+		ElementSize = GetVar("ElementSize").ReadAs<int>();
+		PropertyFlags = GetVar("PropertyFlags").ReadAsStruct<JsonFQWord>();
+		PropertySize = GetVar("PropertySize").ReadAs<int>();
+		Offset = GetVar("Offset").ReadAs<int>();
+	}
 };
 
 class JsonUFunction : public JsonUStruct
 {
 public:
 	JsonUFunction() { Init("UFunction"); }
-	auto FunctionFlags() { return GetVar("FunctionFlags").ReadAs<int>(); }
-	auto RepOffset() { return GetVar("RepOffset").ReadAs<int16_t>(); }
-	auto NumParms() { return GetVar("NumParms").ReadAs<int8_t>(); }
-	auto ParmsSize() { return GetVar("ParmsSize").ReadAs<int16_t>(); }
-	auto ReturnValueOffset() { return GetVar("ReturnValueOffset").ReadAs<int16_t>(); }
-	auto RPCId() { return GetVar("RPCId").ReadAs<int16_t>(); }
-	auto RPCResponseId() { return GetVar("RPCResponseId").ReadAs<int16_t>(); }
-	auto FirstPropertyToInit() { return GetVar("FirstPropertyToInit").ReadAsPStruct<JsonUProperty>(); }
-	auto EventGraphFunction() { return GetVar("EventGraphFunction").ReadAsPStruct<JsonUFunction>(); }
-	auto EventGraphCallOffset() { return GetVar("EventGraphCallOffset").ReadAs<int>(); }
-	auto Func() { return GetVar("Func").ReadAs<uintptr_t>(); }
+	int FunctionFlags = 0;
+	int16_t RepOffset = 0;
+	int8_t NumParms = 0;
+	int16_t ParmsSize = 0;
+	int16_t ReturnValueOffset = 0;
+	int16_t RPCId = 0;
+	int16_t RPCResponseId = 0;
+	JsonUProperty* FirstPropertyToInit = nullptr;
+	JsonUFunction* EventGraphFunction = nullptr;
+	int EventGraphCallOffset = 0;
+	uintptr_t Func = 0;
+
+	void InitData() override
+	{
+		FunctionFlags = GetVar("FunctionFlags").ReadAs<int>();
+		RepOffset = GetVar("RepOffset").ReadAs<int16_t>();
+		NumParms = GetVar("NumParms").ReadAs<int8_t>();
+		ParmsSize = GetVar("ParmsSize").ReadAs<int16_t>();
+		ReturnValueOffset = GetVar("ReturnValueOffset").ReadAs<int16_t>();
+		RPCId = GetVar("RPCId").ReadAs<int16_t>();
+		RPCResponseId = GetVar("RPCResponseId").ReadAs<int16_t>();
+		FirstPropertyToInit = GetVar("FirstPropertyToInit").ReadAsPStruct<JsonUProperty>();
+		EventGraphFunction = GetVar("EventGraphFunction").ReadAsPStruct<JsonUFunction>();
+		EventGraphCallOffset = GetVar("EventGraphCallOffset").ReadAs<int>();
+		Func = GetVar("Func").ReadAs<uintptr_t>();
+	}
 };
 
 class JsonUNumericProperty : public JsonUProperty
 {
 public:
 	JsonUNumericProperty() { Init("UNumericProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUByteProperty : public JsonUNumericProperty
 {
 public:
 	JsonUByteProperty() { Init("UByteProperty"); }
-	auto Enum() { return GetVar("Enum").ReadAsPStruct<JsonUEnum>(); }
+	JsonUEnum* Enum = nullptr;
+
+	void InitData() override
+	{
+		Enum = GetVar("Enum").ReadAsPStruct<JsonUEnum>();
+	}
 };
 
 class JsonUUInt16Property : public JsonUNumericProperty
 {
 public:
 	JsonUUInt16Property() { Init("UUInt16Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUUInt32Property : public JsonUNumericProperty
 {
 public:
 	JsonUUInt32Property() { Init("UUInt32Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUUInt64Property : public JsonUNumericProperty
 {
 public:
 	JsonUUInt64Property() { Init("UUInt64Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUInt8Property : public JsonUNumericProperty
 {
 public:
 	JsonUInt8Property() { Init("UInt8Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUInt16Property : public JsonUNumericProperty
 {
 public:
 	JsonUInt16Property() { Init("UInt16Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUIntProperty : public JsonUNumericProperty
 {
 public:
 	JsonUIntProperty() { Init("UIntProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUInt64Property : public JsonUNumericProperty
 {
 public:
 	JsonUInt64Property() { Init("UInt64Property"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUFloatProperty : public JsonUNumericProperty
 {
 public:
 	JsonUFloatProperty() { Init("UFloatProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUDoubleProperty : public JsonUNumericProperty
 {
 public:
 	JsonUDoubleProperty() { Init("UDoubleProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUBoolProperty : public JsonUProperty
 {
 public:
 	JsonUBoolProperty() { Init("UBoolProperty"); }
-	auto FieldSize() { return GetVar("FieldSize").ReadAs<uint8_t>(); }
-	auto ByteOffset() { return GetVar("ByteOffset").ReadAs<uint8_t>(); }
-	auto ByteMask() { return GetVar("ByteMask").ReadAs<uint8_t>(); }
-	auto FieldMask() { return GetVar("FieldMask").ReadAs<uint8_t>(); }
+	uint8_t FieldSize = 0;
+	uint8_t ByteOffset = 0;
+	uint8_t ByteMask = 0;
+	uint8_t FieldMask = 0;
+
+	void InitData() override
+	{
+		FieldSize = GetVar("FieldSize").ReadAs<uint8_t>();
+		ByteOffset = GetVar("ByteOffset").ReadAs<uint8_t>();
+		ByteMask = GetVar("ByteMask").ReadAs<uint8_t>();
+		FieldMask = GetVar("FieldMask").ReadAs<uint8_t>();
+	}
 };
 
 class JsonUObjectPropertyBase : public JsonUProperty
 {
 public:
 	JsonUObjectPropertyBase() { Init("UObjectPropertyBase"); }
-	auto PropertyClass() { return GetVar("PropertyClass").ReadAsPStruct<JsonUClass>(); }
+	JsonUClass* PropertyClass = nullptr;
+
+	void InitData() override
+	{
+		PropertyClass = GetVar("PropertyClass").ReadAsPStruct<JsonUClass>();
+	}
 };
 
 class JsonUObjectProperty : public JsonUObjectPropertyBase
 {
 public:
 	JsonUObjectProperty() { Init("UObjectProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUClassProperty : public JsonUObjectProperty
 {
 public:
 	JsonUClassProperty() { Init("UClassProperty"); }
-	auto MetaClass() { return GetVar("MetaClass").ReadAsPStruct<JsonUClass>(); }
+	JsonUClass* MetaClass = nullptr;
+
+	void InitData() override
+	{
+		MetaClass = GetVar("MetaClass").ReadAsPStruct<JsonUClass>();
+	}
 };
 
 class JsonUInterfaceProperty : public JsonUProperty
 {
 public:
 	JsonUInterfaceProperty() { Init("UInterfaceProperty"); }
-	auto InterfaceClass() { return GetVar("InterfaceClass").ReadAsPStruct<JsonUClass>(); }
+	JsonUClass* InterfaceClass = nullptr;
+
+	void InitData() override
+	{
+		InterfaceClass = GetVar("InterfaceClass").ReadAsPStruct<JsonUClass>();
+	}
 };
 
 class JsonUWeakObjectProperty : public JsonUObjectPropertyBase
 {
 public:
 	JsonUWeakObjectProperty() { Init("UWeakObjectProperty"); }
+
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonULazyObjectProperty : public JsonUObjectPropertyBase
 {
 public:
 	JsonULazyObjectProperty() { Init("ULazyObjectProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUAssetObjectProperty : public JsonUObjectPropertyBase
 {
 public:
 	JsonUAssetObjectProperty() { Init("UAssetObjectProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUAssetClassProperty : public JsonUAssetObjectProperty
 {
 public:
 	JsonUAssetClassProperty() { Init("UAssetClassProperty"); }
-	auto MetaClass() { return GetVar("MetaClass").ReadAsPStruct<JsonUClass>(); }
+	JsonUClass* MetaClass = nullptr;
+
+	void InitData() override
+	{
+		MetaClass = GetVar("MetaClass").ReadAsPStruct<JsonUClass>();
+	}
 };
 
 class JsonUNameProperty : public JsonUProperty
 {
 public:
 	JsonUNameProperty() { Init("UNameProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUStructProperty : public JsonUProperty
 {
 public:
 	JsonUStructProperty() { Init("UStructProperty"); }
-	auto Struct() { return GetVar("Struct").ReadAsPStruct<JsonUScriptStruct>(); }
+	JsonUScriptStruct* Struct = nullptr;
+
+	void InitData() override
+	{
+		Struct = GetVar("Struct").ReadAsPStruct<JsonUScriptStruct>();
+	}
 };
 
 class JsonUStrProperty : public JsonUProperty
 {
 public:
 	JsonUStrProperty() { Init("UStrProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUTextProperty : public JsonUProperty
 {
 public:
 	JsonUTextProperty() { Init("UTextProperty"); }
+
+	void InitData() override
+	{
+
+	}
 };
 
 class JsonUArrayProperty : public JsonUProperty
 {
 public:
 	JsonUArrayProperty() { Init("UArrayProperty"); }
-	auto Inner() { return GetVar("Inner").ReadAsPStruct<JsonUProperty>(); }
+	JsonUProperty* Inner = nullptr;
+
+	void InitData() override
+	{
+		Inner = GetVar("Inner").ReadAsPStruct<JsonUProperty>();
+	}
 };
 
 class JsonUMapProperty : public JsonUProperty
 {
 public:
 	JsonUMapProperty() { Init("UMapProperty"); }
-	auto KeyProp() { return GetVar("KeyProp").ReadAsPStruct<JsonUProperty>(); }
-	auto ValueProp() { return GetVar("ValueProp").ReadAsPStruct<JsonUProperty>(); }
+	JsonUProperty* KeyProp = nullptr;
+	JsonUProperty* ValueProp = nullptr;
+
+	void InitData() override
+	{
+		KeyProp = GetVar("KeyProp").ReadAsPStruct<JsonUProperty>();
+		ValueProp = GetVar("ValueProp").ReadAsPStruct<JsonUProperty>();
+	}
 };
 
 class JsonUDelegateProperty : public JsonUProperty
 {
 public:
 	JsonUDelegateProperty() { Init("UDelegateProperty"); }
-	auto SignatureFunction() { return GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>(); }
+	JsonUFunction* SignatureFunction = nullptr;
+
+	void InitData() override
+	{
+		SignatureFunction = GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>();
+	}
 };
 
 class JsonUMulticastDelegateProperty : public JsonUProperty
 {
 public:
 	JsonUMulticastDelegateProperty() { Init("UMulticastDelegateProperty"); }
-	auto SignatureFunction() { return GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>(); }
+	JsonUFunction* SignatureFunction = nullptr;
+
+	void InitData() override
+	{
+		SignatureFunction = GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>();
+	}
 };
 
 class JsonUEnumProperty : public JsonUProperty
 {
 public:
 	JsonUEnumProperty() { Init("UEnumProperty"); }
-	auto UnderlyingProp() { return GetVar("UnderlyingProp").ReadAsPStruct<JsonUNumericProperty>(); }
-	auto Enum() { return GetVar("Enum").ReadAsPStruct<JsonUEnum>(); }
+	JsonUNumericProperty* UnderlyingProp = nullptr;
+	JsonUEnum* Enum = nullptr;
+
+	void InitData() override
+	{
+		UnderlyingProp = GetVar("UnderlyingProp").ReadAsPStruct<JsonUNumericProperty>();
+		Enum = GetVar("Enum").ReadAsPStruct<JsonUEnum>();
+	}
 };
-
-
-// class Json : public JsonStruct
-// {
-// public:
-// 	auto VfTable() { return GetVar("VfTable").ReadAs<int>(); }
-//	auto Children() { return static_cast<JsonUField*>(GetVar("Children").ReadAsPStruct<>()); }
-//  auto PropertyFlags() { return GetVar("PropertyFlags").ReadAsStruct<JsonFQWord>(); }
-// };

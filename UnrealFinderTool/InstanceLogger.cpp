@@ -133,15 +133,11 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 	JsonFUObjectItem fUObjectItem;
 	JsonUObject uObject;
 
-	if (_memory->ReadBytes(address, objectArray.GetAllocPointer(), objectArray.StructSize - sSub) == 0) return false;
+	if (!objectArray.ReadData(address)) return false;
 
-	auto objObjects = objectArray.ObjObjects();
-	int num = objObjects.NumElements();
-
-	// Fix objObjects
-	Utils::FixPointersInStruct(&objObjects, _memory->Is64Bit);
-
-	auto dwFUObjectAddress = objObjects.Objects();
+	auto objObjects = objectArray.ObjObjects;
+	int num = objObjects.NumElements;
+	uintptr_t dwFUObjectAddress = objObjects.Objects;
 
 	// Alloc all objects
 	gObjObjects = new GObject[num];
@@ -151,14 +147,10 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
-		if (_memory->ReadBytes(currentFUObjAddress, fUObjectItem.GetAllocPointer(), fUObjectItem.StructSize - sSub) == 0)
-			return false;
-
-		// Fix fUObjectItem
-		Utils::FixPointersInStruct(&fUObjectItem, _memory->Is64Bit);
+		if (!fUObjectItem.ReadData(currentFUObjAddress)) return false;
 
 		// Convert class pointer to address
-		auto dwUObject = fUObjectItem.Object();
+		auto dwUObject = fUObjectItem.Object;
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
@@ -178,21 +170,16 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray
 
 bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject, GObject& retObj)
 {
-	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-
 	int i = 0;
 	uintptr_t outer = uObjectAddress;
 	do
 	{
 		// Alloc and Read the address as class
-		if (_memory->ReadBytes(outer, uObject.GetAllocPointer(), uObject.StructSize - sSub) == 0)
-			return false;
-
-		// Fix UObject
-		Utils::FixPointersInStruct(&uObject, _memory->Is64Bit);
+		
+		if (!uObject.ReadData(outer)) return false;
 
 		outer = uObject["Outer"].ReadAs<uintptr_t>();
-		retObj.FNameIndexs[i] = uObject.Name().Index();
+		retObj.FNameIndexs[i] = uObject.Name.Index;
 		i++;
 	} while (outer != NULL);
 
@@ -255,8 +242,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (_memory->ReadBytes(fNameAddress, fName.GetAllocPointer(), fName.StructSize) == 0)
-				return false;
+			if (!fName.ReadData(fNameAddress)) return false;
 
 			// Set The Name
 			gNames[i].Index = i;

@@ -64,7 +64,7 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 		const std::string eName = parent.value().at("name");
 		if (eName == structName)
 		{
-			JsonStruct tempToSave;
+			JsonDefault tempToSave;
 			JsonVariables vars;
 			int structSize = 0;
 			size_t offset = 0;
@@ -148,7 +148,7 @@ bool JsonReflector::Load(void* jsonObj)
 		// Check is already here
 		if (StructsList.find(eName) != StructsList.end()) continue;
 
-		JsonStruct tempToSave;
+		JsonDefault tempToSave;
 		JsonVariables vars;
 		int structSize = 0;
 		size_t offset = 0;
@@ -311,14 +311,39 @@ JsonStruct::~JsonStruct()
 		free(allocPointer);
 }
 
+void* JsonStruct::GetAllocPointer()
+{
+	return allocPointer;
+}
+
 void JsonStruct::SetAllocPointer(void* newAddress)
 {
 	allocPointer = newAddress;
 }
 
-void* JsonStruct::GetAllocPointer()
+bool JsonStruct::ReadData(const uintptr_t address)
 {
-	return allocPointer;
+	int sSub = 0;
+	if (Utils::ProgramIs64() && !JsonReflector::MemoryObj->Is64Bit)
+	{
+		for (const auto& var : Vars)
+		{
+			if (var.second.Type == "pointer")
+			{
+				// if it's 32bit game (4byte pointer) sub 4byte for every pointer
+				sSub += 0x4;
+			}
+		}
+	}
+
+	// Read the address as class
+	if (JsonReflector::MemoryObj->ReadBytes(address, allocPointer, StructSize - sSub) == 0)
+		return false;
+
+	// Fix and set data
+	FixStructData();
+	InitData();
+	return true;
 }
 
 JsonVar& JsonStruct::operator[](const std::string& varName)
@@ -334,6 +359,11 @@ JsonVar& JsonStruct::GetVar(const std::string& varName)
 	throw std::exception(("Not found " + varName + " in JsonVariables").c_str());
 }
 
+bool JsonStruct::IsValid()
+{
+	return allocPointer != nullptr;
+}
+
 void JsonStruct::Init(const std::string& structName, const bool alloc)
 {
 	if (_init || structName.empty()) return;
@@ -341,6 +371,11 @@ void JsonStruct::Init(const std::string& structName, const bool alloc)
 	if (!JsonReflector::ReadStruct(structName, *this, alloc))
 		throw std::exception(("Can't find struct `" + structName + "`.").c_str());
 	_init = true;
+}
+
+void JsonStruct::FixStructData()
+{
+	Utils::FixPointersInStruct(this, JsonReflector::MemoryObj->Is64Bit);
 }
 
 // -------------------------------------------------
@@ -442,7 +477,7 @@ JsonStruct* JsonVar::ReadAsStruct()
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 
-	StructVars = new JsonStruct(sStructIt->second);
+	StructVars = new JsonDefault(sStructIt->second);
 	StructVars->AllocChanged = true;
 	StructVars->Init(Type, false);
 	StructVars->SetAllocPointer(reinterpret_cast<void*>(calcAddress));
@@ -469,14 +504,12 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 	if (calcAddress == NULL)
 		return nullptr;
 
-	StructVars = new JsonStruct(sStructIt->second);
+	StructVars = new JsonDefault(sStructIt->second);
 	StructVars->Init(ptrType);
 	StructVars->IsPointerStruct = true;
-
-	if (JsonReflector::MemoryObj->ReadBytes(calcAddress, StructVars->GetAllocPointer(), StructVars->StructSize) == 0)
+	
+	if (!StructVars->ReadData(calcAddress))
 		throw std::exception(("Can't read game memory `" + std::to_string(calcAddress) + "`.").c_str());
-
-	Utils::FixPointersInStruct(StructVars, JsonReflector::MemoryObj->Is64Bit);
 
 	return StructVars;
 }

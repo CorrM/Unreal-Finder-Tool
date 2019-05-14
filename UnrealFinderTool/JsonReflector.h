@@ -2,10 +2,11 @@
 #include "json.hpp"
 
 class JsonVar;
+class JsonDefault;
 class JsonStruct;
 class Memory;
 
-using JsonStructs = std::map<std::string, JsonStruct>;
+using JsonStructs = std::map<std::string, JsonDefault>;
 using JsonVariables = std::map<std::string, JsonVar>;
 
 class JsonReflector
@@ -71,7 +72,10 @@ public:
 	// Read variable as [derived] struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
 	template <typename T> T ReadAsStruct()
 	{
-		return *reinterpret_cast<T*>(ReadAsStruct());
+		T tmp = *reinterpret_cast<T*>(ReadAsStruct());
+		tmp.FixStructData();
+		tmp.InitData();
+		return tmp;
 	}
 	// Read variable as struct, ONLY work if this variable is [POINTER TO STRUCT]
 	JsonStruct* ReadAsPStruct(const std::string& ptrType);
@@ -89,8 +93,9 @@ private:
 class JsonStruct
 {
 	bool _init = false;
-	// Pointer to alloc memory based on `StructSize`
+	// local data Pointer based on `StructSize`
 	void* allocPointer = nullptr;
+
 public:
 	// Struct Name
 	std::string StructName = "";
@@ -106,15 +111,24 @@ public:
 	bool IsPointerStruct = false;
 
 	JsonStruct();
-	~JsonStruct();
-	// allocPointer Setter
+	virtual ~JsonStruct();
+
+	// Set local data Pointer
 	void SetAllocPointer(void* newAddress);
-	// allocPointer Getter
+	// Read game data, set date to local memory and fix pointer if needed
+	bool ReadData(uintptr_t address);
+	// Get local data Pointer
 	void* GetAllocPointer();
 	// Access to variable inside this struct
 	JsonVar& operator[](const std::string& varName);
 	// Access to variable inside this struct
 	JsonVar& GetVar(const std::string& varName);
+	// Check is valid or not
+	bool IsValid();
 	// Initialize the struct (alloc and init variables), Don't use for temp struct or not allocated struct
 	void Init(const std::string& structName, bool alloc = true);
+	// 
+	void FixStructData();
+	// This function for init derived variables data, (set data to derived variables)
+	virtual void InitData() = 0;
 };

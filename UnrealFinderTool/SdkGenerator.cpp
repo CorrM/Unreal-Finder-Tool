@@ -63,12 +63,12 @@ void SdkGenerator::Start()
 	std::ofstream log(outputDirectory / "Generator.log");
 	Logger::SetStream(&log);
 
-	/*
+	
 	if (generator->ShouldDumpArrays())
 	{
 		Dump(outputDirectory);
 	}
-	*/
+	
 	fs::create_directories(outputDirectory);
 	
 	const auto begin = std::chrono::system_clock::now();

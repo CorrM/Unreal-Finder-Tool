@@ -156,7 +156,7 @@ uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, 
 
 void Utils::FixPointersInStruct(JsonStruct* structBase, const bool is64BitGame)
 {
-	if (is64BitGame && ProgramIs64())
+	if (!is64BitGame && ProgramIs64())
 		for (const auto& var : structBase->Vars)
 			if (var.second.Type == "pointer")
 				ReadSafePointer(structBase, var.first, is64BitGame);

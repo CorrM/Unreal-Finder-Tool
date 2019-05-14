@@ -11,26 +11,26 @@
 //---------------------------------------------------------------------------
 size_t UEObject::GetIndex() const
 {
-	return object->InternalIndex();
+	return object->InternalIndex;
 }
 UEClass UEObject::GetClass() const
 {
-	return UEClass(object->Class(), true);
+	return UEClass(object->Class, true);
 }
 UEObject UEObject::GetOuter() const
 {
-	return UEObject(object->Outer(), false);
+	return UEObject(object->Outer, false);
 }
 std::string UEObject::GetName() const
 {
-	auto cName = object->Name();
-	if (cName.Index() == 0)
+	auto cName = object->Name;
+	if (cName.Index == 0)
 		return "";
 
-	auto name = NamesStore().GetById(cName.Index());
-	if (cName.Number() > 0)
+	auto name = NamesStore().GetById(cName.Index);
+	if (cName.Number > 0)
 	{
-		name += '_' + std::to_string(cName.Number());
+		name += '_' + std::to_string(cName.Number);
 	}
 
 	auto pos = name.rfind('/');
@@ -43,7 +43,7 @@ std::string UEObject::GetName() const
 }
 bool UEObject::IsValid() const
 {
-	return object != nullptr && object->GetAllocPointer() != nullptr;
+	return object != nullptr && object->IsValid();
 }
 UEClass UEObject::StaticClass()
 {
@@ -55,7 +55,7 @@ UEClass UEObject::StaticClass()
 //---------------------------------------------------------------------------
 UEField UEField::GetNext() const
 {
-	return UEField(static_cast<JsonUField*>(object)->Next(), true);
+	return UEField(static_cast<JsonUField*>(object)->Next, true);
 }
 //---------------------------------------------------------------------------
 UEClass UEField::StaticClass()
@@ -69,9 +69,9 @@ UEClass UEField::StaticClass()
 std::vector<std::string> UEEnum::GetNames() const
 {
 	std::vector<std::string> buffer;
-	auto names = static_cast<JsonUEnum*>(object)->Names();
+	auto names = static_cast<JsonUEnum*>(object)->Names;
 
-	for (auto i = 0; i < names.Count(); ++i)
+	for (auto i = 0; i < names.Count; ++i)
 	{
 		// buffer.push_back(NamesStore().GetById(names[i].Key.ComparisonIndex));
 	}
@@ -100,15 +100,15 @@ UEClass UEConst::StaticClass()
 //---------------------------------------------------------------------------
 UEStruct UEStruct::GetSuper() const
 {
-	return UEStruct(static_cast<JsonUStruct*>(object)->SuperField(), true);
+	return UEStruct(static_cast<JsonUStruct*>(object)->SuperField, true);
 }
 UEField UEStruct::GetChildren() const
 {
-	return UEField(static_cast<JsonUStruct*>(object)->Children(), true);
+	return UEField(static_cast<JsonUStruct*>(object)->Children, true);
 }
 size_t UEStruct::GetPropertySize() const
 {
-	return static_cast<JsonUStruct*>(object)->PropertySize();
+	return static_cast<JsonUStruct*>(object)->PropertySize;
 }
 UEClass UEStruct::StaticClass()
 {
@@ -128,7 +128,7 @@ UEClass UEScriptStruct::StaticClass()
 //---------------------------------------------------------------------------
 UEFunctionFlags UEFunction::GetFunctionFlags() const
 {
-	return static_cast<UEFunctionFlags>(static_cast<JsonUFunction*>(object)->FunctionFlags());
+	return static_cast<UEFunctionFlags>(static_cast<JsonUFunction*>(object)->FunctionFlags);
 }
 UEClass UEFunction::StaticClass()
 {
@@ -148,19 +148,19 @@ UEClass UEClass::StaticClass()
 //---------------------------------------------------------------------------
 size_t UEProperty::GetArrayDim() const
 {
-	return static_cast<JsonUProperty*>(object)->ArrayDim();
+	return static_cast<JsonUProperty*>(object)->ArrayDim;
 }
 size_t UEProperty::GetElementSize() const
 {
-	return static_cast<JsonUProperty*>(object)->ElementSize();
+	return static_cast<JsonUProperty*>(object)->ElementSize;
 }
 UEPropertyFlags UEProperty::GetPropertyFlags() const
 {
-	return static_cast<UEPropertyFlags>(static_cast<JsonUProperty*>(object)->PropertyFlags().A());
+	return static_cast<UEPropertyFlags>(static_cast<JsonUProperty*>(object)->PropertyFlags.A);
 }
 size_t UEProperty::GetOffset() const
 {
-	return static_cast<JsonUProperty*>(object)->Offset();
+	return static_cast<JsonUProperty*>(object)->Offset;
 }
 UEClass UEProperty::StaticClass()
 {
@@ -180,7 +180,7 @@ UEClass UENumericProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEEnum UEByteProperty::GetEnum() const
 {
-	return UEEnum(static_cast<JsonUByteProperty*>(object)->Enum(), true);
+	return UEEnum(static_cast<JsonUByteProperty*>(object)->Enum, true);
 }
 UEProperty::Info UEByteProperty::GetInfo() const
 {
@@ -308,19 +308,19 @@ UEClass UEDoubleProperty::StaticClass()
 //---------------------------------------------------------------------------
 uint8_t UEBoolProperty::GetFieldSize() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->FieldSize();
+	return static_cast<JsonUBoolProperty*>(object)->FieldSize;
 }
 uint8_t UEBoolProperty::GetByteOffset() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->ByteOffset();
+	return static_cast<JsonUBoolProperty*>(object)->ByteOffset;
 }
 uint8_t UEBoolProperty::GetByteMask() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->ByteMask();
+	return static_cast<JsonUBoolProperty*>(object)->ByteMask;
 }
 uint8_t UEBoolProperty::GetFieldMask() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->FieldMask();
+	return static_cast<JsonUBoolProperty*>(object)->FieldMask;
 }
 UEProperty::Info UEBoolProperty::GetInfo() const
 {
@@ -340,7 +340,7 @@ UEClass UEBoolProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEObjectPropertyBase::GetPropertyClass() const
 {
-	return UEClass(static_cast<JsonUObjectPropertyBase*>(object)->PropertyClass(), true);
+	return UEClass(static_cast<JsonUObjectPropertyBase*>(object)->PropertyClass, true);
 }
 UEClass UEObjectPropertyBase::StaticClass()
 {
@@ -364,7 +364,7 @@ UEClass UEObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEClassProperty::GetMetaClass() const
 {
-	return UEClass(static_cast<JsonUClassProperty*>(object)->MetaClass(), true);
+	return UEClass(static_cast<JsonUClassProperty*>(object)->MetaClass, true);
 }
 UEProperty::Info UEClassProperty::GetInfo() const
 {
@@ -380,7 +380,7 @@ UEClass UEClassProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEInterfaceProperty::GetInterfaceClass() const
 {
-	return UEClass(static_cast<JsonUInterfaceProperty*>(object)->InterfaceClass(), true);
+	return UEClass(static_cast<JsonUInterfaceProperty*>(object)->InterfaceClass, true);
 }
 UEProperty::Info UEInterfaceProperty::GetInfo() const
 {
@@ -432,7 +432,7 @@ UEClass UEAssetObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEAssetClassProperty::GetMetaClass() const
 {
-	return UEClass(static_cast<JsonUAssetClassProperty*>(object)->MetaClass(), true);
+	return UEClass(static_cast<JsonUAssetClassProperty*>(object)->MetaClass, true);
 }
 UEProperty::Info UEAssetClassProperty::GetInfo() const
 {
@@ -460,7 +460,7 @@ UEClass UENameProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEScriptStruct UEStructProperty::GetStruct() const
 {
-	return UEScriptStruct(static_cast<JsonUStructProperty*>(object)->Struct(), true);
+	return UEScriptStruct(static_cast<JsonUStructProperty*>(object)->Struct, true);
 }
 UEProperty::Info UEStructProperty::GetInfo() const
 {
@@ -500,7 +500,7 @@ UEClass UETextProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEArrayProperty::GetInner() const
 {
-	return UEProperty(static_cast<JsonUArrayProperty*>(object)->Inner(), true);
+	return UEProperty(static_cast<JsonUArrayProperty*>(object)->Inner, true);
 }
 UEProperty::Info UEArrayProperty::GetInfo() const
 {
@@ -524,11 +524,11 @@ UEClass UEArrayProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEMapProperty::GetKeyProperty() const
 {
-	return UEProperty(static_cast<JsonUMapProperty*>(object)->KeyProp(), true);
+	return UEProperty(static_cast<JsonUMapProperty*>(object)->KeyProp, true);
 }
 UEProperty UEMapProperty::GetValueProperty() const
 {
-	return UEProperty(static_cast<JsonUMapProperty*>(object)->ValueProp(), true);
+	return UEProperty(static_cast<JsonUMapProperty*>(object)->ValueProp, true);
 }
 UEProperty::Info UEMapProperty::GetInfo() const
 {
@@ -553,7 +553,7 @@ UEClass UEMapProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEDelegateProperty::GetSignatureFunction() const
 {
-	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction(), true);
+	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction, true);
 }
 UEProperty::Info UEDelegateProperty::GetInfo() const
 {
@@ -569,7 +569,7 @@ UEClass UEDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 {
-	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction(), true);
+	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction, true);
 }
 UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
 {
@@ -585,11 +585,11 @@ UEClass UEMulticastDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 {
-	return UENumericProperty(static_cast<JsonUEnumProperty*>(object)->UnderlyingProp(), true);
+	return UENumericProperty(static_cast<JsonUEnumProperty*>(object)->UnderlyingProp, true);
 }
 UEEnum UEEnumProperty::GetEnum() const
 {
-	return UEEnum(static_cast<JsonUEnumProperty*>(object)->Enum(), true);
+	return UEEnum(static_cast<JsonUEnumProperty*>(object)->Enum, true);
 }
 UEProperty::Info UEEnumProperty::GetInfo() const
 {
