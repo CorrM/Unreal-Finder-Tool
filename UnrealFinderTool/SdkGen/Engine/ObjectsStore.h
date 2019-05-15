@@ -13,7 +13,6 @@ class ObjectsStore
 
 	static bool FetchData();
 	static bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject);
 public:
 	static JsonUObject* GObjObjects;
 	static int GObjectsCount;

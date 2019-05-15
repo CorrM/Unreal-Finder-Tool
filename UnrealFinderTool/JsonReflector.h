@@ -83,7 +83,9 @@ public:
 	template <typename T> T* ReadAsPStruct()
 	{
 		T obj;
-		return reinterpret_cast<T*>(ReadAsPStruct(obj.StructName));
+		T* ret = reinterpret_cast<T*>(ReadAsPStruct(obj.JsonName()));
+		ret->InitData();
+		return ret;
 	}
 private:
 	// Access variable in this variable if this variable is struct
@@ -95,7 +97,6 @@ class JsonStruct
 	bool _init = false;
 	// local data Pointer based on `StructSize`
 	void* allocPointer = nullptr;
-
 public:
 	// Struct Name
 	std::string StructName = "";
@@ -131,4 +132,5 @@ public:
 	void FixStructData();
 	// This function for init derived variables data, (set data to derived variables)
 	virtual void InitData() = 0;
+	virtual std::string JsonName() = 0;
 };

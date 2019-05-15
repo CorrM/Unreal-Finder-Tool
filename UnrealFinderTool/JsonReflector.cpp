@@ -307,8 +307,8 @@ JsonStruct::JsonStruct() = default;
 
 JsonStruct::~JsonStruct()
 {
-	if (_init && !AllocChanged && IsPointerStruct)
-		free(allocPointer);
+	//if (_init && !AllocChanged && IsPointerStruct)
+	//	free(allocPointer);
 }
 
 void* JsonStruct::GetAllocPointer()
@@ -343,6 +343,9 @@ bool JsonStruct::ReadData(const uintptr_t address)
 	// Fix and set data
 	FixStructData();
 	InitData();
+
+	// TODO: Some Work Here
+	// free(allocPointer);
 	return true;
 }
 
@@ -370,6 +373,7 @@ void JsonStruct::Init(const std::string& structName, const bool alloc)
 
 	if (!JsonReflector::ReadStruct(structName, *this, alloc))
 		throw std::exception(("Can't find struct `" + structName + "`.").c_str());
+
 	_init = true;
 }
 
@@ -499,7 +503,10 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 		throw std::exception(("Can't find struct When try read as " + ptrType).c_str());
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
-	calcAddress = *reinterpret_cast<uintptr_t*>(calcAddress);
+	if (JsonReflector::MemoryObj->Is64Bit)
+		calcAddress = *reinterpret_cast<uintptr_t*>(calcAddress);
+	else
+		calcAddress = *reinterpret_cast<int*>(calcAddress);
 
 	if (calcAddress == NULL)
 		return nullptr;

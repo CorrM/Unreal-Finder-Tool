@@ -20,11 +20,11 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 13336);
-	auto memManager1 = new Memory(pHandle1, true);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 5532);
+	auto memManager1 = new Memory(pHandle1, false);
 	JsonReflector::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x2B703210);
-	auto gNamesAddress = uintptr_t(0x2B419744);
+	auto objObjectsAddress = uintptr_t(0x7FF7621E1E70);
+	auto gNamesAddress = uintptr_t(0x7FF7621D9A20);
 	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;

@@ -5,6 +5,10 @@
 class JsonDefault : public JsonStruct
 {
 
+	std::string JsonName() override
+	{
+		return "";
+	}
 	void InitData() override
 	{
 	}
@@ -17,6 +21,10 @@ public:
 	int A = 0;
 	int B = 0;
 
+	std::string JsonName() override
+	{
+		return "FQWord";
+	}
 	void InitData() override
 	{
 		A = GetVar("A").ReadAs<int>();
@@ -33,6 +41,10 @@ public:
 	uintptr_t HashNext = 0;
 	uintptr_t AnsiName = 0;
 
+	std::string JsonName() override
+	{
+		return "FNameEntity";
+	}
 	void InitData() override
 	{
 		Index = GetVar("Index").ReadAs<int>();
@@ -49,6 +61,10 @@ public:
 	int Index = 0;
 	int Number = 0;
 
+	std::string JsonName() override
+	{
+		return "FName";
+	}
 	void InitData() override
 	{
 		Index = GetVar("Index").ReadAs<int>();
@@ -65,6 +81,10 @@ public:
 	int ClusterIndex = 0;
 	int SerialNumber = 0;
 
+	std::string JsonName() override
+	{
+		return "FUObjectItem";
+	}
 	void InitData() override
 	{
 		Object = GetVar("Object").ReadAs<uintptr_t>();
@@ -82,7 +102,10 @@ public:
 	int MaxElements = 0;
 	int NumElements = 0;
 
-
+	std::string JsonName() override
+	{
+		return "TUObjectArray";
+	}
 	void InitData() override
 	{
 		Objects = GetVar("Objects").ReadAs<uintptr_t>();
@@ -101,7 +124,10 @@ public:
 	int OpenForDisregardForGc = 0;
 	JsonTUObjectArray ObjObjects;
 
-
+	std::string JsonName() override
+	{
+		return "FUObjectArray";
+	}
 	void InitData() override
 	{
 		ObjFirstGcIndex = GetVar("ObjFirstGcIndex").ReadAs<int>();
@@ -125,6 +151,10 @@ public:
 	JsonFName Name;
 	JsonUObject* Outer = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UObject";
+	}
 	void InitData() override
 	{
 		VfTable = GetVar("VfTable").ReadAs<uintptr_t>();
@@ -142,6 +172,10 @@ public:
 	JsonUField() { Init("UField"); }
 	JsonUField* Next = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UField";
+	}
 	void InitData() override
 	{
 		Next = GetVar("Next").ReadAsPStruct<JsonUField>();
@@ -157,6 +191,10 @@ public:
 	int PropertySize = 0;
 	int MinAlignment = 0;
 
+	std::string JsonName() override
+	{
+		return "UStruct";
+	}
 	void InitData() override
 	{
 		SuperField = GetVar("SuperField").ReadAsPStruct<JsonUStruct>();
@@ -171,6 +209,10 @@ class JsonUClass : public JsonUStruct
 public:
 	JsonUClass() { Init("UClass"); }
 
+	std::string JsonName() override
+	{
+		return "UClass";
+	}
 	void InitData() override
 	{
 
@@ -184,6 +226,10 @@ public:
 	JsonFQWord Key;
 	int Value = 0;
 
+	std::string JsonName() override
+	{
+		return "FUEnumItem";
+	}
 	void InitData() override
 	{
 		Key = GetVar("Key").ReadAsStruct<JsonFQWord>();
@@ -199,6 +245,10 @@ public:
 	int Count = 0;
 	int Max = 0;
 
+	std::string JsonName() override
+	{
+		return "TUEnumArray";
+	}
 	void InitData() override
 	{
 		Data = GetVar("Data").ReadAsPStruct<JsonFUEnumItem>();
@@ -215,6 +265,10 @@ public:
 	JsonTUEnumArray Names;
 	int64_t CppForm = 0;
 
+	std::string JsonName() override
+	{
+		return "UEnum";
+	}
 	void InitData() override
 	{
 		Children = GetVar("Children").ReadAsPStruct<JsonUField>();
@@ -228,6 +282,10 @@ class JsonUScriptStruct : public JsonUStruct
 public:
 	JsonUScriptStruct() { Init("UScriptStruct"); }
 
+	std::string JsonName() override
+	{
+		return "UScriptStruct";
+	}
 	void InitData() override
 	{
 
@@ -244,6 +302,10 @@ public:
 	int PropertySize = 0;
 	int Offset = 0;
 
+	std::string JsonName() override
+	{
+		return "UProperty";
+	}
 	void InitData() override
 	{
 		ArrayDim = GetVar("ArrayDim").ReadAs<int>();
@@ -270,6 +332,10 @@ public:
 	int EventGraphCallOffset = 0;
 	uintptr_t Func = 0;
 
+	std::string JsonName() override
+	{
+		return "UFunction";
+	}
 	void InitData() override
 	{
 		FunctionFlags = GetVar("FunctionFlags").ReadAs<int>();
@@ -291,6 +357,10 @@ class JsonUNumericProperty : public JsonUProperty
 public:
 	JsonUNumericProperty() { Init("UNumericProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UNumericProperty";
+	}
 	void InitData() override
 	{
 
@@ -303,6 +373,10 @@ public:
 	JsonUByteProperty() { Init("UByteProperty"); }
 	JsonUEnum* Enum = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UByteProperty";
+	}
 	void InitData() override
 	{
 		Enum = GetVar("Enum").ReadAsPStruct<JsonUEnum>();
@@ -314,6 +388,10 @@ class JsonUUInt16Property : public JsonUNumericProperty
 public:
 	JsonUUInt16Property() { Init("UUInt16Property"); }
 
+	std::string JsonName() override
+	{
+		return "UUInt16Property";
+	}
 	void InitData() override
 	{
 
@@ -325,6 +403,10 @@ class JsonUUInt32Property : public JsonUNumericProperty
 public:
 	JsonUUInt32Property() { Init("UUInt32Property"); }
 
+	std::string JsonName() override
+	{
+		return "UUInt32Property";
+	}
 	void InitData() override
 	{
 
@@ -336,6 +418,10 @@ class JsonUUInt64Property : public JsonUNumericProperty
 public:
 	JsonUUInt64Property() { Init("UUInt64Property"); }
 
+	std::string JsonName() override
+	{
+		return "UUInt64Property";
+	}
 	void InitData() override
 	{
 
@@ -347,6 +433,10 @@ class JsonUInt8Property : public JsonUNumericProperty
 public:
 	JsonUInt8Property() { Init("UInt8Property"); }
 
+	std::string JsonName() override
+	{
+		return "UInt8Property";
+	}
 	void InitData() override
 	{
 
@@ -358,6 +448,10 @@ class JsonUInt16Property : public JsonUNumericProperty
 public:
 	JsonUInt16Property() { Init("UInt16Property"); }
 
+	std::string JsonName() override
+	{
+		return "UInt16Property";
+	}
 	void InitData() override
 	{
 
@@ -369,6 +463,10 @@ class JsonUIntProperty : public JsonUNumericProperty
 public:
 	JsonUIntProperty() { Init("UIntProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UIntProperty";
+	}
 	void InitData() override
 	{
 
@@ -380,6 +478,10 @@ class JsonUInt64Property : public JsonUNumericProperty
 public:
 	JsonUInt64Property() { Init("UInt64Property"); }
 
+	std::string JsonName() override
+	{
+		return "UInt64Property";
+	}
 	void InitData() override
 	{
 
@@ -391,6 +493,10 @@ class JsonUFloatProperty : public JsonUNumericProperty
 public:
 	JsonUFloatProperty() { Init("UFloatProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UFloatProperty";
+	}
 	void InitData() override
 	{
 
@@ -402,6 +508,10 @@ class JsonUDoubleProperty : public JsonUNumericProperty
 public:
 	JsonUDoubleProperty() { Init("UDoubleProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UDoubleProperty";
+	}
 	void InitData() override
 	{
 
@@ -417,6 +527,10 @@ public:
 	uint8_t ByteMask = 0;
 	uint8_t FieldMask = 0;
 
+	std::string JsonName() override
+	{
+		return "UBoolProperty";
+	}
 	void InitData() override
 	{
 		FieldSize = GetVar("FieldSize").ReadAs<uint8_t>();
@@ -432,6 +546,10 @@ public:
 	JsonUObjectPropertyBase() { Init("UObjectPropertyBase"); }
 	JsonUClass* PropertyClass = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UObjectPropertyBase";
+	}
 	void InitData() override
 	{
 		PropertyClass = GetVar("PropertyClass").ReadAsPStruct<JsonUClass>();
@@ -443,6 +561,10 @@ class JsonUObjectProperty : public JsonUObjectPropertyBase
 public:
 	JsonUObjectProperty() { Init("UObjectProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UObjectProperty";
+	}
 	void InitData() override
 	{
 
@@ -455,6 +577,10 @@ public:
 	JsonUClassProperty() { Init("UClassProperty"); }
 	JsonUClass* MetaClass = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UClassProperty";
+	}
 	void InitData() override
 	{
 		MetaClass = GetVar("MetaClass").ReadAsPStruct<JsonUClass>();
@@ -467,6 +593,10 @@ public:
 	JsonUInterfaceProperty() { Init("UInterfaceProperty"); }
 	JsonUClass* InterfaceClass = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UInterfaceProperty";
+	}
 	void InitData() override
 	{
 		InterfaceClass = GetVar("InterfaceClass").ReadAsPStruct<JsonUClass>();
@@ -478,7 +608,10 @@ class JsonUWeakObjectProperty : public JsonUObjectPropertyBase
 public:
 	JsonUWeakObjectProperty() { Init("UWeakObjectProperty"); }
 
-
+	std::string JsonName() override
+	{
+		return "UWeakObjectProperty";
+	}
 	void InitData() override
 	{
 
@@ -490,6 +623,10 @@ class JsonULazyObjectProperty : public JsonUObjectPropertyBase
 public:
 	JsonULazyObjectProperty() { Init("ULazyObjectProperty"); }
 
+	std::string JsonName() override
+	{
+		return "ULazyObjectProperty";
+	}
 	void InitData() override
 	{
 
@@ -501,6 +638,10 @@ class JsonUAssetObjectProperty : public JsonUObjectPropertyBase
 public:
 	JsonUAssetObjectProperty() { Init("UAssetObjectProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UAssetObjectProperty";
+	}
 	void InitData() override
 	{
 
@@ -513,6 +654,10 @@ public:
 	JsonUAssetClassProperty() { Init("UAssetClassProperty"); }
 	JsonUClass* MetaClass = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UAssetClassProperty";
+	}
 	void InitData() override
 	{
 		MetaClass = GetVar("MetaClass").ReadAsPStruct<JsonUClass>();
@@ -524,6 +669,10 @@ class JsonUNameProperty : public JsonUProperty
 public:
 	JsonUNameProperty() { Init("UNameProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UNameProperty";
+	}
 	void InitData() override
 	{
 
@@ -536,6 +685,10 @@ public:
 	JsonUStructProperty() { Init("UStructProperty"); }
 	JsonUScriptStruct* Struct = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UStructProperty";
+	}
 	void InitData() override
 	{
 		Struct = GetVar("Struct").ReadAsPStruct<JsonUScriptStruct>();
@@ -547,6 +700,10 @@ class JsonUStrProperty : public JsonUProperty
 public:
 	JsonUStrProperty() { Init("UStrProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UStrProperty";
+	}
 	void InitData() override
 	{
 
@@ -558,6 +715,10 @@ class JsonUTextProperty : public JsonUProperty
 public:
 	JsonUTextProperty() { Init("UTextProperty"); }
 
+	std::string JsonName() override
+	{
+		return "UTextProperty";
+	}
 	void InitData() override
 	{
 
@@ -570,6 +731,10 @@ public:
 	JsonUArrayProperty() { Init("UArrayProperty"); }
 	JsonUProperty* Inner = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UArrayProperty";
+	}
 	void InitData() override
 	{
 		Inner = GetVar("Inner").ReadAsPStruct<JsonUProperty>();
@@ -583,6 +748,10 @@ public:
 	JsonUProperty* KeyProp = nullptr;
 	JsonUProperty* ValueProp = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UMapProperty";
+	}
 	void InitData() override
 	{
 		KeyProp = GetVar("KeyProp").ReadAsPStruct<JsonUProperty>();
@@ -596,6 +765,10 @@ public:
 	JsonUDelegateProperty() { Init("UDelegateProperty"); }
 	JsonUFunction* SignatureFunction = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UDelegateProperty";
+	}
 	void InitData() override
 	{
 		SignatureFunction = GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>();
@@ -608,6 +781,10 @@ public:
 	JsonUMulticastDelegateProperty() { Init("UMulticastDelegateProperty"); }
 	JsonUFunction* SignatureFunction = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UMulticastDelegateProperty";
+	}
 	void InitData() override
 	{
 		SignatureFunction = GetVar("SignatureFunction").ReadAsPStruct<JsonUFunction>();
@@ -621,6 +798,10 @@ public:
 	JsonUNumericProperty* UnderlyingProp = nullptr;
 	JsonUEnum* Enum = nullptr;
 
+	std::string JsonName() override
+	{
+		return "UEnumProperty";
+	}
 	void InitData() override
 	{
 		UnderlyingProp = GetVar("UnderlyingProp").ReadAsPStruct<JsonUNumericProperty>();

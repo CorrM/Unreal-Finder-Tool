@@ -58,19 +58,11 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 			continue;
 		}
 
-		ReadUObject(dwUObject, GObjObjects[i]);
+		GObjObjects[i].ReadData(dwUObject);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		GObjectsCount++;
 	}
 	return true;
-}
-
-bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonUObject& uObject)
-{
-	uObject.Init("UObject");
-
-	// Alloc and Read the address as class
-	return uObject.ReadData(uObjectAddress);
 }
 
 void* ObjectsStore::GetAddress()
