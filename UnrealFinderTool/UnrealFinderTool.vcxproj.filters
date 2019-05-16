@@ -132,9 +132,6 @@
     <ClInclude Include="SdkGen\MainEngineClasses.h">
       <Filter>SdkGen</Filter>
     </ClInclude>
-    <ClInclude Include="JsonTypes.h">
-      <Filter>Json</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

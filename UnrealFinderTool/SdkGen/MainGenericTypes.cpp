@@ -15,22 +15,18 @@ size_t UEObject::GetIndex() const
 }
 UEClass UEObject::GetClass() const
 {
-	return UEClass(object->Class, true);
+	return UEClass(object->Class);
 }
 UEObject UEObject::GetOuter() const
 {
-	return UEObject(object->Outer, false);
+	return UEObject(object->Outer);
 }
 std::string UEObject::GetName() const
 {
-	auto cName = object->Name;
-	if (cName.Index == 0)
-		return "";
-
-	auto name = NamesStore().GetById(cName.Index);
-	if (cName.Number > 0)
+	auto name = NamesStore().GetById(object->Name.ComparisonIndex);
+	if (object->Name.Number > 0)
 	{
-		name += '_' + std::to_string(cName.Number);
+		name += '_' + std::to_string(object->Name.Number);
 	}
 
 	auto pos = name.rfind('/');
@@ -41,37 +37,36 @@ std::string UEObject::GetName() const
 
 	return name.substr(pos + 1);
 }
-bool UEObject::IsValid() const
-{
-	return object != nullptr && object->IsValid();
-}
 UEClass UEObject::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Object");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEField
 //---------------------------------------------------------------------------
 UEField UEField::GetNext() const
 {
-	return UEField(static_cast<JsonUField*>(object)->Next, true);
+	return UEField(static_cast<UField*>(object)->Next);
 }
+
 //---------------------------------------------------------------------------
 UEClass UEField::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Field");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEEnum
 //---------------------------------------------------------------------------
 std::vector<std::string> UEEnum::GetNames() const
 {
 	std::vector<std::string> buffer;
-	auto names = static_cast<JsonUEnum*>(object)->Names;
+	auto& names = static_cast<UEnum*>(object)->Names;
 
-	for (auto i = 0; i < names.Count; ++i)
+	for (auto i = 0; i < names.Num; ++i)
 	{
 		// buffer.push_back(NamesStore().GetById(names[i].Key.ComparisonIndex));
 	}
@@ -83,6 +78,7 @@ UEClass UEEnum::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Enum");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEConst
 //---------------------------------------------------------------------------
@@ -93,28 +89,30 @@ std::string UEConst::GetValue() const
 UEClass UEConst::StaticClass()
 {
 	//not supported by UE4
-	return UEClass();
+	return nullptr;
 }
+
 //---------------------------------------------------------------------------
 //UEStruct
 //---------------------------------------------------------------------------
 UEStruct UEStruct::GetSuper() const
 {
-	return UEStruct(static_cast<JsonUStruct*>(object)->SuperField, true);
+	return UEStruct(static_cast<UStruct*>(object)->SuperField);
 }
 UEField UEStruct::GetChildren() const
 {
-	return UEField(static_cast<JsonUStruct*>(object)->Children, true);
+	return UEField(static_cast<UStruct*>(object)->Children);
 }
 size_t UEStruct::GetPropertySize() const
 {
-	return static_cast<JsonUStruct*>(object)->PropertySize;
+	return static_cast<UStruct*>(object)->PropertySize;
 }
 UEClass UEStruct::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Struct");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEScriptStruct
 //---------------------------------------------------------------------------
@@ -123,18 +121,20 @@ UEClass UEScriptStruct::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.ScriptStruct");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEFunction
 //---------------------------------------------------------------------------
 UEFunctionFlags UEFunction::GetFunctionFlags() const
 {
-	return static_cast<UEFunctionFlags>(static_cast<JsonUFunction*>(object)->FunctionFlags);
+	return static_cast<UEFunctionFlags>(static_cast<UFunction*>(object)->FunctionFlags);
 }
 UEClass UEFunction::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Function");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEClass
 //---------------------------------------------------------------------------
@@ -143,30 +143,32 @@ UEClass UEClass::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Class");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEProperty
 //---------------------------------------------------------------------------
 size_t UEProperty::GetArrayDim() const
 {
-	return static_cast<JsonUProperty*>(object)->ArrayDim;
+	return static_cast<UProperty*>(object)->ArrayDim;
 }
 size_t UEProperty::GetElementSize() const
 {
-	return static_cast<JsonUProperty*>(object)->ElementSize;
+	return static_cast<UProperty*>(object)->ElementSize;
 }
 UEPropertyFlags UEProperty::GetPropertyFlags() const
 {
-	return static_cast<UEPropertyFlags>(static_cast<JsonUProperty*>(object)->PropertyFlags.A);
+	return static_cast<UEPropertyFlags>(static_cast<UProperty*>(object)->PropertyFlags.A);
 }
 size_t UEProperty::GetOffset() const
 {
-	return static_cast<JsonUProperty*>(object)->Offset;
+	return static_cast<UProperty*>(object)->Offset;
 }
 UEClass UEProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Property");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UENumericProperty
 //---------------------------------------------------------------------------
@@ -175,12 +177,13 @@ UEClass UENumericProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.NumericProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEByteProperty
 //---------------------------------------------------------------------------
 UEEnum UEByteProperty::GetEnum() const
 {
-	return UEEnum(static_cast<JsonUByteProperty*>(object)->Enum, true);
+	return UEEnum(static_cast<UByteProperty*>(object)->Enum);
 }
 UEProperty::Info UEByteProperty::GetInfo() const
 {
@@ -231,6 +234,7 @@ UEClass UEUInt64Property::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.UInt64Property");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEInt8Property
 //---------------------------------------------------------------------------
@@ -243,6 +247,7 @@ UEClass UEInt8Property::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int8Property");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEInt16Property
 //---------------------------------------------------------------------------
@@ -255,6 +260,7 @@ UEClass UEInt16Property::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int16Property");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEIntProperty
 //---------------------------------------------------------------------------
@@ -267,6 +273,7 @@ UEClass UEIntProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.IntProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEInt64Property
 //---------------------------------------------------------------------------
@@ -279,6 +286,7 @@ UEClass UEInt64Property::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int64Property");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEFloatProperty
 //---------------------------------------------------------------------------
@@ -291,6 +299,7 @@ UEClass UEFloatProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.FloatProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEDoubleProperty
 //---------------------------------------------------------------------------
@@ -303,24 +312,25 @@ UEClass UEDoubleProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.DoubleProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEBoolProperty
 //---------------------------------------------------------------------------
 uint8_t UEBoolProperty::GetFieldSize() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->FieldSize;
+	return static_cast<UBoolProperty*>(object)->FieldSize;
 }
 uint8_t UEBoolProperty::GetByteOffset() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->ByteOffset;
+	return static_cast<UBoolProperty*>(object)->ByteOffset;
 }
 uint8_t UEBoolProperty::GetByteMask() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->ByteMask;
+	return static_cast<UBoolProperty*>(object)->ByteMask;
 }
 uint8_t UEBoolProperty::GetFieldMask() const
 {
-	return static_cast<JsonUBoolProperty*>(object)->FieldMask;
+	return static_cast<UBoolProperty*>(object)->FieldMask;
 }
 UEProperty::Info UEBoolProperty::GetInfo() const
 {
@@ -335,18 +345,20 @@ UEClass UEBoolProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.BoolProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEObjectPropertyBase
 //---------------------------------------------------------------------------
 UEClass UEObjectPropertyBase::GetPropertyClass() const
 {
-	return UEClass(static_cast<JsonUObjectPropertyBase*>(object)->PropertyClass, true);
+	return UEClass(static_cast<UObjectPropertyBase*>(object)->PropertyClass);
 }
 UEClass UEObjectPropertyBase::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.ObjectPropertyBase");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEObjectProperty
 //---------------------------------------------------------------------------
@@ -359,12 +371,13 @@ UEClass UEObjectProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.ObjectProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEClassProperty
 //---------------------------------------------------------------------------
 UEClass UEClassProperty::GetMetaClass() const
 {
-	return UEClass(static_cast<JsonUClassProperty*>(object)->MetaClass, true);
+	return UEClass(static_cast<UClassProperty*>(object)->MetaClass);
 }
 UEProperty::Info UEClassProperty::GetInfo() const
 {
@@ -375,12 +388,13 @@ UEClass UEClassProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.ClassProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEInterfaceProperty
 //---------------------------------------------------------------------------
 UEClass UEInterfaceProperty::GetInterfaceClass() const
 {
-	return UEClass(static_cast<JsonUInterfaceProperty*>(object)->InterfaceClass, true);
+	return UEClass(static_cast<UInterfaceProperty*>(object)->InterfaceClass);
 }
 UEProperty::Info UEInterfaceProperty::GetInfo() const
 {
@@ -391,6 +405,7 @@ UEClass UEInterfaceProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.InterfaceProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEWeakObjectProperty
 //---------------------------------------------------------------------------
@@ -403,6 +418,7 @@ UEClass UEWeakObjectProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.WeakObjectProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UELazyObjectProperty
 //---------------------------------------------------------------------------
@@ -415,6 +431,7 @@ UEClass UELazyObjectProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.LazyObjectProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEAssetObjectProperty
 //---------------------------------------------------------------------------
@@ -427,12 +444,13 @@ UEClass UEAssetObjectProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.AssetObjectProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEAssetClassProperty
 //---------------------------------------------------------------------------
 UEClass UEAssetClassProperty::GetMetaClass() const
 {
-	return UEClass(static_cast<JsonUAssetClassProperty*>(object)->MetaClass, true);
+	return UEClass(static_cast<UAssetClassProperty*>(object)->MetaClass);
 }
 UEProperty::Info UEAssetClassProperty::GetInfo() const
 {
@@ -443,6 +461,7 @@ UEClass UEAssetClassProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.AssetClassProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UENameProperty
 //---------------------------------------------------------------------------
@@ -455,12 +474,13 @@ UEClass UENameProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.NameProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEStructProperty
 //---------------------------------------------------------------------------
 UEScriptStruct UEStructProperty::GetStruct() const
 {
-	return UEScriptStruct(static_cast<JsonUStructProperty*>(object)->Struct, true);
+	return UEScriptStruct(static_cast<UStructProperty*>(object)->Struct);
 }
 UEProperty::Info UEStructProperty::GetInfo() const
 {
@@ -471,6 +491,7 @@ UEClass UEStructProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.StructProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEStrProperty
 //---------------------------------------------------------------------------
@@ -483,6 +504,7 @@ UEClass UEStrProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.StrProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UETextProperty
 //---------------------------------------------------------------------------
@@ -495,12 +517,13 @@ UEClass UETextProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.TextProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEArrayProperty
 //---------------------------------------------------------------------------
 UEProperty UEArrayProperty::GetInner() const
 {
-	return UEProperty(static_cast<JsonUArrayProperty*>(object)->Inner, true);
+	return UEProperty(static_cast<UArrayProperty*>(object)->Inner);
 }
 UEProperty::Info UEArrayProperty::GetInfo() const
 {
@@ -519,16 +542,17 @@ UEClass UEArrayProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.ArrayProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEMapProperty
 //---------------------------------------------------------------------------
 UEProperty UEMapProperty::GetKeyProperty() const
 {
-	return UEProperty(static_cast<JsonUMapProperty*>(object)->KeyProp, true);
+	return UEProperty(static_cast<UMapProperty*>(object)->KeyProp);
 }
 UEProperty UEMapProperty::GetValueProperty() const
 {
-	return UEProperty(static_cast<JsonUMapProperty*>(object)->ValueProp, true);
+	return UEProperty(static_cast<UMapProperty*>(object)->ValueProp);
 }
 UEProperty::Info UEMapProperty::GetInfo() const
 {
@@ -548,12 +572,13 @@ UEClass UEMapProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.MapProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEDelegateProperty
 //---------------------------------------------------------------------------
 UEFunction UEDelegateProperty::GetSignatureFunction() const
 {
-	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction, true);
+	return UEFunction(static_cast<UDelegateProperty*>(object)->SignatureFunction);
 }
 UEProperty::Info UEDelegateProperty::GetInfo() const
 {
@@ -564,12 +589,13 @@ UEClass UEDelegateProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.DelegateProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEMulticastDelegateProperty
 //---------------------------------------------------------------------------
 UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 {
-	return UEFunction(static_cast<JsonUDelegateProperty*>(object)->SignatureFunction, true);
+	return UEFunction(static_cast<UDelegateProperty*>(object)->SignatureFunction);
 }
 UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
 {
@@ -580,16 +606,17 @@ UEClass UEMulticastDelegateProperty::StaticClass()
 	static auto c = ObjectsStore().FindClass("Class CoreUObject.MulticastDelegateProperty");
 	return c;
 }
+
 //---------------------------------------------------------------------------
 //UEEnumProperty
 //---------------------------------------------------------------------------
 UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 {
-	return UENumericProperty(static_cast<JsonUEnumProperty*>(object)->UnderlyingProp, true);
+	return UENumericProperty(static_cast<UEnumProperty*>(object)->UnderlyingProp);
 }
 UEEnum UEEnumProperty::GetEnum() const
 {
-	return UEEnum(static_cast<JsonUEnumProperty*>(object)->Enum, true);
+	return UEEnum(static_cast<UEnumProperty*>(object)->Enum);
 }
 UEProperty::Info UEEnumProperty::GetInfo() const
 {

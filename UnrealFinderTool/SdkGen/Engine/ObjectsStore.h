@@ -1,7 +1,7 @@
 #pragma once
 #include "GenericTypes.h"
 #include <unordered_map>
-#include "JsonTypes.h"
+#include "JsonReflector.h"
 
 class ObjectsIterator;
 class Memory;
@@ -12,9 +12,10 @@ class ObjectsStore
 	static uintptr_t gObjAddress;
 
 	static bool FetchData();
-	static bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
+	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkUObject& retObj);
 public:
-	static JsonUObject* GObjObjects;
+	static SdkUObject* GObjObjects;
 	static int GObjectsCount;
 	/// <summary>
 	/// Initializes this object.
@@ -81,7 +82,7 @@ public:
 class ObjectsIterator : public std::iterator<std::forward_iterator_tag, UEObject>
 {
 	const ObjectsStore& store;
-	int index;
+	size_t index;
 	UEObject current;
 
 public:

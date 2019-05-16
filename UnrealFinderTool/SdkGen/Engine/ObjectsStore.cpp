@@ -1,11 +1,11 @@
 #include "pch.h"
-#include "ObjectsStore.h"
-#include "../MainEngineClasses.h"
 #include "Utils.h"
 #include "Memory.h"
+#include "../MainEngineClasses.h"
+#include "ObjectsStore.h"
 #include <cassert>
 
-JsonUObject* ObjectsStore::GObjObjects;
+SdkUObject* ObjectsStore::GObjObjects;
 Memory* ObjectsStore::mem;
 int ObjectsStore::GObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
@@ -22,7 +22,7 @@ bool ObjectsStore::Initialize(Memory* mem, const uintptr_t gObjAddress)
 bool ObjectsStore::FetchData()
 {
 	// GObjects
-	JsonFUObjectArray jsonGObjectsReader;
+	JsonStruct jsonGObjectsReader;
 	if (!ReadUObjectArray(gObjAddress, jsonGObjectsReader))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
@@ -32,24 +32,24 @@ bool ObjectsStore::FetchData()
 	return true;
 }
 
-bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& objectArray)
+bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
+	JsonStruct fUObjectItem, uObject;
 	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonFUObjectItem fUObjectItem;
 	
-	if (!objectArray.ReadData(address)) return false;
-	auto objObjects = objectArray.ObjObjects;
-	int num = objObjects.NumElements;
+	if (!objectArray.ReadData(address, "FUObjectArray")) return false;
+	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
+	int num = objObjects["NumElements"].ReadAs<int>();
 
-	GObjObjects = new JsonUObject[num];
-	uintptr_t currentFUObjAddress = objObjects.Objects;
+	GObjObjects = new SdkUObject[num];
+	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
-		if (!fUObjectItem.ReadData(currentFUObjAddress)) return false;
+		if (!fUObjectItem.ReadData(currentFUObjAddress, "FUObjectItem")) return false;
 
 		// Convert class pointer to address
-		uintptr_t dwUObject = fUObjectItem.Object;
+		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
@@ -58,12 +58,23 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonFUObjectArray& 
 			continue;
 		}
 
-		GObjObjects[i].ReadData(dwUObject);
+		ReadUObject(dwUObject, uObject, GObjObjects[i]);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		GObjectsCount++;
 	}
 	return true;
 }
+
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, SdkUObject& retObj)
+{
+	// Alloc and Read the address as class
+	if (!uObject.ReadData(uObjectAddress, "UObject")) return false;
+
+	retObj.ObjAddress = uObjectAddress;
+	retObj = uObject;
+	return true;
+}
+
 
 void* ObjectsStore::GetAddress()
 {
@@ -77,7 +88,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(&GObjObjects[id], false);
+	return UEObject(&GObjObjects[id]);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -89,7 +100,7 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 			return obj.Cast<UEClass>();
 		}
 	}
-	return UEClass(nullptr, false);
+	return UEClass(nullptr);
 }
 #pragma endregion
 

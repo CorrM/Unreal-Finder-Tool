@@ -6,6 +6,7 @@
 #include "Logger.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
+#include "JsonReflector.h"
 #include "SdkGenerator.h"
 
 #include <fstream>
@@ -14,8 +15,6 @@
 #include <unordered_set>
 #include <tlhelp32.h>
 #include <bitset>
-#include "JsonTypes.h"
-
 extern IGenerator* generator;
 
 SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const uintptr_t gNamesAddress)

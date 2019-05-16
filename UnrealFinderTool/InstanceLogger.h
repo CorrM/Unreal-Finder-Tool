@@ -1,6 +1,6 @@
 #pragma once
 #include "Memory.h"
-#include "JsonTypes.h"
+#include "JsonReflector.h"
 
 struct GObject
 {
@@ -27,8 +27,8 @@ class InstanceLogger
 	std::string GetName(int fNameIndex, bool& success);
 	std::string GetName(GObject obj);
 	bool FetchData();
-	bool ReadUObjectArray(uintptr_t address, JsonFUObjectArray& objectArray);
-	bool ReadUObject(uintptr_t uObjectAddress, JsonUObject& uObject, GObject& retObj);
+	bool ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();

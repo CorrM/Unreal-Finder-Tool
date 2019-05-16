@@ -170,7 +170,6 @@
     <ClInclude Include="InstanceLogger.h" />
     <ClInclude Include="JsonReflector.h" />
     <ClInclude Include="json.hpp" />
-    <ClInclude Include="JsonTypes.h" />
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="PatternScan.h" />

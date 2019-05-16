@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 #include <vector>
 #include <array>
@@ -7,49 +6,47 @@
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
 #include "../IGenerator.h"
-#include "JsonTypes.h"
 
+class SdkUObject;
 class UEClass;
 
 class UEObject
 {
-	bool delAfterUse;
 public:
-	UEObject() : delAfterUse(false), object(nullptr)
+	UEObject()
+		: object(nullptr)
 	{
 	}
-	UEObject(JsonUObject* object, const bool delAfterUse) : delAfterUse(delAfterUse), object(object)
+	UEObject(SdkUObject* object)
+		: object(object)
 	{
 	}
-	~UEObject()
-	{
-		if (delAfterUse && object != nullptr && object->IsPointerStruct)
-		{
-			delete object;
-		}
-	}
-	bool IsValid() const;
-	size_t GetIndex() const;
-	UEClass GetClass() const;
-	UEObject GetOuter() const;
-	std::string GetName() const;
-	std::string GetFullName() const;
-	std::string GetNameCPP() const;
-	UEObject GetPackageObject() const;
-	void* GetAddress() const;
 
-	// Don't delete the full UEObject just set a new JsonUObject / Good for safe memory delete.
-	// Best example is get outer of another outer.
-	void operator=(JsonUObject* newObj)
+	bool IsValid() const
 	{
-		delete object;
-		object = newObj;
+		return object != nullptr;
 	}
+
+	size_t GetIndex() const;
+
+	UEClass GetClass() const;
+
+	UEObject GetOuter() const;
+
+	std::string GetName() const;
+
+	std::string GetFullName() const;
+
+	std::string GetNameCPP() const;
+
+	UEObject GetPackageObject() const;
+
+	void* GetAddress() const;
 
 	template<typename Base>
 	Base Cast() const
 	{
-		return Base(object, false);
+		return Base(object);
 	}
 
 	template<typename T>
@@ -58,7 +55,7 @@ public:
 	static UEClass StaticClass();
 
 protected:
-	JsonUObject* object;
+	SdkUObject* object;
 };
 
 namespace std

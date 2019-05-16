@@ -34,7 +34,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize(mem);
 	int sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonFNameEntity fName;
+	JsonStruct fName;
 
 	if (!mem->Is64Bit)
 		address = mem->ReadInt(address);
@@ -84,7 +84,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 			}
 
 			// Read FName
-			if (!fName.ReadData(fNameAddress)) return false;
+			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
 
 			// Set The Name
 			gNames[i].Index = i;

@@ -2,11 +2,10 @@
 #include "json.hpp"
 
 class JsonVar;
-class JsonDefault;
 class JsonStruct;
 class Memory;
 
-using JsonStructs = std::map<std::string, JsonDefault>;
+using JsonStructs = std::map<std::string, JsonStruct>;
 using JsonVariables = std::map<std::string, JsonVar>;
 
 class JsonReflector
@@ -117,7 +116,7 @@ public:
 	// Set local data Pointer
 	void SetAllocPointer(void* newAddress);
 	// Read game data, set date to local memory and fix pointer if needed
-	bool ReadData(uintptr_t address);
+	bool ReadData(uintptr_t address, const std::string& structType);
 	// Get local data Pointer
 	void* GetAllocPointer();
 	// Access to variable inside this struct
@@ -131,6 +130,5 @@ public:
 	// 
 	void FixStructData();
 	// This function for init derived variables data, (set data to derived variables)
-	virtual void InitData() = 0;
-	virtual std::string JsonName() = 0;
+	void InitData();
 };

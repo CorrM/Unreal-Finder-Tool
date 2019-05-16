@@ -9,7 +9,7 @@ void* UEObject::GetAddress() const
 UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	UEObject package(nullptr, false);
+	UEObject package(nullptr);
 
 	for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 	{

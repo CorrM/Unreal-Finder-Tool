@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "JsonTypes.h"
+#include "JsonReflector.h"
 #include <fstream>
 #include <Memory.h>
 #include "Utils.h"
@@ -64,7 +64,7 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 		const std::string eName = parent.value().at("name");
 		if (eName == structName)
 		{
-			JsonDefault tempToSave;
+			JsonStruct tempToSave;
 			JsonVariables vars;
 			int structSize = 0;
 			size_t offset = 0;
@@ -148,7 +148,7 @@ bool JsonReflector::Load(void* jsonObj)
 		// Check is already here
 		if (StructsList.find(eName) != StructsList.end()) continue;
 
-		JsonDefault tempToSave;
+		JsonStruct tempToSave;
 		JsonVariables vars;
 		int structSize = 0;
 		size_t offset = 0;
@@ -307,8 +307,8 @@ JsonStruct::JsonStruct() = default;
 
 JsonStruct::~JsonStruct()
 {
-	//if (_init && !AllocChanged && IsPointerStruct)
-	//	free(allocPointer);
+	if (_init && !AllocChanged && IsPointerStruct)
+		free(allocPointer);
 }
 
 void* JsonStruct::GetAllocPointer()
@@ -321,8 +321,11 @@ void JsonStruct::SetAllocPointer(void* newAddress)
 	allocPointer = newAddress;
 }
 
-bool JsonStruct::ReadData(const uintptr_t address)
+bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType)
 {
+	if (!_init)
+		Init(structType);
+
 	int sSub = 0;
 	if (Utils::ProgramIs64() && !JsonReflector::MemoryObj->Is64Bit)
 	{
@@ -380,6 +383,10 @@ void JsonStruct::Init(const std::string& structName, const bool alloc)
 void JsonStruct::FixStructData()
 {
 	Utils::FixPointersInStruct(this, JsonReflector::MemoryObj->Is64Bit);
+}
+
+void JsonStruct::InitData()
+{
 }
 
 // -------------------------------------------------
@@ -481,7 +488,7 @@ JsonStruct* JsonVar::ReadAsStruct()
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
 
-	StructVars = new JsonDefault(sStructIt->second);
+	StructVars = new JsonStruct(sStructIt->second);
 	StructVars->AllocChanged = true;
 	StructVars->Init(Type, false);
 	StructVars->SetAllocPointer(reinterpret_cast<void*>(calcAddress));
@@ -511,11 +518,11 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 	if (calcAddress == NULL)
 		return nullptr;
 
-	StructVars = new JsonDefault(sStructIt->second);
+	StructVars = new JsonStruct(sStructIt->second);
 	StructVars->Init(ptrType);
 	StructVars->IsPointerStruct = true;
 	
-	if (!StructVars->ReadData(calcAddress))
+	if (!StructVars->ReadData(calcAddress, ptrType))
 		throw std::exception(("Can't read game memory `" + std::to_string(calcAddress) + "`.").c_str());
 
 	return StructVars;

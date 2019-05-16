@@ -2,23 +2,32 @@
 #include <string>
 #include <windows.h>
 
+class UClass;
+class SdkUObject;
+
 struct FPointer
 {
 	uintptr_t Dummy;
 };
 
-/*
 struct FQWord
 {
 	int A;
 	int B;
 };
-*/
 
 struct FName
 {
 	int32_t ComparisonIndex;
 	int32_t Number;
+
+	FName(): ComparisonIndex(0), Number(0)
+	{
+	}
+
+	FName(const int32_t index, const int32_t number): ComparisonIndex(index), Number(number)
+	{
+	}
 };
 
 template<class T>
@@ -80,17 +89,16 @@ struct FString : public TArray<wchar_t>
 
 class FScriptInterface
 {
-private:
-	JsonUObject* ObjectPointer;
-	void* InterfacePointer;
+	SdkUObject* ObjectPointer = nullptr;
+	void* InterfacePointer = nullptr;
 
 public:
-	JsonUObject* GetObject() const
+	SdkUObject* GetObject() const
 	{
 		return ObjectPointer;
 	}
 
-	JsonUObject*& GetObjectRef()
+	SdkUObject*& GetObjectRef()
 	{
 		return ObjectPointer;
 	}
@@ -107,12 +115,12 @@ class TScriptInterface : public FScriptInterface
 public:
 	InterfaceType* operator->() const
 	{
-		return (InterfaceType*)GetInterface();
+		return reinterpret_cast<InterfaceType*>(GetInterface());
 	}
 
 	InterfaceType& operator*() const
 	{
-		return *((InterfaceType*)GetInterface());
+		return *reinterpret_cast<InterfaceType*>(GetInterface());
 	}
 
 	operator bool() const
@@ -179,35 +187,54 @@ struct FScriptMulticastDelegate
 	unsigned char UnknownData[16];
 };
 
-/*
-class UClass;
-class UObject
+class FUEnumItem
 {
 public:
-	FPointer VTableObject;
-	int32_t ObjectFlags;
-	int32_t InternalIndex;
-	UClass* Class;
-	FName Name;
-	UObject* Outer;
+	FName Key;
+	uint64_t Value = 0;
 };
 
+class TUEnumArray
+{
+public:
+	FUEnumItem* Data = nullptr;
+	int Max = 0;
+	int Num = 0;
+};
 
-class UField : public UObject
+class SdkUObject
+{
+public:
+	uintptr_t ObjAddress, VfTable;
+	int InternalIndex;
+	FName Name;
+	uintptr_t Class, Outer;
+
+	void operator=(JsonStruct& uObject)
+	{
+		VfTable = uObject["VfTable"].ReadAs<uintptr_t>();
+		InternalIndex = uObject["InternalIndex"].ReadAs<int>();
+		Class = uObject["Class"].ReadAs<uintptr_t>();
+		Outer = uObject["Outer"].ReadAs<uintptr_t>();
+
+		JsonStruct tmpFName = *uObject["Name"].ReadAsStruct();
+		Name = FName(tmpFName["index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
+	}
+};
+
+class UField : public SdkUObject
 {
 public:
 	UField* Next;
 };
 
-
 class UEnum : public UField
 {
 public:
 	FString CppType; //0x0030 
-	TArray<TPair<FName, uint64_t>> Names; //0x0040 
+	/*TArray<TPair<FName, uint64_t>> */TUEnumArray Names; //0x0040 
 	__int64 CppForm; //0x0050 
 };
-
 
 class UStruct : public UField
 {
@@ -218,7 +245,6 @@ public:
 	int32_t MinAlignment;
 	char pad_0x0048[0x40];
 };
-
 
 class UScriptStruct : public UStruct
 {
@@ -441,4 +467,3 @@ public:
 	class UNumericProperty* UnderlyingProp; //0x0070
 	class UEnum* Enum; //0x0078
 }; //Size: 0x0080
-*/
