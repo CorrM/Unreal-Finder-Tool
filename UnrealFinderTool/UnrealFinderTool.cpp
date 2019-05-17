@@ -20,11 +20,11 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 21408);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 11032);
 	auto memManager1 = new Memory(pHandle1, false);
 	Utils::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x7FF673961E70);
-	auto gNamesAddress = uintptr_t(0x7FF673959A20);
+	auto objObjectsAddress = uintptr_t(0x7FF789411E70);
+	auto gNamesAddress = uintptr_t(0x7FF789409A20);
 	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;

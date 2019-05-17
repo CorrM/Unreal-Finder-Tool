@@ -49,7 +49,7 @@ public:
 
 	bool Update(const UEObject& newObject);
 
-	bool Update(const SdkUObject* newObject);
+	bool Update(SdkUObject* newObject);
 
 	template<typename Base>
 	Base Cast() const
@@ -62,7 +62,6 @@ public:
 
 	static UEClass StaticClass();
 
-protected:
 	SdkUObject* object;
 };
 
@@ -540,7 +539,7 @@ bool UEObject::IsA() const
 	UEClass super = GetClass();
 	while (super.IsValid())
 	{
-		if (super.object == cmp.object)
+		if (super.object->IsEqual(cmp.object))
 		{
 			return true;
 		}

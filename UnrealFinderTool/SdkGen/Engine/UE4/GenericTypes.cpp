@@ -15,15 +15,21 @@ bool UEObject::Update(const UEObject& newObject)
 	if (newObject.object == nullptr || !Utils::IsValidAddress(reinterpret_cast<uintptr_t>(newObject.object)))
 		return false;
 
+	if (object->IsEqual(newObject.object))
+		return false;
+
 	*object = *newObject.object;
 	return true;
 }
 
-bool UEObject::Update(const SdkUObject* newObject)
+bool UEObject::Update(SdkUObject* newObject)
 {
 	if (object == nullptr)
 		object = new SdkUObject();
 	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject->ObjAddress))
+		return false;
+
+	if (object->IsEqual(newObject))
 		return false;
 
 	*object = *newObject;

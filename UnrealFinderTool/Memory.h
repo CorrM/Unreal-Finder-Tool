@@ -21,18 +21,20 @@ public:
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
 	template<typename T>
-	int Read(const uintptr_t address, T& type)
+	int Read(const uintptr_t address, T& type, const int skipLocalBytes = 0)
 	{
 		if (address == static_cast<uintptr_t>(-1))
 			return 0;
 
 		SIZE_T numberOfBytesActuallyRead = 0;
-		const SIZE_T numberOfBytesToRead = sizeof(T);
+		const SIZE_T numberOfBytesToRead = sizeof(T) - skipLocalBytes;
+
+		uintptr_t remoteAddress = reinterpret_cast<uintptr_t>(&type) + skipLocalBytes;
 
 		if (use_kernal)
-			bypa_ph->RWVM(bypa_ph->m_hTarget, reinterpret_cast<PVOID>(address), &type, numberOfBytesToRead, &numberOfBytesActuallyRead);
+			bypa_ph->RWVM(bypa_ph->m_hTarget, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
 		else
-			ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &type, numberOfBytesToRead, &numberOfBytesActuallyRead);
+			ReadProcessMemory(ProcessHandle, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
 
 		return numberOfBytesActuallyRead;
 	}

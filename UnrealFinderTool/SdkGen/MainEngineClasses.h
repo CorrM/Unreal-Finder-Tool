@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <windows.h>
+#include "../Utils.h"
 #include "../JsonReflector.h"
 
 class UClass;
@@ -206,11 +207,14 @@ public:
 class SdkUObject
 {
 public:
-	uintptr_t ObjAddress = 0, VfTable = 0;
+	uintptr_t ObjAddress = 0;
+
+	uintptr_t VfTable = 0;
 	int Flags = 0;
 	int InternalIndex = 0;
+	uintptr_t Class;
 	FName Name;
-	uintptr_t Class, Outer;
+	uintptr_t Outer;
 
 	void operator=(JsonStruct& uObject)
 	{
@@ -224,12 +228,28 @@ public:
 		JsonStruct tmpFName = *uObject["Name"].ReadAsStruct();
 		Name = FName(tmpFName["Index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
 	}
+
+	bool IsEqual(SdkUObject* toCheck)
+	{
+		return toCheck->InternalIndex == this->InternalIndex && toCheck->Name.ComparisonIndex == this->Name.ComparisonIndex;
+	}
+
+	template <typename SdkStruct>
+	SdkStruct Cast()
+	{
+		// it's like internal cast, but for remote process
+		SdkStruct castType;
+		Utils::MemoryObj->Read<SdkStruct>(this->ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+		return castType;
+	}
+
 };
 
 class UField : public SdkUObject
 {
 public:
-	UField* Next;
+	uintptr_t Next;
 };
 
 class UEnum : public UField
@@ -243,8 +263,8 @@ public:
 class UStruct : public UField
 {
 public:
-	UStruct* SuperField;
-	UField* Children;
+	uintptr_t SuperField;
+	uintptr_t Children;
 	int32_t PropertySize;
 	int32_t MinAlignment;
 	char pad_0x0048[0x40];
@@ -267,8 +287,8 @@ public:
 	__int16 ReturnValueOffset; //0x0092
 	__int16 RPCId; //0x0094
 	__int16 RPCResponseId; //0x0096
-	class UProperty* FirstPropertyToInit; //0x0098
-	UFunction* EventGraphFunction; //0x00A0
+	uintptr_t FirstPropertyToInit; //0x0098
+	uintptr_t EventGraphFunction; //0x00A0
 	__int32 EventGraphCallOffset; //0x00A8
 	char pad_0x00AC[0x4]; //0x00AC
 	void* Func; //0x00B0
@@ -301,7 +321,7 @@ public:
 class UByteProperty : public UNumericProperty
 {
 public:
-	UEnum*		Enum;										// 0x0088 (0x04)
+	uintptr_t		Enum;	// 0x0088 (0x04)
 };
 
 class UUInt16Property : public UNumericProperty
