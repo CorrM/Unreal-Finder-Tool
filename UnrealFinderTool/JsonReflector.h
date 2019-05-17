@@ -13,8 +13,6 @@ class JsonReflector
 	// Main json reader for structs
 	static nlohmann::json jsonObj;
 public:
-	// Main Memory reader for read game memory props
-	static Memory* MemoryObj;
 	// Contains all loaded structs
 	static JsonStructs StructsList;
 	// Read Json file into memory to be ready to load structs inside them

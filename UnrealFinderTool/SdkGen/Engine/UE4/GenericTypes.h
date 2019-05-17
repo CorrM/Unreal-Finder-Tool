@@ -6,26 +6,29 @@
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
 #include "../IGenerator.h"
+#include "../MainEngineClasses.h"
 
-class SdkUObject;
 class UEClass;
 
 class UEObject
 {
+	bool delAfterUse;
 public:
-	UEObject()
-		: object(nullptr)
-	{
-	}
-	UEObject(SdkUObject* object)
-		: object(object)
+	UEObject() : delAfterUse(false), object(nullptr)
 	{
 	}
 
-	bool IsValid() const
+	UEObject(SdkUObject* object, const bool delAfterUse = true)
+		: delAfterUse(delAfterUse), object(object)
 	{
-		return object != nullptr;
 	}
+	~UEObject()
+	{
+		if (delAfterUse)
+			delete object;
+	}
+
+	bool IsValid() const;
 
 	size_t GetIndex() const;
 
@@ -42,6 +45,11 @@ public:
 	UEObject GetPackageObject() const;
 
 	void* GetAddress() const;
+
+	void Update(const UEObject& newObject)
+	{
+		*object = *newObject.object;
+	}
 
 	template<typename Base>
 	Base Cast() const

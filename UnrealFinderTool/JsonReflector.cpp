@@ -6,7 +6,6 @@
 
 JsonStructs JsonReflector::StructsList;
 nlohmann::json JsonReflector::jsonObj;
-Memory* JsonReflector::MemoryObj;
 
 // -------------------------------------------------
 // JsonReflector
@@ -327,7 +326,7 @@ bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType
 		Init(structType);
 
 	int sSub = 0;
-	if (Utils::ProgramIs64() && !JsonReflector::MemoryObj->Is64Bit)
+	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
 	{
 		for (const auto& var : Vars)
 		{
@@ -340,7 +339,7 @@ bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType
 	}
 
 	// Read the address as class
-	if (JsonReflector::MemoryObj->ReadBytes(address, allocPointer, StructSize - sSub) == 0)
+	if (Utils::MemoryObj->ReadBytes(address, allocPointer, StructSize - sSub) == 0)
 		return false;
 
 	// Fix and set data
@@ -382,7 +381,7 @@ void JsonStruct::Init(const std::string& structName, const bool alloc)
 
 void JsonStruct::FixStructData()
 {
-	Utils::FixPointersInStruct(this, JsonReflector::MemoryObj->Is64Bit);
+	Utils::FixPointersInStruct(this, Utils::MemoryObj->Is64Bit);
 }
 
 void JsonStruct::InitData()
@@ -510,7 +509,7 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 		throw std::exception(("Can't find struct When try read as " + ptrType).c_str());
 
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(parent->GetAllocPointer()) + Offset;
-	if (JsonReflector::MemoryObj->Is64Bit)
+	if (Utils::MemoryObj->Is64Bit)
 		calcAddress = *reinterpret_cast<uintptr_t*>(calcAddress);
 	else
 		calcAddress = *reinterpret_cast<int*>(calcAddress);

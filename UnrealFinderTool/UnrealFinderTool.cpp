@@ -20,11 +20,11 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 5532);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 21408);
 	auto memManager1 = new Memory(pHandle1, false);
-	JsonReflector::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x7FF7621E1E70);
-	auto gNamesAddress = uintptr_t(0x7FF7621D9A20);
+	Utils::MemoryObj = memManager1;
+	auto objObjectsAddress = uintptr_t(0x7FF673961E70);
+	auto gNamesAddress = uintptr_t(0x7FF673959A20);
 	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
@@ -85,7 +85,7 @@ int main()
 	auto memManager = new Memory(pHandle, bUseKernal);
 	if (!bUseKernal) memManager->GetDebugPrivileges();
 
-	JsonReflector::MemoryObj = memManager;
+	Utils::MemoryObj = memManager;
 
 	if (tool_id == 1) // GNames Finder
 	{

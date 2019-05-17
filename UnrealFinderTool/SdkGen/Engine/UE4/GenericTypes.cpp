@@ -1,19 +1,22 @@
 #include "pch.h"
 #include "GenericTypes.h"
+#include "../MainEngineClasses.h"
 
 void* UEObject::GetAddress() const
 {
-	return object;
+	return reinterpret_cast<PVOID>(object->ObjAddress);
 }
 
 UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	UEObject package(nullptr);
+	UEObject package(nullptr, false);
 
-	for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+	UEObject outer = GetOuter();
+	while (outer.IsValid())
 	{
 		package = outer.object;
+		outer.Update(outer.GetOuter());
 	}
 
 	return package;
@@ -29,8 +32,8 @@ std::string UEObject::GetFullName() const
 		UEObject outer = GetOuter();
 		while (outer.IsValid())
 		{
-			temp = outer.GetName() + "." + temp;
-			outer = outer.GetOuter().object;
+			temp.insert(0, outer.GetName() + ".");
+			outer.Update(outer.GetOuter());
 		}
 
 		std::string name = cClass.GetName();

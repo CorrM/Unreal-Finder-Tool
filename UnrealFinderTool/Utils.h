@@ -1,13 +1,15 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Memory.h"
 #include "JsonReflector.h"
-
-class Memory;
 
 class Utils
 {
 public:
+	// Main Memory reader for read game memory props
+	static Memory* MemoryObj;
+
 	static bool LoadJsonCore();
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
@@ -29,7 +31,10 @@ public:
 	/// <param name="is64BitGame">Target game is 64bit game</param>
 	static void FixPointersInStruct(JsonStruct* structBase, bool is64BitGame);
 	static int PointerSize(Memory* mem);
+	// Check valid address in remote process
 	static bool IsValidAddress(Memory* mem, uintptr_t address);
+	// Check valid address in local process
+	static bool IsValidAddress(uintptr_t address);
 
 private:
 	/// <summary>

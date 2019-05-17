@@ -26,21 +26,21 @@ SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const ui
 
 void SdkGenerator::Start()
 {
-	std::cout << red << "[*] " << green << "Start Getting Objects." << std::endl;
+	std::cout << red << "[*] " << yellow << "Start Getting Objects : ";
 	if (!ObjectsStore::Initialize(_memory, gObjAddress))
 	{
-		std::cout << red << "[*] " << def << "Failed To Get Objects." << std::endl << def;
+		std::cout << red << "Failed To Get Objects." << std::endl;
 		return;
 	}
-	std::cout << green << "[+] " << yellow << "Getting Objects Successfully. Found [ " << red << ObjectsStore().GetObjectsNum() << yellow << " ]" << std::endl;
+	std::cout << green << "Found [ " << red << ObjectsStore().GetObjectsNum() << green << " ]" << std::endl;
 
-	std::cout << red << "[*] " << green << "Start Getting Names." << std::endl;
+	std::cout << red << "[*] " << yellow << "Start Getting Names   : ";
 	if (!NamesStore::Initialize(_memory, gNamesAddress))
 	{
-		std::cout << red << "[*] " << def << "Failed To Get Names." << std::endl << def;
+		std::cout << red << "Failed To Get Names." << std::endl;
 		return;
 	}
-	std::cout << green << "[+] " << yellow << "Getting Names Successfully.   Found [ " << red << NamesStore().GetNamesNum() << yellow << " ]" << std::endl;
+	std::cout << green << "Found [ " << red << NamesStore().GetNamesNum() << green << " ]" << std::endl;
 
 	if (!generator->Initialize())
 	{
@@ -63,7 +63,7 @@ void SdkGenerator::Start()
 	Logger::SetStream(&log);
 
 	
-	if (generator->ShouldDumpArrays())
+	if (!generator->ShouldDumpArrays())
 	{
 		Dump(outputDirectory);
 	}

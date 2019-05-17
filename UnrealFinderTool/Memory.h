@@ -20,9 +20,23 @@ public:
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
-	template <class T>
-	int Read(uintptr_t address, T& type);
-	int ReadBytes(const uintptr_t address, PVOID buf, const uint32_t len);
+	template<typename T>
+	int Read(const uintptr_t address, T& type)
+	{
+		if (address == static_cast<uintptr_t>(-1))
+			return 0;
+
+		SIZE_T numberOfBytesActuallyRead = 0;
+		const SIZE_T numberOfBytesToRead = sizeof(T);
+
+		if (use_kernal)
+			bypa_ph->RWVM(bypa_ph->m_hTarget, reinterpret_cast<PVOID>(address), &type, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		else
+			ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &type, numberOfBytesToRead, &numberOfBytesActuallyRead);
+
+		return numberOfBytesActuallyRead;
+	}
+	int ReadBytes(uintptr_t address, PVOID buf, uint32_t len);
 	bool ReadBool(uintptr_t address);
 	int ReadInt(uintptr_t address);
 	INT64 ReadInt64(uintptr_t address);

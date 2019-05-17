@@ -75,7 +75,6 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 	return true;
 }
 
-
 void* ObjectsStore::GetAddress()
 {
 	return reinterpret_cast<void*>(gObjAddress);
@@ -88,7 +87,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(&GObjObjects[id]);
+	return UEObject(&GObjObjects[id], false);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

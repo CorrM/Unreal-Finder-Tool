@@ -5,21 +5,40 @@
 #include "NamesStore.h"
 #include "NameValidator.h"
 #include "MainEngineClasses.h"
+#include "Utils.h"
 
 //---------------------------------------------------------------------------
 //UEObject
 //---------------------------------------------------------------------------
+bool UEObject::IsValid() const
+{
+	return object != nullptr && Utils::IsValidAddress(reinterpret_cast<uintptr_t>(object)) && object->ObjAddress != NULL && object->VfTable != NULL;
+}
 size_t UEObject::GetIndex() const
 {
 	return object->InternalIndex;
 }
 UEClass UEObject::GetClass() const
 {
-	return UEClass(object->Class);
+	auto cls = new UClass();
+	Utils::MemoryObj->Read<UClass>(object->Class, *cls);
+
+	return UEClass(cls);
 }
 UEObject UEObject::GetOuter() const
 {
-	return UEObject(object->Outer);
+	// Init
+	auto obj = new SdkUObject();
+	JsonStruct uObject;
+
+	// Read as UObject
+	uObject.ReadData(object->Outer, "UObject");
+
+	// Fill Data into obj
+	obj->ObjAddress = object->Outer;
+	*obj = uObject;
+
+	return UEObject(obj);
 }
 std::string UEObject::GetName() const
 {

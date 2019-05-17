@@ -1,9 +1,10 @@
 #include "pch.h"
-#include "Utils.h"
-#include "Memory.h"
 #include "JsonReflector.h"
+#include "Utils.h"
 #include <vector>
 #include <algorithm>
+
+Memory* Utils::MemoryObj = nullptr;
 
 bool Utils::LoadJsonCore()
 {
@@ -169,7 +170,7 @@ int Utils::PointerSize(Memory* mem)
 
 bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
 {
-	if (INVALID_POINTER_VALUE(address) /*|| pointer <= dwStart || pointer > dwEnd*/)
+	if (INVALID_POINTER_VALUE(address))
 		return false;
 
 	// Check memory state, type and permission
@@ -177,6 +178,24 @@ bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
 
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
 	if (VirtualQueryEx(mem->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
+	{
+		// Bad Memory
+		return info.Protect != PAGE_NOACCESS;
+	}
+
+	return false;
+}
+
+bool Utils::IsValidAddress(const uintptr_t address)
+{
+	if (INVALID_POINTER_VALUE(address))
+		return false;
+
+	// Check memory state, type and permission
+	MEMORY_BASIC_INFORMATION info;
+
+	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
+	if (VirtualQueryEx(GetCurrentProcess(), LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
 		return info.Protect != PAGE_NOACCESS;

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <windows.h>
+#include "../JsonReflector.h"
 
 class UClass;
 class SdkUObject;
@@ -93,7 +94,7 @@ class FScriptInterface
 	void* InterfacePointer = nullptr;
 
 public:
-	SdkUObject* GetObject() const
+	SdkUObject* GetObj() const
 	{
 		return ObjectPointer;
 	}
@@ -205,20 +206,23 @@ public:
 class SdkUObject
 {
 public:
-	uintptr_t ObjAddress, VfTable;
-	int InternalIndex;
+	uintptr_t ObjAddress = 0, VfTable = 0;
+	int Flags = 0;
+	int InternalIndex = 0;
 	FName Name;
 	uintptr_t Class, Outer;
 
 	void operator=(JsonStruct& uObject)
 	{
 		VfTable = uObject["VfTable"].ReadAs<uintptr_t>();
+		Flags = uObject["Flags"].ReadAs<int>();
 		InternalIndex = uObject["InternalIndex"].ReadAs<int>();
 		Class = uObject["Class"].ReadAs<uintptr_t>();
 		Outer = uObject["Outer"].ReadAs<uintptr_t>();
 
+		// Read FName
 		JsonStruct tmpFName = *uObject["Name"].ReadAsStruct();
-		Name = FName(tmpFName["index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
+		Name = FName(tmpFName["Index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
 	}
 };
 
