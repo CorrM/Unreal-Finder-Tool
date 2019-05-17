@@ -45,7 +45,7 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 	for (const auto& obj : ObjectsStore())
 	{
 		const auto package = obj.GetPackageObject();
-		if (packageObj == package)
+		if (package.IsValid() && packageObj == package)
 		{
 			if (obj.IsA<UEEnum>())
 			{

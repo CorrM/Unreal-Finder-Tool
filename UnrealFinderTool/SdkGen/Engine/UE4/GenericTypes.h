@@ -7,6 +7,7 @@
 #include "FunctionFlags.h"
 #include "../IGenerator.h"
 #include "../MainEngineClasses.h"
+#include "Utils.h"
 
 class UEClass;
 
@@ -24,7 +25,7 @@ public:
 	}
 	~UEObject()
 	{
-		if (delAfterUse)
+		if (delAfterUse && Utils::IsValidAddress(reinterpret_cast<uintptr_t>(object)))
 			delete object;
 	}
 
@@ -46,15 +47,14 @@ public:
 
 	void* GetAddress() const;
 
-	void Update(const UEObject& newObject)
-	{
-		*object = *newObject.object;
-	}
+	bool Update(const UEObject& newObject);
+
+	bool Update(const SdkUObject* newObject);
 
 	template<typename Base>
 	Base Cast() const
 	{
-		return Base(object);
+		return Base(object, false);
 	}
 
 	template<typename T>
@@ -537,12 +537,15 @@ bool UEObject::IsA() const
 		return false;
 	}
 
-	for (auto super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
+	UEClass super = GetClass();
+	while (super.IsValid())
 	{
 		if (super.object == cmp.object)
 		{
 			return true;
 		}
+
+		if (!super.Update(super.GetSuper().Cast<UEClass>())) break;
 	}
 
 	return false;

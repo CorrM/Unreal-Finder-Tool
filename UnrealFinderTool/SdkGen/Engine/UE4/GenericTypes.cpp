@@ -1,10 +1,33 @@
 #include "pch.h"
-#include "GenericTypes.h"
 #include "../MainEngineClasses.h"
+#include "GenericTypes.h"
 
 void* UEObject::GetAddress() const
 {
 	return reinterpret_cast<PVOID>(object->ObjAddress);
+}
+
+bool UEObject::Update(const UEObject& newObject)
+{
+	if (object == nullptr)
+		object = new SdkUObject();
+
+	if (newObject.object == nullptr || !Utils::IsValidAddress(reinterpret_cast<uintptr_t>(newObject.object)))
+		return false;
+
+	*object = *newObject.object;
+	return true;
+}
+
+bool UEObject::Update(const SdkUObject* newObject)
+{
+	if (object == nullptr)
+		object = new SdkUObject();
+	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject->ObjAddress))
+		return false;
+
+	*object = *newObject;
+	return true;
 }
 
 UEObject UEObject::GetPackageObject() const
@@ -15,7 +38,7 @@ UEObject UEObject::GetPackageObject() const
 	UEObject outer = GetOuter();
 	while (outer.IsValid())
 	{
-		package = outer.object;
+		package.Update(outer.object);
 		outer.Update(outer.GetOuter());
 	}
 

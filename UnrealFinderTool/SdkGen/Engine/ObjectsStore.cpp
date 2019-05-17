@@ -99,7 +99,7 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 			return obj.Cast<UEClass>();
 		}
 	}
-	return UEClass(nullptr);
+	return UEClass(nullptr, false);
 }
 #pragma endregion
 
