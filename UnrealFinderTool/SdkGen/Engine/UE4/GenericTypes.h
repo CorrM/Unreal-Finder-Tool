@@ -15,18 +15,18 @@ class UEObject
 {
 	bool delAfterUse;
 public:
-	UEObject() : delAfterUse(false), object(nullptr)
+	UEObject() : delAfterUse(false), Object(nullptr)
 	{
 	}
 
 	UEObject(SdkUObject* object, const bool delAfterUse = true)
-		: delAfterUse(delAfterUse), object(object)
+		: delAfterUse(delAfterUse), Object(object)
 	{
 	}
 	~UEObject()
 	{
-		if (delAfterUse && Utils::IsValidAddress(reinterpret_cast<uintptr_t>(object)))
-			delete object;
+		if (delAfterUse && Utils::IsValidAddress(reinterpret_cast<uintptr_t>(Object)))
+			delete Object;
 	}
 
 	bool IsValid() const;
@@ -54,7 +54,11 @@ public:
 	template<typename Base>
 	Base Cast() const
 	{
-		return Base(object, false);
+		// TODO: Solve Problem HERE
+		// may case a delete problem it's use the same `object`
+		// may delete from other UEObject
+
+		return Base(Object, false);
 	}
 
 	template<typename T>
@@ -62,7 +66,7 @@ public:
 
 	static UEClass StaticClass();
 
-	SdkUObject* object;
+	SdkUObject* Object;
 };
 
 namespace std
@@ -539,7 +543,7 @@ bool UEObject::IsA() const
 	UEClass super = GetClass();
 	while (super.IsValid())
 	{
-		if (super.object->IsEqual(cmp.object))
+		if (super.Object->IsEqual(cmp.Object))
 		{
 			return true;
 		}

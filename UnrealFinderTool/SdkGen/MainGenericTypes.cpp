@@ -12,16 +12,16 @@
 //---------------------------------------------------------------------------
 bool UEObject::IsValid() const
 {
-	return object != nullptr && object->ObjAddress != NULL && object->VfTable != NULL;
+	return Object != nullptr && Object->ObjAddress != NULL && Object->VfTable != NULL;
 }
 size_t UEObject::GetIndex() const
 {
-	return object->InternalIndex;
+	return Object->InternalIndex;
 }
 UEClass UEObject::GetClass() const
 {
 	auto cls = new UClass();
-	cls->ObjAddress = object->Class;
+	cls->ObjAddress = Object->Class;
 
 	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
 		return UEClass(nullptr, false);
@@ -36,20 +36,20 @@ UEObject UEObject::GetOuter() const
 	JsonStruct uObject;
 
 	// Read as UObject
-	uObject.ReadData(object->Outer, "UObject");
+	uObject.ReadData(Object->Outer, "UObject");
 
 	// Fill Data into obj
-	obj->ObjAddress = object->Outer;
+	obj->ObjAddress = Object->Outer;
 	*obj = uObject;
 
 	return UEObject(obj);
 }
 std::string UEObject::GetName() const
 {
-	auto name = NamesStore().GetById(object->Name.ComparisonIndex);
-	if (object->Name.Number > 0)
+	auto name = NamesStore().GetById(Object->Name.ComparisonIndex);
+	if (Object->Name.Number > 0)
 	{
-		name += '_' + std::to_string(object->Name.Number);
+		name += '_' + std::to_string(Object->Name.Number);
 	}
 
 	auto pos = name.rfind('/');
@@ -72,7 +72,7 @@ UEClass UEObject::StaticClass()
 UEField UEField::GetNext() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = object->Cast<UField>();
+	auto castType = Object->Cast<UField>();
 
 	auto cls = new UField();
 	cls->ObjAddress = castType.Next;
@@ -95,7 +95,7 @@ UEClass UEField::StaticClass()
 std::vector<std::string> UEEnum::GetNames() const
 {
 	std::vector<std::string> buffer;
-	auto& names = static_cast<UEnum*>(object)->Names;
+	auto& names = static_cast<UEnum*>(Object)->Names;
 
 	for (auto i = 0; i < names.Num; ++i)
 	{
@@ -129,7 +129,7 @@ UEClass UEConst::StaticClass()
 UEStruct UEStruct::GetSuper() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = object->Cast<UStruct>();
+	auto castType = Object->Cast<UStruct>();
 
 	// Init UClass
 	auto cls = new UClass();
@@ -144,7 +144,7 @@ UEStruct UEStruct::GetSuper() const
 UEField UEStruct::GetChildren() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = object->Cast<UStruct>();
+	auto castType = Object->Cast<UStruct>();
 
 	auto cls = new UField();
 	cls->ObjAddress = castType.Children;
@@ -157,7 +157,7 @@ UEField UEStruct::GetChildren() const
 }
 size_t UEStruct::GetPropertySize() const
 {
-	auto castType = object->Cast<UStruct>();
+	auto castType = Object->Cast<UStruct>();
 	return castType.PropertySize;
 }
 UEClass UEStruct::StaticClass()
@@ -180,7 +180,7 @@ UEClass UEScriptStruct::StaticClass()
 //---------------------------------------------------------------------------
 UEFunctionFlags UEFunction::GetFunctionFlags() const
 {
-	auto castType = object->Cast<UFunction>();
+	auto castType = Object->Cast<UFunction>();
 	return static_cast<UEFunctionFlags>(castType.FunctionFlags);
 }
 UEClass UEFunction::StaticClass()
@@ -203,22 +203,22 @@ UEClass UEClass::StaticClass()
 //---------------------------------------------------------------------------
 size_t UEProperty::GetArrayDim() const
 {
-	auto castType = object->Cast<UProperty>();
+	auto castType = Object->Cast<UProperty>();
 	return castType.ArrayDim;
 }
 size_t UEProperty::GetElementSize() const
 {
-	auto castType = object->Cast<UProperty>();
+	auto castType = Object->Cast<UProperty>();
 	return castType.ElementSize;
 }
 UEPropertyFlags UEProperty::GetPropertyFlags() const
 {
-	auto castType = object->Cast<UProperty>();
+	auto castType = Object->Cast<UProperty>();
 	return static_cast<UEPropertyFlags>(castType.PropertyFlags.A);
 }
 size_t UEProperty::GetOffset() const
 {
-	auto castType = object->Cast<UProperty>();
+	auto castType = Object->Cast<UProperty>();
 	return castType.Offset;
 }
 UEClass UEProperty::StaticClass()
@@ -242,7 +242,7 @@ UEClass UENumericProperty::StaticClass()
 UEEnum UEByteProperty::GetEnum() const
 {
 	// Read object AS UByteProperty, it's like cast
-	auto castType = object->Cast<UByteProperty>();
+	auto castType = Object->Cast<UByteProperty>();
 
 	auto cls = new UEnum();
 	cls->ObjAddress = castType.Enum;
@@ -389,22 +389,22 @@ UEClass UEDoubleProperty::StaticClass()
 //---------------------------------------------------------------------------
 uint8_t UEBoolProperty::GetFieldSize() const
 {
-	auto castType = object->Cast<UBoolProperty>();
+	auto castType = Object->Cast<UBoolProperty>();
 	return castType.FieldSize;
 }
 uint8_t UEBoolProperty::GetByteOffset() const
 {
-	auto castType = object->Cast<UBoolProperty>();
+	auto castType = Object->Cast<UBoolProperty>();
 	return castType.ByteOffset;
 }
 uint8_t UEBoolProperty::GetByteMask() const
 {
-	auto castType = object->Cast<UBoolProperty>();
+	auto castType = Object->Cast<UBoolProperty>();
 	return castType.ByteMask;
 }
 uint8_t UEBoolProperty::GetFieldMask() const
 {
-	auto castType = object->Cast<UBoolProperty>();
+	auto castType = Object->Cast<UBoolProperty>();
 	return castType.FieldMask;
 }
 UEProperty::Info UEBoolProperty::GetInfo() const
@@ -426,7 +426,7 @@ UEClass UEBoolProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEObjectPropertyBase::GetPropertyClass() const
 {
-	auto castType = object->Cast<UObjectPropertyBase>();
+	auto castType = Object->Cast<UObjectPropertyBase>();
 	return UEClass(castType.PropertyClass);
 }
 UEClass UEObjectPropertyBase::StaticClass()
@@ -453,7 +453,7 @@ UEClass UEObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEClassProperty::GetMetaClass() const
 {
-	auto castType = object->Cast<UClassProperty>();
+	auto castType = Object->Cast<UClassProperty>();
 	return UEClass(castType.MetaClass);
 }
 UEProperty::Info UEClassProperty::GetInfo() const
@@ -471,7 +471,7 @@ UEClass UEClassProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEInterfaceProperty::GetInterfaceClass() const
 {
-	auto castType = object->Cast<UInterfaceProperty>();
+	auto castType = Object->Cast<UInterfaceProperty>();
 	return UEClass(castType.InterfaceClass);
 }
 UEProperty::Info UEInterfaceProperty::GetInfo() const
@@ -528,7 +528,7 @@ UEClass UEAssetObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEAssetClassProperty::GetMetaClass() const
 {
-	auto castType = object->Cast<UAssetClassProperty>();
+	auto castType = Object->Cast<UAssetClassProperty>();
 	return UEClass(castType.MetaClass);
 }
 UEProperty::Info UEAssetClassProperty::GetInfo() const
@@ -559,7 +559,7 @@ UEClass UENameProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEScriptStruct UEStructProperty::GetStruct() const
 {
-	auto castType = object->Cast<UStructProperty>();
+	auto castType = Object->Cast<UStructProperty>();
 	return UEScriptStruct(castType.Struct);
 }
 UEProperty::Info UEStructProperty::GetInfo() const
@@ -603,7 +603,7 @@ UEClass UETextProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEArrayProperty::GetInner() const
 {
-	auto castType = object->Cast<UArrayProperty>();
+	auto castType = Object->Cast<UArrayProperty>();
 	return UEProperty(castType.Inner);
 }
 UEProperty::Info UEArrayProperty::GetInfo() const
@@ -629,12 +629,12 @@ UEClass UEArrayProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEMapProperty::GetKeyProperty() const
 {
-	auto castType = object->Cast<UMapProperty>();
+	auto castType = Object->Cast<UMapProperty>();
 	return UEProperty(castType.KeyProp);
 }
 UEProperty UEMapProperty::GetValueProperty() const
 {
-	auto castType = object->Cast<UMapProperty>();
+	auto castType = Object->Cast<UMapProperty>();
 	return UEProperty(castType.ValueProp);
 }
 UEProperty::Info UEMapProperty::GetInfo() const
@@ -661,7 +661,7 @@ UEClass UEMapProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEDelegateProperty::GetSignatureFunction() const
 {
-	auto castType = object->Cast<UDelegateProperty>();
+	auto castType = Object->Cast<UDelegateProperty>();
 	return UEFunction(castType.SignatureFunction);
 }
 UEProperty::Info UEDelegateProperty::GetInfo() const
@@ -679,7 +679,7 @@ UEClass UEDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 {
-	auto castType = object->Cast<UDelegateProperty>();
+	auto castType = Object->Cast<UDelegateProperty>();
 	return UEFunction(castType.SignatureFunction);
 }
 UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
@@ -697,12 +697,12 @@ UEClass UEMulticastDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 {
-	auto castType = object->Cast<UEnumProperty>();
+	auto castType = Object->Cast<UEnumProperty>();
 	return UENumericProperty(castType.UnderlyingProp);
 }
 UEEnum UEEnumProperty::GetEnum() const
 {
-	auto castType = object->Cast<UEnumProperty>();
+	auto castType = Object->Cast<UEnumProperty>();
 	return UEEnum(castType.Enum);
 }
 UEProperty::Info UEEnumProperty::GetInfo() const

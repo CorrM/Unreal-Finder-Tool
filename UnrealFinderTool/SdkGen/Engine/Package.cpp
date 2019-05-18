@@ -174,12 +174,13 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 {
 	using namespace cpplinq;
 
-	for (auto prop = first; prop.IsValid(); prop = prop.GetNext().Cast<UEProperty>())
+	UEProperty prop = first;
+	while (prop.IsValid())
 	{
 		const auto info = prop.GetInfo();
 		if (info.Type == UEProperty::PropertyType::Primitive)
 		{
-			if (prop.IsA<UEByteProperty>())
+			/*if (prop.IsA<UEByteProperty>())
 			{
 				auto byteProperty = prop.Cast<UEByteProperty>();
 				if (byteProperty.IsEnum())
@@ -191,7 +192,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 			{
 				auto enumProperty = prop.Cast<UEEnumProperty>();
 				AddDependency(enumProperty.GetEnum().GetPackageObject());
-			}
+			}*/
 		}
 		else if (info.Type == UEProperty::PropertyType::CustomStruct)
 		{
@@ -225,6 +226,8 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 
 			GenerateMemberPrerequisites(function.GetChildren().Cast<UEProperty>(), processedObjects);
 		}
+
+		if (!prop.Update(prop.GetNext().Cast<UEProperty>())) break;
 	}
 }
 
@@ -437,17 +440,24 @@ void Package::GenerateClass(const UEClass & classObj)
 	IGenerator::VirtualFunctionPatterns patterns;
 	if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 	{
-		const auto vtable = *reinterpret_cast<uintptr_t * *>(classObj.GetAddress());
+		// const auto vtable = *reinterpret_cast<uintptr_t **>(classObj.GetAddress());
+		int ptrSize = Utils::MemoryObj->Is64Bit ? 0x8 : 0x4;
+		uintptr_t vTableAddress = classObj.Object->VfTable;
+		std::vector<uintptr_t> vTable;
 
 		size_t methodCount = 0;
 		while (true)
 		{
-			MEMORY_BASIC_INFORMATION mbi;
-			auto res = VirtualQuery(reinterpret_cast<const void*>(vtable[methodCount]), &mbi, sizeof(mbi));
-			if (res == 0 || (mbi.Protect != PAGE_EXECUTE_READWRITE && mbi.Protect != PAGE_EXECUTE_READ))
-			{
+			uintptr_t vAddress = vTableAddress + (methodCount * ptrSize);
+			MEMORY_BASIC_INFORMATION info;
+			// auto res = VirtualQuery(reinterpret_cast<const void*>(vtable[methodCount]), &mbi, sizeof(mbi));
+
+			// Check valid address
+			auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(vAddress), &info, sizeof info);
+			if (res == 0 || (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_EXECUTE_READ/* && info.Protect != PAGE_READONLY*/))
 				break;
-			}
+
+			vTable.push_back(vAddress);
 			++methodCount;
 		}
 
@@ -455,7 +465,7 @@ void Package::GenerateClass(const UEClass & classObj)
 		{
 			for (auto i = 0u; i < methodCount; ++i)
 			{
-				if (vtable[i] != 0 && FindPattern(vtable[i], std::get<2>(pattern), reinterpret_cast<const unsigned char*>(std::get<0>(pattern)), std::get<1>(pattern)) != -1)
+				if (vTable[i] != 0 && FindPattern(vTable[i], std::get<2>(pattern), reinterpret_cast<const unsigned char*>(std::get<0>(pattern)), std::get<1>(pattern)) != -1)
 				{
 					c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(std::get<3>(pattern), i)));
 					break;

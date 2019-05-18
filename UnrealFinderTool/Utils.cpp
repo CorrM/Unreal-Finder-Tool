@@ -195,7 +195,7 @@ bool Utils::IsValidAddress(const uintptr_t address)
 	MEMORY_BASIC_INFORMATION info;
 
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
-	if (VirtualQueryEx(GetCurrentProcess(), LPVOID(address), &info, sizeof info) == sizeof info)
+	if (VirtualQuery(LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
 		return info.Protect != PAGE_NOACCESS;

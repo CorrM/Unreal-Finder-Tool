@@ -4,35 +4,35 @@
 
 void* UEObject::GetAddress() const
 {
-	return reinterpret_cast<PVOID>(object->ObjAddress);
+	return reinterpret_cast<PVOID>(Object->ObjAddress);
 }
 
 bool UEObject::Update(const UEObject& newObject)
 {
-	if (object == nullptr)
-		object = new SdkUObject();
+	if (Object == nullptr)
+		Object = new SdkUObject();
 
-	if (newObject.object == nullptr || !Utils::IsValidAddress(reinterpret_cast<uintptr_t>(newObject.object)))
+	if (newObject.Object == nullptr || !Utils::IsValidAddress(reinterpret_cast<uintptr_t>(newObject.Object)))
 		return false;
 
-	if (object->IsEqual(newObject.object))
+	if (Object->IsEqual(newObject.Object))
 		return false;
 
-	*object = *newObject.object;
+	*Object = *newObject.Object;
 	return true;
 }
 
 bool UEObject::Update(SdkUObject* newObject)
 {
-	if (object == nullptr)
-		object = new SdkUObject();
+	if (Object == nullptr)
+		Object = new SdkUObject();
 	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject->ObjAddress))
 		return false;
 
-	if (object->IsEqual(newObject))
+	if (Object->IsEqual(newObject))
 		return false;
 
-	*object = *newObject;
+	*Object = *newObject;
 	return true;
 }
 
@@ -44,7 +44,7 @@ UEObject UEObject::GetPackageObject() const
 	UEObject outer = GetOuter();
 	while (outer.IsValid())
 	{
-		package.Update(outer.object);
+		package.Update(outer.Object);
 		outer.Update(outer.GetOuter());
 	}
 
@@ -97,7 +97,7 @@ std::string UEObject::GetNameCPP() const
 				break;
 			}
 
-			c = c.GetSuper().Cast<UEClass>();
+			c.Update(c.GetSuper().Cast<UEClass>());
 		}
 	}
 	else
