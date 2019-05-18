@@ -139,7 +139,7 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 		return;
 	}
 
-	if (processedObjects[obj] == false)
+	if (!processedObjects[obj])
 	{
 		processedObjects[obj] = true;
 

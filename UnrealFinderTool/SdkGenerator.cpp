@@ -130,7 +130,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	for (const auto& obj : packageObjects)
 	{
 		auto package = std::make_unique<Package>(obj);
-		// TODO: Fix Size of SdkUObject and Memory Leak
 		package->Process(processedObjects);
 		if (package->Save(sdkPath))
 		{
