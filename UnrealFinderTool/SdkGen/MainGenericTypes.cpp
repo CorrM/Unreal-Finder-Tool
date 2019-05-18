@@ -33,6 +33,7 @@ UEClass UEObject::GetClass() const
 }
 UEObject UEObject::GetOuter() const
 {
+	/*
 	if (objObject.Empty())
 	{
 		// Init
@@ -44,6 +45,15 @@ UEObject UEObject::GetOuter() const
 		// Fill Data into obj
 		objObject.ObjAddress = Object.Outer;
 		objObject = uObject;
+	}
+	*/
+	if (objObject.Empty())
+	{
+		if (!Utils::IsValidAddress(Utils::MemoryObj, Object.Outer))
+			return UEObject();
+
+		objObject.ObjAddress = Object.Outer;
+		Utils::MemoryObj->Read<SdkUObject>(objObject.ObjAddress, objObject, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
 	}
 
 	return UEObject(objObject);
