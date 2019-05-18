@@ -29,8 +29,8 @@ public:
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of struct</param>
 	/// <param name="is64BitGame">Target game is 64bit game</param>
-	static void FixPointersInStruct(JsonStruct* structBase, bool is64BitGame);
-	static int PointerSize(Memory* mem);
+	static void FixPointersInJsonStruct(JsonStruct* structBase, bool is64BitGame);
+	static int PointerSize();
 	// Check valid address in remote process
 	static bool IsValidAddress(Memory* mem, uintptr_t address);
 	// Check valid address in local process

@@ -4,15 +4,13 @@
 #include "Memory.h"
 
 GName* NamesStore::gNames;
-Memory* NamesStore::mem;
 int NamesStore::gNamesChunkCount;
 int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
 
 #pragma region NamesStore
-bool NamesStore::Initialize(Memory* mem, const uintptr_t gNamesAddress)
+bool NamesStore::Initialize(const uintptr_t gNamesAddress)
 {
-	NamesStore::mem = mem;
 	NamesStore::gNamesAddress = gNamesAddress;
 	NamesStore::gNamesChunkCount = 16384;
 	return FetchData();
@@ -32,14 +30,14 @@ bool NamesStore::FetchData()
 
 bool NamesStore::ReadGNameArray(uintptr_t address)
 {
-	int ptrSize = Utils::PointerSize(mem);
-	int sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	int ptrSize = Utils::PointerSize();
+	int sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fName;
 
-	if (!mem->Is64Bit)
-		address = mem->ReadInt(address);
+	if (!Utils::MemoryObj->Is64Bit)
+		address = Utils::MemoryObj->ReadInt(address);
 	else
-		address = mem->ReadInt64(address);
+		address = Utils::MemoryObj->ReadInt64(address);
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -48,10 +46,10 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 		uintptr_t addr;
 		const int offset = ptrSize * i;
 
-		if (!mem->Is64Bit)
-			addr = mem->ReadInt(address + offset); // 4byte
+		if (!Utils::MemoryObj->Is64Bit)
+			addr = Utils::MemoryObj->ReadInt(address + offset); // 4byte
 		else
-			addr = mem->ReadInt64(address + offset); // 8byte
+			addr = Utils::MemoryObj->ReadInt64(address + offset); // 8byte
 
 		if (!IsValidAddress(addr)) break;
 		gChunks.push_back(addr);
@@ -70,10 +68,10 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 		{
 			const int offset = ptrSize * j;
 
-			if (!mem->Is64Bit)
-				fNameAddress = mem->ReadInt(chunkAddress + offset); // 4byte
+			if (!Utils::MemoryObj->Is64Bit)
+				fNameAddress = Utils::MemoryObj->ReadInt(chunkAddress + offset); // 4byte
 			else
-				fNameAddress = mem->ReadInt64(chunkAddress + offset); // 8byte
+				fNameAddress = Utils::MemoryObj->ReadInt64(chunkAddress + offset); // 8byte
 
 			if (!IsValidAddress(fNameAddress))
 			{
@@ -88,7 +86,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 
 			// Set The Name
 			gNames[i].Index = i;
-			gNames[i].AnsiName = mem->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
+			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
 			i++;
 		}
 	}
@@ -105,7 +103,7 @@ bool NamesStore::IsValidAddress(const uintptr_t address)
 	MEMORY_BASIC_INFORMATION info;
 
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
-	if (VirtualQueryEx(mem->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
+	if (VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
 		return info.Protect != PAGE_NOACCESS;

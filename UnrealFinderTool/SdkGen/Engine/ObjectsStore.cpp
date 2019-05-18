@@ -6,14 +6,12 @@
 #include <cassert>
 
 SdkUObject* ObjectsStore::GObjObjects;
-Memory* ObjectsStore::mem;
 int ObjectsStore::GObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
 #pragma region ObjectsStore
-bool ObjectsStore::Initialize(Memory* mem, const uintptr_t gObjAddress)
+bool ObjectsStore::Initialize(const uintptr_t gObjAddress)
 {
-	ObjectsStore::mem = mem;
 	ObjectsStore::gObjAddress = gObjAddress;
 
 	return FetchData();
@@ -35,7 +33,7 @@ bool ObjectsStore::FetchData()
 bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
 	JsonStruct fUObjectItem, uObject;
-	const size_t sSub = mem->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	const size_t sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	
 	if (!objectArray.ReadData(address, "FUObjectArray")) return false;
 	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();

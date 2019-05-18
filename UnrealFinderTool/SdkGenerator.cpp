@@ -17,8 +17,7 @@
 #include <bitset>
 extern IGenerator* generator;
 
-SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const uintptr_t gNamesAddress)
-	: _memory(memory),
+SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
 {
@@ -27,7 +26,7 @@ SdkGenerator::SdkGenerator(Memory* memory, const uintptr_t gObjAddress, const ui
 void SdkGenerator::Start()
 {
 	std::cout << red << "[*] " << yellow << "Start Getting Objects : ";
-	if (!ObjectsStore::Initialize(_memory, gObjAddress))
+	if (!ObjectsStore::Initialize(gObjAddress))
 	{
 		std::cout << red << "Failed To Get Objects." << std::endl;
 		return;
@@ -35,7 +34,7 @@ void SdkGenerator::Start()
 	std::cout << green << "Found [ " << red << ObjectsStore().GetObjectsNum() << green << " ]" << std::endl;
 
 	std::cout << red << "[*] " << yellow << "Start Getting Names   : ";
-	if (!NamesStore::Initialize(_memory, gNamesAddress))
+	if (!NamesStore::Initialize(gNamesAddress))
 	{
 		std::cout << red << "Failed To Get Names." << std::endl;
 		return;

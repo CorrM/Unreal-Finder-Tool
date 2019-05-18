@@ -83,23 +83,6 @@ bool Utils::IsNumber(const std::string& s)
 		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
-template<typename ElementType>
-void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
-{
-	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
-	const int x2 = 0x4 * varOffsetEach4Byte;
-
-	const int size = abs(x1 - int(sizeof(ElementType)));
-	memcpy_s
-	(
-		static_cast<char*>(structBase) + x1,
-		size,
-		static_cast<char*>(structBase) + x2,
-		size
-	);
-	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
-}
-
 void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte, const int structSize)
 {
 	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
@@ -114,6 +97,12 @@ void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte, con
 		size
 	);
 	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
+}
+
+template<typename ElementType>
+void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
+{
+	FixStructPointer(structBase, varOffsetEach4Byte, sizeof(ElementType));
 }
 
 uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte, const int structSize, const bool is64BitGame)
@@ -155,7 +144,7 @@ uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, 
 	return ret;
 }
 
-void Utils::FixPointersInStruct(JsonStruct* structBase, const bool is64BitGame)
+void Utils::FixPointersInJsonStruct(JsonStruct* structBase, const bool is64BitGame)
 {
 	if (!is64BitGame && ProgramIs64())
 		for (const auto& var : structBase->Vars)
@@ -163,9 +152,9 @@ void Utils::FixPointersInStruct(JsonStruct* structBase, const bool is64BitGame)
 				ReadSafePointer(structBase, var.first, is64BitGame);
 }
 
-int Utils::PointerSize(Memory* mem)
+int Utils::PointerSize()
 {
-	return mem->Is64Bit ? 0x8 : 0x4;
+	return MemoryObj->Is64Bit ? 0x8 : 0x4;
 }
 
 bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)

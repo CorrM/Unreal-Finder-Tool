@@ -1,23 +1,25 @@
 #include "pch.h"
 #include "GObjectsFinder.h"
 #include "Color.h"
+#include "Memory.h"
+#include "Utils.h"
 
 /*
  * #NOTES
  * Some GObject use this syntax every 4byte/8byte (pointer) there is UObject
  */
 
-GObjectsFinder::GObjectsFinder(Memory* memory, const bool easyMethod) : _memory(memory), easyMethod(easyMethod)
+GObjectsFinder::GObjectsFinder(const bool easyMethod) : easyMethod(easyMethod)
 {
 	dwStart = 0;
 	dwEnd = 0;
-	ptrSize = !_memory->Is64Bit ? 0x4 : 0x8;
+	ptrSize = !Utils::MemoryObj->Is64Bit ? 0x4 : 0x8;
 }
 
 void GObjectsFinder::Find()
 {
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
-	dwEnd = !_memory->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
+	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
 	std::cout << dgreen << "[!] " << def << "Start scan for GObjects. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
 
@@ -38,7 +40,7 @@ void GObjectsFinder::Find()
 	MEMORY_BASIC_INFORMATION info;
 
 	// Cycle through memory based on RegionSize
-	for (uintptr_t i = dwStart; (VirtualQueryEx(_memory->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += easyMethod ? info.RegionSize : si.dwPageSize)
+	for (uintptr_t i = dwStart; (VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += easyMethod ? info.RegionSize : si.dwPageSize)
 	{
 		// Bad Memory
 		if (info.State != MEM_COMMIT) continue;
@@ -65,10 +67,10 @@ void GObjectsFinder::Find()
 bool GObjectsFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, const bool checkIsAllocationBase)
 {
 	pointer = NULL;
-	if (!_memory->Is64Bit)
-		pointer = _memory->ReadUInt(address);
+	if (!Utils::MemoryObj->Is64Bit)
+		pointer = Utils::MemoryObj->ReadUInt(address);
 	else
-		pointer = _memory->ReadUInt64(address);
+		pointer = Utils::MemoryObj->ReadUInt64(address);
 
 	if (INVALID_POINTER_VALUE(pointer) /*|| pointer <= dwStart || pointer > dwEnd*/)
 		return false;
@@ -77,7 +79,7 @@ bool GObjectsFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer,
 	MEMORY_BASIC_INFORMATION info;
 
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
-	if (VirtualQueryEx(_memory->ProcessHandle, LPVOID(pointer), &info, sizeof info) == sizeof info)
+	if (VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(pointer), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
 		// if (info.State != MEM_COMMIT) return false;
@@ -119,12 +121,12 @@ DWORD GObjectsFinder::IsValidTArray(const uintptr_t address)
 		// Check Objects (InternalIndex)
 		for (int io = 0x0; io < 0x1C; io += 0x4)
 		{
-			const int uObject0InternalIndex = _memory->ReadInt(ptrUObject0 + io);
-			const int uObject1InternalIndex = _memory->ReadInt(ptrUObject1 + io);
-			const int uObject2InternalIndex = _memory->ReadInt(ptrUObject2 + io);
-			const int uObject3InternalIndex = _memory->ReadInt(ptrUObject3 + io);
-			const int uObject4InternalIndex = _memory->ReadInt(ptrUObject4 + io);
-			const int uObject5InternalIndex = _memory->ReadInt(ptrUObject5 + io);
+			const int uObject0InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject0 + io);
+			const int uObject1InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject1 + io);
+			const int uObject2InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject2 + io);
+			const int uObject3InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject3 + io);
+			const int uObject4InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject4 + io);
+			const int uObject5InternalIndex = Utils::MemoryObj->ReadInt(ptrUObject5 + io);
 
 			if (uObject0InternalIndex != 0) continue;
 			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
@@ -137,7 +139,7 @@ DWORD GObjectsFinder::IsValidTArray(const uintptr_t address)
 			bool bFoundNameIndex = false;
 			for (int j = 0x4; j < 0x1C; j += 0x4)
 			{
-				const int uFNameIndex = _memory->ReadInt(ptrUObject1 + j);
+				const int uFNameIndex = Utils::MemoryObj->ReadInt(ptrUObject1 + j);
 				if (uFNameIndex == 100)
 				{
 					bFoundNameIndex = true;

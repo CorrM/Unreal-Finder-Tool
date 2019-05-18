@@ -25,7 +25,7 @@ int main()
 	Utils::MemoryObj = memManager1;
 	auto objObjectsAddress = uintptr_t(0x7FF7E3061E70);
 	auto gNamesAddress = uintptr_t(0x7FF7E3059A20);
-	SdkGenerator sg(memManager1, objObjectsAddress, gNamesAddress);
+	SdkGenerator sg(objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
 	return 0;
@@ -89,7 +89,7 @@ int main()
 
 	if (tool_id == 1) // GNames Finder
 	{
-		GnamesFinder gf(memManager);
+		GnamesFinder gf;
 		gf.Find();
 	}
 	else if (tool_id == 2) // GObjects Finder
@@ -100,7 +100,7 @@ int main()
 		std::cin >> cUseEz;
 		const bool bUseEz = cUseEz == 'Y' || cUseEz == 'y';
 
-		GObjectsFinder taf(memManager, bUseEz);
+		GObjectsFinder taf(bUseEz);
 		taf.Find();
 	}
 	else if (tool_id == 3) // Instance Logger
@@ -124,7 +124,7 @@ int main()
 		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
 
-		SdkGenerator sg(memManager, objObjectsAddress, gNamesAddress);
+		SdkGenerator sg(objObjectsAddress, gNamesAddress);
 		sg.Start();
 	}
 

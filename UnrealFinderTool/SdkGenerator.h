@@ -3,10 +3,9 @@
 
 class SdkGenerator
 {
-	Memory* _memory;
 	uintptr_t gObjAddress, gNamesAddress;
 public:
-	SdkGenerator(Memory* memory, uintptr_t gObjAddress, uintptr_t gNamesAddress);
+	SdkGenerator(uintptr_t gObjAddress, uintptr_t gNamesAddress);
 	void Start();
 private:
 	void ProcessPackages(const fs::path& path);

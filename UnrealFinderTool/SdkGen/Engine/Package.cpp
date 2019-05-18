@@ -441,7 +441,7 @@ void Package::GenerateClass(const UEClass & classObj)
 	if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 	{
 		// const auto vtable = *reinterpret_cast<uintptr_t **>(classObj.GetAddress());
-		int ptrSize = Utils::MemoryObj->Is64Bit ? 0x8 : 0x4;
+		int ptrSize = Utils::PointerSize();
 		uintptr_t vTableAddress = classObj.Object.VfTable;
 		std::vector<uintptr_t> vTable;
 
@@ -482,6 +482,7 @@ Package::Member Package::CreatePadding(size_t id, size_t offset, size_t size, st
 	Member ss;
 	ss.Name = tfm::format("UnknownData%02d[0x%X]", id, size);
 	ss.Type = "unsigned char";
+	ss.Flags = 0;
 	ss.Offset = offset;
 	ss.Size = size;
 	ss.Comment = std::move(reason);

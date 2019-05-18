@@ -381,7 +381,7 @@ void JsonStruct::Init(const std::string& structName, const bool alloc)
 
 void JsonStruct::FixStructData()
 {
-	Utils::FixPointersInStruct(this, Utils::MemoryObj->Is64Bit);
+	Utils::FixPointersInJsonStruct(this, Utils::MemoryObj->Is64Bit);
 }
 
 void JsonStruct::InitData()

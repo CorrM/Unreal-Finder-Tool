@@ -18,7 +18,6 @@ class NamesStore
 	static GName* gNames;
 	static int gNamesChunkCount, gNamesChunks;
 	static uintptr_t gNamesAddress;
-	static Memory* mem;
 	static bool FetchData();
 	static bool ReadGNameArray(uintptr_t address);
 	static bool IsValidAddress(uintptr_t address);
@@ -28,7 +27,7 @@ public:
 	/// Initializes this object.
 	/// </summary>
 	/// <returns>true if it succeeds, false if it fails.</returns>
-	static bool Initialize(Memory* mem, uintptr_t gNamesAddress);
+	static bool Initialize(uintptr_t gNamesAddress);
 
 	/// <summary>Gets the address of the global names store.</summary>
 	/// <returns>The address of the global names store.</returns>

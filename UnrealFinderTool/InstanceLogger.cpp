@@ -1,6 +1,7 @@
 #include "pch.h"
-#include "InstanceLogger.h"
 #include "Utils.h"
+#include "InstanceLogger.h"
+
 #include <iostream>
 #include <string>
 #include <cinttypes>
@@ -8,7 +9,6 @@
 InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
-	_memory(memory),
 	gObjectsAddress(gObjObjectsAddress),
 	gNamesAddress(gNamesAddress)
 {
@@ -124,7 +124,7 @@ bool InstanceLogger::FetchData()
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
 {
-	const size_t sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	const size_t sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fUObjectItem;
 	JsonStruct uObject;
 
@@ -184,14 +184,14 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 
 bool InstanceLogger::ReadGNameArray(uintptr_t address)
 {
-	int ptrSize = Utils::PointerSize(_memory);
-	int sSub = _memory->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	int ptrSize = Utils::PointerSize();
+	int sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
 	JsonStruct fName;
 
-	if (!_memory->Is64Bit)
-		address = _memory->ReadInt(address);
+	if (!Utils::MemoryObj->Is64Bit)
+		address = Utils::MemoryObj->ReadInt(address);
 	else
-		address = _memory->ReadInt64(address);
+		address = Utils::MemoryObj->ReadInt64(address);
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -200,12 +200,12 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 		uintptr_t addr;
 		const int offset = ptrSize * i;
 
-		if (!_memory->Is64Bit)
-			addr = _memory->ReadInt(address + offset); // 4byte
+		if (!Utils::MemoryObj->Is64Bit)
+			addr = Utils::MemoryObj->ReadInt(address + offset); // 4byte
 		else
-			addr = _memory->ReadInt64(address + offset); // 8byte
+			addr = Utils::MemoryObj->ReadInt64(address + offset); // 8byte
 
-		if (!Utils::IsValidAddress(_memory, addr)) break;
+		if (!Utils::IsValidAddress(Utils::MemoryObj, addr)) break;
 		gChunks.push_back(addr);
 		gNamesChunks++;
 	}
@@ -222,12 +222,12 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 		{
 			const int offset = ptrSize * j;
 
-			if (!_memory->Is64Bit)
-				fNameAddress = _memory->ReadInt(chunkAddress + offset); // 4byte
+			if (!Utils::MemoryObj->Is64Bit)
+				fNameAddress = Utils::MemoryObj->ReadInt(chunkAddress + offset); // 4byte
 			else
-				fNameAddress = _memory->ReadInt64(chunkAddress + offset); // 8byte
+				fNameAddress = Utils::MemoryObj->ReadInt64(chunkAddress + offset); // 8byte
 
-			if (!Utils::IsValidAddress(_memory, fNameAddress))
+			if (!Utils::IsValidAddress(Utils::MemoryObj, fNameAddress))
 			{
 				gNames[i].Index = i;
 				gNames[i].AnsiName = "";
@@ -240,7 +240,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 
 			// Set The Name
 			gNames[i].Index = i;
-			gNames[i].AnsiName = _memory->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
+			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
 			i++;
 		}
 	}

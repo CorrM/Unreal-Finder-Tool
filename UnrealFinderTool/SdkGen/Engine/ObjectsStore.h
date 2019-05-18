@@ -8,7 +8,6 @@ class Memory;
 
 class ObjectsStore
 {
-	static Memory* mem;
 	static uintptr_t gObjAddress;
 
 	static bool FetchData();
@@ -23,7 +22,7 @@ public:
 	/// <returns>
 	/// true if it succeeds, false if it fails.
 	/// </returns>
-	static bool Initialize(Memory* mem, uintptr_t gObjAddress);
+	static bool Initialize(uintptr_t gObjAddress);
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static void* GetAddress();

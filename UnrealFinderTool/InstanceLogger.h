@@ -1,5 +1,4 @@
 #pragma once
-#include "Memory.h"
 #include "JsonReflector.h"
 
 struct GObject
@@ -13,7 +12,7 @@ class GName
 {
 public:
 	int Index;
-	string AnsiName;
+	std::string AnsiName;
 };
 
 class InstanceLogger
@@ -21,13 +20,12 @@ class InstanceLogger
 	GObject* gObjObjects; int gObjectsCount;
 	GName* gNames; int gNamesChunkCount, gNamesChunks;
 
-	Memory* _memory;
 	uintptr_t gObjectsAddress, gNamesAddress;
 
 	std::string GetName(int fNameIndex, bool& success);
 	std::string GetName(GObject obj);
 	bool FetchData();
-	bool ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
 	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
