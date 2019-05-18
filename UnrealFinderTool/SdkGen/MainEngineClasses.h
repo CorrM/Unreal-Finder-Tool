@@ -199,7 +199,7 @@ public:
 class TUEnumArray
 {
 public:
-	FUEnumItem* Data = nullptr;
+	uintptr_t Data;
 	int Max = 0;
 	int Num = 0;
 };
@@ -229,17 +229,17 @@ public:
 		Name = FName(tmpFName["Index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
 	}
 
-	bool IsEqual(SdkUObject* toCheck)
+	bool IsEqual(SdkUObject toCheck)
 	{
-		return toCheck->InternalIndex == this->InternalIndex && toCheck->Name.ComparisonIndex == this->Name.ComparisonIndex;
+		return toCheck.InternalIndex == this->InternalIndex && toCheck.Name.ComparisonIndex == this->Name.ComparisonIndex;
 	}
 
 	template <typename SdkStruct>
-	SdkStruct Cast()
+	SdkStruct Cast() const
 	{
 		// it's like internal cast, but for remote process
 		SdkStruct castType;
-		Utils::MemoryObj->Read<SdkStruct>(this->ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		Utils::MemoryObj->Read<SdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
 
 		return castType;
 	}
@@ -390,7 +390,7 @@ public:
 class UObjectPropertyBase : public UProperty
 {
 public:
-	UClass* PropertyClass;
+	uintptr_t PropertyClass;
 };
 
 class UObjectProperty : public UObjectPropertyBase
@@ -402,13 +402,13 @@ public:
 class UClassProperty : public UObjectProperty
 {
 public:
-	UClass* MetaClass;
+	uintptr_t MetaClass;
 };
 
 class UInterfaceProperty : public UProperty
 {
 public:
-	UClass* InterfaceClass;
+	uintptr_t InterfaceClass;
 };
 
 class UWeakObjectProperty : public UObjectPropertyBase
@@ -432,7 +432,7 @@ public:
 class UAssetClassProperty : public UAssetObjectProperty
 {
 public:
-	UClass* MetaClass;
+	uintptr_t MetaClass;
 };
 
 class UNameProperty : public UProperty
@@ -444,7 +444,7 @@ public:
 class UStructProperty : public UProperty
 {
 public:
-	UScriptStruct* Struct;
+	uintptr_t Struct;
 };
 
 class UStrProperty : public UProperty
@@ -463,31 +463,31 @@ public:
 class UArrayProperty : public UProperty
 {
 public:
-	UProperty* Inner;
+	uintptr_t Inner;
 };
 
 class UMapProperty : public UProperty
 {
 public:
-	UProperty* KeyProp;
-	UProperty* ValueProp;
+	uintptr_t KeyProp;
+	uintptr_t ValueProp;
 };
 
 class UDelegateProperty : public UProperty
 {
 public:
-	UFunction* SignatureFunction;
+	uintptr_t SignatureFunction;
 };
 
 class UMulticastDelegateProperty : public UProperty
 {
 public:
-	UFunction* SignatureFunction;
+	uintptr_t SignatureFunction;
 };
 
 class UEnumProperty : public UProperty
 {
 public:
-	class UNumericProperty* UnderlyingProp; //0x0070
-	class UEnum* Enum; //0x0078
+	uintptr_t UnderlyingProp; //0x0070
+	uintptr_t Enum; //0x0078
 }; //Size: 0x0080

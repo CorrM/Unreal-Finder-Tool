@@ -180,7 +180,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 		const auto info = prop.GetInfo();
 		if (info.Type == UEProperty::PropertyType::Primitive)
 		{
-			/*if (prop.IsA<UEByteProperty>())
+			if (prop.IsA<UEByteProperty>())
 			{
 				auto byteProperty = prop.Cast<UEByteProperty>();
 				if (byteProperty.IsEnum())
@@ -192,7 +192,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 			{
 				auto enumProperty = prop.Cast<UEEnumProperty>();
 				AddDependency(enumProperty.GetEnum().GetPackageObject());
-			}*/
+			}
 		}
 		else if (info.Type == UEProperty::PropertyType::CustomStruct)
 		{
@@ -442,7 +442,7 @@ void Package::GenerateClass(const UEClass & classObj)
 	{
 		// const auto vtable = *reinterpret_cast<uintptr_t **>(classObj.GetAddress());
 		int ptrSize = Utils::MemoryObj->Is64Bit ? 0x8 : 0x4;
-		uintptr_t vTableAddress = classObj.Object->VfTable;
+		uintptr_t vTableAddress = classObj.Object.VfTable;
 		std::vector<uintptr_t> vTable;
 
 		size_t methodCount = 0;

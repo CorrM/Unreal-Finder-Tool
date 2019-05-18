@@ -12,44 +12,44 @@
 //---------------------------------------------------------------------------
 bool UEObject::IsValid() const
 {
-	return Object != nullptr && Object->ObjAddress != NULL && Object->VfTable != NULL;
+	return Object.ObjAddress != NULL && Object.VfTable != NULL;
 }
 size_t UEObject::GetIndex() const
 {
-	return Object->InternalIndex;
+	return Object.InternalIndex;
 }
 UEClass UEObject::GetClass() const
 {
-	auto cls = new UClass();
-	cls->ObjAddress = Object->Class;
+	UClass cls;
+	cls.ObjAddress = Object.Class;
 
-	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
-		return UEClass(nullptr, false);
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEClass();
 
-	Utils::MemoryObj->Read<UClass>(cls->ObjAddress, *cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-	return UEClass(cls, true);
+	Utils::MemoryObj->Read<UClass>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+	return UEClass(cls);
 }
 UEObject UEObject::GetOuter() const
 {
 	// Init
-	auto obj = new SdkUObject();
+	SdkUObject obj;
 	JsonStruct uObject;
 
 	// Read as UObject
-	uObject.ReadData(Object->Outer, "UObject");
+	uObject.ReadData(Object.Outer, "UObject");
 
 	// Fill Data into obj
-	obj->ObjAddress = Object->Outer;
-	*obj = uObject;
+	obj.ObjAddress = Object.Outer;
+	obj = uObject;
 
 	return UEObject(obj);
 }
 std::string UEObject::GetName() const
 {
-	auto name = NamesStore().GetById(Object->Name.ComparisonIndex);
-	if (Object->Name.Number > 0)
+	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
+	if (Object.Name.Number > 0)
 	{
-		name += '_' + std::to_string(Object->Name.Number);
+		name += '_' + std::to_string(Object.Name.Number);
 	}
 
 	auto pos = name.rfind('/');
@@ -72,15 +72,15 @@ UEClass UEObject::StaticClass()
 UEField UEField::GetNext() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = Object->Cast<UField>();
+	auto castType = Object.Cast<UField>();
 
-	auto cls = new UField();
-	cls->ObjAddress = castType.Next;
+	UField cls;
+	cls.ObjAddress = castType.Next;
 
-	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
-		return UEField(nullptr, false);
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEField();
 
-	Utils::MemoryObj->Read<UField>(cls->ObjAddress, *cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+	Utils::MemoryObj->Read<UField>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
 	return UEField(cls);
 }
 UEClass UEField::StaticClass()
@@ -95,13 +95,24 @@ UEClass UEField::StaticClass()
 std::vector<std::string> UEEnum::GetNames() const
 {
 	std::vector<std::string> buffer;
-	auto& names = static_cast<UEnum*>(Object)->Names;
+	auto castType = Object.Cast<UEnum>();
 
-	for (auto i = 0; i < names.Num; ++i)
+	// Get Names
+	auto cls = new FUEnumItem[castType.Names.Num];
+	uintptr_t dataAddress = castType.Names.Data;
+	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * castType.Names.Num);
+
+	buffer.reserve(castType.Names.Num);
+	for (auto i = 0; i < castType.Names.Num; ++i)
 	{
-		// buffer.push_back(NamesStore().GetById(names[i].Key.ComparisonIndex));
+		size_t index = cls[i].Key.ComparisonIndex;
+		if (index > NamesStore().GetNamesNum() || index == 0)
+			continue;
+
+		buffer.push_back(NamesStore().GetById(index));
 	}
 
+	delete[] cls;
 	return buffer;
 }
 UEClass UEEnum::StaticClass()
@@ -120,7 +131,7 @@ std::string UEConst::GetValue() const
 UEClass UEConst::StaticClass()
 {
 	//not supported by UE4
-	return nullptr;
+	return UEClass();
 }
 
 //---------------------------------------------------------------------------
@@ -129,35 +140,35 @@ UEClass UEConst::StaticClass()
 UEStruct UEStruct::GetSuper() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = Object->Cast<UStruct>();
+	auto castType = Object.Cast<UStruct>();
 
-	// Init UClass
-	auto cls = new UClass();
-	cls->ObjAddress = castType.SuperField;
+	UClass cls;
+	cls.ObjAddress = castType.SuperField;
 
-	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
-		return UEStruct(nullptr, false);
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEStruct();
 
-	Utils::MemoryObj->Read<UClass>(cls->ObjAddress, *cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-	return UEStruct(cls, true);
+	Utils::MemoryObj->Read<UClass>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEStruct(cls);
 }
 UEField UEStruct::GetChildren() const
 {
 	// Read object AS UStruct, it's like cast
-	auto castType = Object->Cast<UStruct>();
+	auto castType = Object.Cast<UStruct>();
 
-	auto cls = new UField();
-	cls->ObjAddress = castType.Children;
+	UField cls;
+	cls.ObjAddress = castType.Children;
 
-	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
-		return UEField(nullptr, false);
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEField();
 
-	Utils::MemoryObj->Read<UField>(cls->ObjAddress, *cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-	return UEField(cls, true);
+	Utils::MemoryObj->Read<UField>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+	return UEField(cls);
 }
 size_t UEStruct::GetPropertySize() const
 {
-	auto castType = Object->Cast<UStruct>();
+	auto castType = Object.Cast<UStruct>();
 	return castType.PropertySize;
 }
 UEClass UEStruct::StaticClass()
@@ -180,7 +191,7 @@ UEClass UEScriptStruct::StaticClass()
 //---------------------------------------------------------------------------
 UEFunctionFlags UEFunction::GetFunctionFlags() const
 {
-	auto castType = Object->Cast<UFunction>();
+	auto castType = Object.Cast<UFunction>();
 	return static_cast<UEFunctionFlags>(castType.FunctionFlags);
 }
 UEClass UEFunction::StaticClass()
@@ -203,22 +214,22 @@ UEClass UEClass::StaticClass()
 //---------------------------------------------------------------------------
 size_t UEProperty::GetArrayDim() const
 {
-	auto castType = Object->Cast<UProperty>();
+	auto castType = Object.Cast<UProperty>();
 	return castType.ArrayDim;
 }
 size_t UEProperty::GetElementSize() const
 {
-	auto castType = Object->Cast<UProperty>();
+	auto castType = Object.Cast<UProperty>();
 	return castType.ElementSize;
 }
 UEPropertyFlags UEProperty::GetPropertyFlags() const
 {
-	auto castType = Object->Cast<UProperty>();
+	auto castType = Object.Cast<UProperty>();
 	return static_cast<UEPropertyFlags>(castType.PropertyFlags.A);
 }
 size_t UEProperty::GetOffset() const
 {
-	auto castType = Object->Cast<UProperty>();
+	auto castType = Object.Cast<UProperty>();
 	return castType.Offset;
 }
 UEClass UEProperty::StaticClass()
@@ -242,16 +253,17 @@ UEClass UENumericProperty::StaticClass()
 UEEnum UEByteProperty::GetEnum() const
 {
 	// Read object AS UByteProperty, it's like cast
-	auto castType = Object->Cast<UByteProperty>();
+	auto castType = Object.Cast<UByteProperty>();
 
-	auto cls = new UEnum();
-	cls->ObjAddress = castType.Enum;
+	UEnum cls;
+	cls.ObjAddress = castType.Enum;
 
-	if (!Utils::IsValidAddress(Utils::MemoryObj, cls->ObjAddress))
-		return UEEnum(nullptr, false);
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEEnum();
 
-	Utils::MemoryObj->Read<UEnum>(cls->ObjAddress, *cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-	return UEEnum(cls, true);
+	Utils::MemoryObj->Read<UEnum>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEEnum(cls);
 }
 UEProperty::Info UEByteProperty::GetInfo() const
 {
@@ -389,22 +401,22 @@ UEClass UEDoubleProperty::StaticClass()
 //---------------------------------------------------------------------------
 uint8_t UEBoolProperty::GetFieldSize() const
 {
-	auto castType = Object->Cast<UBoolProperty>();
+	auto castType = Object.Cast<UBoolProperty>();
 	return castType.FieldSize;
 }
 uint8_t UEBoolProperty::GetByteOffset() const
 {
-	auto castType = Object->Cast<UBoolProperty>();
+	auto castType = Object.Cast<UBoolProperty>();
 	return castType.ByteOffset;
 }
 uint8_t UEBoolProperty::GetByteMask() const
 {
-	auto castType = Object->Cast<UBoolProperty>();
+	auto castType = Object.Cast<UBoolProperty>();
 	return castType.ByteMask;
 }
 uint8_t UEBoolProperty::GetFieldMask() const
 {
-	auto castType = Object->Cast<UBoolProperty>();
+	auto castType = Object.Cast<UBoolProperty>();
 	return castType.FieldMask;
 }
 UEProperty::Info UEBoolProperty::GetInfo() const
@@ -426,8 +438,17 @@ UEClass UEBoolProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEObjectPropertyBase::GetPropertyClass() const
 {
-	auto castType = Object->Cast<UObjectPropertyBase>();
-	return UEClass(castType.PropertyClass);
+	auto castType = Object.Cast<UObjectPropertyBase>();
+
+	UObjectPropertyBase cls;
+	cls.ObjAddress = castType.PropertyClass;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEClass();
+
+	Utils::MemoryObj->Read<UObjectPropertyBase>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEClass(cls);
 }
 UEClass UEObjectPropertyBase::StaticClass()
 {
@@ -453,8 +474,17 @@ UEClass UEObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEClassProperty::GetMetaClass() const
 {
-	auto castType = Object->Cast<UClassProperty>();
-	return UEClass(castType.MetaClass);
+	auto castType = Object.Cast<UClassProperty>();
+
+	UClassProperty cls;
+	cls.ObjAddress = castType.MetaClass;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEClass();
+
+	Utils::MemoryObj->Read<UClassProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEClass(cls);
 }
 UEProperty::Info UEClassProperty::GetInfo() const
 {
@@ -471,8 +501,17 @@ UEClass UEClassProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEInterfaceProperty::GetInterfaceClass() const
 {
-	auto castType = Object->Cast<UInterfaceProperty>();
-	return UEClass(castType.InterfaceClass);
+	auto castType = Object.Cast<UInterfaceProperty>();
+
+	UInterfaceProperty cls;
+	cls.ObjAddress = castType.InterfaceClass;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEClass();
+
+	Utils::MemoryObj->Read<UInterfaceProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEClass(cls);
 }
 UEProperty::Info UEInterfaceProperty::GetInfo() const
 {
@@ -528,8 +567,17 @@ UEClass UEAssetObjectProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEAssetClassProperty::GetMetaClass() const
 {
-	auto castType = Object->Cast<UAssetClassProperty>();
-	return UEClass(castType.MetaClass);
+	auto castType = Object.Cast<UAssetClassProperty>();
+
+	UClass cls;
+	cls.ObjAddress = castType.MetaClass;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEClass();
+
+	Utils::MemoryObj->Read<UClass>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEClass(cls);
 }
 UEProperty::Info UEAssetClassProperty::GetInfo() const
 {
@@ -559,8 +607,17 @@ UEClass UENameProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEScriptStruct UEStructProperty::GetStruct() const
 {
-	auto castType = Object->Cast<UStructProperty>();
-	return UEScriptStruct(castType.Struct);
+	auto castType = Object.Cast<UStructProperty>();
+
+	UStructProperty cls;
+	cls.ObjAddress = castType.Struct;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEScriptStruct();
+
+	Utils::MemoryObj->Read<UStructProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEScriptStruct(cls);
 }
 UEProperty::Info UEStructProperty::GetInfo() const
 {
@@ -603,8 +660,17 @@ UEClass UETextProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEArrayProperty::GetInner() const
 {
-	auto castType = Object->Cast<UArrayProperty>();
-	return UEProperty(castType.Inner);
+	auto castType = Object.Cast<UArrayProperty>();
+
+	UArrayProperty cls;
+	cls.ObjAddress = castType.Inner;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEProperty();
+
+	Utils::MemoryObj->Read<UArrayProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEProperty(cls);
 }
 UEProperty::Info UEArrayProperty::GetInfo() const
 {
@@ -629,13 +695,31 @@ UEClass UEArrayProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEProperty UEMapProperty::GetKeyProperty() const
 {
-	auto castType = Object->Cast<UMapProperty>();
-	return UEProperty(castType.KeyProp);
+	auto castType = Object.Cast<UMapProperty>();
+
+	UMapProperty cls;
+	cls.ObjAddress = castType.KeyProp;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEProperty();
+
+	Utils::MemoryObj->Read<UMapProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEProperty(cls);
 }
 UEProperty UEMapProperty::GetValueProperty() const
 {
-	auto castType = Object->Cast<UMapProperty>();
-	return UEProperty(castType.ValueProp);
+	auto castType = Object.Cast<UMapProperty>();
+
+	UMapProperty cls;
+	cls.ObjAddress = castType.ValueProp;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEProperty();
+
+	Utils::MemoryObj->Read<UMapProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEProperty(cls);
 }
 UEProperty::Info UEMapProperty::GetInfo() const
 {
@@ -661,8 +745,17 @@ UEClass UEMapProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEDelegateProperty::GetSignatureFunction() const
 {
-	auto castType = Object->Cast<UDelegateProperty>();
-	return UEFunction(castType.SignatureFunction);
+	auto castType = Object.Cast<UDelegateProperty>();
+
+	UDelegateProperty cls;
+	cls.ObjAddress = castType.SignatureFunction;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEFunction();
+
+	Utils::MemoryObj->Read<UDelegateProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEFunction(cls);
 }
 UEProperty::Info UEDelegateProperty::GetInfo() const
 {
@@ -679,8 +772,17 @@ UEClass UEDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 {
-	auto castType = Object->Cast<UDelegateProperty>();
-	return UEFunction(castType.SignatureFunction);
+	auto castType = Object.Cast<UDelegateProperty>();
+
+	UDelegateProperty cls;
+	cls.ObjAddress = castType.SignatureFunction;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEFunction();
+
+	Utils::MemoryObj->Read<UDelegateProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEFunction(cls);
 }
 UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
 {
@@ -697,13 +799,31 @@ UEClass UEMulticastDelegateProperty::StaticClass()
 //---------------------------------------------------------------------------
 UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 {
-	auto castType = Object->Cast<UEnumProperty>();
-	return UENumericProperty(castType.UnderlyingProp);
+	auto castType = Object.Cast<UEnumProperty>();
+
+	UEnumProperty cls;
+	cls.ObjAddress = castType.UnderlyingProp;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UENumericProperty();
+
+	Utils::MemoryObj->Read<UEnumProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UENumericProperty(cls);
 }
 UEEnum UEEnumProperty::GetEnum() const
 {
-	auto castType = Object->Cast<UEnumProperty>();
-	return UEEnum(castType.Enum);
+	auto castType = Object.Cast<UEnumProperty>();
+
+	UEnumProperty cls;
+	cls.ObjAddress = castType.Enum;
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, cls.ObjAddress))
+		return UEEnum();
+
+	Utils::MemoryObj->Read<UEnumProperty>(cls.ObjAddress, cls, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+
+	return UEEnum(cls);
 }
 UEProperty::Info UEEnumProperty::GetInfo() const
 {

@@ -4,42 +4,34 @@
 
 void* UEObject::GetAddress() const
 {
-	return reinterpret_cast<PVOID>(Object->ObjAddress);
+	return reinterpret_cast<PVOID>(Object.ObjAddress);
 }
 
 bool UEObject::Update(const UEObject& newObject)
 {
-	if (Object == nullptr)
-		Object = new SdkUObject();
-
-	if (newObject.Object == nullptr || !Utils::IsValidAddress(reinterpret_cast<uintptr_t>(newObject.Object)))
+	if (Object.IsEqual(newObject.Object))
 		return false;
 
-	if (Object->IsEqual(newObject.Object))
-		return false;
-
-	*Object = *newObject.Object;
+	Object = newObject.Object;
 	return true;
 }
 
-bool UEObject::Update(SdkUObject* newObject)
+bool UEObject::Update(const SdkUObject& newObject)
 {
-	if (Object == nullptr)
-		Object = new SdkUObject();
-	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject->ObjAddress))
+	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject.ObjAddress))
 		return false;
 
-	if (Object->IsEqual(newObject))
+	if (Object.IsEqual(newObject))
 		return false;
 
-	*Object = *newObject;
+	Object = newObject;
 	return true;
 }
 
 UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	UEObject package(nullptr, false);
+	UEObject package;
 
 	UEObject outer = GetOuter();
 	while (outer.IsValid())

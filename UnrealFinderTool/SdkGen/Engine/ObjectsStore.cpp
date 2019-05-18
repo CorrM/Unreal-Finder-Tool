@@ -87,7 +87,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(&GObjObjects[id], false);
+	return UEObject(GObjObjects[id]);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -99,7 +99,7 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 			return obj.Cast<UEClass>();
 		}
 	}
-	return UEClass(nullptr, false);
+	return UEClass();
 }
 #pragma endregion
 
