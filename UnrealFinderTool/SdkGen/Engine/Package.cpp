@@ -494,6 +494,7 @@ Package::Member Package::CreateBitfieldPadding(size_t id, size_t offset, std::st
 	Member ss;
 	ss.Name = tfm::format("UnknownData%02d : %d", id, bits);
 	ss.Type = std::move(type);
+	ss.Flags = 0;
 	ss.Offset = offset;
 	ss.Size = 1;
 	return ss;

@@ -37,7 +37,7 @@ UEObject UEObject::GetPackageObject() const
 	while (outer.IsValid())
 	{
 		package.Update(outer.Object);
-		outer.Update(outer.GetOuter());
+		if (!outer.Update(outer.GetOuter())) break;
 	}
 
 	return package;
@@ -54,7 +54,7 @@ std::string UEObject::GetFullName() const
 		while (outer.IsValid())
 		{
 			temp.insert(0, outer.GetName() + ".");
-			outer.Update(outer.GetOuter());
+			if (!outer.Update(outer.GetOuter())) break;
 		}
 
 		std::string name = cClass.GetName();
@@ -89,7 +89,7 @@ std::string UEObject::GetNameCPP() const
 				break;
 			}
 
-			c.Update(c.GetSuper().Cast<UEClass>());
+			if (!c.Update(c.GetSuper().Cast<UEClass>())) break;
 		}
 	}
 	else

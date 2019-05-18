@@ -347,7 +347,7 @@ public:
 	static UEClass StaticClass();
 };
 
-inline bool operator<(UEBoolProperty & lhs, UEBoolProperty & rhs)
+inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
 {
 	if (lhs.GetByteOffset() == rhs.GetByteOffset())
 	{
