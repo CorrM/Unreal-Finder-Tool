@@ -229,9 +229,14 @@ public:
 		Name = FName(tmpFName["Index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
 	}
 
-	bool IsEqual(SdkUObject toCheck)
+	bool IsEqual(const SdkUObject& toCheck) const
 	{
 		return toCheck.InternalIndex == this->InternalIndex && toCheck.Name.ComparisonIndex == this->Name.ComparisonIndex;
+	}
+
+	bool Empty() const
+	{
+		return ObjAddress == NULL && VfTable == NULL;
 	}
 
 	template <typename SdkStruct>

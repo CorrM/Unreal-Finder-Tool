@@ -13,20 +13,27 @@ class UEClass;
 
 class UEObject
 {
+protected:
+	UClass objClass;
+	SdkUObject objObject;
+
 public:
+	SdkUObject Object;
+
 	UEObject() = default;
 
 	UEObject(const SdkUObject object) : Object(object)
 	{
+
 	}
 
 	bool IsValid() const;
 
 	size_t GetIndex() const;
 
-	UEClass GetClass() const;
+	UEClass GetClass();
 
-	UEObject GetOuter() const;
+	UEObject GetOuter();
 
 	std::string GetName() const;
 
@@ -57,7 +64,6 @@ public:
 
 	static UEClass StaticClass();
 
-	SdkUObject Object;
 };
 
 namespace std
@@ -77,20 +83,25 @@ inline bool operator!=(const UEObject& lhs, const UEObject& rhs) { return !(lhs 
 
 class UEField : public UEObject
 {
+	UField objField;
+	UField next;
+
 public:
 	using UEObject::UEObject;
 
-	UEField GetNext() const;
+	UEField GetNext();
 
 	static UEClass StaticClass();
 };
 
 class UEEnum : public UEField
 {
+	UEnum objEnum;
+
 public:
 	using UEField::UEField;
 
-	std::vector<std::string> GetNames() const;
+	std::vector<std::string> GetNames();
 
 	static UEClass StaticClass();
 };
@@ -107,14 +118,18 @@ public:
 
 class UEStruct : public UEField
 {
+	UStruct objStruct;
+	UStruct superField;
+	UField children;
+
 public:
 	using UEField::UEField;
 
-	UEStruct GetSuper() const;
+	UEStruct GetSuper();
 
-	UEField GetChildren() const;
+	UEField GetChildren();
 
-	size_t GetPropertySize() const;
+	size_t GetPropertySize();
 
 	static UEClass StaticClass();
 };
@@ -129,10 +144,12 @@ public:
 
 class UEFunction : public UEStruct
 {
+	UFunction objFunction;
+
 public:
 	using UEStruct::UEStruct;
 
-	UEFunctionFlags GetFunctionFlags() const;
+	UEFunctionFlags GetFunctionFlags();
 
 	static UEClass StaticClass();
 };
@@ -147,16 +164,18 @@ public:
 
 class UEProperty : public UEField
 {
+	UProperty objProperty;
+
 public:
 	using UEField::UEField;
 
-	size_t GetArrayDim() const;
+	size_t GetArrayDim();
 
-	size_t GetElementSize() const;
+	size_t GetElementSize();
 
-	UEPropertyFlags GetPropertyFlags() const;
+	UEPropertyFlags GetPropertyFlags();
 
-	size_t GetOffset() const;
+	size_t GetOffset();
 
 	enum class PropertyType
 	{
@@ -197,14 +216,17 @@ public:
 
 class UEByteProperty : public UENumericProperty
 {
+	UByteProperty objByteProperty;
+	UEnum enumProperty;
+
 public:
 	using UENumericProperty::UENumericProperty;
 
 	bool IsEnum() const;
 
-	UEEnum GetEnum() const;
+	UEEnum GetEnum();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -301,29 +323,31 @@ public:
 
 class UEBoolProperty : public UEProperty
 {
+	UBoolProperty objBoolProperty;
+
 public:
 	using UEProperty::UEProperty;
 
-	bool IsNativeBool() const { return GetFieldMask() == 0xFF; }
+	bool IsNativeBool() { return GetFieldMask() == 0xFF; }
 
-	bool IsBitfield() const { return !IsNativeBool(); }
+	bool IsBitfield() { return !IsNativeBool(); }
 
-	uint8_t GetFieldSize() const;
+	uint8_t GetFieldSize();
 
-	uint8_t GetByteOffset() const;
+	uint8_t GetByteOffset();
 
-	uint8_t GetByteMask() const;
+	uint8_t GetByteMask();
 
-	uint8_t GetFieldMask() const;
+	uint8_t GetFieldMask();
 
 	std::array<int, 2> GetMissingBitsCount(const UEBoolProperty& other) const;
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
-inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
+inline bool operator<(UEBoolProperty & lhs, UEBoolProperty & rhs)
 {
 	if (lhs.GetByteOffset() == rhs.GetByteOffset())
 	{
@@ -334,10 +358,13 @@ inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
 
 class UEObjectPropertyBase : public UEProperty
 {
+	UObjectPropertyBase objObjectPropertyBase;
+	UObjectPropertyBase propertyClass;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEClass GetPropertyClass() const;
+	UEClass GetPropertyClass();
 
 	static UEClass StaticClass();
 };
@@ -347,31 +374,37 @@ class UEObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEClassProperty : public UEObjectProperty
 {
+	UClassProperty objClassProperty;
+	UClassProperty metaClass;
+
 public:
 	using UEObjectProperty::UEObjectProperty;
 
-	UEClass GetMetaClass() const;
+	UEClass GetMetaClass();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEInterfaceProperty : public UEProperty
 {
+	UInterfaceProperty objInterfaceProperty;
+	UInterfaceProperty interfaceClass;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEClass GetInterfaceClass() const;
+	UEClass GetInterfaceClass();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -381,7 +414,7 @@ class UEWeakObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -391,7 +424,7 @@ class UELazyObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -401,19 +434,22 @@ class UEAssetObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEAssetClassProperty : public UEAssetObjectProperty
 {
+	UAssetClassProperty objAssetClassProperty;
+	UClass metaClass;
+
 public:
 	using UEAssetObjectProperty::UEAssetObjectProperty;
 
-	UEClass GetMetaClass() const;
+	UEClass GetMetaClass();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -430,12 +466,15 @@ public:
 
 class UEStructProperty : public UEProperty
 {
+	UStructProperty objStructProperty;
+	UStructProperty objStruct;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEScriptStruct GetStruct() const;
+	UEScriptStruct GetStruct();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -462,62 +501,78 @@ public:
 
 class UEArrayProperty : public UEProperty
 {
+	UArrayProperty objArrayProperty;
+	UArrayProperty inner;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEProperty GetInner() const;
+	UEProperty GetInner();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEMapProperty : public UEProperty
 {
+	UMapProperty objMapProperty;
+	UMapProperty keyProp, valueProp;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEProperty GetKeyProperty() const;
-	UEProperty GetValueProperty() const;
+	UEProperty GetKeyProperty();
+	UEProperty GetValueProperty();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEDelegateProperty : public UEProperty
 {
+	UDelegateProperty objDelegateProperty;
+	UDelegateProperty signatureFunction;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEFunction GetSignatureFunction() const;
+	UEFunction GetSignatureFunction();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEMulticastDelegateProperty : public UEProperty
 {
+	UDelegateProperty objDelegateProperty;
+	UDelegateProperty signatureFunction;
+
 public:
 	using UEProperty::UEProperty;
 
-	UEFunction GetSignatureFunction() const;
+	UEFunction GetSignatureFunction();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
 
 class UEEnumProperty : public UEProperty
 {
+	UEnumProperty objEnumProperty;
+	UEnumProperty underlyingProp;
+	UEnumProperty Enum;
+
 public:
 	using UEProperty::UEProperty;
 
-	UENumericProperty GetUnderlyingProperty() const;
-	UEEnum GetEnum() const;
+	UENumericProperty GetUnderlyingProperty();
+	UEEnum GetEnum();
 
-	UEProperty::Info GetInfo() const;
+	UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
