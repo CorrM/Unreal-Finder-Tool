@@ -64,20 +64,20 @@ std::string GenerateFileName(FileContentType type, const Package& package)
 	switch (type)
 	{
 	case FileContentType::Structs:
-		name = "%s_%s_structs.hpp";
+		name = "%s_structs.hpp";
 		break;
 	case FileContentType::Classes:
-		name = "%s_%s_classes.hpp";
+		name = "%s_classes.hpp";
 		break;
 	case FileContentType::Functions:
-		name = "%s_%s_functions.cpp";
+		name = "%s_functions.cpp";
 		break;
 	case FileContentType::FunctionParameters:
-		name = "%s_%s_parameters.hpp";
+		name = "%s_parameters.hpp";
 		break;
 	default:
 		assert(false);
 	}
 
-	return tfm::format(name, generator->GetGameNameShort(), package.GetName());
+	return tfm::format(name, package.GetName());
 }

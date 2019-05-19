@@ -9,13 +9,13 @@ class Memory;
 class ObjectsStore
 {
 	static uintptr_t gObjAddress;
+	static int gObjectsCount;
 
 	static bool FetchData();
 	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkUObject& retObj);
 public:
 	static SdkUObject* GObjObjects;
-	static int GObjectsCount;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>

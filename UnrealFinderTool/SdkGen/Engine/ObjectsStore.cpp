@@ -6,7 +6,7 @@
 #include <cassert>
 
 SdkUObject* ObjectsStore::GObjObjects;
-int ObjectsStore::GObjectsCount;
+int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
 #pragma region ObjectsStore
@@ -58,7 +58,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 
 		ReadUObject(dwUObject, uObject, GObjObjects[i]);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-		GObjectsCount++;
+		gObjectsCount++;
 	}
 	return true;
 }
@@ -80,7 +80,7 @@ void* ObjectsStore::GetAddress()
 
 size_t ObjectsStore::GetObjectsNum() const 
 {
-	return GObjectsCount;
+	return gObjectsCount;
 }
 
 UEObject ObjectsStore::GetById(const size_t id) const

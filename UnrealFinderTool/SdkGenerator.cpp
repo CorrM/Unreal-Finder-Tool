@@ -15,6 +15,8 @@
 #include <unordered_set>
 #include <tlhelp32.h>
 #include <bitset>
+#include <omp.h>
+
 extern IGenerator* generator;
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
@@ -54,8 +56,8 @@ void SdkGenerator::Start()
 		return;
 	}
 	fs::path outputDirectory = fs::path(buffer).remove_filename();
-	
-	outputDirectory /= generator->GetGameNameShort();
+
+	outputDirectory /= "Results";
 	fs::create_directories(outputDirectory);
 	
 	std::ofstream log(outputDirectory / "Generator.log");
@@ -126,8 +128,14 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		>> distinct()
 		>> to_vector();
 
-	for (const auto& obj : packageObjects)
+	omp_set_nested(true);
+	omp_set_dynamic(false);
+
+	#pragma omp parallel for num_threads(6)
+	for (size_t i = 0; i < packageObjects.size(); i++)
 	{
+		const UEObject& obj = packageObjects[i];
+
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
 		if (package->Save(sdkPath))
@@ -137,6 +145,19 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 			packages.emplace_back(std::move(package));
 		}
 	}
+	
+
+	/*for (const auto& obj : packageObjects)
+	{
+		auto package = std::make_unique<Package>(obj);
+		package->Process(processedObjects);
+		if (package->Save(sdkPath))
+		{
+			Package::PackageMap[obj] = package.get();
+
+			packages.emplace_back(std::move(package));
+		}
+	}*/
 
 	if (!packages.empty())
 	{
@@ -183,7 +204,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	//include the basics
 	{
 		{
-			std::ofstream os2(path / "SDK" / tfm::format("%s_Basic.hpp", generator->GetGameNameShort()));
+			std::ofstream os2(path / "SDK" / tfm::format("Basic.hpp"));
 
 			PrintFileHeader(os2, true);
 
@@ -191,10 +212,10 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 
 			PrintFileFooter(os2);
 
-			os << "\n#include \"SDK/" << tfm::format("%s_Basic.hpp", generator->GetGameNameShort()) << "\"\n";
+			os << "\n#include \"SDK/" << tfm::format("Basic.hpp") << "\"\n";
 		}
 		{
-			std::ofstream os2(path / "SDK" / tfm::format("%s_Basic.cpp", generator->GetGameNameShort()));
+			std::ofstream os2(path / "SDK" / tfm::format("Basic.cpp"));
 
 			PrintFileHeader(os2, { "\"../SDK.hpp\"" }, false);
 
@@ -210,7 +231,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	const auto missing = from(processedObjects) >> where([](auto && kv) { return kv.second == false; });
 	if (missing >> any())
 	{
-		std::ofstream os2(path / "SDK" / tfm::format("%s_MISSING.hpp", generator->GetGameNameShort()));
+		std::ofstream os2(path / "SDK" / tfm::format("MISSING.hpp"));
 
 		PrintFileHeader(os2, true);
 
@@ -225,7 +246,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 
 		PrintFileFooter(os2);
 
-		os << "\n#include \"SDK/" << tfm::format("%s_MISSING.hpp", generator->GetGameNameShort()) << "\"\n";
+		os << "\n#include \"SDK/" << tfm::format("MISSING.hpp") << "\"\n";
 	}
 
 	os << "\n";

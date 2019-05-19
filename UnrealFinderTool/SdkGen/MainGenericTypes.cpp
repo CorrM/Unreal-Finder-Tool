@@ -60,6 +60,10 @@ UEObject UEObject::GetOuter() const
 }
 std::string UEObject::GetName() const
 {
+	// TODO: There is a problem here
+	if (Object.Name.ComparisonIndex > NamesStore().GetNamesNum())
+		return "";
+
 	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
 	if (Object.Name.Number > 0)
 	{

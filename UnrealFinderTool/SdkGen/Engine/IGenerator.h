@@ -37,7 +37,7 @@ public:
 	/// Gets the short name of the game.
 	/// </summary>
 	/// <returns>The short name.</returns>
-	virtual std::string GetGameNameShort() const = 0;
+	//virtual std::string GetGameNameShort() const = 0;
 
 	/// <summary>
 	/// Gets the version of the game.

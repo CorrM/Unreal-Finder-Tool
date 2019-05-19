@@ -244,6 +244,7 @@ public:
 	{
 		// it's like internal cast, but for remote process
 		SdkStruct castType;
+		castType.ObjAddress = ObjAddress;
 		Utils::MemoryObj->Read<SdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
 
 		return castType;
@@ -278,25 +279,24 @@ public:
 class UScriptStruct : public UStruct
 {
 public:
-	char pad_0x0088[0x10]; //0x0088
+	char pad_0x0088[0x10];
+	//char pad_0x0089[0x1];
 };
 
 class UFunction : public UStruct
 {
 public:
-	__int32 FunctionFlags; //0x0088
-	__int16 RepOffset; //0x008C
-	__int8 NumParms; //0x008E
-	char pad_0x008F[0x1]; //0x008F
-	__int16 ParmsSize; //0x0090
-	__int16 ReturnValueOffset; //0x0092
-	__int16 RPCId; //0x0094
-	__int16 RPCResponseId; //0x0096
-	uintptr_t FirstPropertyToInit; //0x0098
-	uintptr_t EventGraphFunction; //0x00A0
-	__int32 EventGraphCallOffset; //0x00A8
-	char pad_0x00AC[0x4]; //0x00AC
-	void* Func; //0x00B0
+	int32_t FunctionFlags;
+	int8_t NumParms;
+	char pad1[0x1];
+	int16_t ParmsSize;
+	uint16_t ReturnValueOffset;
+	uint16_t RPCId;
+	uint16_t RPCResponseId;
+	uintptr_t FirstPropertyToInit;
+	uintptr_t EventGraphFunction;
+	int32_t EventGraphCallOffset;
+	uintptr_t Func;
 };
 
 class UClass : public UStruct

@@ -42,6 +42,33 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
+	#pragma omp parallel for num_threads(2)
+	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	{
+		const UEObject& obj = ObjectsStore().GetById(i);
+		const auto package = obj.GetPackageObject();
+		if (package.IsValid() && packageObj == package)
+		{
+			if (obj.IsA<UEEnum>())
+			{
+				GenerateEnum(obj.Cast<UEEnum>());
+			}
+			else if (obj.IsA<UEConst>())
+			{
+				GenerateConst(obj.Cast<UEConst>());
+			}
+			else if (obj.IsA<UEClass>())
+			{
+				GeneratePrerequisites(obj, processedObjects);
+			}
+			else if (obj.IsA<UEScriptStruct>())
+			{
+				GeneratePrerequisites(obj, processedObjects);
+			}
+		}
+
+	}
+	/*
 	for (const auto& obj : ObjectsStore())
 	{
 		const auto package = obj.GetPackageObject();
@@ -65,6 +92,7 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			}
 		}
 	}
+	*/
 }
 
 bool Package::Save(const fs::path& path) const

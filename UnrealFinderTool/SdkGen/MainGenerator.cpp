@@ -180,17 +180,17 @@ public:
 
 	std::string GetGameName() const override
 	{
-		return "PlayerUnknown's Battlegrounds";
+		return "Unreal Finder Tool @ CorrM";
 	}
 
-	std::string GetGameNameShort() const override
+	/*std::string GetGameNameShort() const override
 	{
-		return "PUBG";
-	}
+		return "";
+	}*/
 
 	std::string GetGameVersion() const override
 	{
-		return "2.6.23";
+		return "";
 	}
 
 	std::string GetNamespaceName() const override
