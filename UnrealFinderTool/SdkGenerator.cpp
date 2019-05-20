@@ -122,7 +122,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
 
-	auto packageObjects = from(ObjectsStore())
+	auto packageObjects =
+		from(ObjectsStore())
 		>> select([](auto && o) { return o.GetPackageObject(); })
 		>> where([](auto && o) { return o.IsValid(); })
 		>> distinct()
@@ -132,7 +133,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	omp_set_dynamic(false);
 
 	#pragma omp parallel for num_threads(6)
-	for (size_t i = 0; i < packageObjects.size(); i++)
+	for (size_t i = 0; i < packageObjects.size(); ++i)
 	{
 		const UEObject& obj = packageObjects[i];
 
@@ -141,12 +142,10 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		if (package->Save(sdkPath))
 		{
 			Package::PackageMap[obj] = package.get();
-
 			packages.emplace_back(std::move(package));
 		}
 	}
 	
-
 	/*for (const auto& obj : packageObjects)
 	{
 		auto package = std::make_unique<Package>(obj);
@@ -191,7 +190,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	std::ofstream os(path / "SDK.hpp");
 
 	os << "#pragma once\n\n"
-		<< tfm::format("// %s (%s) SDK\n\n", generator->GetGameName(), generator->GetGameVersion());
+		<< tfm::format("// %s SDK\n\n", generator->GetGameName());
 
 	//Includes
 	os << "#include <set>\n";

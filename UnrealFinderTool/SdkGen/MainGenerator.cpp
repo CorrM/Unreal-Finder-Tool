@@ -183,15 +183,17 @@ public:
 		return "Unreal Finder Tool @ CorrM";
 	}
 
-	/*std::string GetGameNameShort() const override
+	/*
+	std::string GetGameNameShort() const override
 	{
 		return "";
-	}*/
+	}
 
 	std::string GetGameVersion() const override
 	{
 		return "";
 	}
+	*/
 
 	std::string GetNamespaceName() const override
 	{

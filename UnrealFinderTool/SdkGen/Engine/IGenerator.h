@@ -43,7 +43,7 @@ public:
 	/// Gets the version of the game.
 	/// </summary>
 	/// <returns>The version of the game.</returns>
-	virtual std::string GetGameVersion() const = 0;
+	//virtual std::string GetGameVersion() const = 0;
 
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.
