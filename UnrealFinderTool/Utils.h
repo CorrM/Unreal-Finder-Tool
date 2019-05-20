@@ -38,12 +38,13 @@ public:
 	/// Fix pointers size in struct or class. used for convert 64bit to 32bit pointer.
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
+	/// <param name="fullStructSize">Full size of struct => (Base Structs + Target struct)</param>
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
 	template <typename ElementType>
-	static void FixPointers(ElementType* structBase, std::vector<int> varsOffsets)
+	static void FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
 	{
 		for (int varOff : varsOffsets)
-			FixStructPointer(structBase, varOff, sizeof(ElementType));
+			FixStructPointer(structBase, varOff, fullStructSize);
 	}
 	/// <summary>
 	/// Fix all pointers in struct to be safe to read as `uintptr_t`

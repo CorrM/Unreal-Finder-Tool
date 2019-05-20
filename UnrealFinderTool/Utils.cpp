@@ -85,6 +85,15 @@ bool Utils::IsNumber(const std::string& s)
 
 void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
 {
+	// Check next 4byte of pointer equal 0 in local tool memory
+	// in 32bit game pointer is 4byte so i must zero the second part of uintptr_t in the tool memory
+	// so here i check if second part of uintptr_t is zero so it's didn't need fix
+	// this check is good for solve some problem when cast UObject to something like UEnum
+	// the base (UObject) is fixed but the other (UEnum members) not fixed so, this wil fix really members need to fix
+	// That's it :D
+	//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
+	//if (!needFix) return;
+
 	const int destSize = abs(varOffset - structSize);
 	const int srcSize = abs(varOffset - structSize) - 0x4;
 

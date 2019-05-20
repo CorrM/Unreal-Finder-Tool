@@ -1,18 +1,18 @@
 #include "pch.h"
-#include "GnamesFinder.h"
 #include "Color.h"
 #include "Utils.h"
+#include "GnamesFinder.h"
 
-Pattern GnamesFinder::none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
-Pattern GnamesFinder::byte_sig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 72 6F 70 65 72 74 79 00", 0xFF);
-Pattern GnamesFinder::int_sig = PatternScan::Parse("Int", 0, "49 6E 74 50 72 6F 70 65 72 74 79 00", 0xFF);
-Pattern GnamesFinder::multicast_sig = PatternScan::Parse("MulticastDelegate", 0, "4D 75 6C 74 69 63 61 73 74 44 65 6C 65 67 61 74 65 50 72 6F 70 65 72 74 79", 0xFF);
+Pattern GNamesFinder::none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
+Pattern GNamesFinder::byte_sig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 72 6F 70 65 72 74 79 00", 0xFF);
+Pattern GNamesFinder::int_sig = PatternScan::Parse("Int", 0, "49 6E 74 50 72 6F 70 65 72 74 79 00", 0xFF);
+Pattern GNamesFinder::multicast_sig = PatternScan::Parse("MulticastDelegate", 0, "4D 75 6C 74 69 63 61 73 74 44 65 6C 65 67 61 74 65 50 72 6F 70 65 72 74 79", 0xFF);
 
-GnamesFinder::GnamesFinder() : dwStart(0), dwEnd(0)
+GNamesFinder::GNamesFinder() : dwStart(0), dwEnd(0)
 {
 }
 
-void GnamesFinder::Find()
+void GNamesFinder::Find()
 {
 	// dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
@@ -59,7 +59,7 @@ void GnamesFinder::Find()
 	}
 }
 
-std::vector<uintptr_t> GnamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, int maxValue)
+std::vector<uintptr_t> GNamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, int maxValue)
 {
 	std::vector<uintptr_t> ret;
 	for (long long i : list1)

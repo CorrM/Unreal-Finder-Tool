@@ -9,7 +9,7 @@
 #include "IGenerator.h"
 #include "Logger.h"
 #include "NameValidator.h"
-#include "PatternFinder.h"
+#include "PatternScan.h"
 #include "ObjectsStore.h"
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
@@ -65,7 +65,6 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 				GeneratePrerequisites(obj, processedObjects);
 			}
 		}
-
 	}
 	/*
 	for (const auto& obj : ObjectsStore())
@@ -475,9 +474,14 @@ void Package::GenerateClass(const UEClass & classObj)
 		size_t methodCount = 0;
 		while (true)
 		{
-			uintptr_t vAddress = vTableAddress + (methodCount * ptrSize);
 			MEMORY_BASIC_INFORMATION info;
-			// auto res = VirtualQuery(reinterpret_cast<const void*>(vtable[methodCount]), &mbi, sizeof(mbi));
+			uintptr_t vAddress;
+
+			// Dereference Pointer
+			if (!Utils::MemoryObj->Is64Bit)
+				vAddress = Utils::MemoryObj->ReadInt(vTableAddress + (methodCount * ptrSize));
+			else
+				vAddress = Utils::MemoryObj->ReadInt64(vTableAddress + (methodCount * ptrSize));
 
 			// Check valid address
 			auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(vAddress), &info, sizeof info);
@@ -492,10 +496,15 @@ void Package::GenerateClass(const UEClass & classObj)
 		{
 			for (auto i = 0u; i < methodCount; ++i)
 			{
-				if (vTable[i] != 0 && FindPattern(vTable[i], std::get<2>(pattern), reinterpret_cast<const unsigned char*>(std::get<0>(pattern)), std::get<1>(pattern)) != -1)
+				if (vTable[i] != 0)
 				{
-					c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(std::get<3>(pattern), i)));
-					break;
+					auto scanResult = PatternScan::FindPattern(Utils::MemoryObj, vTable[i], vTable[i] + 0x200, { std::get<0>(pattern) }, true);
+					auto toFind = scanResult.find(std::get<0>(pattern).Name);
+					if (toFind != scanResult.end() && !toFind->second.empty())
+					{
+						c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(std::get<1>(pattern), i)));
+						break;
+					}
 				}
 			}
 		}

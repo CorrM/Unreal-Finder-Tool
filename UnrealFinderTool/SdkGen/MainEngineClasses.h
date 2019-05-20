@@ -6,6 +6,7 @@
 
 // #define OFFSET(s, m) ((size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
 #define OFFSET(m) ((int)&reinterpret_cast<char const volatile&>((((decltype(this))0)->m)))
+#define SIZE_OF_ME sizeof(decltype(this))
 
 class UClass;
 class UObject;
@@ -14,9 +15,9 @@ struct FPointer
 {
 	uintptr_t Dummy;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		Utils::FixPointers(this, { OFFSET(Dummy) });
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Dummy) });
 	}
 };
 
@@ -45,7 +46,6 @@ struct TArray
 {
 	friend struct FString;
 
-public:
 	TArray()
 	{
 		Data = nullptr;
@@ -77,9 +77,9 @@ private:
 	int32_t Count;
 	int32_t Max;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		// Utils::FixPointers(this, {  });
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 		// UStruct::FixPointers();
 	}
 };
@@ -123,6 +123,11 @@ public:
 	{
 		return ObjectPointer != nullptr ? InterfacePointer : nullptr;
 	}
+
+	void FixPointers(const int fullStructSize)
+	{
+		// Utils::FixPointers(this, fullStructSize, { OFFSET(ObjectPointer), OFFSET(InterfacePointer) });
+	}
 };
 
 template<class InterfaceType>
@@ -142,6 +147,12 @@ public:
 	operator bool() const
 	{
 		return GetInterface() != nullptr;
+	}
+
+	void FixPointers(const int fullStructSize)
+	{
+		FScriptInterface::FixPointers();
+		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
 };
 
@@ -168,11 +179,22 @@ public:
 	FWeakObjectPtr WeakPtr;
 	int32_t TagAtLastTest;
 	TObjectID ObjectID;
+
+	void FixPointers(const int fullStructSize)
+	{
+		// FScriptInterface::FixPointers();
+		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+	}
 };
 
 class FAssetPtr : public TPersistentObjectPtr<FStringAssetReference>
 {
-
+public:
+	void FixPointers(const int fullStructSize)
+	{
+		TPersistentObjectPtr::FixPointers(fullStructSize);
+		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+	}
 };
 
 struct FGuid
@@ -190,7 +212,12 @@ struct FUniqueObjectGuid
 
 class FLazyObjectPtr : public TPersistentObjectPtr<FUniqueObjectGuid>
 {
-
+public:
+	void FixPointers(const int fullStructSize)
+	{
+		TPersistentObjectPtr::FixPointers(fullStructSize);
+		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+	}
 };
 
 struct FScriptDelegate
@@ -208,6 +235,11 @@ class FUEnumItem
 public:
 	FName Key;
 	uint64_t Value = 0;
+
+	void FixPointers(const int fullStructSize)
+	{
+		
+	}
 };
 
 class TUEnumArray
@@ -217,9 +249,9 @@ public:
 	int Max = 0;
 	int Num = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		Utils::FixPointers(this, { OFFSET(Data) });
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
 };
 
@@ -235,9 +267,9 @@ public:
 	FName Name;
 	uintptr_t Outer = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		Utils::FixPointers(this, {
+		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(VfTable),
 			OFFSET(Class),
 			OFFSET(Outer),
@@ -274,8 +306,8 @@ public:
 		SdkStruct castType;
 
 		castType.ObjAddress = ObjAddress;
-		Utils::MemoryObj->Read<SdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		castType.FixPointers();
+		Utils::MemoryObj->Read<SdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in UObject
+		castType.FixPointers(sizeof SdkStruct);
 
 		return castType;
 	}
@@ -286,10 +318,10 @@ class UField : public UObject
 public:
 	uintptr_t Next = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UObject::FixPointers();
-		Utils::FixPointers(this, { OFFSET(Next) });
+		UObject::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Next) });
 	}
 };
 
@@ -299,6 +331,11 @@ public:
 	FString CppType;
 	TUEnumArray Names; /*TArray<TPair<FName, uint64_t>> */
 	__int64 CppForm = 0;
+
+	void FixPointers(const int fullStructSize)
+	{
+		UField::FixPointers(fullStructSize);
+	}
 };
 
 class UStruct : public UField
@@ -308,12 +345,12 @@ public:
 	uintptr_t Children = 0;
 	int32_t PropertySize = 0;
 	int32_t MinAlignment = 0;
-	char pad_0x0048[0x40];
+	char Pad0X0048[0x40] = { 0 };
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UField::FixPointers();
-		Utils::FixPointers(this, {
+		UField::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(SuperField),
 			OFFSET(Children)
 		});
@@ -325,6 +362,11 @@ class UScriptStruct : public UStruct
 public:
 	char pad_0x0088[0x10];
 	//char pad_0x0089[0x1];
+
+	void FixPointers(const int fullStructSize)
+	{
+		UStruct::FixPointers(fullStructSize);
+	}
 };
 
 class UFunction : public UStruct
@@ -342,10 +384,10 @@ public:
 	int32_t EventGraphCallOffset = 0;
 	uintptr_t Func = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UStruct::FixPointers();
-		Utils::FixPointers(this, {
+		UStruct::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(FirstPropertyToInit),
 			OFFSET(EventGraphFunction),
 			OFFSET(Func)
@@ -356,11 +398,11 @@ public:
 class UClass : public UStruct
 {
 public:
-	char pad_0x0088[0x198]; //0x0088
+	char Pad0X0088[0x198] = { 0 };
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UStruct::FixPointers();
+		UStruct::FixPointers(fullStructSize);
 	}
 };
 
@@ -370,23 +412,33 @@ public:
 	int ArrayDim = 0;
 	int ElementSize = 0;
 	FQWord PropertyFlags;
-	int PropertySize = 0;
-	char pad_0x0044[0xC];
+	uint16_t RepIndex = 0;
+	uint8_t BlueprintReplicationCondition = 0;
 	int Offset = 0;
-	char pad_0x0054[0x24];
+	FName RepNotifyFunc;
+	uintptr_t PropertyLinkNext;
+	uintptr_t NextRef;
+	uintptr_t DestructorLinkNext;
+	uintptr_t PostConstructLinkNext;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UField::FixPointers();
+		UField::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
+			OFFSET(PropertyLinkNext),
+			OFFSET(NextRef),
+			OFFSET(DestructorLinkNext),
+			OFFSET(PostConstructLinkNext)
+		});
 	}
 };
 
 class UNumericProperty : public UProperty
 {
 public:
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
+		UProperty::FixPointers(fullStructSize);
 	}
 };
 
@@ -395,65 +447,92 @@ class UByteProperty : public UNumericProperty
 public:
 	uintptr_t Enum = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UNumericProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(Enum) });
+		UNumericProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Enum) });
 	}
 };
 
 class UUInt16Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UUInt32Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UUInt64Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UInt8Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UInt16Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UIntProperty : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UInt64Property : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UFloatProperty : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UDoubleProperty : public UNumericProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UNumericProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UBoolProperty : public UProperty
@@ -463,6 +542,11 @@ public:
 	uint8_t ByteOffset = 0;
 	uint8_t ByteMask = 0;
 	uint8_t FieldMask = 0;
+
+	void FixPointers(const int fullStructSize)
+	{
+		UProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UObjectPropertyBase : public UProperty
@@ -470,17 +554,20 @@ class UObjectPropertyBase : public UProperty
 public:
 	uintptr_t PropertyClass = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(PropertyClass) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(PropertyClass) });
 	}
 };
 
 class UObjectProperty : public UObjectPropertyBase
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
 };
 
 class UClassProperty : public UObjectProperty
@@ -488,10 +575,10 @@ class UClassProperty : public UObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UObjectProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(MetaClass) });
+		UObjectProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
 	}
 };
 
@@ -500,29 +587,38 @@ class UInterfaceProperty : public UProperty
 public:
 	uintptr_t InterfaceClass = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(InterfaceClass) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(InterfaceClass) });
 	}
 };
 
 class UWeakObjectProperty : public UObjectPropertyBase
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
 };
 
 class ULazyObjectProperty : public UObjectPropertyBase
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
 };
 
 class UAssetObjectProperty : public UObjectPropertyBase
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
 };
 
 class UAssetClassProperty : public UAssetObjectProperty
@@ -530,17 +626,20 @@ class UAssetClassProperty : public UAssetObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UAssetObjectProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(MetaClass) });
+		UAssetObjectProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
 	}
 };
 
 class UNameProperty : public UProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UStructProperty : public UProperty
@@ -548,24 +647,29 @@ class UStructProperty : public UProperty
 public:
 	uintptr_t Struct = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(Struct) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Struct) });
 	}
 };
 
 class UStrProperty : public UProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UProperty::FixPointers(fullStructSize);
+	}
 };
-
 
 class UTextProperty : public UProperty
 {
 public:
-
+	void FixPointers(const int fullStructSize)
+	{
+		UProperty::FixPointers(fullStructSize);
+	}
 };
 
 class UArrayProperty : public UProperty
@@ -573,10 +677,10 @@ class UArrayProperty : public UProperty
 public:
 	uintptr_t Inner = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(Inner) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Inner) });
 	}
 };
 
@@ -586,10 +690,10 @@ public:
 	uintptr_t KeyProp = 0;
 	uintptr_t ValueProp = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, {
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(KeyProp),
 			OFFSET(ValueProp)
 		});
@@ -601,10 +705,10 @@ class UDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(SignatureFunction) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
 	}
 };
 
@@ -613,10 +717,10 @@ class UMulticastDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, { OFFSET(SignatureFunction) });
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
 	}
 };
 
@@ -626,10 +730,10 @@ public:
 	uintptr_t UnderlyingProp = 0;
 	uintptr_t Enum = 0;
 
-	void FixPointers()
+	void FixPointers(const int fullStructSize)
 	{
-		UProperty::FixPointers();
-		Utils::FixPointers(this, {
+		UProperty::FixPointers(fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(UnderlyingProp),
 			OFFSET(Enum)
 		});

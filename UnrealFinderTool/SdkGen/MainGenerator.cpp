@@ -20,7 +20,7 @@ public:
 		virtualFunctionPattern["Class CoreUObject.Object"] =
 		{
 			{ 
-				PatternScan::Parse("", 0, "45 33 F6 4D 8B E0", 0xFF),
+				PatternScan::Parse("ProcessEvent", 0, "45 33 F6 4D 8B E0", 0xFF),
 				R"(	inline void ProcessEvent(class UFunction* function, void* parms)
 	{
 		return GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);
@@ -30,7 +30,7 @@ public:
 		virtualFunctionPattern["Class CoreUObject.Class"] =
 		{
 			{ 
-				PatternScan::Parse("", 0, "4C 8B DC 57 48 81 EC", 0xFF),
+				PatternScan::Parse("CreateDefaultObject", 0, "4C 8B DC 57 48 81 EC", 0xFF),
 				R"(	inline UObject* CreateDefaultObject()
 	{
 		return GetVFunction<UObject*(*)(UClass*)>(this, %d)(this);
