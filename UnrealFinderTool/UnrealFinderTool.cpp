@@ -9,6 +9,7 @@
 #include <iostream>
 int main()
 {
+	SetConsoleTitle("Unreal Finder Tool By CorrM");
 	const HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
@@ -25,7 +26,7 @@ int main()
 	Utils::MemoryObj = memManager1;
 	auto objObjectsAddress = uintptr_t(0x2B703210);
 	auto gNamesAddress = uintptr_t(0x2B419744);
-	InstanceLogger sg(objObjectsAddress, gNamesAddress);
+	SdkGenerator sg(objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
 	return 0;

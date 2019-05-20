@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iterator>
+#include "PatternScan.h"
 
 class IGenerator
 {
@@ -225,7 +226,7 @@ public:
 		return false;
 	}
 
-	using VirtualFunctionPatterns = std::vector<std::tuple<const char*, const char*, size_t, const char*>>;
+	using VirtualFunctionPatterns = std::vector<std::tuple<Pattern, const char*>>;
 
 	/// <summary>
 	/// Gets the patterns of virtual functions of the specific class.
@@ -260,8 +261,8 @@ public:
 		Type MethodType;
 
 		/// <summary>Adds a predefined method which gets splittet in declaration and definition.</summary>
-		/// <param name="Signature">The method signature.</param>
-		/// <param name="Body">The method body.</param>
+		/// <param name="signature">The method signature.</param>
+		/// <param name="body">The method body.</param>
 		/// <returns>The method.</returns>
 		static PredefinedMethod Default(std::string&& signature, std::string&& body)
 		{
@@ -269,7 +270,7 @@ public:
 		}
 
 		/// <summary>Adds a predefined method which gets included as an inline method.</summary>
-		/// <param name="Body">The body.</param>
+		/// <param name="body">The body.</param>
 		/// <returns>The method.</returns>
 		static PredefinedMethod Inline(std::string&& body)
 		{
@@ -278,7 +279,7 @@ public:
 	};
 
 	/// <summary>Gets the predefined methods of the specific class.</summary>
-	/// <param name="className">The name of the class.</param>
+	/// <param name="name">The name of the class.</param>
 	/// <param name="methods">[out] The predefined methods.</param>
 	/// <returns>true if predefined methods are found.</returns>
 	virtual bool GetPredefinedClassMethods(const std::string& name, std::vector<PredefinedMethod>& methods) const

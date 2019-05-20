@@ -13,9 +13,10 @@ class ObjectsStore
 
 	static bool FetchData();
 	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, SdkUObject& retObj);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UObject& retObj);
 public:
-	static SdkUObject* GObjObjects;
+	// TODO: Change This to UEObject Array
+	static UObject* GObjObjects;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>

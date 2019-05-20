@@ -1,9 +1,9 @@
 #pragma once
-#include "Utils.h"
-#include "Process.h"
-#include <vector>
-#include "Memory.h"
 #include <map>
+#include <vector>
+#include "Process.h"
+
+class Memory;
 
 typedef unsigned char uchar_t;
 

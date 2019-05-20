@@ -1,5 +1,8 @@
 #include "pch.h"
+#include "Utils.h"
+#include "Memory.h"
 #include "PatternScan.h"
+
 #include <future>
 
 Pattern PatternScan::Parse(const std::string& name, const int offset, std::string hexStr, const uchar_t wildcard, const std::string& delimiter)

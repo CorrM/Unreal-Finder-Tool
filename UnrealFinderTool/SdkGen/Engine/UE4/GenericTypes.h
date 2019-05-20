@@ -15,14 +15,14 @@ class UEObject
 {
 protected:
 	mutable UClass objClass;
-	mutable SdkUObject objObject;
+	mutable UObject objObject;
 
 public:
-	SdkUObject Object;
+	UObject Object;
 
 	UEObject() = default;
 
-	UEObject(const SdkUObject object) : Object(object)
+	UEObject(const UObject object) : Object(object)
 	{
 
 	}
@@ -47,15 +47,11 @@ public:
 
 	bool Update(const UEObject& newObject);
 
-	bool Update(const SdkUObject& newObject);
+	bool Update(const UObject& newObject);
 
 	template<typename Base>
 	Base Cast() const
 	{
-		// TODO: Solve Problem HERE
-		// may case a delete problem it's use the same `object`
-		// may delete from other UEObject
-
 		return Base(Object);
 	}
 

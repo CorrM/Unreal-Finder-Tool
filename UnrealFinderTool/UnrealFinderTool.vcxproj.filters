@@ -102,9 +102,6 @@
     <ClInclude Include="SdkGen\Engine\Package.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="SdkGen\Engine\PatternFinder.h">
-      <Filter>SdkGen\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="SdkGen\Engine\PrintHelper.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
@@ -131,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="SdkGen\MainEngineClasses.h">
       <Filter>SdkGen</Filter>
+    </ClInclude>
+    <ClInclude Include="UnsortedMap.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -198,9 +198,6 @@
       <Filter>SdkGen\Engine</Filter>
     </ClCompile>
     <ClCompile Include="SdkGen\Engine\Package.cpp">
-      <Filter>SdkGen\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="SdkGen\Engine\PatternFinder.cpp">
       <Filter>SdkGen\Engine</Filter>
     </ClCompile>
     <ClCompile Include="SdkGen\Engine\PrintHelper.cpp">

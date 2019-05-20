@@ -7,7 +7,8 @@ class Generator final : public IGenerator
 public:
 	bool Initialize() override
 	{
-		alignasClasses = {
+		alignasClasses =
+		{
 			{ "ScriptStruct CoreUObject.Plane", 16 },
 			{ "ScriptStruct CoreUObject.Quat", 16 },
 			{ "ScriptStruct CoreUObject.Transform", 16 },
@@ -16,20 +17,28 @@ public:
 			{ "ScriptStruct Engine.RootMotionSourceGroup", 8 }
 		};
 
-		virtualFunctionPattern["Class CoreUObject.Object"] = {
-			{ "\x45\x33\xF6\x4D\x8B\xE0", "xxxxxx", 0x200, R"(	inline void ProcessEvent(class UFunction* function, void* parms)
+		virtualFunctionPattern["Class CoreUObject.Object"] =
+		{
+			{ 
+				PatternScan::Parse("", 0, "45 33 F6 4D 8B E0", 0xFF),
+				R"(	inline void ProcessEvent(class UFunction* function, void* parms)
 	{
 		return GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);
-	})" }
+	})" 
+			}
 		};
-		virtualFunctionPattern["Class CoreUObject.Class"] = {
-			{ "\x4C\x8B\xDC\x57\x48\x81\xEC", "xxxxxxx", 0x200, R"(	inline UObject* CreateDefaultObject()
+		virtualFunctionPattern["Class CoreUObject.Class"] =
+		{
+			{ 
+				PatternScan::Parse("", 0, "4C 8B DC 57 48 81 EC", 0xFF),
+				R"(	inline UObject* CreateDefaultObject()
 	{
 		return GetVFunction<UObject*(*)(UClass*)>(this, %d)(this);
 	})" }
 		};
 
-		predefinedMembers["Class CoreUObject.Object"] = {
+		predefinedMembers["Class CoreUObject.Object"] =
+		{
 			{ "void*", "Vtable" },
 			{ "int32_t", "ObjectFlags" },
 			{ "int32_t", "InternalIndex" },
@@ -37,20 +46,24 @@ public:
 			{ "FName", "Name" },
 			{ "class UObject*", "Outer" }
 		};
-		predefinedStaticMembers["Class CoreUObject.Object"] = {
+		predefinedStaticMembers["Class CoreUObject.Object"] =
+		{
 			{ "FUObjectArray*", "GObjects" }
 		};
-		predefinedMembers["Class CoreUObject.Field"] = {
+		predefinedMembers["Class CoreUObject.Field"] =
+		{
 			{ "class UField*", "Next" }
 		};
-		predefinedMembers["Class CoreUObject.Struct"] = {
+		predefinedMembers["Class CoreUObject.Struct"] =
+		{
 			{ "class UStruct*", "SuperField" },
 			{ "class UField*", "Children" },
 			{ "int32_t", "PropertySize" },
 			{ "int32_t", "MinAlignment" },
 			{ "unsigned char", "UnknownData0x0048[0x40]" }
 		};
-		predefinedMembers["Class CoreUObject.Function"] = {
+		predefinedMembers["Class CoreUObject.Function"] =
+		{
 			{ "int32_t", "FunctionFlags" },
 			{ "int16_t", "RepOffset" },
 			{ "int8_t", "NumParms" },
@@ -64,7 +77,8 @@ public:
 			{ "void*", "Func" }
 		};
 
-		predefinedMethods["ScriptStruct CoreUObject.Vector2D"] = {
+		predefinedMethods["ScriptStruct CoreUObject.Vector2D"] =
+		{
 			PredefinedMethod::Inline(R"(	inline FVector2D()
 		: X(0), Y(0)
 	{ })"),
@@ -73,7 +87,8 @@ public:
 		  Y(y)
 	{ })")
 		};
-		predefinedMethods["ScriptStruct CoreUObject.LinearColor"] = {
+		predefinedMethods["ScriptStruct CoreUObject.LinearColor"] =
+		{
 			PredefinedMethod::Inline(R"(	inline FLinearColor()
 		: R(0), G(0), B(0), A(0)
 	{ })"),
@@ -85,7 +100,8 @@ public:
 	{ })")
 		};
 
-		predefinedMethods["Class CoreUObject.Object"] = {
+		predefinedMethods["Class CoreUObject.Object"] =
+		{
 			PredefinedMethod::Inline(R"(	static inline TUObjectArray& GetGlobalObjects()
 	{
 		return GObjects->ObjObjects;
@@ -167,7 +183,8 @@ public:
 	return false;
 })")
 		};
-		predefinedMethods["Class CoreUObject.Class"] = {
+		predefinedMethods["Class CoreUObject.Class"] =
+		{
 			PredefinedMethod::Inline(R"(	template<typename T>
 	inline T* CreateDefaultObject()
 	{

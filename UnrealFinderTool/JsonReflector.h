@@ -1,12 +1,14 @@
 #pragma once
 #include "json.hpp"
+#include "UnsortedMap.h"
 
 class JsonVar;
 class JsonStruct;
 class Memory;
 
-using JsonStructs = std::map<std::string, JsonStruct>;
-using JsonVariables = std::map<std::string, JsonVar>;
+
+using JsonStructs = UnsortedMap<std::string, JsonStruct>;
+using JsonVariables = UnsortedMap<std::string, JsonVar>;
 
 class JsonReflector
 {

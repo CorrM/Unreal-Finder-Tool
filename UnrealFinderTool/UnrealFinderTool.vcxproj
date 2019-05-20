@@ -185,7 +185,6 @@
     <ClInclude Include="SdkGen\Engine\NameValidator.h" />
     <ClInclude Include="SdkGen\Engine\ObjectsStore.h" />
     <ClInclude Include="SdkGen\Engine\Package.h" />
-    <ClInclude Include="SdkGen\Engine\PatternFinder.h" />
     <ClInclude Include="SdkGen\Engine\PrintHelper.h" />
     <ClInclude Include="SdkGen\Engine\tinyformat.h" />
     <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.h" />
@@ -194,6 +193,7 @@
     <ClInclude Include="StdColors.h" />
     <ClInclude Include="GObjectsFinder.h" />
     <ClInclude Include="Tools.h" />
+    <ClInclude Include="UnsortedMap.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -218,7 +218,6 @@
     <ClCompile Include="SdkGen\Engine\NameValidator.cpp" />
     <ClCompile Include="SdkGen\Engine\ObjectsStore.cpp" />
     <ClCompile Include="SdkGen\Engine\Package.cpp" />
-    <ClCompile Include="SdkGen\Engine\PatternFinder.cpp" />
     <ClCompile Include="SdkGen\Engine\PrintHelper.cpp" />
     <ClCompile Include="SdkGen\Engine\UE4\FunctionFlags.cpp" />
     <ClCompile Include="SdkGen\Engine\UE4\GenericTypes.cpp" />

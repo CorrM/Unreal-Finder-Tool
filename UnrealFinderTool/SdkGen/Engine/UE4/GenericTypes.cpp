@@ -16,7 +16,7 @@ bool UEObject::Update(const UEObject& newObject)
 	return true;
 }
 
-bool UEObject::Update(const SdkUObject& newObject)
+bool UEObject::Update(const UObject& newObject)
 {
 	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject.ObjAddress))
 		return false;

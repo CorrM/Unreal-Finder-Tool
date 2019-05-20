@@ -67,12 +67,12 @@ bool Utils::ProgramIs64()
 #endif
 }
 
-DWORD Utils::BufToInteger(void* buffer)
+int Utils::BufToInteger(void* buffer)
 {
 	return *reinterpret_cast<DWORD*>(buffer);
 }
 
-DWORD64 Utils::BufToInteger64(void* buffer)
+int64_t Utils::BufToInteger64(void* buffer)
 {
 	return *reinterpret_cast<DWORD64*>(buffer);
 }
@@ -83,39 +83,28 @@ bool Utils::IsNumber(const std::string& s)
 		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
-void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte, const int structSize)
+void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
 {
-	const int x1 = 0x4 * (varOffsetEach4Byte + 1);
-	const int x2 = 0x4 * varOffsetEach4Byte;
+	const int destSize = abs(varOffset - structSize);
+	const int srcSize = abs(varOffset - structSize) - 0x4;
 
-	const int size = abs(x1 - structSize);
-	memcpy_s
-	(
-		static_cast<char*>(structBase) + x1,
-		size,
-		static_cast<char*>(structBase) + x2,
-		size
-	);
-	memset(static_cast<char*>(structBase) + x1, 0, 0x4);
+	char* src = static_cast<char*>(structBase) + varOffset;
+	char* dest = src + 0x4;
+
+	memcpy_s(dest, destSize, src, srcSize);
+	memset(dest, 0x0, 0x4);
 }
 
-template<typename ElementType>
-void Utils::FixStructPointer(void* structBase, const int varOffsetEach4Byte)
-{
-	FixStructPointer(structBase, varOffsetEach4Byte, sizeof(ElementType));
-}
-
-uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte, const int structSize, const bool is64BitGame)
+uintptr_t Utils::ReadPointer(void* structBase, const int varOffset, const int structSize, const bool is64BitGame)
 {
 	uintptr_t ret = 0;
-	int offset = varOffsetEach4Byte * 4;
-	uintptr_t calcAddress = *reinterpret_cast<uintptr_t*>(structBase) + offset;
+	uintptr_t calcAddress = *reinterpret_cast<uintptr_t*>(structBase) + varOffset;
 
 	if (!is64BitGame)
 	{
 		ret = static_cast<DWORD>(calcAddress); // 4byte
 		if (ProgramIs64())
-			FixStructPointer(structBase, varOffsetEach4Byte, structSize);
+			FixStructPointer(structBase, varOffset, structSize);
 	}
 	else
 	{
@@ -125,7 +114,7 @@ uintptr_t Utils::ReadSafePointer(void* structBase, const int varOffsetEach4Byte,
 	return ret;
 }
 
-uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
+uintptr_t Utils::ReadPointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
 {
 	uintptr_t ret = 0;
 	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->GetAllocPointer()) + structBase->GetVar(varName).Offset;
@@ -134,7 +123,7 @@ uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, 
 	{
 		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
 		if (ProgramIs64())
-			FixStructPointer(structBase->GetAllocPointer(), int(structBase->GetVar(varName).Offset / 4), structBase->StructSize);
+			FixStructPointer(structBase->GetAllocPointer(), structBase->GetVar(varName).Offset, structBase->StructSize);
 	}
 	else
 	{
@@ -154,7 +143,7 @@ void Utils::FixPointersInJsonStruct(JsonStruct* structBase, const bool is64BitGa
 		for (auto& var : structBase->Vars)
 		{
 			if (var.second.Type == "pointer")
-				ReadSafePointer(structBase, var.first, is64BitGame);
+				ReadPointer(structBase, var.first, is64BitGame);
 			else if (var.second.IsStruct)
 			{
 				if (var.second.Struct == nullptr)

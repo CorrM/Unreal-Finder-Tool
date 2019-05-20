@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GnamesFinder.h"
 #include "Color.h"
+#include "Utils.h"
 
 Pattern GnamesFinder::none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
 Pattern GnamesFinder::byte_sig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 72 6F 70 65 72 74 79 00", 0xFF);

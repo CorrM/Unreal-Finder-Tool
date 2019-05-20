@@ -5,7 +5,6 @@
       "super": "",
       "vars": [
         { "Index": "int" },
-        { "Number": "int" },
         { "HashNext": "pointer" },
         { "AnsiName": "string" }
       ],

@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "JsonReflector.h"
 #include <fstream>
 #include <Memory.h>
 #include "Utils.h"
+#include "JsonReflector.h"
 
 JsonStructs JsonReflector::StructsList;
 nlohmann::json JsonReflector::jsonObj;
@@ -88,7 +88,8 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 							std::string type = variable.Type;
 
 							auto jVar = JsonVar(name, type, offset, IsStructType(type));
-							vars[name] = jVar;
+							vars.push_back({ name , jVar });
+
 							offset += jVar.Size;
 						}
 
@@ -116,7 +117,9 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 				std::string type = it.value();
 
 				JsonVar jVar(name, type, offset, IsStructType(type));
-				vars[name] = jVar;
+				vars.push_back({ name , jVar });
+
+
 				offset += jVar.Size;
 			}
 
@@ -127,7 +130,7 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 
 			// [Copy] the struct to structs list
 			if (StructsList.find(eName) == StructsList.end())
-				StructsList[eName] = tempToSave;
+				StructsList.push_back({ eName , tempToSave });
 
 			return true;
 		}
@@ -172,7 +175,8 @@ bool JsonReflector::Load(void* jsonObj)
 						std::string type = variable.Type;
 
 						auto jVar = JsonVar(name, type, offset, IsStructType(type));
-						vars[name] = jVar;
+						vars.push_back({ name , jVar });
+
 						offset += jVar.Size;
 					}
 
@@ -200,7 +204,8 @@ bool JsonReflector::Load(void* jsonObj)
 			std::string type = it.value();
 
 			auto jVar = JsonVar(name, type, offset, IsStructType(type));
-			vars[name] = jVar;
+			vars.push_back({ name , jVar });
+
 			offset += jVar.Size;
 		}
 
@@ -211,7 +216,8 @@ bool JsonReflector::Load(void* jsonObj)
 
 		// [Copy] the struct to structs list
 		if (StructsList.find(eName) == StructsList.end())
-			StructsList[eName] = tempToSave;
+			StructsList.push_back({ eName , tempToSave });
+
 	}
 	return true;
 }
@@ -231,7 +237,7 @@ bool JsonReflector::ReadAndLoadFile(const std::string& fileName)
 	return ReadAndLoadFile(fileName, reinterpret_cast<void*>(&jsonObj));
 }
 
-int JsonReflector::VarSizeFromJson(const std::string & typeName)
+int JsonReflector::VarSizeFromJson(const std::string& typeName)
 {
 	if (typeName == "int8")
 		return sizeof(int8_t);
@@ -277,7 +283,7 @@ int JsonReflector::VarSizeFromJson(const std::string & typeName)
 	throw std::exception(("Cant detect size of `" + typeName + "`.").c_str());
 }
 
-bool JsonReflector::IsStructType(const std::string & typeName)
+bool JsonReflector::IsStructType(const std::string& typeName)
 {
 	const bool isStruct =
 		typeName == "int8"		||
@@ -295,7 +301,9 @@ bool JsonReflector::IsStructType(const std::string & typeName)
 		typeName == "pointer"	||
 		typeName == "DWORD"		||
 		typeName == "DWORD64"	||
-		typeName == "string";
+		typeName == "string"	||
+
+		Utils::IsNumber(typeName);
 	return !isStruct;
 }
 

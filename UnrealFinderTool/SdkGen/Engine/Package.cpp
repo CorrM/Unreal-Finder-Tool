@@ -42,12 +42,11 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
-	#pragma omp parallel for num_threads(2)
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
 		const UEObject& obj = ObjectsStore().GetById(i);
 		const auto package = obj.GetPackageObject();
-		if (package.IsValid() && packageObj == package)
+		if (packageObj == package)
 		{
 			if (obj.IsA<UEEnum>())
 			{

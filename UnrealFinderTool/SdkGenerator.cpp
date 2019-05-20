@@ -132,7 +132,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	omp_set_nested(true);
 	omp_set_dynamic(false);
 
-	#pragma omp parallel for num_threads(6)
+	// #pragma omp parallel for num_threads(12)
 	for (size_t i = 0; i < packageObjects.size(); ++i)
 	{
 		const UEObject& obj = packageObjects[i];
@@ -145,18 +145,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 			packages.emplace_back(std::move(package));
 		}
 	}
-	
-	/*for (const auto& obj : packageObjects)
-	{
-		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects);
-		if (package->Save(sdkPath))
-		{
-			Package::PackageMap[obj] = package.get();
-
-			packages.emplace_back(std::move(package));
-		}
-	}*/
 
 	if (!packages.empty())
 	{

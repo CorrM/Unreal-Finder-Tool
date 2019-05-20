@@ -5,7 +5,7 @@
 #include "ObjectsStore.h"
 #include <cassert>
 
-SdkUObject* ObjectsStore::GObjObjects;
+UObject* ObjectsStore::GObjObjects;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
@@ -39,7 +39,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
 
-	GObjObjects = new SdkUObject[num];
+	GObjObjects = new UObject[num];
 	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 	for (int i = 0; i < num; ++i)
 	{
@@ -63,7 +63,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	return true;
 }
 
-bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, SdkUObject& retObj)
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, UObject& retObj)
 {
 	// Alloc and Read the address as class
 	if (!uObject.ReadData(uObjectAddress, "UObject")) return false;

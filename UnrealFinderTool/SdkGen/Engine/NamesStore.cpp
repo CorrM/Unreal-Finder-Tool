@@ -83,10 +83,11 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 
 			// Read FName
 			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
+			int nameOffset = fName["AnsiName"].Offset;
 
 			// Set The Name
 			gNames[i].Index = i;
-			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
+			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset - sSub);
 			i++;
 		}
 	}
