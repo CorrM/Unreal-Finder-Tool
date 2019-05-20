@@ -31,7 +31,7 @@ class InstanceLogger
 	bool ObjectDump();
 	bool NameDump();
 public:
-	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
+	InstanceLogger(uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
 	~InstanceLogger();
 	void Start();
 };

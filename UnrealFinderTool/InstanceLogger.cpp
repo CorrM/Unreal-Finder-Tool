@@ -6,7 +6,7 @@
 #include <string>
 #include <cinttypes>
 
-InstanceLogger::InstanceLogger(Memory* memory, const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
+InstanceLogger::InstanceLogger(const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
 	gObjectsAddress(gObjObjectsAddress),

@@ -9,7 +9,7 @@ using std::string;
 class Memory
 {
 	bool use_kernal = false;
-	static BypaPH* bypa_ph;
+	static BypaPH* bypaPh;
 public:
 	HANDLE ProcessHandle = nullptr;
 	int ProcessId = 0;
@@ -32,7 +32,7 @@ public:
 		uintptr_t remoteAddress = reinterpret_cast<uintptr_t>(&type) + skipLocalBytes;
 
 		if (use_kernal)
-			bypa_ph->RWVM(bypa_ph->m_hTarget, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
+			bypaPh->RWVM(bypaPh->m_hTarget, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
 		else
 			ReadProcessMemory(ProcessHandle, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
 

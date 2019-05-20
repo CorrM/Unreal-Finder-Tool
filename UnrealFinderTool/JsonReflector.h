@@ -53,7 +53,7 @@ public:
 	// Variable is struct
 	bool IsStruct;
 	// If this variable is struct this is pointer to struct contains variables
-	JsonStruct* StructVars;
+	JsonStruct* Struct;
 
 	JsonVar();
 	JsonVar(const std::string& name, const std::string& type, size_t offset, bool isStruct);
@@ -113,6 +113,8 @@ public:
 
 	// Set local data Pointer
 	void SetAllocPointer(void* newAddress);
+	// Get right size need to read, useful for 32bit games in 64bit version of this tool
+	int SubUnNeededSize(JsonVariables& variables);
 	// Read game data, set date to local memory and fix pointer if needed
 	bool ReadData(uintptr_t address, const std::string& structType);
 	// Get local data Pointer

@@ -20,12 +20,12 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x2168);
-	auto memManager1 = new Memory(pHandle1, false);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0xBFC);
+	auto memManager1 = new Memory(pHandle1, true);
 	Utils::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x7FF7105C1E70);
-	auto gNamesAddress = uintptr_t(0x7FF7105B9A20);
-	SdkGenerator sg(objObjectsAddress, gNamesAddress);
+	auto objObjectsAddress = uintptr_t(0x2B703210);
+	auto gNamesAddress = uintptr_t(0x2B419744);
+	InstanceLogger sg(objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
 	return 0;
@@ -112,7 +112,7 @@ int main()
 		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
 
-		InstanceLogger il(memManager, objObjectsAddress, gNamesAddress);
+		InstanceLogger il(objObjectsAddress, gNamesAddress);
 		il.Start();
 	}
 	else if (tool_id == 4)

@@ -146,10 +146,25 @@ uintptr_t Utils::ReadSafePointer(JsonStruct* structBase, const string& varName, 
 
 void Utils::FixPointersInJsonStruct(JsonStruct* structBase, const bool is64BitGame)
 {
+	if (structBase == nullptr)
+		return;
+
 	if (!is64BitGame && ProgramIs64())
-		for (const auto& var : structBase->Vars)
+	{
+		for (auto& var : structBase->Vars)
+		{
 			if (var.second.Type == "pointer")
 				ReadSafePointer(structBase, var.first, is64BitGame);
+			else if (var.second.IsStruct)
+			{
+				if (var.second.Struct == nullptr)
+					var.second.ReadAsStruct();
+
+				if (var.second.Struct != nullptr)
+					FixPointersInJsonStruct(var.second.Struct, is64BitGame);
+			}
+		}
+	}
 }
 
 int Utils::PointerSize()
