@@ -265,7 +265,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.Name = scriptStructObj.GetName();
 	ss.FullName = scriptStructObj.GetFullName();
 
-	Logger::Log("ScriptStruct: %-100s - instance: 0x%P", ss.Name, scriptStructObj.GetAddress());
+	Logger::Log("ScriptStruct:       %-85s - instance: 0x%P", ss.Name, scriptStructObj.GetAddress());
 
 	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
 	ss.NameCppFull = "struct ";
@@ -370,7 +370,7 @@ void Package::GenerateClass(const UEClass & classObj)
 	c.Name = classObj.GetName();
 	c.FullName = classObj.GetFullName();
 
-	Logger::Log("Class:        %-100s - instance: 0x%P", c.Name, classObj.GetAddress());
+	Logger::Log("Class:              %-85s - instance: 0x%P", c.Name, classObj.GetAddress());
 
 	c.NameCpp = MakeValidName(classObj.GetNameCPP());
 	c.NameCppFull = "class " + c.NameCpp;

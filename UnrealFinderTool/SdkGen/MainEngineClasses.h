@@ -44,6 +44,12 @@ struct FName
 template<class T>
 struct TArray
 {
+private:
+	T* Data;
+	int32_t Count;
+	int32_t Max;
+
+public:
 	friend struct FString;
 
 	TArray()
@@ -71,17 +77,6 @@ struct TArray
 	{
 		return i < Num();
 	}
-
-private:
-	T* Data;
-	int32_t Count;
-	int32_t Max;
-
-	void FixPointers(const int fullStructSize)
-	{
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
-		// UStruct::FixPointers();
-	}
 };
 
 template<typename KeyType, typename ValueType>
@@ -100,6 +95,11 @@ struct FString : TArray<wchar_t>
 		std::string str(size, 0);
 		WideCharToMultiByte(CP_UTF8, 0, Data, Count, &str[0], size, nullptr, nullptr);
 		return str;
+	}
+
+	void FixPointers(void* baseStruct, const int varOffset, const int fullStructSize)
+	{
+		Utils::FixPointers(baseStruct, fullStructSize, { varOffset + OFFSET(Data) });
 	}
 };
 
@@ -235,23 +235,18 @@ class FUEnumItem
 public:
 	FName Key;
 	uint64_t Value = 0;
-
-	void FixPointers(const int fullStructSize)
-	{
-		
-	}
 };
 
 class TUEnumArray
 {
 public:
 	uintptr_t Data = 0;
-	int Max = 0;
 	int Num = 0;
+	int Max = 0;
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(void* baseStruct, const int varOffset, const int fullStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+		Utils::FixPointers(baseStruct, fullStructSize, { varOffset + OFFSET(Data) });
 	}
 };
 
@@ -335,6 +330,8 @@ public:
 	void FixPointers(const int fullStructSize)
 	{
 		UField::FixPointers(fullStructSize);
+		CppType.FixPointers(this, OFFSET(CppType), fullStructSize);
+		Names.FixPointers(this, OFFSET(Names), fullStructSize);
 	}
 };
 
@@ -416,10 +413,10 @@ public:
 	uint8_t BlueprintReplicationCondition = 0;
 	int Offset = 0;
 	FName RepNotifyFunc;
-	uintptr_t PropertyLinkNext;
-	uintptr_t NextRef;
-	uintptr_t DestructorLinkNext;
-	uintptr_t PostConstructLinkNext;
+	uintptr_t PropertyLinkNext = 0;
+	uintptr_t NextRef = 0;
+	uintptr_t DestructorLinkNext = 0;
+	uintptr_t PostConstructLinkNext = 0;
 
 	void FixPointers(const int fullStructSize)
 	{

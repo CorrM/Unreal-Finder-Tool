@@ -120,7 +120,8 @@ void* NamesStore::GetAddress()
 
 size_t NamesStore::GetNamesNum() const
 {
-	return gNamesChunkCount * gNamesChunks;
+	int num = gNamesChunkCount * gNamesChunks;
+	return size_t(num);
 }
 
 bool NamesStore::IsValid(const size_t id)
@@ -130,6 +131,9 @@ bool NamesStore::IsValid(const size_t id)
 
 std::string NamesStore::GetById(const size_t id)
 {
+	if (id > GetNamesNum())
+		return "";
+
 	return gNames[id].AnsiName;
 }
 #pragma endregion

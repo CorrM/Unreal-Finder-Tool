@@ -132,7 +132,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	omp_set_nested(true);
 	omp_set_dynamic(false);
 
-	// #pragma omp parallel for num_threads(12)
+	#pragma omp parallel for num_threads(12)
 	for (size_t i = 0; i < packageObjects.size(); ++i)
 	{
 		const UEObject& obj = packageObjects[i];
