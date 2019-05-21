@@ -62,8 +62,6 @@ UEObject UEObject::GetOuter() const
 }
 std::string UEObject::GetName() const
 {
-	// TODO: There is a problem here
-
 	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
 	if (!name.empty() && Object.Name.Number > 0)
 	{

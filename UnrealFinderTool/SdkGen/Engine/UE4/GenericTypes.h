@@ -14,8 +14,11 @@ class UEClass;
 class UEObject
 {
 protected:
+	// This vars to speedup
 	mutable UClass objClass;
 	mutable UObject objObject;
+	mutable std::string fullName, nameCpp;
+	mutable UObject package;
 
 public:
 	UObject Object;
@@ -160,19 +163,7 @@ public:
 
 class UEProperty : public UEField
 {
-	mutable UProperty objProperty;
-
 public:
-	using UEField::UEField;
-
-	size_t GetArrayDim() const;
-
-	size_t GetElementSize() const;
-
-	UEPropertyFlags GetPropertyFlags() const;
-
-	size_t GetOffset() const;
-
 	enum class PropertyType
 	{
 		Unknown,
@@ -196,6 +187,22 @@ public:
 			return { type, size, reference, generator->GetOverrideType(cppType) };
 		}
 	};
+
+private:
+	mutable UProperty objProperty;
+	mutable bool infoChanged = false;
+	mutable Info curInfo;
+
+public:
+	using UEField::UEField;
+
+	size_t GetArrayDim() const;
+
+	size_t GetElementSize() const;
+
+	UEPropertyFlags GetPropertyFlags() const;
+
+	size_t GetOffset() const;
 
 	Info GetInfo() const;
 

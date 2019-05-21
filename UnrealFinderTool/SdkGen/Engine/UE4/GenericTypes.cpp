@@ -31,20 +31,24 @@ bool UEObject::Update(const UObject& newObject)
 UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	UEObject package;
+	if (!package.Empty())
+		return UEObject(package);
 
 	UEObject outer = GetOuter();
 	while (outer.IsValid())
 	{
-		package.Update(outer.Object);
+		package = outer.Object;
 		if (!outer.Update(outer.GetOuter())) break;
 	}
 
-	return package;
+	return UEObject(package);
 }
 
 std::string UEObject::GetFullName() const
 {
+	if (!fullName.empty())
+		return fullName;
+
 	auto cClass = GetClass();
 	if (cClass.IsValid())
 	{
@@ -62,6 +66,7 @@ std::string UEObject::GetFullName() const
 		name += temp;
 		name += GetName();
 
+		fullName = name;
 		return name;
 	}
 
@@ -70,6 +75,9 @@ std::string UEObject::GetFullName() const
 
 std::string UEObject::GetNameCPP() const
 {
+	if (!nameCpp.empty())
+		return nameCpp;
+
 	std::string name;
 
 	if (IsA<UEClass>())
@@ -98,123 +106,158 @@ std::string UEObject::GetNameCPP() const
 	}
 
 	name += GetName();
+	nameCpp = name;
 
 	return name;
 }
 
 UEProperty::Info UEProperty::GetInfo() const
 {
+	if (infoChanged)
+		return curInfo;
+
 	if (IsValid())
 	{
 		if (IsA<UEByteProperty>())
 		{
-			return Cast<UEByteProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEByteProperty>().GetInfo();
 		}
-		if (IsA<UEUInt16Property>())
+		else if (IsA<UEUInt16Property>())
 		{
-			return Cast<UEUInt16Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEUInt16Property>().GetInfo();
 		}
-		if (IsA<UEUInt32Property>())
+		else if (IsA<UEUInt32Property>())
 		{
-			return Cast<UEUInt32Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEUInt32Property>().GetInfo();
 		}
-		if (IsA<UEUInt64Property>())
+		else if (IsA<UEUInt64Property>())
 		{
-			return Cast<UEUInt64Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEUInt64Property>().GetInfo();
 		}
-		if (IsA<UEInt8Property>())
+		else if (IsA<UEInt8Property>())
 		{
-			return Cast<UEInt8Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEInt8Property>().GetInfo();
 		}
-		if (IsA<UEInt16Property>())
+		else if (IsA<UEInt16Property>())
 		{
-			return Cast<UEInt16Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEInt16Property>().GetInfo();
 		}
-		if (IsA<UEIntProperty>())
+		else if (IsA<UEIntProperty>())
 		{
-			return Cast<UEIntProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEIntProperty>().GetInfo();
 		}
-		if (IsA<UEInt64Property>())
+		else if (IsA<UEInt64Property>())
 		{
-			return Cast<UEInt64Property>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEInt64Property>().GetInfo();
 		}
-		if (IsA<UEFloatProperty>())
+		else if (IsA<UEFloatProperty>())
 		{
-			return Cast<UEFloatProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEFloatProperty>().GetInfo();
 		}
-		if (IsA<UEDoubleProperty>())
+		else if (IsA<UEDoubleProperty>())
 		{
-			return Cast<UEDoubleProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEDoubleProperty>().GetInfo();
 		}
-		if (IsA<UEBoolProperty>())
+		else if (IsA<UEBoolProperty>())
 		{
-			return Cast<UEBoolProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEBoolProperty>().GetInfo();
 		}
-		if (IsA<UEObjectProperty>())
+		else if (IsA<UEObjectProperty>())
 		{
-			return Cast<UEObjectProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEObjectProperty>().GetInfo();
 		}
-		if (IsA<UEClassProperty>())
+		else if (IsA<UEClassProperty>())
 		{
-			return Cast<UEClassProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEClassProperty>().GetInfo();
 		}
-		if (IsA<UEInterfaceProperty>())
+		else if (IsA<UEInterfaceProperty>())
 		{
-			return Cast<UEInterfaceProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEInterfaceProperty>().GetInfo();
 		}
-		if (IsA<UEWeakObjectProperty>())
+		else if (IsA<UEWeakObjectProperty>())
 		{
-			return Cast<UEWeakObjectProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEWeakObjectProperty>().GetInfo();
 		}
-		if (IsA<UELazyObjectProperty>())
+		else if (IsA<UELazyObjectProperty>())
 		{
-			return Cast<UELazyObjectProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UELazyObjectProperty>().GetInfo();
 		}
-		if (IsA<UEAssetObjectProperty>())
+		else if (IsA<UEAssetObjectProperty>())
 		{
-			return Cast<UEAssetObjectProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEAssetObjectProperty>().GetInfo();
 		}
-		if (IsA<UEAssetClassProperty>())
+		else if (IsA<UEAssetClassProperty>())
 		{
-			return Cast<UEAssetClassProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEAssetClassProperty>().GetInfo();
 		}
-		if (IsA<UENameProperty>())
+		else if (IsA<UENameProperty>())
 		{
-			return Cast<UENameProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UENameProperty>().GetInfo();
 		}
-		if (IsA<UEStructProperty>())
+		else if (IsA<UEStructProperty>())
 		{
-			return Cast<UEStructProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEStructProperty>().GetInfo();
 		}
-		if (IsA<UEStrProperty>())
+		else if (IsA<UEStrProperty>())
 		{
-			return Cast<UEStrProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEStrProperty>().GetInfo();
 		}
-		if (IsA<UETextProperty>())
+		else if (IsA<UETextProperty>())
 		{
-			return Cast<UETextProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UETextProperty>().GetInfo();
 		}
-		if (IsA<UEArrayProperty>())
+		else if (IsA<UEArrayProperty>())
 		{
-			return Cast<UEArrayProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEArrayProperty>().GetInfo();
 		}
-		if (IsA<UEMapProperty>())
+		else if (IsA<UEMapProperty>())
 		{
-			return Cast<UEMapProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEMapProperty>().GetInfo();
 		}
-		if (IsA<UEDelegateProperty>())
+		else if (IsA<UEDelegateProperty>())
 		{
-			return Cast<UEDelegateProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEDelegateProperty>().GetInfo();
 		}
-		if (IsA<UEMulticastDelegateProperty>())
+		else if (IsA<UEMulticastDelegateProperty>())
 		{
-			return Cast<UEMulticastDelegateProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEMulticastDelegateProperty>().GetInfo();
 		}
-		if (IsA<UEEnumProperty>())
+		else if (IsA<UEEnumProperty>())
 		{
-			return Cast<UEEnumProperty>().GetInfo();
+			infoChanged = true;
+			curInfo = Cast<UEEnumProperty>().GetInfo();
 		}
 	}
+
+	if (infoChanged)
+		return curInfo;
+
 	return { PropertyType::Unknown };
 }
 

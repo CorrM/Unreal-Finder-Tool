@@ -54,7 +54,7 @@ std::string Utils::ReplaceString(std::string str, const std::string& to_find, co
 {
 	size_t position = 0;
 	for (position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
-		str.replace(position, 1, to_replace);
+		str.replace(position, to_find.length(), to_replace);
 	return str;
 }
 

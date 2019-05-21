@@ -51,46 +51,25 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			if (obj.IsA<UEEnum>())
 			{
 				GenerateEnum(obj.Cast<UEEnum>());
+				Sleep(1);
 			}
 			else if (obj.IsA<UEConst>())
 			{
 				GenerateConst(obj.Cast<UEConst>());
+				Sleep(1);
 			}
 			else if (obj.IsA<UEClass>())
 			{
 				GeneratePrerequisites(obj, processedObjects);
+				Sleep(1);
 			}
 			else if (obj.IsA<UEScriptStruct>())
 			{
 				GeneratePrerequisites(obj, processedObjects);
+				Sleep(1);
 			}
 		}
 	}
-	/*
-	for (const auto& obj : ObjectsStore())
-	{
-		const auto package = obj.GetPackageObject();
-		if (package.IsValid() && packageObj == package)
-		{
-			if (obj.IsA<UEEnum>())
-			{
-				GenerateEnum(obj.Cast<UEEnum>());
-			}
-			else if (obj.IsA<UEConst>())
-			{
-				GenerateConst(obj.Cast<UEConst>());
-			}
-			else if (obj.IsA<UEClass>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
-			else if (obj.IsA<UEScriptStruct>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
-		}
-	}
-	*/
 }
 
 bool Package::Save(const fs::path& path) const
@@ -114,6 +93,7 @@ bool Package::Save(const fs::path& path) const
 		return true;
 	}
 
+	#pragma omp critical
 	Logger::Log("Skip Empty:    %s", packageObj.GetName());
 	return false;
 }
@@ -264,7 +244,8 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.Name = scriptStructObj.GetName();
 	ss.FullName = scriptStructObj.GetFullName();
 
-	Logger::Log("ScriptStruct:  %-85s - instance: 0x%P", ss.Name, scriptStructObj.GetAddress());
+	#pragma omp critical
+	Logger::Log("ScriptStruct:  %-85s - instance: 0x%P", this->GetName() + "." + ss.Name, scriptStructObj.GetAddress());
 
 	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
 	ss.NameCppFull = "struct ";
@@ -347,7 +328,7 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 	enums.emplace_back(std::move(e));
 }
 
-void Package::GenerateConst(const UEConst & constObj)
+void Package::GenerateConst(const UEConst& constObj)
 {
 	//auto name = MakeValidName(constObj.GetName());
 	auto name = MakeUniqueCppName(constObj);
@@ -361,7 +342,7 @@ void Package::GenerateConst(const UEConst & constObj)
 	constants[name] = constObj.GetValue();
 }
 
-void Package::GenerateClass(const UEClass & classObj)
+void Package::GenerateClass(const UEClass& classObj)
 {
 	extern IGenerator* generator;
 
@@ -369,7 +350,8 @@ void Package::GenerateClass(const UEClass & classObj)
 	c.Name = classObj.GetName();
 	c.FullName = classObj.GetFullName();
 
-	Logger::Log("Class:  %-85s - instance: 0x%P", c.FullName, classObj.GetAddress());
+	#pragma omp critical
+	Logger::Log("Class:         %-85s - instance: 0x%P", this->GetName() + "." + c.Name, classObj.GetAddress());
 
 	c.NameCpp = MakeValidName(classObj.GetNameCPP());
 	c.NameCppFull = "class " + c.NameCpp;
@@ -465,7 +447,6 @@ void Package::GenerateClass(const UEClass & classObj)
 	IGenerator::VirtualFunctionPatterns patterns;
 	if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 	{
-		// const auto vtable = *reinterpret_cast<uintptr_t **>(classObj.GetAddress());
 		int ptrSize = Utils::PointerSize();
 		uintptr_t vTableAddress = classObj.Object.VfTable;
 		std::vector<uintptr_t> vTable;
@@ -484,7 +465,7 @@ void Package::GenerateClass(const UEClass & classObj)
 
 			// Check valid address
 			auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(vAddress), &info, sizeof info);
-			if (res == 0 || (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_EXECUTE_READ/* && info.Protect != PAGE_READONLY*/))
+			if (res == 0 || (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_EXECUTE_READ))
 				break;
 
 			vTable.push_back(vAddress);

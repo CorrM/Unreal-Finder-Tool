@@ -5,7 +5,7 @@
 #include "ObjectsStore.h"
 #include <cassert>
 
-UEObject* ObjectsStore::GObjObjects;
+UEObject* ObjectsStore::gObjObjects;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
@@ -39,7 +39,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
 
-	GObjObjects = new UEObject[num];
+	gObjObjects = new UEObject[num];
 	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 	for (int i = 0; i < num; ++i)
 	{
@@ -56,20 +56,23 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 			continue;
 		}
 
-		ReadUObject(dwUObject, uObject, GObjObjects[i]);
+		ReadUObject(dwUObject, uObject, gObjObjects[i]);
 		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
 		gObjectsCount++;
 	}
 	return true;
 }
 
-bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, UObject& retObj)
+bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj)
 {
 	// Alloc and Read the address as class
 	if (!uObject.ReadData(uObjectAddress, "UObject")) return false;
 
-	retObj.ObjAddress = uObjectAddress;
-	retObj = uObject;
+	UObject coreObj;
+	coreObj.ObjAddress = uObjectAddress;
+	coreObj = uObject;
+
+	retUObj.Object = coreObj;
 	return true;
 }
 
@@ -85,7 +88,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject& ObjectsStore::GetById(const size_t id) const
 {
-	return GObjObjects[id];
+	return gObjObjects[id];
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

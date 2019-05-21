@@ -1,0 +1,9 @@
+{
+  "sdkGenerator": {
+    "threads": 6,
+    "logger showSkip": false,
+    "logger showClassSaveFileName": true,
+    "logger showStructSaveFileName": true,
+    "logger spaceCount": 85
+  } 
+}

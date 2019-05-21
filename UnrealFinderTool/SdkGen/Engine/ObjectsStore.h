@@ -8,15 +8,14 @@ class Memory;
 
 class ObjectsStore
 {
+	static UEObject* gObjObjects;
 	static uintptr_t gObjAddress;
 	static int gObjectsCount;
 
 	static bool FetchData();
 	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UObject& retObj);
+	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
 public:
-	// TODO: Change This to UEObject Array
-	static UEObject* GObjObjects;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
