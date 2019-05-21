@@ -114,8 +114,7 @@ bool Package::Save(const fs::path& path) const
 		return true;
 	}
 
-	Logger::Log("skip empty Package: %s", packageObj.GetName());
-
+	Logger::Log("Skip Empty:    %s", packageObj.GetName());
 	return false;
 }
 
@@ -265,7 +264,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.Name = scriptStructObj.GetName();
 	ss.FullName = scriptStructObj.GetFullName();
 
-	Logger::Log("ScriptStruct:       %-85s - instance: 0x%P", ss.Name, scriptStructObj.GetAddress());
+	Logger::Log("ScriptStruct:  %-85s - instance: 0x%P", ss.Name, scriptStructObj.GetAddress());
 
 	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
 	ss.NameCppFull = "struct ";
@@ -370,7 +369,7 @@ void Package::GenerateClass(const UEClass & classObj)
 	c.Name = classObj.GetName();
 	c.FullName = classObj.GetFullName();
 
-	Logger::Log("Class:              %-85s - instance: 0x%P", c.Name, classObj.GetAddress());
+	Logger::Log("Class:  %-85s - instance: 0x%P", c.FullName, classObj.GetAddress());
 
 	c.NameCpp = MakeValidName(classObj.GetNameCPP());
 	c.NameCppFull = "class " + c.NameCpp;

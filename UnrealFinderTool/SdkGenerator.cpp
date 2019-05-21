@@ -166,7 +166,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	SaveSdkHeader(path, processedObjects, packages);
 }
 
-
 /// <summary>
 /// Generates the sdk header.
 /// </summary>

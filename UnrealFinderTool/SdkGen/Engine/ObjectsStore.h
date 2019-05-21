@@ -16,7 +16,7 @@ class ObjectsStore
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UObject& retObj);
 public:
 	// TODO: Change This to UEObject Array
-	static UObject* GObjObjects;
+	static UEObject* GObjObjects;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
@@ -37,7 +37,7 @@ public:
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject GetById(size_t id) const;
+	UEObject& GetById(size_t id) const;
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>

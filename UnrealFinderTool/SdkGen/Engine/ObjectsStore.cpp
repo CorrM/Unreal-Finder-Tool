@@ -5,7 +5,7 @@
 #include "ObjectsStore.h"
 #include <cassert>
 
-UObject* ObjectsStore::GObjObjects;
+UEObject* ObjectsStore::GObjObjects;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 
@@ -39,7 +39,7 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
 	int num = objObjects["NumElements"].ReadAs<int>();
 
-	GObjObjects = new UObject[num];
+	GObjObjects = new UEObject[num];
 	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 	for (int i = 0; i < num; ++i)
 	{
@@ -83,9 +83,9 @@ size_t ObjectsStore::GetObjectsNum() const
 	return gObjectsCount;
 }
 
-UEObject ObjectsStore::GetById(const size_t id) const
+UEObject& ObjectsStore::GetById(const size_t id) const
 {
-	return UEObject(GObjObjects[id]);
+	return GObjObjects[id];
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
