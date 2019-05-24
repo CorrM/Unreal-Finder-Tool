@@ -31,7 +31,7 @@ bool NamesStore::FetchData()
 bool NamesStore::ReadGNameArray(uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
-	int sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	size_t nameOffset = 0;
 	JsonStruct fName;
 
 	if (!Utils::MemoryObj->Is64Bit)
@@ -59,6 +59,21 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 	// Alloc Size
 	gNames = new GName[gNamesChunkCount * gNamesChunks];
 
+	// Calc AnsiName offset
+	{
+		uintptr_t noneNameAddress;
+		if (!Utils::MemoryObj->Is64Bit)
+			noneNameAddress = Utils::MemoryObj->ReadInt(gChunks[0]); // 4byte
+		else
+			noneNameAddress = Utils::MemoryObj->ReadInt64(gChunks[0]); // 8byte
+
+		Pattern none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
+		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x100, { none_sig }, true);
+		auto it = result.find("None");
+		if (it != result.end() && !it->second.empty())
+			nameOffset = it->second[0] - noneNameAddress;
+	}
+
 	// Dump GNames
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
@@ -83,11 +98,10 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 
 			// Read FName
 			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
-			int nameOffset = fName["AnsiName"].Offset;
 
 			// Set The Name
 			gNames[i].Index = i;
-			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset - sSub);
+			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
 			i++;
 		}
 	}
@@ -131,6 +145,7 @@ bool NamesStore::IsValid(const size_t id)
 
 std::string NamesStore::GetById(const size_t id)
 {
+	// TODO: i think here is a problem, set BP at (return "") and check call stack. (why wrong id)
 	if (id > GetNamesNum())
 		return "";
 

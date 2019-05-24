@@ -16,8 +16,8 @@ class UEObject
 protected:
 	// This vars to speedup
 	mutable UClass objClass;
-	mutable UObject objObject;
-	mutable std::string fullName, nameCpp;
+	mutable UObject objOuter;
+	mutable std::string objName, fullName, nameCpp;
 	mutable UObject package;
 
 public:
@@ -48,13 +48,16 @@ public:
 
 	void* GetAddress() const;
 
+	/*
 	bool Update(const UEObject& newObject);
 
 	bool Update(const UObject& newObject);
+	*/
 
 	template<typename Base>
 	Base Cast() const
 	{
+		// TODO: maybe i need to cast `Object` too
 		return Base(Object);
 	}
 
@@ -583,21 +586,19 @@ public:
 template<typename T>
 bool UEObject::IsA() const
 {
+	static int is_a_sleep_counter = 0;
 	auto cmp = T::StaticClass();
 	if (!cmp.IsValid())
 	{
 		return false;
 	}
 
-	UEClass super = GetClass();
-	while (super.IsValid())
+	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
 		if (super.Object.IsEqual(cmp.Object))
-		{
 			return true;
-		}
 
-		if (!super.Update(super.GetSuper().Cast<UEClass>())) break;
+		Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 
 	return false;

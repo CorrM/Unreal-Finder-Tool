@@ -5,7 +5,7 @@
 #include "JsonReflector.h"
 
 JsonStructs JsonReflector::StructsList;
-nlohmann::json JsonReflector::jsonObj;
+nlohmann::json JsonReflector::JsonObj;
 
 // -------------------------------------------------
 // JsonReflector
@@ -20,7 +20,7 @@ bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 
 bool JsonReflector::ReadJsonFile(const std::string& fileName)
 {
-	return ReadJsonFile(fileName, &jsonObj);
+	return ReadJsonFile(fileName, &JsonObj);
 }
 
 bool JsonReflector::ReadStruct(const std::string& structName, JsonStruct& destStruct, const bool alloc)
@@ -56,7 +56,7 @@ bool JsonReflector::LoadStruct(const std::string& structName)
 {
 	// Check is already here
 	if (StructsList.find(structName) != StructsList.end()) return true;
-	auto j = jsonObj;
+	auto j = JsonObj;
 
 	for (const auto& parent : j.at("structs").items())
 	{
@@ -224,7 +224,7 @@ bool JsonReflector::Load(void* jsonObj)
 
 bool JsonReflector::Load()
 {
-	return Load(&jsonObj);
+	return Load(&JsonObj);
 }
 
 bool JsonReflector::ReadAndLoadFile(const std::string& fileName, void* jsonObj)
@@ -234,7 +234,7 @@ bool JsonReflector::ReadAndLoadFile(const std::string& fileName, void* jsonObj)
 
 bool JsonReflector::ReadAndLoadFile(const std::string& fileName)
 {
-	return ReadAndLoadFile(fileName, reinterpret_cast<void*>(&jsonObj));
+	return ReadAndLoadFile(fileName, reinterpret_cast<void*>(&JsonObj));
 }
 
 int JsonReflector::VarSizeFromJson(const std::string& typeName)

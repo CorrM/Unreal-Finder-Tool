@@ -132,6 +132,9 @@
     <ClInclude Include="UnsortedMap.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="ParallelWorker.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

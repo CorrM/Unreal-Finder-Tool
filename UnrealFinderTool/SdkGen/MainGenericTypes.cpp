@@ -48,20 +48,23 @@ UEObject UEObject::GetOuter() const
 		objObject = uObject;
 	}
 	*/
-	if (objObject.Empty())
+	if (objOuter.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Outer))
 			return UEObject();
 
-		objObject.ObjAddress = Object.Outer;
-		Utils::MemoryObj->Read<UObject>(objObject.ObjAddress, objObject, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		objObject.FixPointers(sizeof UObject);
+		objOuter.ObjAddress = Object.Outer;
+		Utils::MemoryObj->Read<UObject>(objOuter.ObjAddress, objOuter, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		objOuter.FixPointers(sizeof UObject);
 	}
 
-	return UEObject(objObject);
+	return UEObject(objOuter);
 }
 std::string UEObject::GetName() const
 {
+	if (!objName.empty())
+		return objName;
+
 	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
 	if (!name.empty() && Object.Name.Number > 0)
 	{
@@ -71,14 +74,16 @@ std::string UEObject::GetName() const
 	auto pos = name.rfind('/');
 	if (pos == std::string::npos)
 	{
+		objName = name;
 		return name;
 	}
 
-	return name.substr(pos + 1);
+	objName = name.substr(pos + 1);
+	return objName;
 }
 UEClass UEObject::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Object");
+	static auto c = ObjectsStore().FindClass("Class "+ Utils::Settings.SdkGen.CorePackageName + ".Object");
 	return c;
 }
 
@@ -104,7 +109,7 @@ UEField UEField::GetNext() const
 }
 UEClass UEField::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Field");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Field");
 	return c;
 }
 
@@ -137,7 +142,7 @@ std::vector<std::string> UEEnum::GetNames() const
 }
 UEClass UEEnum::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Enum");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Enum");
 	return c;
 }
 
@@ -172,6 +177,7 @@ UEStruct UEStruct::GetSuper() const
 		superField.FixPointers(sizeof UStruct);
 	}
 
+	//Sleep(1);
 	return UEStruct(superField);
 }
 UEField UEStruct::GetChildren() const
@@ -200,7 +206,7 @@ size_t UEStruct::GetPropertySize() const
 }
 UEClass UEStruct::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Struct");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Struct");
 	return c;
 }
 
@@ -209,7 +215,7 @@ UEClass UEStruct::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEScriptStruct::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ScriptStruct");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ScriptStruct");
 	return c;
 }
 
@@ -225,7 +231,7 @@ UEFunctionFlags UEFunction::GetFunctionFlags() const
 }
 UEClass UEFunction::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Function");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Function");
 	return c;
 }
 
@@ -234,7 +240,7 @@ UEClass UEFunction::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UEClass::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Class");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Class");
 	return c;
 }
 
@@ -271,7 +277,7 @@ size_t UEProperty::GetOffset() const
 }
 UEClass UEProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Property");
 	return c;
 }
 
@@ -280,7 +286,7 @@ UEClass UEProperty::StaticClass()
 //---------------------------------------------------------------------------
 UEClass UENumericProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.NumericProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".NumericProperty");
 	return c;
 }
 
@@ -314,7 +320,7 @@ UEProperty::Info UEByteProperty::GetInfo() const
 }
 UEClass UEByteProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ByteProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ByteProperty");
 	return c;
 }
 
@@ -327,7 +333,7 @@ UEProperty::Info UEUInt16Property::GetInfo() const
 }
 UEClass UEUInt16Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.UInt16Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".UInt16Property");
 	return c;
 }
 
@@ -340,7 +346,7 @@ UEProperty::Info UEUInt32Property::GetInfo() const
 }
 UEClass UEUInt32Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.UInt32Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".UInt32Property");
 	return c;
 }
 
@@ -353,7 +359,7 @@ UEProperty::Info UEUInt64Property::GetInfo() const
 }
 UEClass UEUInt64Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.UInt64Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".UInt64Property");
 	return c;
 }
 
@@ -366,7 +372,7 @@ UEProperty::Info UEInt8Property::GetInfo() const
 }
 UEClass UEInt8Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int8Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Int8Property");
 	return c;
 }
 
@@ -379,7 +385,7 @@ UEProperty::Info UEInt16Property::GetInfo() const
 }
 UEClass UEInt16Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int16Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Int16Property");
 	return c;
 }
 
@@ -392,7 +398,7 @@ UEProperty::Info UEIntProperty::GetInfo() const
 }
 UEClass UEIntProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.IntProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".IntProperty");
 	return c;
 }
 
@@ -405,7 +411,7 @@ UEProperty::Info UEInt64Property::GetInfo() const
 }
 UEClass UEInt64Property::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.Int64Property");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Int64Property");
 	return c;
 }
 
@@ -418,7 +424,7 @@ UEProperty::Info UEFloatProperty::GetInfo() const
 }
 UEClass UEFloatProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.FloatProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".FloatProperty");
 	return c;
 }
 
@@ -431,7 +437,7 @@ UEProperty::Info UEDoubleProperty::GetInfo() const
 }
 UEClass UEDoubleProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.DoubleProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".DoubleProperty");
 	return c;
 }
 
@@ -476,7 +482,7 @@ UEProperty::Info UEBoolProperty::GetInfo() const
 }
 UEClass UEBoolProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.BoolProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".BoolProperty");
 	return c;
 }
 
@@ -502,7 +508,7 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 }
 UEClass UEObjectPropertyBase::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ObjectPropertyBase");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ObjectPropertyBase");
 	return c;
 }
 
@@ -515,7 +521,7 @@ UEProperty::Info UEObjectProperty::GetInfo() const
 }
 UEClass UEObjectProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ObjectProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ObjectProperty");
 	return c;
 }
 
@@ -545,7 +551,7 @@ UEProperty::Info UEClassProperty::GetInfo() const
 }
 UEClass UEClassProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ClassProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ClassProperty");
 	return c;
 }
 
@@ -575,7 +581,7 @@ UEProperty::Info UEInterfaceProperty::GetInfo() const
 }
 UEClass UEInterfaceProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.InterfaceProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".InterfaceProperty");
 	return c;
 }
 
@@ -588,7 +594,7 @@ UEProperty::Info UEWeakObjectProperty::GetInfo() const
 }
 UEClass UEWeakObjectProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.WeakObjectProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".WeakObjectProperty");
 	return c;
 }
 
@@ -601,7 +607,7 @@ UEProperty::Info UELazyObjectProperty::GetInfo() const
 }
 UEClass UELazyObjectProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.LazyObjectProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".LazyObjectProperty");
 	return c;
 }
 
@@ -614,7 +620,7 @@ UEProperty::Info UEAssetObjectProperty::GetInfo() const
 }
 UEClass UEAssetObjectProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.AssetObjectProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".AssetObjectProperty");
 	return c;
 }
 
@@ -644,7 +650,7 @@ UEProperty::Info UEAssetClassProperty::GetInfo() const
 }
 UEClass UEAssetClassProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.AssetClassProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".AssetClassProperty");
 	return c;
 }
 
@@ -657,7 +663,7 @@ UEProperty::Info UENameProperty::GetInfo() const
 }
 UEClass UENameProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.NameProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".NameProperty");
 	return c;
 }
 
@@ -687,7 +693,7 @@ UEProperty::Info UEStructProperty::GetInfo() const
 }
 UEClass UEStructProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.StructProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".StructProperty");
 	return c;
 }
 
@@ -700,7 +706,7 @@ UEProperty::Info UEStrProperty::GetInfo() const
 }
 UEClass UEStrProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.StrProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".StrProperty");
 	return c;
 }
 
@@ -713,7 +719,7 @@ UEProperty::Info UETextProperty::GetInfo() const
 }
 UEClass UETextProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.TextProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".TextProperty");
 	return c;
 }
 
@@ -751,7 +757,7 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 }
 UEClass UEArrayProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.ArrayProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ArrayProperty");
 	return c;
 }
 
@@ -807,7 +813,7 @@ UEProperty::Info UEMapProperty::GetInfo() const
 }
 UEClass UEMapProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.MapProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".MapProperty");
 	return c;
 }
 
@@ -837,7 +843,7 @@ UEProperty::Info UEDelegateProperty::GetInfo() const
 }
 UEClass UEDelegateProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.DelegateProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".DelegateProperty");
 	return c;
 }
 
@@ -867,7 +873,7 @@ UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
 }
 UEClass UEMulticastDelegateProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.MulticastDelegateProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".MulticastDelegateProperty");
 	return c;
 }
 
@@ -914,6 +920,6 @@ UEProperty::Info UEEnumProperty::GetInfo() const
 }
 UEClass UEEnumProperty::StaticClass()
 {
-	static auto c = ObjectsStore().FindClass("Class CoreUObject.EnumProperty");
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".EnumProperty");
 	return c;
 }

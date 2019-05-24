@@ -29,6 +29,7 @@ public:
 	/// Process the classes the package contains.
 	/// </summary>
 	void Process(std::unordered_map<UEObject, bool>& processedObjects);
+	void ProcessParallel(std::unordered_map<UEObject, bool>& processedObjects);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.
@@ -114,6 +115,9 @@ private:
 
 	std::unordered_map<std::string, std::string> constants;
 
+	/*
+	 * ENUMS
+	 */
 	struct Enum
 	{
 		std::string Name;
@@ -128,8 +132,10 @@ private:
 	/// <param name="e">The enum to print.</param>
 	void PrintEnum(std::ostream& os, const Enum& e) const;
 
-	std::vector<Enum> enums;
 
+	/*
+	 * SCRIPT_STRUCT
+	 */
 	struct Member
 	{
 		std::string Name;
@@ -195,8 +201,9 @@ private:
 	/// <param name="ss">The structure to print.</param>
 	void PrintStruct(std::ostream& os, const ScriptStruct& ss) const;
 
-	std::vector<ScriptStruct> scriptStructs;
-
+	/*
+	 * METHODS
+	 */
 	struct Method
 	{
 		struct Parameter
@@ -268,7 +275,10 @@ private:
 	/// <param name="c">The class to print.</param>
 	void PrintClass(std::ostream& os, const Class& c) const;
 
-	std::vector<Class> classes;
+public:
+	std::vector<Class> Classes;
+	std::vector<ScriptStruct> ScriptStructs;
+	std::vector<Enum> Enums;
 };
 
 namespace std

@@ -12,9 +12,9 @@ using JsonVariables = UnsortedMap<std::string, JsonVar>;
 
 class JsonReflector
 {
-	// Main json reader for structs
-	static nlohmann::json jsonObj;
 public:
+	// Main json reader for structs
+	static nlohmann::json JsonObj;
 	// Contains all loaded structs
 	static JsonStructs StructsList;
 	// Read Json file into memory to be ready to load structs inside them

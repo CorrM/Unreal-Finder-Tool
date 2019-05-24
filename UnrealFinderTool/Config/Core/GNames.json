@@ -5,7 +5,6 @@
       "super": "",
       "vars": [
         { "Index": "int" },
-        { "HashNext": "pointer" },
         { "AnsiName": "string" }
       ],
       "NOTE": "That's for GNames"

@@ -173,6 +173,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Scanner.h" />

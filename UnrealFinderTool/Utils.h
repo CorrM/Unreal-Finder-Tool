@@ -4,13 +4,39 @@
 #include "Memory.h"
 #include "JsonReflector.h"
 
+struct MySettings
+{
+	struct _SdkGenSettings
+	{
+		std::string CorePackageName;
+		int Threads = 0;
+		bool DumpObjects = false;
+		bool DumpNames = false;
+		bool LoggerShowSkip = true;
+		bool LoggerShowClassSaveFileName = true;
+		bool LoggerShowStructSaveFileName = true;
+		int LoggerSpaceCount = 85;
+	};
+
+	struct _Parallel
+	{
+		int SleepEvery = 0;
+	};
+
+	_SdkGenSettings SdkGen;
+	_Parallel Parallel;
+};
+
 class Utils
 {
 public:
+	// Tool settings container
+	static MySettings Settings;
 	// Main Memory reader for read game memory props
 	static Memory* MemoryObj;
 
 	static bool LoadJsonCore();
+	static bool LoadSettings();
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
 	static bool ProgramIs64();
@@ -23,6 +49,8 @@ public:
 	static bool IsValidAddress(Memory* mem, uintptr_t address);
 	// Check valid address in local process
 	static bool IsValidAddress(uintptr_t address);
+	// Sleep when counter hit each selected ms
+	static void SleepEvery(int ms, int& counter, int every);
 
 	/// <summary>
 	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.
@@ -32,6 +60,8 @@ public:
 	template <typename ElementType>
 	static void FixPointer(ElementType* structBase, const int varOffset)
 	{
+		if (ProgramIs64() && MemoryObj->Is64Bit)
+			return;
 		FixStructPointer(structBase, varOffset, sizeof(ElementType));
 	}
 	/// <summary>
@@ -43,6 +73,9 @@ public:
 	template <typename ElementType>
 	static void FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
 	{
+		if (Utils::ProgramIs64() && MemoryObj->Is64Bit)
+			return;
+
 		for (int varOff : varsOffsets)
 			FixStructPointer(structBase, varOff, fullStructSize);
 	}

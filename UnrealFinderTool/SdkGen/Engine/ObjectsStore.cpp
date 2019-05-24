@@ -93,7 +93,7 @@ UEObject& ObjectsStore::GetById(const size_t id) const
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
-	for (const auto& obj : *this)
+	for (const UEObject& obj : *this)
 	{
 		if (obj.GetFullName() == name)
 		{

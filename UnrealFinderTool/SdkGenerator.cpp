@@ -19,6 +19,10 @@
 
 extern IGenerator* generator;
 
+// TODO: Solve none completed sdk generator, i think the problem from GetNames() -> NamesStore::GetById
+// TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects`
+// TODO: Use Queue with WinThreads
+
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
@@ -64,10 +68,8 @@ void SdkGenerator::Start()
 	Logger::SetStream(&log);
 
 	
-	if (!generator->ShouldDumpArrays())
-	{
+	if (generator->ShouldDumpArrays())
 		Dump(outputDirectory);
-	}
 	
 	fs::create_directories(outputDirectory);
 	
@@ -86,7 +88,9 @@ void SdkGenerator::Start()
 /// <param name="path">The path where to create the dumps.</param>
 void SdkGenerator::Dump(const fs::path& path)
 {
+	if (Utils::Settings.SdkGen.DumpObjects)
 	{
+		std::cout << red << "[*] " << yellow << "Start Dumping Objects : ";
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GetAddress());
 
@@ -95,9 +99,12 @@ void SdkGenerator::Dump(const fs::path& path)
 			if (obj.IsValid())
 				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
+		std::cout << green << "Saved in [ " << red << "'ObjectsDump.txt'." << green << " ]" << std::endl;
 	}
 
+	if (Utils::Settings.SdkGen.DumpNames)
 	{
+		std::cout << red << "[*] " << yellow << "Start Dumping Names : ";
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
 
@@ -105,6 +112,7 @@ void SdkGenerator::Dump(const fs::path& path)
 		{
 			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
 		}
+		std::cout << green << "Saved in [ " << red << "'NamesDump.txt'." << green << " ]" << std::endl;
 	}
 }
 
@@ -122,6 +130,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
 
+	std::cout << red << "[*] " << yellow << "Start Calc Packages   : ";
+
 	auto packageObjects =
 		from(ObjectsStore())
 		>> select([](auto && o) { return o.GetPackageObject(); })
@@ -129,23 +139,70 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		>> distinct()
 		>> to_vector();
 
-	omp_set_nested(true);
-	omp_set_dynamic(false);
+	std::cout << green << "Found [ " << red << packageObjects.size() << green << " ]" << std::endl;
+	std::cout << def << "===================================" << std::endl;
 
-	#pragma omp parallel for num_threads(6)
-	for (size_t i = 0; i < packageObjects.size(); ++i)
+	int counter = 1;
+	int threadCount = Utils::Settings.SdkGen.Threads;
+	omp_set_nested(true);
+	//omp_set_dynamic(false);
+
+	/*
+	 * First we must complete Core Package.
+	 * it's contains all important stuff, (like we need it in 'StaticClass' function)
+	 * so before go parallel we must get 'CoreUObject'
+	 * it's the first package always (packageObjects[0])
+	*/
 	{
-		const UEObject& obj = packageObjects[i];
+		std::cout << red << "[*] " << yellow << "Dumping '" << Utils::Settings.SdkGen.CorePackageName << "'" << red << ". That's may take while." << std::endl;
+		const UEObject& obj = packageObjects[0];
 
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
 		if (package->Save(sdkPath))
 		{
+			std::cout << green << "[+] " << "(" << std::setfill('0') << std::setw(6) << 0 << ") " << std::setfill(' ') <<
+				purple << std::setw(50) << std::left << package->GetName() << std::right << yellow << " [ " << std::setfill('0') <<
+				"C: " << lblue << std::setw(4) << package->Classes.size() << yellow << ", " <<
+				"S: " << lblue << std::setw(4) << package->ScriptStructs.size() << yellow << ", " <<
+				"E: " << lblue << std::setw(4) << package->Enums.size() << yellow << " ]" << std::setfill(' ') << std::endl;
+
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
-		Sleep(1);
+
+		// Set Sleep Every
+		Utils::Settings.Parallel.SleepEvery = 600;
 	}
+
+	std::cout << "\r" << red << "[*] " << yellow << "Start Dump Packages (" << red << threadCount << yellow << " Threads)" << std::endl;
+
+	#pragma omp parallel for num_threads(threadCount)
+	for (size_t i = 1; i < packageObjects.size(); ++i) // Start From 1 because core package is already done
+	{
+		const UEObject& obj = packageObjects[i];
+
+		auto package = std::make_unique<Package>(obj);
+		package->ProcessParallel(processedObjects);
+		if (package->Save(sdkPath))
+		{
+			#pragma omp critical
+			{
+				std::cout << green << "[+] " << "(" << std::setfill('0') << std::setw(6) << counter << ") " << std::setfill(' ') <<
+					purple << std::setw(50) << std::left << package->GetName() << std::right << yellow << " [ " << std::setfill('0') <<
+					"C: " << lblue << std::setw(4) << package->Classes.size() << yellow << ", " <<
+					"S: " << lblue << std::setw(4) << package->ScriptStructs.size() << yellow << ", " <<
+					"E: " << lblue << std::setw(4) << package->Enums.size() << yellow << " ]" << std::setfill(' ') << std::endl;
+			}
+
+			Package::PackageMap[obj] = package.get();
+			packages.emplace_back(std::move(package));
+		}
+		#pragma omp atomic
+		++counter;
+	}
+
+	std::cout << std::endl;
 
 	if (!packages.empty())
 	{

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 Memory* Utils::MemoryObj = nullptr;
+MySettings Utils::Settings;
 
 bool Utils::LoadJsonCore()
 {
@@ -29,6 +30,31 @@ bool Utils::LoadJsonCore()
 		return false;
 	}
 
+	return true;
+}
+
+bool Utils::LoadSettings()
+{
+	if (!JsonReflector::ReadJsonFile("Config\\Settings.json"))
+	{
+		std::cout << red << "[*] " << def << "Can't read Settings file." << std::endl << def;
+		return false;
+	}
+
+	auto j = JsonReflector::JsonObj;
+
+	// Sdk Generator Settings
+	auto sdkParas = j.at("sdkGenerator");
+	Settings.SdkGen.CorePackageName = sdkParas["core Name"];
+	Settings.SdkGen.Threads = sdkParas["threads"];
+
+	Settings.SdkGen.DumpObjects = sdkParas["dump Objects"];
+	Settings.SdkGen.DumpNames = sdkParas["dump Names"];
+
+	Settings.SdkGen.LoggerShowSkip = sdkParas["logger ShowSkip"];
+	Settings.SdkGen.LoggerShowClassSaveFileName = sdkParas["logger ShowClassSaveFileName"];
+	Settings.SdkGen.LoggerShowStructSaveFileName = sdkParas["logger ShowStructSaveFileName"];
+	Settings.SdkGen.LoggerSpaceCount = sdkParas["logger SpaceCount"];
 	return true;
 }
 
@@ -93,6 +119,9 @@ void Utils::FixStructPointer(void* structBase, const int varOffset, const int st
 	// That's it :D
 	//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
 	//if (!needFix) return;
+
+	if (ProgramIs64() && MemoryObj->Is64Bit)
+		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
 
 	const int destSize = abs(varOffset - structSize);
 	const int srcSize = abs(varOffset - structSize) - 0x4;
@@ -204,4 +233,23 @@ bool Utils::IsValidAddress(const uintptr_t address)
 	}
 
 	return false;
+}
+
+void Utils::SleepEvery(const int ms, int& counter, const int every)
+{
+	if (every == 0)
+	{
+		counter = 0;
+		return;
+	}
+
+	if (counter >= every)
+	{
+		Sleep(ms);
+		counter = 0;
+	}
+	else
+	{
+		++counter;
+	}
 }

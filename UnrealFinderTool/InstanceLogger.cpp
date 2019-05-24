@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <cinttypes>
+#include "PatternScan.h"
 
 InstanceLogger::InstanceLogger(const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
@@ -185,7 +186,7 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 bool InstanceLogger::ReadGNameArray(uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
-	int sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
+	int nameOffset = 0;
 	JsonStruct fName;
 
 	if (!Utils::MemoryObj->Is64Bit)
@@ -212,6 +213,21 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 
 	// Alloc Size
 	gNames = new GName[gNamesChunkCount * gNamesChunks];
+
+	// Calc AnsiName offset
+	{
+		uintptr_t noneNameAddress;
+		if (!Utils::MemoryObj->Is64Bit)
+			noneNameAddress = Utils::MemoryObj->ReadInt(gChunks[0]); // 4byte
+		else
+			noneNameAddress = Utils::MemoryObj->ReadInt64(gChunks[0]); // 8byte
+
+		Pattern none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
+		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x100, { none_sig }, true);
+		auto it = result.find("None");
+		if (it != result.end() && !it->second.empty())
+			nameOffset = it->second[0] - noneNameAddress;
+	}
 
 	// Dump GNames
 	int i = 0;
@@ -240,7 +256,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 
 			// Set The Name
 			gNames[i].Index = i;
-			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + fName["AnsiName"].Offset - sSub);
+			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
 			i++;
 		}
 	}

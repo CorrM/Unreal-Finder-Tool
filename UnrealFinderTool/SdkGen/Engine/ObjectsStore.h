@@ -47,27 +47,24 @@ public:
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
-	template<class T> size_t CountObjects(const std::string& name) const
+	template<class T>
+	size_t CountObjects(const std::string& name) const
 	{
 		static std::unordered_map<std::string, size_t> cache;
 
 		auto it = cache.find(name);
 		if (it != std::end(cache))
-		{
 			return it->second;
-		}
 
+		int sleepCounter = 0;
 		size_t count = 0;
-		for (auto obj : *this)
+		for (const UEObject& obj : *this)
 		{
 			if (obj.IsA<T>() && obj.GetName() == name)
-			{
 				++count;
-			}
 		}
 
 		cache[name] = count;
-
 		return count;
 	}
 

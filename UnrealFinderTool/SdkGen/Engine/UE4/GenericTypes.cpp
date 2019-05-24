@@ -6,7 +6,7 @@ void* UEObject::GetAddress() const
 {
 	return reinterpret_cast<PVOID>(Object.ObjAddress);
 }
-
+/*
 bool UEObject::Update(const UEObject& newObject)
 {
 	if (Object.IsEqual(newObject.Object))
@@ -27,6 +27,7 @@ bool UEObject::Update(const UObject& newObject)
 	Object = newObject;
 	return true;
 }
+*/
 
 UEObject UEObject::GetPackageObject() const
 {
@@ -34,11 +35,9 @@ UEObject UEObject::GetPackageObject() const
 	if (!package.Empty())
 		return UEObject(package);
 
-	UEObject outer = GetOuter();
-	while (outer.IsValid())
+	for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 	{
 		package = outer.Object;
-		if (!outer.Update(outer.GetOuter())) break;
 	}
 
 	return UEObject(package);
@@ -54,11 +53,9 @@ std::string UEObject::GetFullName() const
 	{
 		std::string temp;
 
-		UEObject outer = GetOuter();
-		while (outer.IsValid())
+		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 		{
 			temp.insert(0, outer.GetName() + ".");
-			if (!outer.Update(outer.GetOuter())) break;
 		}
 
 		std::string name = cClass.GetName();
@@ -67,7 +64,7 @@ std::string UEObject::GetFullName() const
 		name += GetName();
 
 		fullName = name;
-		return name;
+		return fullName;
 	}
 
 	return std::string("(null)");
@@ -79,7 +76,6 @@ std::string UEObject::GetNameCPP() const
 		return nameCpp;
 
 	std::string name;
-
 	if (IsA<UEClass>())
 	{
 		auto c = Cast<UEClass>();
@@ -97,7 +93,7 @@ std::string UEObject::GetNameCPP() const
 				break;
 			}
 
-			if (!c.Update(c.GetSuper().Cast<UEClass>())) break;
+			c = c.GetSuper().Cast<UEClass>();
 		}
 	}
 	else

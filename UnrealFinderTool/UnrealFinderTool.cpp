@@ -9,23 +9,32 @@
 #include <iostream>
 int main()
 {
-	SetConsoleTitle("Unreal Finder Tool By CorrM");
+	CONSOLE_CURSOR_INFO     cursorInfo;
 	const HWND console = GetConsoleWindow();
+	const HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	// Set Console Pos/Size
 	RECT r;
 	GetWindowRect(console, &r);
-	MoveWindow(console, r.left, r.top, 650, 400, TRUE);
+	MoveWindow(console, r.left, r.top, 800, 400, TRUE);
 
-	if (!Utils::LoadJsonCore())
-		return 0;
+	// Hide Cursor
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = false;
+	SetConsoleCursorInfo(out, &cursorInfo);
+
+	// Load Settings / Json Core
+	if (!Utils::LoadSettings()) return 0;
+	if (!Utils::LoadJsonCore()) return 0;
 
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x37F0);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x1BE0);
 	auto memManager1 = new Memory(pHandle1, true);
 	Utils::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x2B733210); // 2B703210
-	auto gNamesAddress = uintptr_t(0x2B449744); // 2B419744
+	auto objObjectsAddress = uintptr_t(0x2C303210); // 2B703210
+	auto gNamesAddress = uintptr_t(0x2C019744); // 2B419744
 	SdkGenerator sg(objObjectsAddress, gNamesAddress);
 	sg.Start();
 	std::cin >> tool_id;
@@ -34,14 +43,14 @@ int main()
 
 	RESTART:
 	system("cls");
-	SetConsoleTitleA("Unreal Engine Finder Tool By CorrM");
+	SetConsoleTitle("Unreal Engine Finder Tool By CorrM");
 	std::cout << red << "[*] " << green << "Unreal Engine Finder Tool By " << yellow << "CorrM" << std::endl << std::endl << def;
 
 	Tools:
-	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "    -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "   -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << "  -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
-	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "    -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "1: " << def << "GNames Finder" << "   -  " << yellow << "Find GNamesArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "2: " << def << "GObject Finder" << "  -  " << yellow << "Find GObjectArray in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "3: " << def << "Instance Logger" << " -  " << yellow << "Dump all Instance in ue4 game." << std::endl << def;
+	std::cout << yellow << "[?] " << red << "4: " << def << "SDK Generator" << "   -  " << yellow << "Dump class/struct/enums/method from ue4 game." << std::endl << def;
 
 	std::cout << std::endl;
 	std::cout << green << "[-] " << yellow << "Input tool ID: " << dgreen;
@@ -112,6 +121,8 @@ int main()
 
 		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
+
+		std::cout << def << "===================================" << std::endl;
 
 		InstanceLogger il(objObjectsAddress, gNamesAddress);
 		il.Start();

@@ -4,7 +4,7 @@
 struct GObject
 {
 	uintptr_t ObjAddress;
-	int FNameIndexs[15];
+	int FNameIndexs[20];
 	int OuterCount;
 };
 

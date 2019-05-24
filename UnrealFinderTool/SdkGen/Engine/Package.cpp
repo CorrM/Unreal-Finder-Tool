@@ -51,22 +51,55 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			if (obj.IsA<UEEnum>())
 			{
 				GenerateEnum(obj.Cast<UEEnum>());
-				Sleep(1);
 			}
+			/* in UE4 there is no UEConst
 			else if (obj.IsA<UEConst>())
 			{
 				GenerateConst(obj.Cast<UEConst>());
-				Sleep(1);
 			}
+			*/
 			else if (obj.IsA<UEClass>())
 			{
 				GeneratePrerequisites(obj, processedObjects);
-				Sleep(1);
 			}
 			else if (obj.IsA<UEScriptStruct>())
 			{
 				GeneratePrerequisites(obj, processedObjects);
-				Sleep(1);
+			}
+		}
+	}
+}
+
+void Package::ProcessParallel(std::unordered_map<UEObject, bool>& processedObjects)
+{
+	ObjectsStore temp;
+	int threadCount = Utils::Settings.SdkGen.Threads;
+	size_t objNum = temp.GetObjectsNum();
+
+	#pragma omp parallel for num_threads(2)
+	for (size_t i = 0; i < objNum; ++i)
+	{
+		const UEObject& obj = temp.GetById(i);
+		const auto package = obj.GetPackageObject();
+		if (packageObj == package)
+		{
+			if (obj.IsA<UEEnum>())
+			{
+				GenerateEnum(obj.Cast<UEEnum>());
+			}
+			/* in UE4 there is no UEConst
+			else if (obj.IsA<UEConst>())
+			{
+				GenerateConst(obj.Cast<UEConst>());
+			}
+			*/
+			else if (obj.IsA<UEClass>())
+			{
+				GeneratePrerequisites(obj, processedObjects);
+			}
+			else if (obj.IsA<UEScriptStruct>())
+			{
+				GeneratePrerequisites(obj, processedObjects);
 			}
 		}
 	}
@@ -80,9 +113,9 @@ bool Package::Save(const fs::path& path) const
 
 	//check if package is empty (no enums, structs or classes without members)
 	if (generator->ShouldGenerateEmptyFiles()
-		|| (from(enums) >> where([](auto && e) { return !e.Values.empty(); }) >> any()
-			|| from(scriptStructs) >> where([](auto && s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
-			|| from(classes) >> where([](auto && c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
+		|| (from(Enums) >> where([](auto && e) { return !e.Values.empty(); }) >> any()
+			|| from(ScriptStructs) >> where([](auto && s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
+			|| from(Classes) >> where([](auto && c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
 			)
 		)
 	{
@@ -93,8 +126,12 @@ bool Package::Save(const fs::path& path) const
 		return true;
 	}
 
-	#pragma omp critical
-	Logger::Log("Skip Empty:    %s", packageObj.GetName());
+	if (Utils::Settings.SdkGen.LoggerShowSkip)
+	{
+		#pragma omp critical
+		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
+	}
+	
 	return false;
 }
 
@@ -179,8 +216,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 {
 	using namespace cpplinq;
 
-	UEProperty prop = first;
-	while (prop.IsValid())
+	for (UEProperty prop = first; prop.IsValid(); prop = prop.GetNext().Cast<UEProperty>())
 	{
 		const auto info = prop.GetInfo();
 		if (info.Type == UEProperty::PropertyType::Primitive)
@@ -218,7 +254,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 				innerProperties.push_back(mapProp.GetValueProperty());
 			}
 
-			for (auto innerProp : from(innerProperties)
+			for (const auto& innerProp : from(innerProperties)
 				>> where([](auto && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
 				>> experimental::container())
 			{
@@ -231,8 +267,6 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 
 			GenerateMemberPrerequisites(function.GetChildren().Cast<UEProperty>(), processedObjects);
 		}
-
-		if (!prop.Update(prop.GetNext().Cast<UEProperty>())) break;
 	}
 }
 
@@ -245,7 +279,11 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.FullName = scriptStructObj.GetFullName();
 
 	#pragma omp critical
-	Logger::Log("ScriptStruct:  %-85s - instance: 0x%P", this->GetName() + "." + ss.Name, scriptStructObj.GetAddress());
+	{
+		static std::string script_struct_format = std::string("ScriptStruct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		std::string logStructName = Utils::Settings.SdkGen.LoggerShowStructSaveFileName ? this->GetName() + "." + ss.Name : ss.Name;
+		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
+	}
 
 	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
 	ss.NameCppFull = "struct ";
@@ -291,7 +329,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
 
-	scriptStructs.emplace_back(std::move(ss));
+	ScriptStructs.emplace_back(std::move(ss));
 }
 
 void Package::GenerateEnum(const UEEnum& enumObj)
@@ -325,7 +363,7 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 		}
 	}
 
-	enums.emplace_back(std::move(e));
+	Enums.emplace_back(std::move(e));
 }
 
 void Package::GenerateConst(const UEConst& constObj)
@@ -351,7 +389,11 @@ void Package::GenerateClass(const UEClass& classObj)
 	c.FullName = classObj.GetFullName();
 
 	#pragma omp critical
-	Logger::Log("Class:         %-85s - instance: 0x%P", this->GetName() + "." + c.Name, classObj.GetAddress());
+	{
+		static std::string class_format = std::string("Class:         %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		std::string logClassName = Utils::Settings.SdkGen.LoggerShowClassSaveFileName ? this->GetName() + "." + c.Name : c.Name;
+		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
+	}
 
 	c.NameCpp = MakeValidName(classObj.GetNameCPP());
 	c.NameCppFull = "class " + c.NameCpp;
@@ -490,7 +532,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		}
 	}
 
-	classes.emplace_back(std::move(c));
+	Classes.emplace_back(std::move(c));
 }
 
 Package::Member Package::CreatePadding(size_t id, size_t offset, size_t size, std::string reason)
@@ -736,18 +778,18 @@ void Package::SaveStructs(const fs::path & path) const
 		os << "\n";
 	}
 
-	if (!enums.empty())
+	if (!Enums.empty())
 	{
 		PrintSectionHeader(os, "Enums");
-		for (auto&& e : enums) { PrintEnum(os, e); os << "\n"; }
+		for (auto&& e : Enums) { PrintEnum(os, e); os << "\n"; }
 
 		os << "\n";
 	}
 
-	if (!scriptStructs.empty())
+	if (!ScriptStructs.empty())
 	{
 		PrintSectionHeader(os, "Script Structs");
-		for (auto&& s : scriptStructs) { PrintStruct(os, s); os << "\n"; }
+		for (auto&& s : ScriptStructs) { PrintStruct(os, s); os << "\n"; }
 	}
 
 	PrintFileFooter(os);
@@ -761,10 +803,10 @@ void Package::SaveClasses(const fs::path & path) const
 
 	PrintFileHeader(os, true);
 
-	if (!classes.empty())
+	if (!Classes.empty())
 	{
 		PrintSectionHeader(os, "Classes");
-		for (auto&& c : classes) { PrintClass(os, c); os << "\n"; }
+		for (auto&& c : Classes) { PrintClass(os, c); os << "\n"; }
 	}
 
 	PrintFileFooter(os);
@@ -787,7 +829,7 @@ void Package::SaveFunctions(const fs::path & path) const
 
 	PrintSectionHeader(os, "Functions");
 
-	for (auto&& s : scriptStructs)
+	for (auto&& s : ScriptStructs)
 	{
 		for (auto&& m : s.PredefinedMethods)
 		{
@@ -798,7 +840,7 @@ void Package::SaveFunctions(const fs::path & path) const
 		}
 	}
 
-	for (auto&& c : classes)
+	for (auto&& c : Classes)
 	{
 		for (auto&& m : c.PredefinedMethods)
 		{
@@ -841,7 +883,7 @@ void Package::SaveFunctionParameters(const fs::path & path) const
 
 	PrintSectionHeader(os, "Parameters");
 
-	for (auto&& c : classes)
+	for (auto&& c : Classes)
 	{
 		for (auto&& m : c.Methods)
 		{
