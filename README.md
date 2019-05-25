@@ -5,6 +5,7 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 - Find GNames.
 - Find GObjects.
 - Instance Logger.
+- Sdk Generator.
 - Kenrnal to read process memory. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
 - Dynamic JSON Reflector structs. (**Read struct from JSON files to fit all games structs. *(just edit and run)***)
 
@@ -28,6 +29,10 @@ Useful tool to help you fetch Unreal Engine 4 Games information.
 </a>
 
 # Change Log
+##### 25-06-2019
+- [x] Add SDK Generator.
+- [x] Add Settings file.
+- [x] Improve Instance Logger.
 ##### 09-06-2019
 - [x] Add JSON reflctor.
 - [x] Convert Instance Logger to JSON reflector.
