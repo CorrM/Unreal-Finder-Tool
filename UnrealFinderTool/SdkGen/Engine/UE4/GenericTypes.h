@@ -586,7 +586,6 @@ public:
 template<typename T>
 bool UEObject::IsA() const
 {
-	static int is_a_sleep_counter = 0;
 	auto cmp = T::StaticClass();
 	if (!cmp.IsValid())
 	{
@@ -597,8 +596,6 @@ bool UEObject::IsA() const
 	{
 		if (super.Object.IsEqual(cmp.Object))
 			return true;
-
-		Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 
 	return false;

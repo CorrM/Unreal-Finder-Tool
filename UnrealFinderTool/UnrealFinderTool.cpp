@@ -7,6 +7,8 @@
 #include "Utils.h"
 
 #include <iostream>
+#include "ParallelWorker.h"
+
 int main()
 {
 	CONSOLE_CURSOR_INFO     cursorInfo;
@@ -28,18 +30,6 @@ int main()
 	if (!Utils::LoadJsonCore()) return 0;
 
 	int tool_id, p_id, old_pid = 0;
-
-	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x1BE0);
-	auto memManager1 = new Memory(pHandle1, true);
-	Utils::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x2C303210); // 2B703210
-	auto gNamesAddress = uintptr_t(0x2C019744); // 2B419744
-	SdkGenerator sg(objObjectsAddress, gNamesAddress);
-	sg.Start();
-	std::cin >> tool_id;
-	return 0;
-	// ##################
 
 	RESTART:
 	system("cls");

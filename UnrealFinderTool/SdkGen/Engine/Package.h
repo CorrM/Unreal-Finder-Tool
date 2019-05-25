@@ -29,7 +29,6 @@ public:
 	/// Process the classes the package contains.
 	/// </summary>
 	void Process(std::unordered_map<UEObject, bool>& processedObjects);
-	void ProcessParallel(std::unordered_map<UEObject, bool>& processedObjects);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.

@@ -66,41 +66,9 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			{
 				GeneratePrerequisites(obj, processedObjects);
 			}
-		}
-	}
-}
 
-void Package::ProcessParallel(std::unordered_map<UEObject, bool>& processedObjects)
-{
-	ObjectsStore temp;
-	int threadCount = Utils::Settings.SdkGen.Threads;
-	size_t objNum = temp.GetObjectsNum();
-
-	#pragma omp parallel for num_threads(2)
-	for (size_t i = 0; i < objNum; ++i)
-	{
-		const UEObject& obj = temp.GetById(i);
-		const auto package = obj.GetPackageObject();
-		if (packageObj == package)
-		{
-			if (obj.IsA<UEEnum>())
-			{
-				GenerateEnum(obj.Cast<UEEnum>());
-			}
-			/* in UE4 there is no UEConst
-			else if (obj.IsA<UEConst>())
-			{
-				GenerateConst(obj.Cast<UEConst>());
-			}
-			*/
-			else if (obj.IsA<UEClass>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
-			else if (obj.IsA<UEScriptStruct>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
+			static int is_a_sleep_counter = 0;
+			Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 		}
 	}
 }
@@ -128,7 +96,6 @@ bool Package::Save(const fs::path& path) const
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
 	{
-		#pragma omp critical
 		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
 	}
 	
@@ -278,9 +245,8 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.Name = scriptStructObj.GetName();
 	ss.FullName = scriptStructObj.GetFullName();
 
-	#pragma omp critical
 	{
-		static std::string script_struct_format = std::string("ScriptStruct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		static std::string script_struct_format = std::string("Struct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logStructName = Utils::Settings.SdkGen.LoggerShowStructSaveFileName ? this->GetName() + "." + ss.Name : ss.Name;
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
 	}
@@ -388,9 +354,8 @@ void Package::GenerateClass(const UEClass& classObj)
 	c.Name = classObj.GetName();
 	c.FullName = classObj.GetFullName();
 
-	#pragma omp critical
 	{
-		static std::string class_format = std::string("Class:         %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		static std::string class_format = std::string("Class:   %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logClassName = Utils::Settings.SdkGen.LoggerShowClassSaveFileName ? this->GetName() + "." + c.Name : c.Name;
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
 	}

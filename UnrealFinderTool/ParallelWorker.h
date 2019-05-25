@@ -2,35 +2,39 @@
 #include <functional>
 #include <thread>
 #include <mutex>
+#include <utility>
 #include <vector>
 
-using Lock = std::lock_guard<std::mutex>;
 
 template <typename VecType>
 class ParallelWorker
 {
-	std::function<void(VecType)> func;
+	using Lock = std::lock_guard<std::mutex>;
+	using ParallelFunction = std::function<void(VecType&, std::mutex&)>;
+
+	ParallelFunction func;
 	std::mutex gMutex;
 	std::vector<std::thread> threads;
 	std::vector<VecType>& queue;
-	int threadsCount, curIndex;
+	int threadsCount;
+	size_t curIndex;
 
 public:
-	ParallelWorker(std::vector<VecType>& vecQueue, int threadNum, std::function<void(VecType&)> func);
+	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, ParallelFunction func);
 	void Start();
 	void WaitAll();
+	static uint32_t GetCpuCores();
 
 private:
-	uint32_t GetCpuCores();
 	void Worker();
 };
 
 template <typename VecType>
-ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const int threadNum, const std::function<void(VecType&)> func):
-	func(func),
+ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const int vecStartIndex, const int threadNum, ParallelFunction func):
+	func(std::move(func)),
 	queue(vecQueue),
 	threadsCount(threadNum),
-	curIndex(0)
+	curIndex(vecStartIndex)
 {
 }
 
@@ -39,7 +43,7 @@ void ParallelWorker<VecType>::Start()
 {
 	// Create and run threads
 	for (int i = 0; i < threadsCount; ++i)
-		threads.emplace_back(Worker);
+		threads.push_back(std::thread(&ParallelWorker::Worker, this));
 }
 
 template <typename VecType>
@@ -60,15 +64,19 @@ template <typename VecType>
 void ParallelWorker<VecType>::Worker()
 {
 	VecType* curItem;
-	while (curIndex >= queue.size())
+	while (curIndex < queue.size())
 	{
 		// Lock Scope (DeQueue item)
 		{
 			Lock lock(gMutex);
+
+			if (curIndex >= queue.size())
+				break;
+
 			curItem = &queue[curIndex];
-			++curItem;
+			++curIndex;
 		}
 
-		func(*curItem);
+		func(*curItem, gMutex);
 	}
 }
