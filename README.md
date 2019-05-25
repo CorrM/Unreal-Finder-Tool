@@ -1,5 +1,5 @@
 # Unreal Finder Tool
-Useful tool to help you fetch Unreal Engine 4 Games information.
+Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
 # Features
 - **Find GNames**.
