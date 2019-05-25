@@ -1,7 +1,7 @@
 {
   "sdkGenerator": {
     "core Name": "CoreUObject",
-    "threads": 8,
+    "threads": 6,
     "dump Objects": true,
     "dump Names": true,
     "logger ShowSkip": true,
