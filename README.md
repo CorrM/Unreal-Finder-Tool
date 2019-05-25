@@ -23,6 +23,9 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - Dauntless. (x64)
 - Some Indie games. (64bit / 32bit)
 
+# Download
+Download last version [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
+
 # Tut Video
 <a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank">
 <img src="https://img.youtube.com/vi/mc9plMorAlQ/0.jpg" alt="Overlay demo" width="400" height="300" border="10" />
