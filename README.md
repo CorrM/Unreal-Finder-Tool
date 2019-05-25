@@ -24,7 +24,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - Some Indie games. (64bit / 32bit)
 
 # Download
-Download last version [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
+Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
 
 # Tut Video
 <a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank">
