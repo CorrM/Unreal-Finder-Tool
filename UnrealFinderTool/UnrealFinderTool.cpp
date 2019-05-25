@@ -117,7 +117,7 @@ int main()
 		InstanceLogger il(objObjectsAddress, gNamesAddress);
 		il.Start();
 	}
-	else if (tool_id == 4)
+	else if (tool_id == 4) // SDK Generator
 	{
 		uintptr_t objObjectsAddress, gNamesAddress;
 		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;

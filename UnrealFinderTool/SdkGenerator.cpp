@@ -22,7 +22,7 @@ extern IGenerator* generator;
 // TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
-	gObjAddress(gObjAddress),
+	gObjAddress(gObjAddress - 0x10),
 	gNamesAddress(gNamesAddress)
 {
 }
