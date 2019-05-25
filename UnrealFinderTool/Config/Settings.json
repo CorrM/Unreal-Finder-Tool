@@ -1,0 +1,12 @@
+{
+  "sdkGenerator": {
+    "core Name": "CoreUObject",
+    "threads": 8,
+    "dump Objects": true,
+    "dump Names": true,
+    "logger ShowSkip": true,
+    "logger ShowClassSaveFileName": true,
+    "logger ShowStructSaveFileName": true,
+    "logger SpaceCount": 85
+  } 
+}

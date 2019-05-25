@@ -1,42 +1,37 @@
 #pragma once
-#include "Memory.h"
 #include "JsonReflector.h"
 
 struct GObject
 {
 	uintptr_t ObjAddress;
-	int FNameIndex;
+	int FNameIndexs[20];
+	int OuterCount;
 };
 
 class GName
 {
 public:
 	int Index;
-	string AnsiName;
+	std::string AnsiName;
 };
 
 class InstanceLogger
 {
-	// FUObjectArray gObjObjects;
 	GObject* gObjObjects; int gObjectsCount;
 	GName* gNames; int gNamesChunkCount, gNamesChunks;
 
-	Memory* _memory;
-	uintptr_t gObjObjectsOffset;
-	uintptr_t gNamesOffset;
-	int ptrSize;
+	uintptr_t gObjectsAddress, gNamesAddress;
 
 	std::string GetName(int fNameIndex, bool& success);
-	void ObjectDump();
-	void NameDump();
+	std::string GetName(GObject obj);
+	bool FetchData();
 	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
-	static DWORD BufToInteger(void* buffer);
-	static DWORD64 BufToInteger64(void* buffer);
-	bool IsValidAddress(uintptr_t address);
-	
-
+	bool ObjectDump();
+	bool NameDump();
 public:
-	InstanceLogger(Memory* memory, uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
+	InstanceLogger(uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
+	~InstanceLogger();
 	void Start();
 };

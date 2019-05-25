@@ -7,3 +7,4 @@ inline Color yellow(LightYellow, Black);
 inline Color purple(LightPurple, Black);
 inline Color red(LightRed, Black);
 inline Color dgreen(Green, Black);
+inline Color lblue(LightAqua, Black);

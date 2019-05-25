@@ -28,6 +28,15 @@
     <Filter Include="Json">
       <UniqueIdentifier>{f7a4b776-72bf-4c4c-a16c-51c3691a2a59}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SdkGen">
+      <UniqueIdentifier>{4c982a2f-d133-4ea3-834f-45c432e6b17b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SdkGen\Engine">
+      <UniqueIdentifier>{90032f9c-609a-494d-aff7-3a0d662fc895}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SdkGen\Engine\UE4">
+      <UniqueIdentifier>{59219f92-ec99-4cc7-8517-41362819ef20}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -81,6 +90,51 @@
     <ClInclude Include="JsonReflector.h">
       <Filter>Json</Filter>
     </ClInclude>
+    <ClInclude Include="SdkGen\Engine\cpplinq.hpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\tinyformat.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\ObjectsStore.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\Package.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\PrintHelper.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\NameValidator.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\NamesStore.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\Logger.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\IGenerator.h">
+      <Filter>SdkGen\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.h">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\UE4\GenericTypes.h">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.h">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\MainEngineClasses.h">
+      <Filter>SdkGen</Filter>
+    </ClInclude>
+    <ClInclude Include="UnsortedMap.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ParallelWorker.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -124,6 +178,42 @@
     </ClCompile>
     <ClCompile Include="JsonReflector.cpp">
       <Filter>Json</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\UE4\FunctionFlags.cpp">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\UE4\GenericTypes.cpp">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\UE4\PropertyFlags.cpp">
+      <Filter>SdkGen\Engine\UE4</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\Logger.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\NamesStore.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\NameValidator.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\ObjectsStore.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\Package.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\PrintHelper.cpp">
+      <Filter>SdkGen\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\MainGenericTypes.cpp">
+      <Filter>SdkGen</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\MainGenerator.cpp">
+      <Filter>SdkGen</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Engine\UE4\PackageCore.cpp">
+      <Filter>SdkGen\Engine\UE4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

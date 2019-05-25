@@ -1,0 +1,17 @@
+{
+  "structs": [
+    {
+      "name": "UObject",
+      "super": "",
+      "vars": [
+        { "VfTable": "pointer" },
+        { "Flags": "int" },
+        { "InternalIndex": "int" },
+        { "Class": "pointer" },
+        { "Name": "FName" },
+        { "Outer": "pointer" }
+      ],
+      "NOTE": "VfTable => FPointer|Class => UClass*|Outer => UObject*"
+    }
+  ]
+}

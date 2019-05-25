@@ -1,5 +1,4 @@
 #pragma once
-#include "Memory.h"
 
 #define OBJECT_ERROR 1
 #define VFTABLE_ERROR 2
@@ -7,7 +6,6 @@
 
 class GObjectsFinder
 {
-	Memory* _memory = nullptr;
 	bool easyMethod = false;
 	int ptrSize = 0x0;
 	uintptr_t dwStart, dwEnd;
@@ -15,6 +13,6 @@ class GObjectsFinder
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
 	DWORD IsValidTArray(uintptr_t address);
 public:
-	GObjectsFinder(Memory* memory, bool easyMethod);
+	GObjectsFinder(bool easyMethod);
 	void Find();
 };
