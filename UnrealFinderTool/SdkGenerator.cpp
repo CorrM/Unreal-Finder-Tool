@@ -97,12 +97,12 @@ void SdkGenerator::Dump(const fs::path& path)
 			if (obj.IsValid())
 				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
-		std::cout << green << "Saved in [ " << red << "'ObjectsDump.txt'." << green << " ]" << std::endl;
+		std::cout << green << "Saved [ " << red << "'ObjectsDump.txt'" << green << " ]" << std::endl;
 	}
 
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
-		std::cout << red << "[*] " << yellow << "Start Dumping Names    : ";
+		std::cout << red << "[*] " << yellow << "Start Dumping Names   : ";
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
 
@@ -110,7 +110,7 @@ void SdkGenerator::Dump(const fs::path& path)
 		{
 			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
 		}
-		std::cout << green << "Saved in [ " << red << "'NamesDump.txt'." << green << " ]" << std::endl;
+		std::cout << green << "Saved [ " << red << "'NamesDump.txt'" << green << " ]" << std::endl;
 	}
 }
 

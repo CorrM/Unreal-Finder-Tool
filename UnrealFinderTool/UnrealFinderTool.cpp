@@ -49,7 +49,7 @@ int main()
 	if (tool_id == 0 || tool_id > 4)
 	{
 		std::cout << red << "[*] " << def << "Input valid tool ID." << std::endl << def;
-		std::cout << def << "===================================\n" << std::endl;
+		std::cout << def << "===================================" << std::endl;
 		goto Tools;
 	}
 
@@ -125,6 +125,7 @@ int main()
 
 		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
+		std::cout << def << "===================================" << std::endl;
 
 		SdkGenerator sg(objObjectsAddress, gNamesAddress);
 		sg.Start();
