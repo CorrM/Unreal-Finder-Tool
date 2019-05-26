@@ -5,9 +5,10 @@
 #include "ObjectsStore.h"
 #include <cassert>
 
-UEObject* ObjectsStore::gObjObjects;
+std::vector<std::unique_ptr<UEObject>> ObjectsStore::gObjObjects;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
+int ObjectsStore::maxZeroAddress = 150;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress)
@@ -20,8 +21,7 @@ bool ObjectsStore::Initialize(const uintptr_t gObjAddress)
 bool ObjectsStore::FetchData()
 {
 	// GObjects
-	JsonStruct jsonGObjectsReader;
-	if (!ReadUObjectArray(gObjAddress, jsonGObjectsReader))
+	if (!ReadUObjectArray(gObjAddress))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return false;
@@ -30,39 +30,74 @@ bool ObjectsStore::FetchData()
 	return true;
 }
 
-bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
+bool ObjectsStore::ReadUObjectArray(const uintptr_t address)
+{
+	// Get Work Method [Pointer Next Pointer or FUObjectItem(Flags, ClusterIndex, etc)]
+	bool isPointerNextPointer = false;
+	uintptr_t obj1 = Utils::MemoryObj->ReadAddress(address);
+	uintptr_t obj2 = Utils::MemoryObj->ReadAddress(address + Utils::PointerSize());
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, obj1)) return false;
+	// Not Valid mean it's not Pointer Next To Pointer, or GObject address is wrong.
+	isPointerNextPointer = Utils::IsValidAddress(Utils::MemoryObj, obj2);
+
+	return isPointerNextPointer ? ReadUObjectArrayPnP(address) : ReadUObjectArrayNormal(address);
+}
+
+bool ObjectsStore::ReadUObjectArrayPnP(const uintptr_t address)
+{
+	JsonStruct uObject;
+	int skipCount = 0;
+
+	for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
+	{
+		uintptr_t curAddress = address + uIndex * Utils::PointerSize();
+		uintptr_t dwUObject = Utils::MemoryObj->ReadAddress(curAddress);
+
+		// Skip null pointer in GObjects array
+		if (dwUObject == 0)
+		{
+			++skipCount;
+			continue;
+		}
+
+		auto curObject = std::make_unique<UEObject>();
+		ReadUObject(dwUObject, uObject, *curObject);
+
+		gObjObjects.push_back(std::move(curObject));
+		++gObjectsCount;
+		skipCount = 0;
+	}
+	return true;
+}
+
+bool ObjectsStore::ReadUObjectArrayNormal(const uintptr_t address)
 {
 	JsonStruct fUObjectItem, uObject;
-	const size_t sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	
-	if (!objectArray.ReadData(address, "FUObjectArray")) return false;
-	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
-	int num = objObjects["NumElements"].ReadAs<int>();
+	int skipCount = 0;
+	uintptr_t curAddress = 0;
 
-	gObjObjects = new UEObject[num];
-	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
-
-	// ####
-	currentFUObjAddress = Utils::MemoryObj->ReadInt64(currentFUObjAddress);
-
-	for (int i = 0; i < num; ++i)
+	for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
 	{
-		// Read the address as struct
-		if (!fUObjectItem.ReadData(currentFUObjAddress, "FUObjectItem")) return false;
+		curAddress = address + uIndex * (fUObjectItem.StructSize - fUObjectItem.SubUnNeededSize());
 
-		// Convert class pointer to address
+		// Read the address as struct
+		if (!fUObjectItem.ReadData(curAddress, "FUObjectItem")) return false;
 		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
 		{
-			currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
+			++skipCount;
 			continue;
 		}
 
-		ReadUObject(dwUObject, uObject, gObjObjects[i]);
-		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-		gObjectsCount++;
+		auto curObject = std::make_unique<UEObject>();
+		ReadUObject(dwUObject, uObject, *curObject);
+
+		gObjObjects.push_back(std::move(curObject));
+		++gObjectsCount;
+		skipCount = 0;
 	}
 	return true;
 }
@@ -92,7 +127,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject& ObjectsStore::GetById(const size_t id) const
 {
-	return gObjObjects[id];
+	return *gObjObjects[id];
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

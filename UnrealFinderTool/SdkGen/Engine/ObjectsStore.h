@@ -8,12 +8,15 @@ class Memory;
 
 class ObjectsStore
 {
-	static UEObject* gObjObjects;
+	static std::vector<std::unique_ptr<UEObject>> gObjObjects;
 	static uintptr_t gObjAddress;
 	static int gObjectsCount;
+	static int maxZeroAddress;
 
 	static bool FetchData();
-	static bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	static bool ReadUObjectArray(uintptr_t address);
+	static bool ReadUObjectArrayPnP(uintptr_t address);
+	static bool ReadUObjectArrayNormal(uintptr_t address);
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
 public:
 	/// <summary>

@@ -28,16 +28,11 @@ bool NamesStore::FetchData()
 	return true;
 }
 
-bool NamesStore::ReadGNameArray(uintptr_t address)
+bool NamesStore::ReadGNameArray(const uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
 	JsonStruct fName;
-
-	if (!Utils::MemoryObj->Is64Bit)
-		address = Utils::MemoryObj->ReadInt(address);
-	else
-		address = Utils::MemoryObj->ReadInt64(address);
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -46,10 +41,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 		uintptr_t addr;
 		const int offset = ptrSize * i;
 
-		if (!Utils::MemoryObj->Is64Bit)
-			addr = Utils::MemoryObj->ReadInt(address + offset); // 4byte
-		else
-			addr = Utils::MemoryObj->ReadInt64(address + offset); // 8byte
+		addr = Utils::MemoryObj->ReadAddress(address + offset);
 
 		if (!IsValidAddress(addr)) break;
 		gChunks.push_back(addr);
@@ -61,11 +53,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 
 	// Calc AnsiName offset
 	{
-		uintptr_t noneNameAddress;
-		if (!Utils::MemoryObj->Is64Bit)
-			noneNameAddress = Utils::MemoryObj->ReadInt(gChunks[0]); // 4byte
-		else
-			noneNameAddress = Utils::MemoryObj->ReadInt64(gChunks[0]); // 8byte
+		uintptr_t noneNameAddress = Utils::MemoryObj->ReadAddress(gChunks[0]);
 
 		Pattern none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
 		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x100, { none_sig }, true);
@@ -78,21 +66,16 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
 	{
-		uintptr_t fNameAddress;
 		for (int j = 0; j < gNamesChunkCount; ++j)
 		{
 			const int offset = ptrSize * j;
-
-			if (!Utils::MemoryObj->Is64Bit)
-				fNameAddress = Utils::MemoryObj->ReadInt(chunkAddress + offset); // 4byte
-			else
-				fNameAddress = Utils::MemoryObj->ReadInt64(chunkAddress + offset); // 8byte
+			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!IsValidAddress(fNameAddress))
 			{
 				gNames[i].Index = i;
 				gNames[i].AnsiName = "";
-				i++;
+				++i;
 				continue;
 			}
 
@@ -102,7 +85,7 @@ bool NamesStore::ReadGNameArray(uintptr_t address)
 			// Set The Name
 			gNames[i].Index = i;
 			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
-			i++;
+			++i;
 		}
 	}
 

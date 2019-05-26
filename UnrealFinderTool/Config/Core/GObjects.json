@@ -11,29 +11,6 @@
         { "Unknown_00": "4" }
       ],
       "NOTE": ""
-    },
-    {
-      "name": "TUObjectArray",
-      "super": "",
-      "vars": [
-        { "Objects": "pointer" },
-        { "Junk": "pointer" },
-        { "MaxElements": "int" },
-        { "NumElements": "int" }
-      ],
-      "NOTE": ""
-    },
-    {
-      "name": "FUObjectArray",
-      "super": "",
-      "vars": [
-        { "ObjFirstGcIndex": "int" },
-        { "ObjLastNonGcIndex": "int" },
-        { "MaxObjectsNotConsideredByGc": "int" },
-        { "OpenForDisregardForGc": "int" },
-        { "ObjObjects": "TUObjectArray" }
-      ],
-      "NOTE": ""
     }
   ]
 }

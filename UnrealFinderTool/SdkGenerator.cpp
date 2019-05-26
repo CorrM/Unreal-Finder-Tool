@@ -22,13 +22,14 @@ extern IGenerator* generator;
 // TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
-	gObjAddress(gObjAddress - 0x10),
+	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
 {
 }
 
 void SdkGenerator::Start()
 {
+	/*
 	std::cout << red << "[*] " << yellow << "Start Getting Objects : ";
 	if (!ObjectsStore::Initialize(gObjAddress))
 	{
@@ -36,6 +37,7 @@ void SdkGenerator::Start()
 		return;
 	}
 	std::cout << green << "Found [ " << red << std::setw(6) << ObjectsStore().GetObjectsNum() << green << " ]" << std::endl;
+	*/
 
 	std::cout << red << "[*] " << yellow << "Start Getting Names   : ";
 	if (!NamesStore::Initialize(gNamesAddress))
