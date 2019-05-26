@@ -31,22 +31,6 @@ int main()
 
 	int tool_id, p_id, old_pid = 0;
 
-	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x5ffc);
-	auto memManager1 = new Memory(pHandle1, false);
-	Utils::MemoryObj = memManager1;
-	auto objObjectsAddress = uintptr_t(0x1DAC6520000); // 2B703210
-	auto gNamesAddress = uintptr_t(0x1DAC3750080); // 2B419744
-
-	GNamesFinder gf;
-	gf.Find();
-
-	/*InstanceLogger sg(objObjectsAddress, gNamesAddress);
-	sg.Start();*/
-	std::cin >> tool_id;
-	return 0;
-	// ##################
-
 	RESTART:
 	system("cls");
 	SetConsoleTitle("Unreal Engine Finder Tool By CorrM");

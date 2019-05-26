@@ -3,8 +3,6 @@
 #include "Utils.h"
 #include "GnamesFinder.h"
 
-#include <sstream>
-
 Pattern GNamesFinder::noneSig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
 Pattern GNamesFinder::byteSig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 72 6F 70 65 72 74 79 00", 0xFF);
 Pattern GNamesFinder::intSig = PatternScan::Parse("Int", 0, "49 6E 74 50 72 6F 70 65 72 74 79 00", 0xFF);
