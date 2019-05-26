@@ -73,12 +73,12 @@ void GNamesFinder::Find()
 	if (!cmp3.empty())
 	{
 		std::cout << red << "[*] " << green << "Address is first FName." << std::endl;
-		std::cout << red << "[*] " << green << "So you must get the pointer how point the address." << std::endl;
-		std::cout << red << "[*] " << green << "And then need to find the pointer how point the pointer you get." << std::endl;
+		std::cout << red << "[*] " << green << "So you must get the pointer how point the address. (GNames Array)" << std::endl;
+		std::cout << red << "[*] " << green << "And then need to find the pointer how point the pointer you get. (GNames Chunks)" << std::endl;
 	}
 }
 
-std::vector<uintptr_t> GNamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, int maxValue)
+std::vector<uintptr_t> GNamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, const int maxValue)
 {
 	std::vector<uintptr_t> ret;
 	for (long long i : list1)

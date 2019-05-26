@@ -32,7 +32,7 @@ int main()
 	int tool_id, p_id, old_pid = 0;
 
 	// ##################
-	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x31C0);
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x5ffc);
 	auto memManager1 = new Memory(pHandle1, false);
 	Utils::MemoryObj = memManager1;
 	auto objObjectsAddress = uintptr_t(0x1DAC6520000); // 2B703210
@@ -125,7 +125,7 @@ int main()
 		std::cout << green << "[-] " << yellow << "Input (GObjects) Address: " << dgreen;
 		std::cin >> std::hex >> objObjectsAddress;
 
-		std::cout << green << "[-] " << yellow << "Input (GNamesArray) Address: " << dgreen;
+		std::cout << green << "[-] " << yellow << "Input (GNames Chunk) Address: " << dgreen;
 		std::cin >> std::hex >> gNamesAddress;
 
 		std::cout << def << "===================================" << std::endl;
