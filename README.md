@@ -15,7 +15,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - All UE4 Games (32/64bit).
 - All UE4 Versions.
 
-# Tested with
+# Tested games
 - PubgMobile (On TGB Emulator). (x32)
 - Snake Pass. (x64)
 - What Remains of Edith Finch. (x64)
