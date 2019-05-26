@@ -77,10 +77,11 @@ std::map<string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, u
 		if (info.Type != MEM_PRIVATE) continue;
 		if (info.Protect != PAGE_READWRITE) continue;
 
-		const auto pBuf = static_cast<PBYTE>(malloc(info.RegionSize));
+		SIZE_T allocCount = (dwEnd - dwStart) > info.RegionSize ? info.RegionSize : dwEnd - dwStart;
+		const auto pBuf = static_cast<PBYTE>(malloc(allocCount));
 
 		// Read one page or skip if failed
-		const SIZE_T dwOut = mem->ReadBytes(i, pBuf, info.RegionSize);
+		const SIZE_T dwOut = mem->ReadBytes(i, pBuf, allocCount);
 		if (dwOut == 0)
 		{
 			free(pBuf);

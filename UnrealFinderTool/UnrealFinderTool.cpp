@@ -37,8 +37,12 @@ int main()
 	Utils::MemoryObj = memManager1;
 	auto objObjectsAddress = uintptr_t(0x1DAC6520000); // 2B703210
 	auto gNamesAddress = uintptr_t(0x1DAC3750080); // 2B419744
-	InstanceLogger sg(objObjectsAddress, gNamesAddress);
-	sg.Start();
+
+	GNamesFinder gf;
+	gf.Find();
+
+	/*InstanceLogger sg(objObjectsAddress, gNamesAddress);
+	sg.Start();*/
 	std::cin >> tool_id;
 	return 0;
 	// ##################
