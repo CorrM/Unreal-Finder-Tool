@@ -17,21 +17,25 @@ public:
 
 class InstanceLogger
 {
-	GObject* gObjObjects; int gObjectsCount;
-	GName* gNames; int gNamesChunkCount, gNamesChunks;
+	std::vector<std::unique_ptr<GObject>> gObjObjects; 
+	int gObjectsCount, maxZeroAddress;
+
+	GName* gNames;
+	int gNamesChunkCount, gNamesChunks;
 
 	uintptr_t gObjectsAddress, gNamesAddress;
 
 	std::string GetName(int fNameIndex, bool& success);
 	std::string GetName(GObject obj);
 	bool FetchData();
-	bool ReadUObjectArray(uintptr_t address, JsonStruct& objectArray);
+	bool ReadUObjectArray(uintptr_t address);
+	bool ReadUObjectArrayPnP(uintptr_t address);
+	bool ReadUObjectArrayNormal(uintptr_t address);
 	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();
 public:
 	InstanceLogger(uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	~InstanceLogger();
 	void Start();
 };

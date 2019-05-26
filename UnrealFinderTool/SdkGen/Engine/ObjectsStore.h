@@ -18,6 +18,7 @@ class ObjectsStore
 	static bool ReadUObjectArrayPnP(uintptr_t address);
 	static bool ReadUObjectArrayNormal(uintptr_t address);
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
+
 public:
 	/// <summary>
 	/// Initializes this object.

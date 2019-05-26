@@ -29,7 +29,6 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 
 void SdkGenerator::Start()
 {
-	/*
 	std::cout << red << "[*] " << yellow << "Start Getting Objects : ";
 	if (!ObjectsStore::Initialize(gObjAddress))
 	{
@@ -37,7 +36,6 @@ void SdkGenerator::Start()
 		return;
 	}
 	std::cout << green << "Found [ " << red << std::setw(6) << ObjectsStore().GetObjectsNum() << green << " ]" << std::endl;
-	*/
 
 	std::cout << red << "[*] " << yellow << "Start Getting Names   : ";
 	if (!NamesStore::Initialize(gNamesAddress))
