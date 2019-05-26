@@ -1,24 +1,18 @@
 #include "pch.h"
 #include "Utils.h"
-#include "InstanceLogger.h"
+#include "PatternScan.h"
 
 #include <iostream>
 #include <string>
 #include <cinttypes>
-#include "PatternScan.h"
+
+#include "InstanceLogger.h"
 
 InstanceLogger::InstanceLogger(const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
-	gObjObjects(nullptr), gObjectsCount(0),
+	gObjectsCount(0), maxZeroAddress(150),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
-	gObjectsAddress(gObjObjectsAddress - 0x10),
-	gNamesAddress(gNamesAddress)
+	gObjectsAddress(gObjObjectsAddress), gNamesAddress(gNamesAddress)
 {
-}
-
-InstanceLogger::~InstanceLogger()
-{
-	delete[] gObjObjects;
-	delete[] gNames;
 }
 
 std::string InstanceLogger::GetName(const int fNameIndex, bool& success)
@@ -64,8 +58,8 @@ bool InstanceLogger::ObjectDump()
 
 	for (int i = 0; i < gObjectsCount; ++i)
 	{
-		if (gObjObjects[i].ObjAddress != NULL)
-			fprintf(log, "[%06i] %-80s 0x%" PRIXPTR "\n", int(i), GetName(gObjObjects[i]).c_str(), gObjObjects[i].ObjAddress);
+		if (gObjObjects[i]->ObjAddress != NULL)
+			fprintf(log, "[%06i] %-80s 0x%" PRIXPTR "\n", int(i), GetName(*gObjObjects[i]).c_str(), gObjObjects[i]->ObjAddress);
 	}
 
 	fclose(log);
@@ -101,13 +95,14 @@ void InstanceLogger::Start()
 	std::cout << std::endl;
 	std::cout << green << "[+] " << purple << "Found [ " << green << gObjectsCount << purple << " ] Object." << std::endl;
 	std::cout << green << "[+] " << purple << "Found [ " << green << gNamesChunkCount * gNamesChunks << purple << " ] Name." << std::endl;
+
+	delete[] gNames;
 }
 
 bool InstanceLogger::FetchData()
 {
 	// GObjects
-	JsonStruct jsonGObjectsReader;
-	if (!ReadUObjectArray(gObjectsAddress, jsonGObjectsReader))
+	if (!ReadUObjectArray(gObjectsAddress))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return false;
@@ -123,51 +118,79 @@ bool InstanceLogger::FetchData()
 	return true;
 }
 
-bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objectArray)
+bool InstanceLogger::ReadUObjectArray(const uintptr_t address)
 {
-	const size_t sSub = Utils::MemoryObj->Is64Bit && Utils::ProgramIs64() ? 0x0 : 0x4;
-	JsonStruct fUObjectItem;
+	// Get Work Method [Pointer Next Pointer or FUObjectItem(Flags, ClusterIndex, etc)]
+	bool isPointerNextPointer = false;
+	uintptr_t obj1 = Utils::MemoryObj->ReadAddress(address);
+	uintptr_t obj2 = Utils::MemoryObj->ReadAddress(address + Utils::PointerSize());
+
+	if (!Utils::IsValidAddress(Utils::MemoryObj, obj1)) return false;
+	// Not Valid mean it's not Pointer Next To Pointer, or GObject address is wrong.
+	isPointerNextPointer = Utils::IsValidAddress(Utils::MemoryObj, obj2);
+
+	return isPointerNextPointer ? ReadUObjectArrayPnP(address) : ReadUObjectArrayNormal(address);
+}
+
+bool InstanceLogger::ReadUObjectArrayPnP(const uintptr_t address)
+{
 	JsonStruct uObject;
+	int skipCount = 0;
 
-	if (!objectArray.ReadData(address, "FUObjectArray")) return false;
-
-	auto objObjects = *objectArray["ObjObjects"].ReadAsStruct();
-	int num = objObjects["NumElements"].ReadAs<int>();
-	auto dwFUObjectAddress = objObjects["Objects"].ReadAs<uintptr_t>();
-
-	// ####
-	dwFUObjectAddress = Utils::MemoryObj->ReadInt64(dwFUObjectAddress);
-
-	// Alloc all objects
-	gObjObjects = new GObject[num];
-	ZeroMemory(gObjObjects, sizeof(GObject) * num);
-
-	uintptr_t currentFUObjAddress = dwFUObjectAddress;
-	for (int i = 0; i < num; ++i)
+	for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
 	{
-		// Read the address as struct
-		if (!fUObjectItem.ReadData(currentFUObjAddress, "FUObjectItem")) return false;
+		uintptr_t curAddress = address + uIndex * Utils::PointerSize();
+		uintptr_t dwUObject = Utils::MemoryObj->ReadAddress(curAddress);
 
-		// Convert class pointer to address
+		// Skip null pointer in GObjects array
+		if (dwUObject == 0)
+		{
+			++skipCount;
+			continue;
+		}
+
+		auto curObject = std::make_unique<GObject>();
+		ReadUObject(dwUObject, uObject, *curObject);
+
+		gObjObjects.push_back(std::move(curObject));
+		++gObjectsCount;
+		skipCount = 0;
+	}
+	return true;
+}
+
+bool InstanceLogger::ReadUObjectArrayNormal(const uintptr_t address)
+{
+	JsonStruct fUObjectItem, uObject;
+	int skipCount = 0;
+	uintptr_t curAddress = 0;
+
+	for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
+	{
+		curAddress = address + uIndex * (fUObjectItem.StructSize - fUObjectItem.SubUnNeededSize());
+
+		// Read the address as struct
+		if (!fUObjectItem.ReadData(curAddress, "FUObjectItem")) return false;
 		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
 
 		// Skip null pointer in GObjects array
 		if (dwUObject == 0)
 		{
-			currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-			gObjectsCount++;
+			++skipCount;
 			continue;
 		}
 
-		ReadUObject(dwUObject, uObject, gObjObjects[i]);
+		auto curObject = std::make_unique<GObject>();
+		ReadUObject(dwUObject, uObject, *curObject);
 
-		currentFUObjAddress += fUObjectItem.StructSize - (sSub * 2);
-		gObjectsCount++;
+		gObjObjects.push_back(std::move(curObject));
+		++gObjectsCount;
+		skipCount = 0;
 	}
 	return true;
 }
 
-bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj)
+bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct & uObject, GObject & retObj)
 {
 	int i = 0;
 	uintptr_t outer = uObjectAddress;
@@ -186,16 +209,11 @@ bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uOb
 	return true;
 }
 
-bool InstanceLogger::ReadGNameArray(uintptr_t address)
+bool InstanceLogger::ReadGNameArray(const uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
-	int nameOffset = 0;
+	size_t nameOffset = 0;
 	JsonStruct fName;
-
-	if (!Utils::MemoryObj->Is64Bit)
-		address = Utils::MemoryObj->ReadInt(address);
-	else
-		address = Utils::MemoryObj->ReadInt64(address);
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -204,14 +222,11 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 		uintptr_t addr;
 		const int offset = ptrSize * i;
 
-		if (!Utils::MemoryObj->Is64Bit)
-			addr = Utils::MemoryObj->ReadInt(address + offset); // 4byte
-		else
-			addr = Utils::MemoryObj->ReadInt64(address + offset); // 8byte
+		addr = Utils::MemoryObj->ReadAddress(address + offset);
 
 		if (!Utils::IsValidAddress(Utils::MemoryObj, addr)) break;
 		gChunks.push_back(addr);
-		gNamesChunks++;
+		++gNamesChunks;
 	}
 
 	// Alloc Size
@@ -219,11 +234,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 
 	// Calc AnsiName offset
 	{
-		uintptr_t noneNameAddress;
-		if (!Utils::MemoryObj->Is64Bit)
-			noneNameAddress = Utils::MemoryObj->ReadInt(gChunks[0]); // 4byte
-		else
-			noneNameAddress = Utils::MemoryObj->ReadInt64(gChunks[0]); // 8byte
+		uintptr_t noneNameAddress = Utils::MemoryObj->ReadAddress(gChunks[0]);
 
 		Pattern none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
 		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x100, { none_sig }, true);
@@ -236,21 +247,16 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
 	{
-		uintptr_t fNameAddress;
 		for (int j = 0; j < gNamesChunkCount; ++j)
 		{
 			const int offset = ptrSize * j;
-
-			if (!Utils::MemoryObj->Is64Bit)
-				fNameAddress = Utils::MemoryObj->ReadInt(chunkAddress + offset); // 4byte
-			else
-				fNameAddress = Utils::MemoryObj->ReadInt64(chunkAddress + offset); // 8byte
+			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!Utils::IsValidAddress(Utils::MemoryObj, fNameAddress))
 			{
 				gNames[i].Index = i;
 				gNames[i].AnsiName = "";
-				i++;
+				++i;
 				continue;
 			}
 
@@ -260,7 +266,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 			// Set The Name
 			gNames[i].Index = i;
 			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
-			i++;
+			++i;
 		}
 	}
 

@@ -328,13 +328,13 @@ void JsonStruct::SetAllocPointer(void* newAddress)
 	allocPointer = newAddress;
 }
 
-int JsonStruct::SubUnNeededSize(JsonVariables& variables)
+int JsonStruct::SubUnNeededSize()
 {
 	int sSub = 0;
 	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
 	{
 		// if it's 32bit game (4byte pointer) sub 4byte for every pointer
-		for (auto& var : variables)
+		for (auto& var : Vars)
 		{
 			if (var.second.Type == "pointer")
 				sSub += 0x4;
@@ -344,7 +344,7 @@ int JsonStruct::SubUnNeededSize(JsonVariables& variables)
 					var.second.ReadAsStruct();
 
 				if (var.second.Struct != nullptr)
-					sSub += SubUnNeededSize(var.second.Struct->Vars);
+					sSub += var.second.Struct->SubUnNeededSize();
 			}
 		}
 	}
@@ -358,7 +358,7 @@ bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType
 		Init(structType);
 
 	// Read the address as class
-	if (Utils::MemoryObj->ReadBytes(address, allocPointer, StructSize - SubUnNeededSize(Vars)) == 0)
+	if (Utils::MemoryObj->ReadBytes(address, allocPointer, StructSize - SubUnNeededSize()) == 0)
 		return false;
 
 	// Fix and set data

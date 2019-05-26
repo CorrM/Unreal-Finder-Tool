@@ -11,7 +11,7 @@ class GObjectsFinder
 	uintptr_t dwStart, dwEnd;
 
 	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
-	DWORD IsValidTArray(uintptr_t address);
+	DWORD IsValidGObjects(uintptr_t address);
 public:
 	GObjectsFinder(bool easyMethod);
 	void Find();

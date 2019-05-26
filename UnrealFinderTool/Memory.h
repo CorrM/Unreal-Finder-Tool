@@ -45,6 +45,7 @@ public:
 	UINT32 ReadUInt(uintptr_t address);
 	UINT64 ReadUInt64(uintptr_t address);
 	int GetPointerAddress(uintptr_t address, const int offsets[], int offsetCount);
+	uintptr_t ReadAddress(uintptr_t address);
 	int ReadPointerInt(uintptr_t address, int offsets[], int offsetCount);
 	float ReadFloat(uintptr_t address);
 	float ReadPointerFloat(uintptr_t address, int offsets[], int offsetCount);

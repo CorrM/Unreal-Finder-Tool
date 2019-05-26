@@ -317,16 +317,24 @@ float Memory::ReadFloat(const uintptr_t address) {
 	return buffer;
 }
 
-int Memory::GetPointerAddress(const uintptr_t address, const int offsets[], const int offsetCount) {
+int Memory::GetPointerAddress(const uintptr_t address, const int offsets[], const int offsetCount)
+{
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
+
 	auto ptr = ReadInt(address);
-	for (auto i = 0; i < offsetCount - 1; i++) {
+	for (auto i = 0; i < offsetCount - 1; i++)
+	{
 		ptr += offsets[i];
 		ptr = ReadInt(ptr);
 	}
 	ptr += offsets[offsetCount - 1];
 	return ptr;
+}
+
+uintptr_t Memory::ReadAddress(const uintptr_t address)
+{
+	return Is64Bit ? ReadInt64(address) : ReadInt(address);
 }
 
 int Memory::ReadPointerInt(const uintptr_t address, int offsets[], const int offsetCount) {
@@ -336,7 +344,8 @@ int Memory::ReadPointerInt(const uintptr_t address, int offsets[], const int off
 	return ReadInt(GetPointerAddress(address, offsets, offsetCount));
 }
 
-float Memory::ReadPointerFloat(const uintptr_t address, int offsets[], int offsetCount) {
+float Memory::ReadPointerFloat(const uintptr_t address, int offsets[], int offsetCount)
+{
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
 	return ReadFloat(GetPointerAddress(address, offsets, offsetCount));

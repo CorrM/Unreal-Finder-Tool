@@ -46,10 +46,9 @@ void GObjectsFinder::Find()
 		if (info.State != MEM_COMMIT) continue;
 		if (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_READWRITE) continue;
 
-		if (IsValidTArray(i) == ERROR_SUCCESS)
+		if (IsValidGObjects(i) == ERROR_SUCCESS)
 		{
 			std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::dec << def << std::endl;
-			// std::cout << " (" << yellow << "Max: " << gObject.Max << ", Num: " << gObject.Num << ", Data: " << std::hex << gObject.Data << def << ")" << std::dec << std::endl;
 			found_count++;
 		}
 	}
@@ -58,9 +57,7 @@ void GObjectsFinder::Find()
 
 	if (found_count > 0)
 	{
-		std::cout << red << "[*] " << green << "Address is first UObject in the array." << std::endl;
-		std::cout << red << "[*] " << green << "So you must get the pointer how point the address." << std::endl;
-		std::cout << red << "[*] " << red << "Maybe you need to find the pointer how point the pointer you get." << std::endl;
+		std::cout << red << "[*] " << green << "Address is first UObject in the GObjects." << std::endl;
 	}
 }
 
@@ -92,7 +89,7 @@ bool GObjectsFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer,
 	return false;
 }
 
-DWORD GObjectsFinder::IsValidTArray(const uintptr_t address)
+DWORD GObjectsFinder::IsValidGObjects(const uintptr_t address)
 {
 	DWORD ret = 1; // OBJECT_ERROR
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
