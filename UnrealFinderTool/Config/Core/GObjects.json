@@ -17,6 +17,7 @@
       "super": "",
       "vars": [
         { "Objects": "pointer" },
+        { "Junk": "pointer" },
         { "MaxElements": "int" },
         { "NumElements": "int" }
       ],

@@ -10,7 +10,7 @@
 InstanceLogger::InstanceLogger(const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjObjects(nullptr), gObjectsCount(0),
 	gNames(nullptr), gNamesChunkCount(16384), gNamesChunks(0),
-	gObjectsAddress(gObjObjectsAddress),
+	gObjectsAddress(gObjObjectsAddress - 0x10),
 	gNamesAddress(gNamesAddress)
 {
 }
@@ -135,6 +135,9 @@ bool InstanceLogger::ReadUObjectArray(const uintptr_t address, JsonStruct& objec
 	int num = objObjects["NumElements"].ReadAs<int>();
 	auto dwFUObjectAddress = objObjects["Objects"].ReadAs<uintptr_t>();
 
+	// ####
+	dwFUObjectAddress = Utils::MemoryObj->ReadInt64(dwFUObjectAddress);
+
 	// Alloc all objects
 	gObjObjects = new GObject[num];
 	ZeroMemory(gObjObjects, sizeof(GObject) * num);
@@ -196,7 +199,7 @@ bool InstanceLogger::ReadGNameArray(uintptr_t address)
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
-	for (int i = 0; i < ptrSize * 15; ++i)
+	for (int i = 0; i < 15; ++i)
 	{
 		uintptr_t addr;
 		const int offset = ptrSize * i;

@@ -41,6 +41,10 @@ bool ObjectsStore::ReadUObjectArray(const uintptr_t address, JsonStruct& objectA
 
 	gObjObjects = new UEObject[num];
 	auto currentFUObjAddress = objObjects["Objects"].ReadAs<uintptr_t>();
+
+	// ####
+	currentFUObjAddress = Utils::MemoryObj->ReadInt64(currentFUObjAddress);
+
 	for (int i = 0; i < num; ++i)
 	{
 		// Read the address as struct
