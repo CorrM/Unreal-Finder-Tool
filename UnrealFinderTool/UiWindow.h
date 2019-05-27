@@ -1,10 +1,13 @@
 #pragma once
 #include <d3d11.h>
-#include "imGUI/imgui.h"
+#include "ImGUI/imgui.h"
 #include <thread>
+#include <functional>
 #define DIRECTINPUT_VERSION 0x0800
 
+class UiWindow;
 namespace ui = ImGui;
+using UiFunc = std::function<void(UiWindow&)>;
 
 struct WindowSettings
 {
@@ -24,6 +27,7 @@ class UiWindow
 	HWND hWindow;
 	WNDCLASSEX wc;
 	bool closed;
+	UiFunc uiFunc;
 	std::thread loopThread;
 	WindowSettings settings;
 
@@ -40,14 +44,15 @@ class UiWindow
 	void CleanupRenderTarget();
 	void WinLoop();
 	void RenderFrame();
-	void FormUi();
 	void SetStyle();
 
 	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 public:
 	UiWindow(const char* title, const char* className, int width, int height);
 	~UiWindow();
-	void Show();
+	void Show(UiFunc uiForm);
 	bool Closed();
+	void CenterPos();
+	void SetSize(int newWidth, int newHeight);
 };
 

@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "UiWindow.h"
-#include "imGUI/imgui_internal.h"
-#include "imGUI/imgui_impl_win32.h"
-#include "imGUI/imgui_impl_dx11.h"
+#include "ImGUI/imgui_internal.h"
+#include "ImGUI/imgui_impl_win32.h"
+#include "ImGUI/imgui_impl_dx11.h"
 
 #include <tchar.h>
 #include "resource.h"
+#include <functional>
+#include <utility>
 
 ID3D11Device* UiWindow::gPd3dDevice = nullptr;
 ID3D11DeviceContext* UiWindow::gPd3dDeviceContext = nullptr;
@@ -65,16 +67,37 @@ UiWindow::~UiWindow()
 	loopThread.join();
 }
 
-void UiWindow::Show()
+void UiWindow::Show(UiFunc uiForm)
 {
 	// Start thread, create window and show it
 	if (hWindow == nullptr)
+	{
+		uiFunc = std::move(uiForm);
 		loopThread = std::thread(&UiWindow::WinLoop, this);
+	}
 }
 
 bool UiWindow::Closed()
 {
 	return closed;
+}
+
+void UiWindow::CenterPos()
+{
+	RECT rectScreen;
+	HWND hwndScreen = GetDesktopWindow();
+	GetWindowRect(hwndScreen, &rectScreen);
+
+	int wPosX = ((rectScreen.right - rectScreen.left) / 2 - settings.Width / 2);
+	int wPosY = ((rectScreen.bottom - rectScreen.top) / 2 - settings.Height / 2);
+	SetWindowPos(hWindow, nullptr, wPosX, wPosY, settings.Width, settings.Height, SWP_SHOWWINDOW | SWP_NOSIZE);
+}
+
+void UiWindow::SetSize(const int newWidth, const int newHeight)
+{
+	settings.Width = newWidth;
+	settings.Height = newHeight;
+	SetWindowPos(hWindow, nullptr, 0, 0, settings.Width, settings.Height, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOREDRAW);
 }
 
 bool UiWindow::CreateUiWindow(std::string& title, std::string& className, const int width, const int height)
@@ -103,6 +126,8 @@ bool UiWindow::CreateUiWindow(std::string& title, std::string& className, const 
 	// Show the window
 	ShowWindow(hWindow, SW_SHOWDEFAULT);
 	UpdateWindow(hWindow);
+
+	CenterPos();
 	return true;
 }
 
@@ -216,8 +241,8 @@ void UiWindow::RenderFrame()
 
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::SetNextWindowSize({ static_cast<float>(settings.Width), static_cast<float>(settings.Height) });
-	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-	FormUi();
+	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+	uiFunc(*this);
 	ImGui::End();
 
 	// Rendering
@@ -228,12 +253,6 @@ void UiWindow::RenderFrame()
 
 	gPSwapChain->Present(1, 0); // Present with vsync
 	//g_pSwapChain->Present(0, 0); // Present without vsync
-}
-
-void UiWindow::FormUi()
-{
-	ui::Text("This is some useful text.");
-	ui::Separator();
 }
 
 void UiWindow::SetStyle()
@@ -297,6 +316,9 @@ void UiWindow::SetStyle()
 	style->Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
 	style->Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.25f, 1.00f, 0.00f, 0.43f);
 	style->Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(1.00f, 0.98f, 0.95f, 0.73f);
+	style->Colors[ImGuiCol_Tab] = ImVec4(0.17f, 0.24f, 0.31f, 1.00f);
+	style->Colors[ImGuiCol_TabActive] = ImVec4(0.90f, 0.29f, 0.23f, 1.00f);
+	style->Colors[ImGuiCol_TabHovered] = ImVec4(0.16f, 0.50f, 0.72f, 1.00f);
 
 	/*
 	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Ruda-Bold.ttf", 12);

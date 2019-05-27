@@ -42,6 +42,7 @@ public:
 	static bool ProgramIs64();
 	static int BufToInteger(void* buffer);
 	static int64_t BufToInteger64(void* buffer);
+	static uintptr_t CharArrayToUintptr(std::string str);
 	static bool IsNumber(const std::string& s);
 	// Return size of pointer in target game
 	static int PointerSize();

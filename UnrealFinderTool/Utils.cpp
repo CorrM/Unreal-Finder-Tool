@@ -2,6 +2,7 @@
 #include "JsonReflector.h"
 #include "Utils.h"
 #include <vector>
+#include <sstream>
 #include <algorithm>
 
 Memory* Utils::MemoryObj = nullptr;
@@ -101,6 +102,29 @@ int Utils::BufToInteger(void* buffer)
 int64_t Utils::BufToInteger64(void* buffer)
 {
 	return *reinterpret_cast<DWORD64*>(buffer);
+}
+
+uintptr_t Utils::CharArrayToUintptr(const std::string str)
+{
+	if (str.empty())
+		return 0;
+
+	//try
+	//{
+	//	return std::stoull(str);
+	//}
+	//catch (std::exception const& e)
+	//{
+	//	// This could not be parsed into a number so an exception is thrown.
+	//	// atoi() would return 0, which is less helpful if it could be a valid value.
+	//}
+
+	uintptr_t retVal;
+	std::stringstream ss;
+	ss << std::hex << str;
+	ss >> retVal;
+
+	return retVal;
 }
 
 bool Utils::IsNumber(const std::string& s)

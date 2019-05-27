@@ -9,6 +9,24 @@
 #include "Utils.h"
 
 #include <iostream>
+#include "ImGUI/imgui_internal.h"
+
+#define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) if (disabledBool) { ui::PushItemFlag(ImGuiItemFlags_Disabled, true);ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } (uiCode); if (disabledBool) { ImGui::PopItemFlag();ImGui::PopStyleVar(); }
+
+bool process_id_disabled = false;
+int process_id;
+
+bool use_kernal_disabled = false;
+bool use_kernal;
+
+bool g_objects_disabled = false;
+bool g_names_disabled = false;
+uintptr_t g_objects, g_names;
+char g_objects_buf[17] = { 0 };
+char g_names_buf[17] = { 0 };
+
+int cur_tap_id = 0;
+void HelpMarker(const char* desc);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -16,13 +34,133 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	UiWindow ui("Unreal Finder Tool", "CorrMFinder", 500, 500);
-	ui.Show();
+	UiWindow ui("Unreal Finder Tool", "CorrMFinder", 400, 350);
+	ui.Show([](UiWindow& thiz)
+	{
+		ui::ShowDemoWindow();
+		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
+		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+
+		ui::Separator();
+
+		// Process ID
+		{
+			ImGui::AlignTextToFramePadding();
+			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : "); ui::SameLine();
+			ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
+		}
+
+		// Use Kernal
+		{
+			ImGui::AlignTextToFramePadding();
+			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernal : "); ui::SameLine();
+			ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+		}
+
+		// GObjects Address
+		{
+			ImGui::AlignTextToFramePadding();
+			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : "); ui::SameLine();
+			ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
+			ui::SameLine(); HelpMarker("First uObject address.\nNot gObjects pointer.\nIt's the address you get from this tool.");
+			g_objects = Utils::CharArrayToUintptr(g_objects_buf);
+		}
+		
+		// GNames Address
+		{
+			ImGui::AlignTextToFramePadding();
+			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : "); ui::SameLine();
+			ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
+			ui::SameLine(); HelpMarker("First GNames chunk address.\nNot GNames pointer.\nIt's NOT the address you get from this tool.");
+			g_names = Utils::CharArrayToUintptr(g_names_buf);
+		}
+
+		ui::Separator();
+
+		if (ui::BeginTabBar("ToolsTabBar", ImGuiTabBarFlags_None))
+		{
+			if (ui::BeginTabItem("Finder"))
+			{
+				if (cur_tap_id != 1)
+				{
+					thiz.SetSize(400, 350);
+					cur_tap_id = 1;
+				}
+
+				// GObjects
+				ui::BeginGroup();
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects :"); ui::SameLine();
+				ui::Button("Find"); ui::SameLine();
+				ui::Button("Set");
+
+				static std::vector<const char*> obj_listbox_items;
+				static int obj_listbox_item_current = 1;
+
+				ui::PushItemWidth(ui::GetWindowSize().x / 2 - 20);
+				ui::ListBox("##Obj_listbox", &obj_listbox_item_current, obj_listbox_items.data(), static_cast<int>(obj_listbox_items.size()), 3);
+				ui::PopItemWidth();
+				ui::EndGroup();
+
+				ui::SameLine();
+
+				// GNames
+				ui::BeginGroup();
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames :"); ui::SameLine();
+				ui::Button("Find");
+
+				static std::vector<const char*> names_listbox_items;
+				static int names_listbox_item_current = 1;
+				ui::PushItemWidth(ui::GetWindowSize().x / 2 - 22);
+				ui::ListBox("##Names_listbox", &names_listbox_item_current, names_listbox_items.data(), static_cast<int>(names_listbox_items.size()), 3);
+				ui::PopItemWidth();
+				ui::EndGroup();
+
+				ui::EndTabItem();
+			}
+			if (ui::BeginTabItem("Broccoli"))
+			{
+				if (cur_tap_id != 2)
+				{
+					thiz.SetSize(400, 480);
+					cur_tap_id = 2;
+				}
+				ui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
+				ui::EndTabItem();
+			}
+			if (ui::BeginTabItem("Cucumber"))
+			{
+				if (cur_tap_id != 3)
+				{
+					thiz.SetSize(400, 600);
+					cur_tap_id = 3;
+				}
+
+				ui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+				ui::EndTabItem();
+			}
+			ui::EndTabBar();
+		}
+	});
 
 	while (!ui.Closed())
 		Sleep(1);
 
-	return 0;
+	return ERROR_SUCCESS;
+}
+
+void HelpMarker(const char* desc)
+{
+	ui::TextDisabled("(?)");
+	if (ui::IsItemHovered())
+	{
+		ui::BeginTooltip();
+		ui::PushTextWrapPos(ui::GetFontSize() * 35.0f);
+		ui::TextUnformatted(desc);
+		ui::PopTextWrapPos();
+		ui::EndTooltip();
+	}
 }
 
 int main()
