@@ -4,10 +4,26 @@
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
+#include "ParallelWorker.h"
+#include "UiWindow.h"
 #include "Utils.h"
 
 #include <iostream>
-#include "ParallelWorker.h"
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	// Remove unneeded variables
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	UiWindow ui("Unreal Finder Tool", "CorrMFinder", 500, 500);
+	ui.Show();
+
+	while (!ui.Closed())
+		Sleep(1);
+
+	return 0;
+}
 
 int main()
 {
@@ -30,6 +46,22 @@ int main()
 	if (!Utils::LoadJsonCore()) return 0;
 
 	int tool_id, p_id, old_pid = 0;
+
+	/*
+	// ##################
+	HANDLE pHandle1 = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, 0x5ffc);
+	auto memManager1 = new Memory(pHandle1, false);
+	Utils::MemoryObj = memManager1;
+	auto objObjectsAddress = uintptr_t(0x1DAC6520000); // 2B703210
+	auto gNamesAddress = uintptr_t(0x1DAC3750080); // 2B419744
+
+	SdkGenerator sg(objObjectsAddress, gNamesAddress);
+	sg.Start();
+
+	std::cin >> tool_id;
+	return 0;
+	// ##################
+	*/
 
 	RESTART:
 	system("cls");
