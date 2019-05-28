@@ -4,13 +4,11 @@
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
-#include "ParallelWorker.h"
 #include "UiWindow.h"
 #include "Utils.h"
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 
-#include <iostream>
 #include <sstream>
 
 bool memory_init = false;
@@ -256,7 +254,7 @@ void MainUi(UiWindow& thiz)
 
 					ui::SameLine();
 
-					if (ui::Button("Use It##Objects"))
+					if (ui::Button("Use##Objects"))
 					{
 						if (size_t(obj_listbox_item_current) < obj_listbox_items.size())
 							strcpy_s(g_objects_buf, sizeof g_objects_buf, obj_listbox_items[obj_listbox_item_current].data());
@@ -288,13 +286,13 @@ void MainUi(UiWindow& thiz)
 					ui::SameLine();
 
 					// Set to input box
-					if (ui::Button("Use It##Names"))
+					if (ui::Button("Use##Names"))
 					{
 						if (size_t(names_listbox_item_current) < names_listbox_items.size())
 							strcpy_s(g_names_buf, sizeof g_names_buf, names_listbox_items[names_listbox_item_current].data());
 					}
 
-					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 22);
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 26);
 					ui::ListBox("##Names_listbox", &names_listbox_item_current, VectorGetter, static_cast<void*>(&names_listbox_items), static_cast<int>(names_listbox_items.size()), 3);
 					ui::PopItemWidth();
 					ui::EndGroup();

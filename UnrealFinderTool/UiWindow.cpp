@@ -207,11 +207,6 @@ void UiWindow::WinLoop()
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
 	{
-		// Poll and handle messages (inputs, window resize, etc.)
-		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
-		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
-		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -258,7 +253,6 @@ void UiWindow::RenderFrame()
 void UiWindow::SetStyle()
 {
 	ImGuiStyle* style = &ImGui::GetStyle();
-	ImGuiIO& io = ImGui::GetIO();
 
 	style->WindowPadding = ImVec2(7, 7);
 	style->WindowRounding = 0.0f;
