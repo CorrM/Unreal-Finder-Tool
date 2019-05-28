@@ -32,11 +32,6 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Dauntless. (x64)
 - Some Indie games. (64bit / 32bit)
 
-# Tut Video
-<a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank">
-<img src="https://img.youtube.com/vi/mc9plMorAlQ/0.jpg" alt="Overlay demo" width="400" height="300" border="10" />
-</a>
-
 # Change Log
 ##### 28-06-2019
 - Add UI.
