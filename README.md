@@ -40,19 +40,19 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 # Change Log
 ##### 28-06-2019
 - Add UI.
-- Some changes to SDK `Generator` and `Instance Logger`.
+- Some changes to `SDK Generator` and `Instance Logger`.
 
 ##### 25-06-2019
-- Add SDK Generator.
+- Add `SDK Generator`.
 - Add Settings file.
-- Improve Instance Logger.
+- Improve `Instance Logger`.
 
 ##### 09-06-2019
-- Add JSON reflctor.
-- Convert Instance Logger to JSON reflector.
+- Add `JSON reflctor`.
+- Convert `Instance Logger` to `JSON reflector`.
 
 ##### 06-06-2019
-- Add Instance Logger.
+- Add `Instance Logger`.
 
 ##### 02-06-2019
 - First version released
