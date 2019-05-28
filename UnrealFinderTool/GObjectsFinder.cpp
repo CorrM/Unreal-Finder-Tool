@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "GObjectsFinder.h"
 #include "Color.h"
 #include "Memory.h"
 #include "Utils.h"
+#include "GObjectsFinder.h"
 
 /*
  * #NOTES
@@ -16,8 +16,9 @@ GObjectsFinder::GObjectsFinder(const bool easyMethod) : easyMethod(easyMethod)
 	ptrSize = !Utils::MemoryObj->Is64Bit ? 0x4 : 0x8;
 }
 
-void GObjectsFinder::Find()
+std::vector<uintptr_t> GObjectsFinder::Find()
 {
+	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
@@ -36,7 +37,6 @@ void GObjectsFinder::Find()
 	// dwStart = static_cast<uintptr_t>(0x48356000);
 	// dwEnd = static_cast<uintptr_t>(0x7ff7ccc25c68);
 
-	int found_count = 0;
 	MEMORY_BASIC_INFORMATION info;
 
 	// Cycle through memory based on RegionSize
@@ -47,18 +47,10 @@ void GObjectsFinder::Find()
 		if (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_READWRITE) continue;
 
 		if (IsValidGObjects(i) == ERROR_SUCCESS)
-		{
-			std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::dec << def << std::endl;
-			found_count++;
-		}
+			ret.push_back(i);
 	}
 
-	std::cout << purple << "[!] " << yellow << "Found " << found_count << " Address." << std::endl << def;
-
-	if (found_count > 0)
-	{
-		std::cout << red << "[*] " << green << "Address is first UObject in the GObjects." << std::endl;
-	}
+	return ret;
 }
 
 bool GObjectsFinder::IsValidPointer(const uintptr_t address, uintptr_t& pointer, const bool checkIsAllocationBase)

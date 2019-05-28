@@ -27,35 +27,45 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
-void SdkGenerator::Start()
+GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
-	std::cout << red << "[*] " << yellow << "Start Getting Objects : ";
+	// Check Address
+	if (!Utils::IsValidGNamesAddress(gNamesAddress))
+	{
+		return GeneratorState::BadGName;
+	}
+	if (!Utils::IsValidGObjectsAddress(gObjAddress))
+	{
+		return GeneratorState::BadGObject;
+	}
+
+	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
 	{
-		std::cout << red << "Failed To Get Objects." << std::endl;
-		return;
+		return GeneratorState::BadGObject;
 	}
-	std::cout << green << "Found [ " << red << std::setw(6) << ObjectsStore().GetObjectsNum() << green << " ]" << std::endl;
+	*pObjCount = ObjectsStore().GetObjectsNum();
 
-	std::cout << red << "[*] " << yellow << "Start Getting Names   : ";
+	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
 	{
-		std::cout << red << "Failed To Get Names." << std::endl;
-		return;
+		return GeneratorState::BadGName;
 	}
-	std::cout << green << "Found [ " << red << std::setw(6) << NamesStore().GetNamesNum() << green << " ]" << std::endl;
+	*pNamesCount = NamesStore().GetNamesNum();
 
+	// Init Generator Settings
 	if (!generator->Initialize())
 	{
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
-		return;
+		return GeneratorState::Bad;
 	}
 
+	// Get Current Dir
 	char buffer[2048];
 	if (GetModuleFileNameA(GetModuleHandle(nullptr), buffer, sizeof(buffer)) == 0)
 	{
 		MessageBoxA(nullptr, "GetModuleFileName failed", "Error", 0);
-		return;
+		return GeneratorState::Bad;
 	}
 	fs::path outputDirectory = fs::path(buffer).remove_filename();
 
@@ -65,19 +75,23 @@ void SdkGenerator::Start()
 	std::ofstream log(outputDirectory / "Generator.log");
 	Logger::SetStream(&log);
 
-	
-	if (generator->ShouldDumpArrays())
-		Dump(outputDirectory);
-	
 	fs::create_directories(outputDirectory);
-	
+
+	// Dump To Files
+	if (generator->ShouldDumpArrays())
+	{
+		Dump(outputDirectory);
+		state = "Dump (GNames/GObjects) Done";
+	}
+
+	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
-	ProcessPackages(outputDirectory);
+	ProcessPackages(outputDirectory, pPackagesCount, pPackagesDone, state, packagesDone);
 	
 	Logger::Log("Finished, took %d seconds.", std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
 	Logger::SetStream(nullptr);
 	
-	MessageBoxA(nullptr, "Finished!", "Info", 0);
+	return GeneratorState::Good;
 }
 
 /// <summary>
@@ -88,7 +102,6 @@ void SdkGenerator::Dump(const fs::path& path)
 {
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
-		std::cout << red << "[*] " << yellow << "Start Dumping Objects : ";
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GetAddress());
 
@@ -97,12 +110,10 @@ void SdkGenerator::Dump(const fs::path& path)
 			if (obj.IsValid())
 				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
-		std::cout << green << "Saved [ " << red << "'ObjectsDump.txt'" << green << " ]" << std::endl;
 	}
 
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
-		std::cout << red << "[*] " << yellow << "Start Dumping Names   : ";
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
 
@@ -110,7 +121,6 @@ void SdkGenerator::Dump(const fs::path& path)
 		{
 			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
 		}
-		std::cout << green << "Saved [ " << red << "'NamesDump.txt'" << green << " ]" << std::endl;
 	}
 }
 
@@ -118,17 +128,20 @@ void SdkGenerator::Dump(const fs::path& path)
 /// Process the packages.
 /// </summary>
 /// <param name="path">The path where to create the package files.</param>
-void SdkGenerator::ProcessPackages(const fs::path& path)
+/// <param name="pPackagesCount"></param>
+/// <param name="pPackagesDone"></param>
+/// <param name="state"></param>
+/// <param name="packagesDone"></param>
+void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, int* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
 	using namespace cpplinq;
 
+	int threadCount = Utils::Settings.SdkGen.Threads;
 	const auto sdkPath = path / "SDK";
 	fs::create_directories(sdkPath);
 
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
-
-	std::cout << red << "[*] " << yellow << "Start Calc Packages   : ";
 
 	auto packageObjects =
 		from(ObjectsStore())
@@ -137,12 +150,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		>> distinct()
 		>> to_vector();
 
-	std::cout << green << "Found [ " << red << std::setw(6) << packageObjects.size() << green << " ]" << std::endl;
-	std::cout << def << "===================================" << std::endl;
-
-	int counter = 1;
-	int threadCount = Utils::Settings.SdkGen.Threads;
-	//omp_set_dynamic(false);
+	*pPackagesCount = packageObjects.size();
 
 	/*
 	 * First we must complete Core Package.
@@ -151,18 +159,18 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 	 * it's the first package always (packageObjects[0])
 	*/
 	{
-		std::cout << red << "[*] " << yellow << "Dumping '" << Utils::Settings.SdkGen.CorePackageName << "'" << red << ". That's may take while." << std::endl;
+		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
 		const UEObject& obj = packageObjects[0];
 
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
 		if (package->Save(sdkPath))
 		{
-			std::cout << green << "[+] " << "(" << std::setfill('0') << std::setw(4) << 0 << ") " << std::setfill(' ') <<
-				purple << std::setw(50) << std::left << package->GetName() << std::right << yellow << " [ " << std::setfill('0') <<
-				"C: " << lblue << std::setw(4) << package->Classes.size() << yellow << ", " <<
-				"S: " << lblue << std::setw(4) << package->ScriptStructs.size() << yellow << ", " <<
-				"E: " << lblue << std::setw(4) << package->Enums.size() << yellow << " ]" << std::setfill(' ') << std::endl;
+			packagesDone.emplace_back(std::string("(") + std::to_string(0) + ") " + package->GetName() + " [ "
+				"C: " + std::to_string(package->Classes.size()) + ", " +
+				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+				"E: " + std::to_string(package->Enums.size()) + " ]"
+			);
 
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
@@ -172,9 +180,9 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		Utils::Settings.Parallel.SleepEvery = 50;
 	}
 
-	std::cout << red << "[*] " << yellow << "Dumping Packages with " << red << threadCount << yellow << " Threads." << std::endl;
+	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
 
-
+	*pPackagesDone = 1;
 	// Start From 1 because core package is already done
 	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, std::mutex & gMutex)
 	{
@@ -184,11 +192,11 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 		{
 			{
 				std::lock_guard lock(gMutex);
-				std::cout << green << "[+] " << "(" << std::setfill('0') << std::setw(4) << counter << ") " << std::setfill(' ') <<
-					purple << std::setw(50) << std::left << package->GetName() << std::right << yellow << " [ " << std::setfill('0') <<
-					"C: " << lblue << std::setw(4) << package->Classes.size() << yellow << ", " <<
-					"S: " << lblue << std::setw(4) << package->ScriptStructs.size() << yellow << ", " <<
-					"E: " << lblue << std::setw(4) << package->Enums.size() << yellow << " ]" << std::setfill(' ') << std::endl;
+				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+					"C: " + std::to_string(package->Classes.size()) + ", " +
+					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+					"E: " + std::to_string(package->Enums.size()) + " ]"
+				);
 			}
 
 			Package::PackageMap[obj] = package.get();
@@ -197,13 +205,11 @@ void SdkGenerator::ProcessPackages(const fs::path& path)
 
 		{
 			std::lock_guard lock(gMutex);
-			++counter;
+			++*pPackagesDone;
 		}
 	});
 	packageProcess.Start();
 	packageProcess.WaitAll();
-
-	std::cout << std::endl;
 
 	if (!packages.empty())
 	{

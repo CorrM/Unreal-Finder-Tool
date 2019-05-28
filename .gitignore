@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 /UnrealFinderTool/ObjectDump.txt
 /UnrealFinderTool/NameDump.txt
+/UnrealFinderTool/imgui.ini

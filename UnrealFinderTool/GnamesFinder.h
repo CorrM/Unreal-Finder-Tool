@@ -8,6 +8,6 @@ class GNamesFinder
 	static std::vector<uintptr_t> GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, int maxValue);
 public:
 	GNamesFinder();
-	void Find();
+	std::vector<uintptr_t> Find();
 };
 

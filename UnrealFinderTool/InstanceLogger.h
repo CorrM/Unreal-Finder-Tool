@@ -15,6 +15,20 @@ public:
 	std::string AnsiName;
 };
 
+enum class LoggerState
+{
+	Good,
+	BadGObject,
+	BadGName
+};
+
+struct LoggerRetState
+{
+	LoggerState State;
+	int GObjectsCount;
+	int GNamesCount;
+};
+
 class InstanceLogger
 {
 	std::vector<std::unique_ptr<GObject>> gObjObjects; 
@@ -27,7 +41,7 @@ class InstanceLogger
 
 	std::string GetName(int fNameIndex, bool& success);
 	std::string GetName(GObject obj);
-	bool FetchData();
+	LoggerState FetchData();
 	bool ReadUObjectArray(uintptr_t address);
 	bool ReadUObjectArrayPnP(uintptr_t address);
 	bool ReadUObjectArrayNormal(uintptr_t address);
@@ -37,5 +51,5 @@ class InstanceLogger
 	bool NameDump();
 public:
 	InstanceLogger(uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	void Start();
+	LoggerRetState Start();
 };

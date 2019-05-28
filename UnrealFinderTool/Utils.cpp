@@ -2,7 +2,9 @@
 #include "JsonReflector.h"
 #include "Utils.h"
 #include <vector>
+#include <sstream>
 #include <algorithm>
+#include "PatternScan.h"
 
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;
@@ -101,6 +103,29 @@ int Utils::BufToInteger(void* buffer)
 int64_t Utils::BufToInteger64(void* buffer)
 {
 	return *reinterpret_cast<DWORD64*>(buffer);
+}
+
+uintptr_t Utils::CharArrayToUintptr(const std::string str)
+{
+	if (str.empty())
+		return 0;
+
+	//try
+	//{
+	//	return std::stoull(str);
+	//}
+	//catch (std::exception const& e)
+	//{
+	//	// This could not be parsed into a number so an exception is thrown.
+	//	// atoi() would return 0, which is less helpful if it could be a valid value.
+	//}
+
+	uintptr_t retVal;
+	std::stringstream ss;
+	ss << std::hex << str;
+	ss >> retVal;
+
+	return retVal;
 }
 
 bool Utils::IsNumber(const std::string& s)
@@ -230,6 +255,107 @@ bool Utils::IsValidAddress(const uintptr_t address)
 	{
 		// Bad Memory
 		return info.Protect != PAGE_NOACCESS;
+	}
+
+	return false;
+}
+
+bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
+{
+	pointer = NULL;
+	if (!MemoryObj->Is64Bit)
+		pointer = MemoryObj->ReadUInt(address);
+	else
+		pointer = MemoryObj->ReadUInt64(address);
+
+	if (INVALID_POINTER_VALUE(pointer) /*|| pointer <= dwStart || pointer > dwEnd*/)
+		return false;
+
+	// Check memory state, type and permission
+	MEMORY_BASIC_INFORMATION info;
+
+	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
+	if (VirtualQueryEx(MemoryObj->ProcessHandle, LPVOID(pointer), &info, sizeof info) == sizeof info)
+	{
+		// Bad Memory
+		// if (info.State != MEM_COMMIT) return false;
+		return info.Protect != PAGE_NOACCESS;
+	}
+
+	return false;
+}
+
+bool Utils::IsValidGNamesAddress(const uintptr_t address)
+{
+	// Read First Chunk Address
+	uintptr_t firstChunk = MemoryObj->ReadAddress(address);
+	if (!IsValidAddress(MemoryObj, firstChunk)) return false;
+
+	// Read First FName Address
+	uintptr_t noneFName = MemoryObj->ReadAddress(firstChunk);
+	if (!Utils::IsValidAddress(MemoryObj, noneFName)) return false;
+
+	// Search for none FName
+	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
+	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
+	auto resVec = result.find("NoneSig")->second;
+	return !resVec.empty();
+}
+
+bool Utils::IsValidGObjectsAddress(const uintptr_t address)
+{
+	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
+
+	for (int i = 0x0; i <= 0x20; i += 0x4)
+	{
+		// Check (UObject*) Is Valid Pointer
+		if (!IsValidPointer(address + (i * 0), ptrUObject0)) continue;
+		if (!IsValidPointer(address + (i * 1), ptrUObject1)) continue;
+		if (!IsValidPointer(address + (i * 2), ptrUObject2)) continue;
+		if (!IsValidPointer(address + (i * 3), ptrUObject3)) continue;
+		if (!IsValidPointer(address + (i * 4), ptrUObject4)) continue;
+		if (!IsValidPointer(address + (i * 5), ptrUObject5)) continue;
+
+		// Check vfTableObject Is Valid Pointer
+		if (!IsValidPointer(ptrUObject0, ptrVfTableObject0)) continue;
+		if (!IsValidPointer(ptrUObject1, ptrVfTableObject1)) continue;
+		if (!IsValidPointer(ptrUObject2, ptrVfTableObject2)) continue;
+		if (!IsValidPointer(ptrUObject3, ptrVfTableObject3)) continue;
+		if (!IsValidPointer(ptrUObject4, ptrVfTableObject4)) continue;
+		if (!IsValidPointer(ptrUObject5, ptrVfTableObject5)) continue;
+
+		// Check Objects (InternalIndex)
+		for (int io = 0x0; io < 0x1C; io += 0x4)
+		{
+			const int uObject0InternalIndex = MemoryObj->ReadInt(ptrUObject0 + io);
+			const int uObject1InternalIndex = MemoryObj->ReadInt(ptrUObject1 + io);
+			const int uObject2InternalIndex = MemoryObj->ReadInt(ptrUObject2 + io);
+			const int uObject3InternalIndex = MemoryObj->ReadInt(ptrUObject3 + io);
+			const int uObject4InternalIndex = MemoryObj->ReadInt(ptrUObject4 + io);
+			const int uObject5InternalIndex = MemoryObj->ReadInt(ptrUObject5 + io);
+
+			if (uObject0InternalIndex != 0) continue;
+			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
+			if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) continue;
+			if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) continue;
+			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
+			if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) continue;
+
+			// Check if 2nd UObject have FName_Index == 100
+			bool bFoundNameIndex = false;
+			for (int j = 0x4; j < 0x1C; j += 0x4)
+			{
+				const int uFNameIndex = MemoryObj->ReadInt(ptrUObject1 + j);
+				if (uFNameIndex == 100)
+				{
+					bFoundNameIndex = true;
+					break;
+				}
+			}
+
+			return bFoundNameIndex;
+		}
 	}
 
 	return false;
