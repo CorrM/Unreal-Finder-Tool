@@ -84,38 +84,42 @@ bool InstanceLogger::NameDump()
 	return true;
 }
 
-void InstanceLogger::Start()
+LoggerRetState InstanceLogger::Start()
 {
-	if (!FetchData())
-		return;
+	LoggerState s = FetchData();
+	if (s != LoggerState::Good)
+		return { s, 0, 0 };
 
 	NameDump();
 	ObjectDump();
 
-	std::cout << std::endl;
-	std::cout << green << "[+] " << purple << "Found [ " << green << gObjectsCount << purple << " ] Object." << std::endl;
-	std::cout << green << "[+] " << purple << "Found [ " << green << gNamesChunkCount * gNamesChunks << purple << " ] Name." << std::endl;
-
 	delete[] gNames;
+	return { LoggerState::Good, gObjectsCount, gNamesChunkCount * gNamesChunks };
 }
 
-bool InstanceLogger::FetchData()
+LoggerState InstanceLogger::FetchData()
 {
+	if (!Utils::IsValidGNamesAddress(gNamesAddress))
+		return LoggerState::BadGName;
+
+	if (!Utils::IsValidGObjectsAddress(gObjectsAddress))
+		return LoggerState::BadGObject;
+
 	// GObjects
 	if (!ReadUObjectArray(gObjectsAddress))
 	{
 		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
-		return false;
+		return LoggerState::BadGObject;
 	}
 
 	// GNames
 	if (!ReadGNameArray(gNamesAddress))
 	{
 		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
-		return false;
+		return LoggerState::BadGName;
 	}
 
-	return true;
+	return LoggerState::Good;
 }
 
 bool InstanceLogger::ReadUObjectArray(const uintptr_t address)

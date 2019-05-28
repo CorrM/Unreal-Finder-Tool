@@ -3,6 +3,7 @@
 #define OBJECT_ERROR 1
 #define VFTABLE_ERROR 2
 #define INDEX_ERROR 3
+#include <vector>
 
 class GObjectsFinder
 {
@@ -14,5 +15,5 @@ class GObjectsFinder
 	DWORD IsValidGObjects(uintptr_t address);
 public:
 	GObjectsFinder(bool easyMethod);
-	void Find();
+	std::vector<uintptr_t> Find();
 };

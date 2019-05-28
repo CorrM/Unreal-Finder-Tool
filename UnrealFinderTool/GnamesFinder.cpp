@@ -12,22 +12,18 @@ GNamesFinder::GNamesFinder() : dwStart(0), dwEnd(0)
 {
 }
 
-void GNamesFinder::Find()
+std::vector<uintptr_t> GNamesFinder::Find()
 {
+	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
-
-	std::cout << dgreen << "[!] " << def << "Start scan for GNames. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
 
 	// Scan
 	std::vector<Pattern> inputs = { noneSig, byteSig, intSig, multicastSig };
 	const auto searcher = PatternScan::FindPattern(Utils::MemoryObj, dwStart, dwEnd, inputs);
 
 	if (searcher.find(noneSig.Name) == searcher.end())
-	{
-		std::cout << red << "[-] " << yellow << "Not found anything" << std::endl << def;
-		return;
-	}
+		return ret;
 
 	const auto none_r = searcher.find(noneSig.Name)->second;
 	const auto byte_r = searcher.find(byteSig.Name)->second;
@@ -63,17 +59,10 @@ void GNamesFinder::Find()
 	for (uintptr_t i : cmp3)
 	{
 		i = i - nameOffset;
-
-		std::cout << green << "[+] " << def << "\t" << red << "0x" << std::hex << i << std::endl;
+		ret.push_back(i);
 	}
-	std::cout << purple << "[!] " << yellow << "Found " << cmp3.size() << " Address." << std::endl << def;
 
-	if (!cmp3.empty())
-	{
-		std::cout << red << "[*] " << green << "Address is first FName." << std::endl;
-		std::cout << red << "[*] " << green << "So you must get the pointer how point the address. (GNames Array)" << std::endl;
-		std::cout << red << "[*] " << green << "And then need to find the pointer how point the pointer you get. (GNames Chunks)" << std::endl;
-	}
+	return ret;
 }
 
 std::vector<uintptr_t> GNamesFinder::GetNearNumbers(const std::vector<uintptr_t>& list1, const std::vector<uintptr_t>& list2, const int maxValue)
