@@ -16,14 +16,6 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - All UE4 Games (32/64bit).
 - All UE4 Versions.
 
-# Tested games
-- PubgMobile (On TGB Emulator). (x32)
-- Snake Pass. (x64)
-- What Remains of Edith Finch. (x64)
-- Unreal Minecraft (UnrealVoxel). (x64)
-- Dauntless. (x64)
-- Some Indie games. (64bit / 32bit)
-
 # Download
 Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
 
@@ -31,6 +23,14 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_1](/images/ui_1.png)
 ![ui_2](/images/ui_2.png)
 ![ui_3](/images/ui_3.png)
+
+# Tested games
+- PubgMobile (On TGB Emulator). (x32)
+- Snake Pass. (x64)
+- What Remains of Edith Finch. (x64)
+- Unreal Minecraft (UnrealVoxel). (x64)
+- Dauntless. (x64)
+- Some Indie games. (64bit / 32bit)
 
 # Tut Video
 <a href="https://www.youtube.com/watch?v=mc9plMorAlQ" target="_blank">
