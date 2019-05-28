@@ -41,7 +41,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ##### 28-06-2019
 - Add UI.
 - Some changes to `SDK Generator` and `Instance Logger`.
-- Let GObject address getted form `GObject Finder` valid to use directly.
+- Let GObject address getted form `GObject Finder` be valid to use directly.
 
 ##### 25-06-2019
 - Add `SDK Generator`.
