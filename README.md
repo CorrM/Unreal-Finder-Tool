@@ -6,7 +6,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - **Find GNames**.
 - **Find GObjects**.
 - **Instance Logger**.
-- **Sdk Generator**. *Based on @KN4CK3R* (**External** and **Some improvment** and **Multi-thread**)
+- **Sdk Generator**. *Based on @KN4CK3R* (**External**, **Some improvment** and **Multi-thread**)
 - **Kenrnal to read process memory**. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
 - **Dynamic JSON Reflector structs**. (**Read struct from JSON files to fit all games structs. *(just edit and run)***)
 
