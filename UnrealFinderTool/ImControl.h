@@ -68,8 +68,6 @@ static void DisabledAll()
 
 static void EnabledAll()
 {
-	use_kernal_disabled = false;
-
 	g_objects_disabled = false;
 	g_names_disabled = false;
 
