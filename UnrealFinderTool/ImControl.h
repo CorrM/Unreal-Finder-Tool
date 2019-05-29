@@ -49,6 +49,8 @@ inline int sg_objects_count = 0;
 inline int sg_names_count = 0;
 inline int sg_packages_count = 0;
 inline int sg_packages_done_count = 0;
+inline std::vector<std::string> sg_type_items = { "Internal", "External" };
+inline int sg_type_item_current = 0;
 inline std::string sg_state = "Ready ..!!";
 inline std::vector<std::string> sg_packages_items;
 inline int sg_packages_item_current = 0;
@@ -100,7 +102,7 @@ static void HelpMarker(const char* desc)
 static void NotValidProcessPopup()
 {
 	// If Not Valid Process, this Popup will show
-	if (ui::BeginPopupModal("Warning##NotValidProcess", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ui::BeginPopupModal("Warning##NotValidProcess", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 	{
 		ui::Text("Not Valid Process ID. !!");
 		ui::Separator();

@@ -184,7 +184,7 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
-		ui::SameLine(); HelpMarker("First uObject address.\nNot gObjects pointer.\nIt's the address you get from this tool.");
+		ui::SameLine(); HelpMarker("First uObject address.\nNot GObjects pointer.\nIt's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
 	}
 	
@@ -207,7 +207,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(400, 350);
+					thiz.SetSize(380, 350);
 					cur_tap_id = 1;
 				}
 
@@ -257,13 +257,13 @@ void MainUi(UiWindow& thiz)
 
 					ui::SameLine();
 
-					if (ui::Button("Use##Objects"))
+					if (ui::Button("Use##Objects", { 38.0f, 0.0f }))
 					{
 						if (size_t(obj_listbox_item_current) < obj_listbox_items.size())
 							strcpy_s(g_objects_buf, sizeof g_objects_buf, obj_listbox_items[obj_listbox_item_current].data());
 					}
 
-					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 20);
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 10);
 					ui::ListBox("##Obj_listbox", &obj_listbox_item_current, VectorGetter, static_cast<void*>(&obj_listbox_items), static_cast<int>(obj_listbox_items.size()), 3);
 					ui::PopItemWidth();
 					ui::EndGroup();
@@ -289,13 +289,13 @@ void MainUi(UiWindow& thiz)
 					ui::SameLine();
 
 					// Set to input box
-					if (ui::Button("Use##Names"))
+					if (ui::Button("Use##Names", { 47.0f, 0.0f }))
 					{
 						if (size_t(names_listbox_item_current) < names_listbox_items.size())
 							strcpy_s(g_names_buf, sizeof g_names_buf, names_listbox_items[names_listbox_item_current].data());
 					}
 
-					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 26);
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
 					ui::ListBox("##Names_listbox", &names_listbox_item_current, VectorGetter, static_cast<void*>(&names_listbox_items), static_cast<int>(names_listbox_items.size()), 3);
 					ui::PopItemWidth();
 					ui::EndGroup();
@@ -308,7 +308,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 2)
 				{
-					thiz.SetSize(400, 365);
+					thiz.SetSize(380, 365);
 					cur_tap_id = 2;
 				}
 
@@ -325,7 +325,7 @@ void MainUi(UiWindow& thiz)
 				ui::Text("%s", il_state.c_str());
 
 				// Start Logger
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { 370.0f, 0.0f }), il_start_disabled,
+				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x - 14.0f, 0.0f }), il_start_disabled,
 				{
 					if (IsReadyToGo())
 						StartInstanceLogger();
@@ -340,37 +340,35 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(400, 550);
+					thiz.SetSize(380, 550);
 					cur_tap_id = 3;
 				}
 
 				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Objects Count  : "); ui::SameLine();
-				ui::Text("%d", sg_objects_count);
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Objects/Names : "); ui::SameLine();
+				ui::Text("%d / %d", sg_objects_count, sg_names_count);
 
 				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Names Count    : "); ui::SameLine();
-				ui::Text("%d", sg_names_count);
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Packages      : "); ui::SameLine();
+				ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
 
 				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Packages Count : "); ui::SameLine();
-				ui::Text("%d", sg_packages_count);
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : "); ui::SameLine();
+				ui::PushItemWidth(100);
+				ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4);
+				ui::PopItemWidth();
 
 				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Done Packages  : "); ui::SameLine();
-				ui::Text("%d", sg_packages_done_count);
-
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State          : "); ui::SameLine();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State         : "); ui::SameLine();
 				ui::Text("%s", sg_state.c_str());
 
 				// Packages Box
-				ui::PushItemWidth(ui::GetWindowSize().x - 30);
+				ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
 				ui::ListBox("##Packages_listbox", &sg_packages_item_current, VectorGetter, static_cast<void*>(&sg_packages_items), static_cast<int>(sg_packages_items.size()), 5);
 				ui::PopItemWidth();
 
 				// Start Generator
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { 370.0f, 0.0f }), sg_start_disabled,
+				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x - 14.0f, 0.0f }), sg_start_disabled,
 				{
 					if (IsReadyToGo())
 						StartSdkGenerator();
@@ -381,7 +379,7 @@ void MainUi(UiWindow& thiz)
 				if (sg_finished)
 				{
 					ui::OpenPopup("Warning##SdkFinish");
-					if (ui::BeginPopupModal("Warning##SdkFinish", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					if (ui::BeginPopupModal("Warning##SdkFinish", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 					{
 						ui::Text("Sdk Generator finished. !!");
 						ui::Separator();
@@ -417,7 +415,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. ver: 2.0.0", "CorrMFinder", 400, 350);
+	UiWindow ui("Unreal Finder Tool. Version: 2.1.0", "CorrMFinder", 380, 350);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())
