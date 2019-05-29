@@ -141,7 +141,10 @@ void StartSdkGenerator()
 		GeneratorState ret = sg.Start(&sg_objects_count, &sg_names_count, &sg_packages_count, &sg_packages_done_count, sg_state, sg_packages_items);
 
 		if (ret == GeneratorState::Good)
+		{
+			sg_finished = true;
 			sg_state = "Finished.!!";
+		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
 		else if (ret == GeneratorState::BadGName)
@@ -366,7 +369,7 @@ void MainUi(UiWindow& thiz)
 				ui::ListBox("##Packages_listbox", &sg_packages_item_current, VectorGetter, static_cast<void*>(&sg_packages_items), static_cast<int>(sg_packages_items.size()), 5);
 				ui::PopItemWidth();
 
-				// Start Logger
+				// Start Generator
 				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { 370.0f, 0.0f }), sg_start_disabled,
 				{
 					if (IsReadyToGo())
@@ -374,6 +377,24 @@ void MainUi(UiWindow& thiz)
 					else
 						ui::OpenPopup("Warning##NotValidProcess");
 				});
+
+				if (sg_finished)
+				{
+					ui::OpenPopup("Warning##SdkFinish");
+					if (ui::BeginPopupModal("Warning##SdkFinish", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					{
+						ui::Text("Sdk Generator finished. !!");
+						ui::Separator();
+
+						if (ui::Button("Ok", ImVec2(200, 0)))
+						{
+							sg_finished = false;
+							ui::CloseCurrentPopup();
+						}
+						ui::SetItemDefaultFocus();
+						ui::EndPopup();
+					}
+				}
 
 				NotValidProcessPopup();
 				ui::EndTabItem();
@@ -385,7 +406,8 @@ void MainUi(UiWindow& thiz)
 	}
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+// int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) // Fix vs2019 Problem [wWinMain instead of WinMain]
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hPrevInstance);

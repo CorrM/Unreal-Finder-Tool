@@ -151,7 +151,7 @@ public:
 
 	void FixPointers(const int fullStructSize)
 	{
-		FScriptInterface::FixPointers();
+		FScriptInterface::FixPointers(fullStructSize);
 		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
 };

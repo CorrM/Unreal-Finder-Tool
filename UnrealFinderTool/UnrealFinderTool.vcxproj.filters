@@ -132,9 +132,6 @@
     <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.h">
       <Filter>SdkGen\Engine\UE4</Filter>
     </ClInclude>
-    <ClInclude Include="SdkGen\MainEngineClasses.h">
-      <Filter>SdkGen</Filter>
-    </ClInclude>
     <ClInclude Include="UnsortedMap.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -173,6 +170,9 @@
     </ClInclude>
     <ClInclude Include="ImControl.h">
       <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\EngineClasses.h">
+      <Filter>SdkGen</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -244,9 +244,6 @@
     </ClCompile>
     <ClCompile Include="SdkGen\Engine\PrintHelper.cpp">
       <Filter>SdkGen\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="SdkGen\MainGenericTypes.cpp">
-      <Filter>SdkGen</Filter>
     </ClCompile>
     <ClCompile Include="SdkGen\MainGenerator.cpp">
       <Filter>SdkGen</Filter>

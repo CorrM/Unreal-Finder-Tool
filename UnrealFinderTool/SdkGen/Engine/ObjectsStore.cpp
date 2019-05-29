@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Utils.h"
 #include "Memory.h"
-#include "../MainEngineClasses.h"
+#include "SdkGen/EngineClasses.h"
+#include "Utils.h"
 #include "ObjectsStore.h"
 #include <cassert>
 
