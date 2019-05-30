@@ -23,6 +23,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_1](/images/ui_1.png)
 ![ui_2](/images/ui_2.png)
 ![ui_3](/images/ui_3.png)
+![ui_3](/images/cfg_0.png)
 
 # Tested games
 - PubgMobile (On TGB Emulator). (x32)
@@ -38,12 +39,13 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Add `Game Name`, `Game Version` to `Sdk Generator`.
 - Add `Sdk Type` to `Sdk Generator`.
   - **Internal**: Usually used when your target is inject dll into game process.
-    - it's generate functions and funtction params. without `ReadAsMe` function.
-    - you can directly cast/convert block of memory to your class/struct.
+    - It's generate functions and funtction params. without `ReadAsMe`/`WriteAsMe` function.
+    - You can directly cast/write block of memory as your class/struct.
   - **External**: Usually used when your target is wite or read game process memory from your process.
-    - For now tool support read as object (class/struct) with `ReadAsMe` function in every class/struct.
-    - it's useful to read block of memory as class/struct.
-    - no functions generaterd for external for now. maybe later i will support call function from external.
+    - Support read as object (class/struct) with `ReadAsMe` function in every class/struct.
+    - Support write as object (class/struct) with `WriteAsMe` function in every class/struct.
+    - It's useful to read/write block of memory as class/struct.
+    - No functions generaterd for external for now. maybe later i will support call function from external.
 - Some Optimization.
 
 ##### 28-06-2019
