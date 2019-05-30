@@ -9,8 +9,12 @@ struct MySettings
 	struct _SdkGenSettings
 	{
 		std::string CorePackageName;
+
 		std::string MemoryHeader;
 		std::string MemoryRead;
+		std::string MemoryWrite;
+		std::string MemoryWriteType;
+
 		int Threads = 0;
 		bool DumpObjects = false;
 		bool DumpNames = false;

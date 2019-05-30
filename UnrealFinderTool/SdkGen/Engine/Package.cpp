@@ -301,6 +301,11 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 		%s(address, ret);
 		return ret;
 	})", scriptStructObj.GetNameCPP(), scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+
+		ss.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
+	{
+		return %s(address, toWrite);
+	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
@@ -448,6 +453,10 @@ void Package::GenerateClass(const UEClass& classObj)
 		%s(address, ret);
 		return ret;
 	})", classObj.GetNameCPP(), classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
+	{
+		return %s(address, toWrite);
+	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 	else
 	{

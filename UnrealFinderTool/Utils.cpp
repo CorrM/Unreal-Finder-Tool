@@ -51,6 +51,8 @@ bool Utils::LoadSettings()
 	Settings.SdkGen.CorePackageName = sdkParas["core Name"]; 
 	Settings.SdkGen.MemoryHeader = sdkParas["memory header"];
 	Settings.SdkGen.MemoryRead = sdkParas["memory read"];
+	Settings.SdkGen.MemoryWrite = sdkParas["memory write"];
+	Settings.SdkGen.MemoryWriteType = sdkParas["memory write type"];
 	Settings.SdkGen.Threads = sdkParas["threads"];
 
 	Settings.SdkGen.DumpObjects = sdkParas["dump Objects"];
