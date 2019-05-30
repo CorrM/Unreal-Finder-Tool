@@ -23,6 +23,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_1](/images/ui_1.png)
 ![ui_2](/images/ui_2.png)
 ![ui_3](/images/ui_3.png)
+![ui_3](/images/cfg_0.png)
 
 # Tested games
 - PubgMobile (On TGB Emulator). (x32)
