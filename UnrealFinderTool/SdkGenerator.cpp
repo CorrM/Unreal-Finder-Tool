@@ -167,7 +167,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 		package->Process(processedObjects);
 		if (package->Save(sdkPath))
 		{
-			packagesDone.emplace_back(std::string("(") + std::to_string(0) + ") " + package->GetName() + " [ "
+			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
 				"C: " + std::to_string(package->Classes.size()) + ", " +
 				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
 				"E: " + std::to_string(package->Enums.size()) + " ]"

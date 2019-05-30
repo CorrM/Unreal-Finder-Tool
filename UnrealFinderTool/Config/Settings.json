@@ -4,7 +4,7 @@
     "memory header": "../Utils.h",
     "memory read": "Utils::MemoryObj->Read",
     "memory write": "Utils::MemoryObj->Write",
-    "memory write type": "bool",
+    "memory write type": "int",
     "threads": 6,
     "dump Objects": true,
     "dump Names": true,
