@@ -36,6 +36,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 # Change Log
 ##### 30-06-2019
 - Add new settings.
+- Sdk Generator +10% faster.
 - Add `Game Name`, `Game Version` to `Sdk Generator`.
 - Add `Sdk Type` to `Sdk Generator`.
   - **Internal**: Usually used when your target is inject dll into game process.
