@@ -42,8 +42,8 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
     - It's generate functions and funtction params. without `ReadAsMe`/`WriteAsMe` function.
     - You can directly cast/write block of memory as your class/struct.
   - **External**: Usually used when your target is write or read game process memory from your process.
-    - Support read as object (class/struct) with `ReadAsMe` function in every class/struct.
-    - Support write as object (class/struct) with `WriteAsMe` function in every class/struct.
+    - Support read as object (class/struct) with `ReadAsMe` function in **every** class/struct.
+    - Support write as object (class/struct) with `WriteAsMe` function in **every** class/struct.
     - It's useful to read/write block of memory as class/struct.
     - No functions generaterd for external for now. maybe later i will support call function from external.
     - To support `ReadAsMe`/`WriteAsMe` in your project, you need to edit **settings** file.
