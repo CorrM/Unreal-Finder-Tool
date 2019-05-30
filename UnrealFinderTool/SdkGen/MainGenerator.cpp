@@ -793,6 +793,11 @@ UObject* FWeakObjectPtr::Get() const
 }
 //---------------------------------------------------------------------------)";
 	}
+
+	bool ShouldGenerateFunctionParametersFile() const override
+	{
+		return sdkType == SdkType::External;
+	}
 };
 
 Generator _generator;

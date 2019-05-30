@@ -4,7 +4,7 @@
 #include "SdkGen/EngineClasses.h"
 #include <cassert>
 
-std::vector<std::unique_ptr<UEObject>> ObjectsStore::gObjObjects;
+std::vector<std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
 int ObjectsStore::gObjectsCount;
 uintptr_t ObjectsStore::gObjAddress;
 int ObjectsStore::maxZeroAddress = 150;
@@ -60,7 +60,7 @@ bool ObjectsStore::ReadUObjectArrayPnP(const uintptr_t address)
 		auto curObject = std::make_unique<UEObject>();
 		ReadUObject(dwUObject, uObject, *curObject);
 
-		gObjObjects.push_back(std::move(curObject));
+		GObjObjects.push_back(std::move(curObject));
 		++gObjectsCount;
 		skipCount = 0;
 	}
@@ -91,7 +91,7 @@ bool ObjectsStore::ReadUObjectArrayNormal(const uintptr_t address)
 		auto curObject = std::make_unique<UEObject>();
 		ReadUObject(dwUObject, uObject, *curObject);
 
-		gObjObjects.push_back(std::move(curObject));
+		GObjObjects.push_back(std::move(curObject));
 		++gObjectsCount;
 		skipCount = 0;
 	}
@@ -123,7 +123,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject& ObjectsStore::GetById(const size_t id) const
 {
-	return *gObjObjects[id];
+	return *GObjObjects[id];
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

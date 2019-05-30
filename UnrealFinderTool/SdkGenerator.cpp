@@ -13,7 +13,6 @@
 #include <bitset>
 #include <unordered_set>
 #include <tlhelp32.h>
-#include "ParallelWorker.h"
 
 extern IGenerator* generator;
 
@@ -182,36 +181,31 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 		Utils::Settings.Parallel.SleepEvery = 50;
 	}
 
+	++*pPackagesDone;
 	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
 
-	*pPackagesDone = 1;
 	// Start From 1 because core package is already done
-	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, std::mutex & gMutex)
+	for (size_t i = 1; i < packageObjects.size(); i++)
 	{
+		const UEObject& obj = packageObjects[i];
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
+		++*pPackagesDone;
+
 		if (package->Save(sdkPath))
 		{
-			{
-				std::lock_guard lock(gMutex);
-				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
-					"C: " + std::to_string(package->Classes.size()) + ", " +
-					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-					"E: " + std::to_string(package->Enums.size()) + " ]"
-				);
-			}
+			packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+				"C: " + std::to_string(package->Classes.size()) + ", " +
+				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+				"E: " + std::to_string(package->Enums.size()) + " ]"
+			);
 
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
+	}
 
-		{
-			std::lock_guard lock(gMutex);
-			++*pPackagesDone;
-		}
-	});
-	packageProcess.Start();
-	packageProcess.WaitAll();
+	
 
 	if (!packages.empty())
 	{
@@ -287,7 +281,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	const auto missing = from(processedObjects) >> where([](auto && kv) { return kv.second == false; });
 	if (missing >> any())
 	{
-		std::ofstream os2(path / "SDK" / tfm::format("MISSING.hpp"));
+		std::ofstream os2(path / "SDK" / tfm::format("MISSING.h"));
 
 		PrintFileHeader(os2, true);
 
@@ -302,7 +296,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 
 		PrintFileFooter(os2);
 
-		os << "\n#include \"SDK/" << tfm::format("MISSING.hpp") << "\"\n";
+		os << "\n#include \"SDK/" << tfm::format("MISSING.h") << "\"\n";
 	}
 
 	os << "\n";

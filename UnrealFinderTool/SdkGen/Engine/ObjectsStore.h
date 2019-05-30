@@ -8,7 +8,6 @@ class Memory;
 
 class ObjectsStore
 {
-	static std::vector<std::unique_ptr<UEObject>> gObjObjects;
 	static uintptr_t gObjAddress;
 	static int gObjectsCount;
 	static int maxZeroAddress;
@@ -20,6 +19,7 @@ class ObjectsStore
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
 
 public:
+	static std::vector<std::unique_ptr<UEObject>> GObjObjects;
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>

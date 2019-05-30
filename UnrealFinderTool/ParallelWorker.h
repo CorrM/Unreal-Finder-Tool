@@ -13,13 +13,14 @@ class ParallelWorker
 	using ParallelFunction = std::function<void(VecType&, std::mutex&)>;
 
 	ParallelFunction func;
-	std::mutex gMutex;
 	std::vector<std::thread> threads;
 	std::vector<VecType>& queue;
 	int threadsCount;
 	size_t curIndex;
 
 public:
+	std::mutex GMutex;
+
 	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, ParallelFunction func);
 	void Start();
 	void WaitAll();
@@ -68,7 +69,7 @@ void ParallelWorker<VecType>::Worker()
 	{
 		// Lock Scope (DeQueue item)
 		{
-			Lock lock(gMutex);
+			Lock lock(GMutex);
 
 			if (curIndex >= queue.size())
 				break;
@@ -77,6 +78,6 @@ void ParallelWorker<VecType>::Worker()
 			++curIndex;
 		}
 
-		func(*curItem, gMutex);
+		func(*curItem, GMutex);
 	}
 }

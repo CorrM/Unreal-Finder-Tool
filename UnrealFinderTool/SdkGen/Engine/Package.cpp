@@ -14,8 +14,10 @@
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
 #include "PrintHelper.h"
+#include "ParallelWorker.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
+std::mutex* lock_mutex;
 
 /// <summary>
 /// Compare two properties.
@@ -42,9 +44,11 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
-	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	int threadCount = Utils::Settings.SdkGen.Threads;
+
+	ParallelWorker<std::unique_ptr<UEObject>> packageProcess(ObjectsStore::GObjObjects, 0, threadCount, [&](const std::unique_ptr<UEObject>& objPtr, std::mutex& gMutex)
 	{
-		const UEObject& obj = ObjectsStore().GetById(i);
+		const UEObject& obj = *objPtr;
 		const auto package = obj.GetPackageObject();
 		if (packageObj == package)
 		{
@@ -70,7 +74,10 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			static int is_a_sleep_counter = 0;
 			Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 		}
-	}
+	});
+	lock_mutex = &packageProcess.GMutex;
+	packageProcess.Start();
+	packageProcess.WaitAll();
 }
 
 bool Package::Save(const fs::path& path) const
@@ -310,6 +317,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
 
+	std::lock_guard lock(*lock_mutex);
 	ScriptStructs.emplace_back(std::move(ss));
 }
 
@@ -344,6 +352,7 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 		}
 	}
 
+	std::lock_guard lock(*lock_mutex);
 	Enums.emplace_back(std::move(e));
 }
 
@@ -527,6 +536,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		}
 	}
 
+	std::lock_guard lock(*lock_mutex);
 	Classes.emplace_back(std::move(c));
 }
 
@@ -821,7 +831,7 @@ void Package::SaveFunctions(const fs::path & path) const
 
 	std::ofstream os(path / GenerateFileName(FileContentType::Functions, *this));
 
-	PrintFileHeader(os, { "\"../SDK.hpp\"" }, false);
+	PrintFileHeader(os, { "\"../SDK.h\"" }, false);
 
 	PrintSectionHeader(os, "Functions");
 
@@ -875,7 +885,7 @@ void Package::SaveFunctionParameters(const fs::path & path) const
 
 	std::ofstream os(path / GenerateFileName(FileContentType::FunctionParameters, *this));
 
-	PrintFileHeader(os, { "\"../SDK.hpp\"" }, true);
+	PrintFileHeader(os, { "\"../SDK.h\"" }, true);
 
 	PrintSectionHeader(os, "Parameters");
 
