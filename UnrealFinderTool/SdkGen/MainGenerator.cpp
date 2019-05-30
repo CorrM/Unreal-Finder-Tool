@@ -796,7 +796,7 @@ UObject* FWeakObjectPtr::Get() const
 
 	bool ShouldGenerateFunctionParametersFile() const override
 	{
-		return sdkType == SdkType::External;
+		return sdkType == SdkType::Internal;
 	}
 };
 
