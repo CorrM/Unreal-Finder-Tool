@@ -6,6 +6,12 @@
 #include <iterator>
 #include "PatternScan.h"
 
+enum class SdkType
+{
+	Internal = 0,
+	External = 1
+};
+
 class IGenerator
 {
 public:
@@ -35,16 +41,33 @@ public:
 	virtual std::string GetGameName() const = 0;
 
 	/// <summary>
-	/// Gets the short name of the game.
+	/// Gets the name of the game.
 	/// </summary>
-	/// <returns>The short name.</returns>
-	//virtual std::string GetGameNameShort() const = 0;
+	/// <returns>The game name. </returns>
+	virtual void SetGameName(std::string& gameName) const = 0;
+
+	/// <summary>
+	/// Sets the version of the game.
+	/// </summary>
+	/// <returns>The version of the game.</returns>
+	virtual void SetGameVersion(std::string& gameVersion) const = 0;
 
 	/// <summary>
 	/// Gets the version of the game.
 	/// </summary>
 	/// <returns>The version of the game.</returns>
-	//virtual std::string GetGameVersion() const = 0;
+	virtual std::string GetGameVersion() const = 0;
+
+	/// <summary>
+	/// Gets generator type.
+	/// </summary>
+	virtual SdkType GetSdkType() const = 0;
+
+	/// <summary>
+	/// Sets generator type.
+	/// </summary>
+	/// <returns>The version of the game.</returns>
+	virtual void SetSdkType(SdkType sdkType) const = 0;
 
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.

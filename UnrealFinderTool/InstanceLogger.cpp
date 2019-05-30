@@ -1,8 +1,6 @@
 #include "pch.h"
-#include "Utils.h"
 #include "PatternScan.h"
 
-#include <iostream>
 #include <string>
 #include <cinttypes>
 
@@ -52,7 +50,7 @@ bool InstanceLogger::ObjectDump()
 
 	if (log == nullptr)
 	{
-		std::cout << red << "[*] " << def << "Can't open 'ObjectDump.txt' for write." << std::endl;
+		OutputDebugString("Can't open 'ObjectDump.txt' for write.");
 		return false;
 	}
 
@@ -73,7 +71,7 @@ bool InstanceLogger::NameDump()
 
 	if (log == nullptr)
 	{
-		std::cout << red << "[*] " << def << "Can't open 'NameDump.txt' for write." << std::endl;
+		OutputDebugString("Can't open 'NameDump.txt' for write.");
 		return false;
 	}
 
@@ -107,17 +105,11 @@ LoggerState InstanceLogger::FetchData()
 
 	// GObjects
 	if (!ReadUObjectArray(gObjectsAddress))
-	{
-		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return LoggerState::BadGObject;
-	}
 
 	// GNames
 	if (!ReadGNameArray(gNamesAddress))
-	{
-		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
 		return LoggerState::BadGName;
-	}
 
 	return LoggerState::Good;
 }

@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "JsonReflector.h"
+#include "PatternScan.h"
 #include "Utils.h"
+
 #include <vector>
 #include <sstream>
 #include <algorithm>
-#include "PatternScan.h"
 
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;
@@ -14,21 +15,21 @@ bool Utils::LoadJsonCore()
 	// Read core GNames
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GNames.json"))
 	{
-		std::cout << red << "[*] " << def << "Can't read GNames file." << std::endl << def;
+		OutputDebugString("Can't read GNames file.");
 		return false;
 	}
 
 	// Read core GObjects
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GObjects.json"))
 	{
-		std::cout << red << "[*] " << def << "Can't read GObject file." << std::endl << def;
+		OutputDebugString("Can't read GObject file.");
 		return false;
 	}
 
 	// Read core CoreStructs
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\CoreStructs.json"))
 	{
-		std::cout << red << "[*] " << def << "Can't read CoreStructs file." << std::endl << def;
+		OutputDebugString("Can't read CoreStructs file.");
 		return false;
 	}
 
@@ -39,7 +40,7 @@ bool Utils::LoadSettings()
 {
 	if (!JsonReflector::ReadJsonFile("Config\\Settings.json"))
 	{
-		std::cout << red << "[*] " << def << "Can't read Settings file." << std::endl << def;
+		OutputDebugString("Can't read Settings file.");
 		return false;
 	}
 
@@ -47,7 +48,11 @@ bool Utils::LoadSettings()
 
 	// Sdk Generator Settings
 	auto sdkParas = j.at("sdkGenerator");
-	Settings.SdkGen.CorePackageName = sdkParas["core Name"];
+	Settings.SdkGen.CorePackageName = sdkParas["core Name"]; 
+	Settings.SdkGen.MemoryHeader = sdkParas["memory header"];
+	Settings.SdkGen.MemoryRead = sdkParas["memory read"];
+	Settings.SdkGen.MemoryWrite = sdkParas["memory write"];
+	Settings.SdkGen.MemoryWriteType = sdkParas["memory write type"];
 	Settings.SdkGen.Threads = sdkParas["threads"];
 
 	Settings.SdkGen.DumpObjects = sdkParas["dump Objects"];

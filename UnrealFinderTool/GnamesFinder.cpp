@@ -1,6 +1,4 @@
 #include "pch.h"
-#include "Color.h"
-#include "Utils.h"
 #include "GnamesFinder.h"
 
 Pattern GNamesFinder::noneSig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);

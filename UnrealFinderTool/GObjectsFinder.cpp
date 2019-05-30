@@ -1,7 +1,5 @@
 #include "pch.h"
-#include "Color.h"
 #include "Memory.h"
-#include "Utils.h"
 #include "GObjectsFinder.h"
 
 /*
@@ -21,8 +19,6 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
 	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
-
-	std::cout << dgreen << "[!] " << def << "Start scan for GObjects. (at 0x" << std::hex << dwStart << ". to 0x" << std::hex << dwEnd << ")" << std::endl << def;
 
 	// Start scan for TArrays
 	SYSTEM_INFO si = { 0 };

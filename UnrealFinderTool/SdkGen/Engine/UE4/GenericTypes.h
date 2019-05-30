@@ -48,12 +48,6 @@ public:
 
 	void* GetAddress() const;
 
-	/*
-	bool Update(const UEObject& newObject);
-
-	bool Update(const UObject& newObject);
-	*/
-
 	template<typename Base>
 	Base Cast() const
 	{

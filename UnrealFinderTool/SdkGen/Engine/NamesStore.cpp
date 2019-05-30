@@ -1,7 +1,6 @@
 #include "pch.h"
-#include "NamesStore.h"
-#include "Utils.h"
 #include "Memory.h"
+#include "NamesStore.h"
 
 GName* NamesStore::gNames;
 int NamesStore::gNamesChunkCount;
@@ -20,10 +19,7 @@ bool NamesStore::FetchData()
 {
 	// GNames
 	if (!ReadGNameArray(gNamesAddress))
-	{
-		std::cout << red << "[*] " << def << "Invalid GNames Address." << std::endl << def;
 		return false;
-	}
 
 	return true;
 }

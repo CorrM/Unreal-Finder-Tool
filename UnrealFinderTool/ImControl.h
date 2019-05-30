@@ -45,13 +45,25 @@ inline std::string il_state = "Ready ..!!";
 // => Sdk Generator
 inline bool sg_start_disabled = false;
 inline bool sg_finished = false;
+
 inline int sg_objects_count = 0;
 inline int sg_names_count = 0;
 inline int sg_packages_count = 0;
 inline int sg_packages_done_count = 0;
+
+inline bool sg_type_disabled = false;
 inline std::vector<std::string> sg_type_items = { "Internal", "External" };
 inline int sg_type_item_current = 0;
+
+inline bool sg_game_name_disabled = false;
+inline char sg_game_name_buf[30] = { 0 };
+inline std::string sg_game_name;
+
+inline bool sg_game_version_disabled = false;
+inline int sg_game_version[3] = { 1, 0, 0 };
+
 inline std::string sg_state = "Ready ..!!";
+
 inline std::vector<std::string> sg_packages_items;
 inline int sg_packages_item_current = 0;
 // => Sdk Generator
@@ -67,6 +79,9 @@ static void DisabledAll()
 
 	il_start_disabled = true;
 	sg_start_disabled = true;
+	sg_type_disabled = true;
+	sg_game_name_disabled = true;
+	sg_game_version_disabled = true;
 }
 
 static void EnabledAll()
@@ -76,6 +91,10 @@ static void EnabledAll()
 
 	il_start_disabled = false;
 	sg_start_disabled = false;
+
+	sg_type_disabled = false;
+	sg_game_name_disabled = false;
+	sg_game_version_disabled = false;
 }
 
 static bool VectorGetter(void* vec, const int idx, const char** out_text)

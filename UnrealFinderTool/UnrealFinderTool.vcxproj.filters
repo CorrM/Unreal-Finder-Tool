@@ -51,9 +51,6 @@
     <ClInclude Include="GnamesFinder.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="Color.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -86,9 +83,6 @@
     </ClInclude>
     <ClInclude Include="SdkGenerator.h">
       <Filter>Tools</Filter>
-    </ClInclude>
-    <ClInclude Include="StdColors.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="json.hpp">
       <Filter>Utils</Filter>
@@ -184,9 +178,6 @@
     </ClCompile>
     <ClCompile Include="GnamesFinder.cpp">
       <Filter>Tools</Filter>
-    </ClCompile>
-    <ClCompile Include="Color.cpp">
-      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Utils</Filter>

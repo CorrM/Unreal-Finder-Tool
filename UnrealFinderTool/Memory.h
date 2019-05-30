@@ -21,7 +21,7 @@ public:
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
 	template<typename T>
-	int Read(const uintptr_t address, T& type, const int skipLocalBytes = 0)
+	int Read(const uintptr_t address, T& ret, const int skipLocalBytes = 0)
 	{
 		if (address == static_cast<uintptr_t>(-1))
 			return 0;
@@ -29,7 +29,7 @@ public:
 		SIZE_T numberOfBytesActuallyRead = 0;
 		const SIZE_T numberOfBytesToRead = sizeof(T) - skipLocalBytes;
 
-		uintptr_t remoteAddress = reinterpret_cast<uintptr_t>(&type) + skipLocalBytes;
+		uintptr_t remoteAddress = reinterpret_cast<uintptr_t>(&ret) + skipLocalBytes;
 
 		if (use_kernal)
 			bypaPh->RWVM(bypaPh->m_hTarget, reinterpret_cast<PVOID>(address), reinterpret_cast<PVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);

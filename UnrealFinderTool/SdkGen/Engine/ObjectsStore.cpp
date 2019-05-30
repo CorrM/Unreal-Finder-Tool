@@ -1,8 +1,7 @@
 #include "pch.h"
 #include "Memory.h"
-#include "SdkGen/EngineClasses.h"
-#include "Utils.h"
 #include "ObjectsStore.h"
+#include "SdkGen/EngineClasses.h"
 #include <cassert>
 
 std::vector<std::unique_ptr<UEObject>> ObjectsStore::gObjObjects;
@@ -22,10 +21,7 @@ bool ObjectsStore::FetchData()
 {
 	// GObjects
 	if (!ReadUObjectArray(gObjAddress))
-	{
-		std::cout << red << "[*] " << def << "Invalid GObject Address." << std::endl << def;
 		return false;
-	}
 
 	return true;
 }

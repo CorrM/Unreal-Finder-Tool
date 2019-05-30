@@ -4,6 +4,9 @@
 
 class Generator final : public IGenerator
 {
+	mutable std::string gameName;
+	mutable std::string gameVersion;
+	mutable SdkType sdkType = SdkType::Internal;
 public:
 	bool Initialize() override
 	{
@@ -197,20 +200,33 @@ public:
 
 	std::string GetGameName() const override
 	{
-		return "Unreal Finder Tool @ CorrM";
+		return gameName;
 	}
 
-	/*
-	std::string GetGameNameShort() const override
+	void SetGameName(std::string& gameName) const override
 	{
-		return "";
+		this->gameName = gameName;
 	}
 
 	std::string GetGameVersion() const override
 	{
-		return "";
+		return this->gameVersion;
 	}
-	*/
+
+	void SetGameVersion(std::string& gameVersion) const override
+	{
+		this->gameVersion = gameVersion;
+	}
+
+	SdkType GetSdkType() const override
+	{
+		return this->sdkType;
+	}
+
+	void SetSdkType(const SdkType sdkType) const override
+	{
+		this->sdkType = sdkType;
+	}
 
 	std::string GetNamespaceName() const override
 	{

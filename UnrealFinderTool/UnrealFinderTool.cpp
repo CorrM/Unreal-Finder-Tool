@@ -1,11 +1,9 @@
 #include "pch.h"
-#include "Color.h"
 #include "GnamesFinder.h"
 #include "GObjectsFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
 #include "UiWindow.h"
-#include "Utils.h"
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 
@@ -138,7 +136,14 @@ void StartSdkGenerator()
 		sg_names_count = 0;
 		sg_state = "Running . . .";
 		SdkGenerator sg(g_objects_address, g_names_address);
-		GeneratorState ret = sg.Start(&sg_objects_count, &sg_names_count, &sg_packages_count, &sg_packages_done_count, sg_state, sg_packages_items);
+		GeneratorState ret = sg.Start(&sg_objects_count,
+		                              &sg_names_count,
+		                              &sg_packages_count,
+		                              &sg_packages_done_count,
+		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]),
+									  static_cast<SdkType>(sg_type_item_current),
+		                              sg_state,
+		                              sg_packages_items);
 
 		if (ret == GeneratorState::Good)
 		{
@@ -340,7 +345,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 550);
+					thiz.SetSize(380, 582);
 					cur_tap_id = 3;
 				}
 
@@ -355,8 +360,17 @@ void MainUi(UiWindow& thiz)
 				ui::AlignTextToFramePadding();
 				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : "); ui::SameLine();
 				ui::PushItemWidth(100);
-				ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4);
-				ui::PopItemWidth();
+				ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
+				ui::PopItemWidth(); ui::SameLine();
+				HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
+
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : "); ui::SameLine();
+				ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
+
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : "); ui::SameLine();
+				ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
 
 				ui::AlignTextToFramePadding();
 				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State         : "); ui::SameLine();
@@ -400,7 +414,6 @@ void MainUi(UiWindow& thiz)
 
 			ui::EndTabBar();
 		}
-		
 	}
 }
 

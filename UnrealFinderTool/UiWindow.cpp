@@ -235,7 +235,7 @@ void UiWindow::RenderFrame()
 	ImGui::NewFrame();
 
 	ImGui::SetNextWindowPos({ 0, 0 });
-	ImGui::SetNextWindowSize({ static_cast<float>(settings.Width - 17), static_cast<float>(settings.Height - 38) });
+	ImGui::SetNextWindowSize({ static_cast<float>(settings.Width - 15), static_cast<float>(settings.Height - 38) });
 	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
 	uiFunc(*this);
 	ImGui::End();

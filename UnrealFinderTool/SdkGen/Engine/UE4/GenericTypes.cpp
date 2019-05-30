@@ -4,31 +4,7 @@
 #include "ObjectsStore.h"
 #include "NamesStore.h"
 #include "NameValidator.h"
-#include "Utils.h"
 #include "GenericTypes.h"
-
-/*
-bool UEObject::Update(const UEObject& newObject)
-{
-	if (Object.IsEqual(newObject.Object))
-		return false;
-
-	Object = newObject.Object;
-	return true;
-}
-
-bool UEObject::Update(const UObject& newObject)
-{
-	if (!Utils::IsValidAddress(Utils::MemoryObj, newObject.ObjAddress))
-		return false;
-
-	if (Object.IsEqual(newObject))
-		return false;
-
-	Object = newObject;
-	return true;
-}
-*/
 
 #pragma region UEObject
 void* UEObject::GetAddress() const

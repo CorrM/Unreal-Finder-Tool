@@ -170,7 +170,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BypaPH.h" />
-    <ClInclude Include="Color.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="GnamesFinder.h" />
     <ClInclude Include="ImControl.h" />
@@ -206,7 +205,6 @@
     <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.h" />
     <ClInclude Include="SdkGen\Engine\UE4\GenericTypes.h" />
     <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.h" />
-    <ClInclude Include="StdColors.h" />
     <ClInclude Include="GObjectsFinder.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="UiWindow.h" />
@@ -214,7 +212,6 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Color.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="GnamesFinder.cpp" />
     <ClCompile Include="imGUI\imgui.cpp" />
