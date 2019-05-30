@@ -103,6 +103,7 @@ bool Package::Save(const fs::path& path) const
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
 	{
+		std::lock_guard lock(*lock_mutex);
 		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
 	}
 	
@@ -253,6 +254,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.FullName = scriptStructObj.GetFullName();
 
 	{
+		std::lock_guard lock(*lock_mutex);
 		static std::string script_struct_format = std::string("Struct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logStructName = Utils::Settings.SdkGen.LoggerShowStructSaveFileName ? this->GetName() + "." + ss.Name : ss.Name;
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
@@ -379,6 +381,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	c.FullName = classObj.GetFullName();
 
 	{
+		std::lock_guard lock(*lock_mutex);
 		static std::string class_format = std::string("Class:   %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logClassName = Utils::Settings.SdkGen.LoggerShowClassSaveFileName ? this->GetName() + "." + c.Name : c.Name;
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
