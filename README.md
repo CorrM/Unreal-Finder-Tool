@@ -39,8 +39,8 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Add `Game Name`, `Game Version` to `Sdk Generator`.
 - Add `Sdk Type` to `Sdk Generator`.
   - **Internal**: Usually used when your target is inject dll into game process.
-    - It's generate functions and funtction params. without `ReadAsMe` function.
-    - You can directly cast/convert block of memory to your class/struct.
+    - It's generate functions and funtction params. without `ReadAsMe`/`WriteAsMe` function.
+    - You can directly cast/write block of memory as your class/struct.
   - **External**: Usually used when your target is wite or read game process memory from your process.
     - Support read as object (class/struct) with `ReadAsMe` function in every class/struct.
     - Support write as object (class/struct) with `WriteAsMe` function in every class/struct.
