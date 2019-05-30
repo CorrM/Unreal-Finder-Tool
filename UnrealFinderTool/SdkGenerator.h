@@ -14,8 +14,7 @@ class SdkGenerator
 	uintptr_t gObjAddress, gNamesAddress;
 public:
 	SdkGenerator(uintptr_t gObjAddress, uintptr_t gNamesAddress);
-	GeneratorState Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone, std::string gameVersion, SdkType sdkType, std
-	                     ::string& state, std::vector<std::string>& packagesDone);
+	GeneratorState Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone, std::string gameName, std::string gameVersion, SdkType sdkType, std::string& state, std::vector<std::string>& packagesDone);
 private:
 	uintptr_t GetModuleBase(DWORD processId, LPSTR lpModuleName, int* sizeOut);
 	void Dump(const fs::path& path);

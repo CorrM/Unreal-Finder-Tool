@@ -57,7 +57,6 @@ inline int sg_type_item_current = 0;
 
 inline bool sg_game_name_disabled = false;
 inline char sg_game_name_buf[30] = { 0 };
-inline std::string sg_game_name;
 
 inline bool sg_game_version_disabled = false;
 inline int sg_game_version[3] = { 1, 0, 0 };

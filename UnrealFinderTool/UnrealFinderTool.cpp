@@ -140,10 +140,10 @@ void StartSdkGenerator()
 		                              &sg_names_count,
 		                              &sg_packages_count,
 		                              &sg_packages_done_count,
+		                              sg_game_name_buf,
 		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]),
-									  static_cast<SdkType>(sg_type_item_current),
-		                              sg_state,
-		                              sg_packages_items);
+		                              static_cast<SdkType>(sg_type_item_current),
+		                              sg_state, sg_packages_items);
 
 		if (ret == GeneratorState::Good)
 		{

@@ -26,7 +26,7 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
-GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone, std::string gameVersion, const SdkType sdkType, std::string& state, std::vector<std::string>& packagesDone)
+GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone, std::string gameName, std::string gameVersion, const SdkType sdkType, std::string& state, std::vector<std::string>& packagesDone)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
@@ -58,6 +58,7 @@ GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPacka
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
 		return GeneratorState::Bad;
 	}
+	generator->SetGameName(gameName);
 	generator->SetGameVersion(gameVersion);
 	generator->SetSdkType(sdkType);
 
