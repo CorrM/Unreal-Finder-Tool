@@ -46,6 +46,8 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
     - Support write as object (class/struct) with `WriteAsMe` function in every class/struct.
     - It's useful to read/write block of memory as class/struct.
     - No functions generaterd for external for now. maybe later i will support call function from external.
+    - To support `ReadAsMe`/`WriteAsMe` in your project, you need to edit settings file.
+    - Good example for `read` function [here](https://github.com/CorrM/Unreal-Finder-Tool/blob/ebc7abfd28b2a5a3df19baffc485770f982d102d/UnrealFinderTool/Memory.h#L24), for write function same as `read` but `WriteProcessMemory`.
 - Some Optimization.
 
 ##### 28-06-2019
