@@ -801,13 +801,14 @@ void Package::SaveClasses(const fs::path & path) const
 void Package::SaveFunctions(const fs::path & path) const
 {
 	extern IGenerator* generator;
-
 	using namespace cpplinq;
 
+	// Skip Functions if it's external
+	if (generator->GetSdkType() == SdkType::External)
+		return;
+
 	if (generator->ShouldGenerateFunctionParametersFile())
-	{
 		SaveFunctionParameters(path);
-	}
 
 	std::ofstream os(path / GenerateFileName(FileContentType::Functions, *this));
 

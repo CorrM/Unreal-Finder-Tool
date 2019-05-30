@@ -18,6 +18,7 @@
 extern IGenerator* generator;
 
 // TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
+// TODO: Change Parallel from package loop to another loop like IsA or GetSuperClass 
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
