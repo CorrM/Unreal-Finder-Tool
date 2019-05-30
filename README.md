@@ -16,6 +16,9 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - All UE4 Games (32/64bit).
 - All UE4 Versions.
 
+# How to use
+This video tell you how to use the tool and dump sdk for ue4 game. [Youtube Video](https://www.youtube.com/watch?v=3CjsrnvKtGs)
+
 # Download
 Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
 
