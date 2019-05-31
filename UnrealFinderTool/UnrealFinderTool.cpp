@@ -8,6 +8,7 @@
 #include "ImControl.h"
 
 #include <sstream>
+#include "UWorldFinder.h"
 
 bool memory_init = false;
 
@@ -94,6 +95,32 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, names_listbox_items[0].data());
 
 		g_names_find_disabled = false;
+		EnabledAll();
+	});
+	t.detach();
+}
+
+void StartUWorldFinder()
+{
+	std::thread t([&]()
+	{
+		DisabledAll();
+		g_world_find_disabled = true;
+
+		UWorldFinder gf;
+		std::vector<uintptr_t> ret = gf.Find();
+
+		for (auto v : ret)
+		{
+			std::stringstream ss; ss << std::hex << v;
+
+			std::string tmpUpper = ss.str();
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+
+			names_listbox_items.push_back(tmpUpper);
+		}
+
+		g_world_find_disabled = false;
 		EnabledAll();
 	});
 	t.detach();
@@ -212,7 +239,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 350);
+					thiz.SetSize(380, 504);
 					cur_tap_id = 1;
 				}
 
@@ -306,7 +333,42 @@ void MainUi(UiWindow& thiz)
 					ui::EndGroup();
 				}
 
-				NotValidProcessPopup();
+				ui::Separator();
+				ui::SetCursorPosX(abs(ui::CalcTextSize("This section need GObjects and/or GNames").x - ui::GetWindowSize().x) / 2);
+				ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "This section need GObjects and/or GNames");
+				ui::Separator();
+
+				// ## UWorld
+				{
+					ui::BeginGroup();
+					ui::AlignTextToFramePadding();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UWorld :"); ui::SameLine();
+
+					// Start Finder
+					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##UWorld"), g_world_find_disabled,
+					{
+						if (IsReadyToGo())
+							StartUWorldFinder();
+						else
+							ui::OpenPopup("Warning##NotValidProcess");
+					});
+
+					ui::SameLine();
+
+					// Copy to clipboard
+					if (ui::Button("Copy##World", { 47.0f, 0.0f }))
+					{
+						if (size_t(world_listbox_item_current) < world_listbox_items.size())
+							ui::SetClipboardText(world_listbox_items[world_listbox_item_current].c_str());
+					}
+
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
+					ui::ListBox("##World_listbox", &world_listbox_item_current, VectorGetter, static_cast<void*>(&world_listbox_items), static_cast<int>(world_listbox_items.size()), 3);
+					ui::PopItemWidth();
+					ui::EndGroup();
+				}
+
+				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Instance Logger"))
@@ -338,7 +400,7 @@ void MainUi(UiWindow& thiz)
 						ui::OpenPopup("Warning##NotValidProcess");
 				});
 
-				NotValidProcessPopup();
+				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Sdk Generator"))
@@ -393,22 +455,10 @@ void MainUi(UiWindow& thiz)
 				if (sg_finished)
 				{
 					ui::OpenPopup("Warning##SdkFinish");
-					if (ui::BeginPopupModal("Warning##SdkFinish", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
-					{
-						ui::Text("Sdk Generator finished. !!");
-						ui::Separator();
-
-						if (ui::Button("Ok", ImVec2(200, 0)))
-						{
-							sg_finished = false;
-							ui::CloseCurrentPopup();
-						}
-						ui::SetItemDefaultFocus();
-						ui::EndPopup();
-					}
+					WarningPopup("SdkFinish", "Sdk Generator finished. !!", []() { sg_finished = false; });
 				}
 
-				NotValidProcessPopup();
+				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 
