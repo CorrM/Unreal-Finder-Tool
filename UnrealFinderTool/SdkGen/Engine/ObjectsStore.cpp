@@ -10,20 +10,21 @@ uintptr_t ObjectsStore::gObjAddress;
 int ObjectsStore::maxZeroAddress = 150;
 
 #pragma region ObjectsStore
-bool ObjectsStore::Initialize(const uintptr_t gObjAddress)
+bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)
 {
-	ObjectsStore::gObjAddress = gObjAddress;
+	if (!forceReInit && ObjectsStore::gObjAddress != NULL)
+		return true;
 
+	GObjObjects.clear();
+	gObjectsCount = 0;
+	ObjectsStore::gObjAddress = gObjAddress;
 	return FetchData();
 }
 
 bool ObjectsStore::FetchData()
 {
 	// GObjects
-	if (!ReadUObjectArray(gObjAddress))
-		return false;
-
-	return true;
+	return ReadUObjectArray(gObjAddress);
 }
 
 bool ObjectsStore::ReadUObjectArray(const uintptr_t address)

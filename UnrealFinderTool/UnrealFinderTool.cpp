@@ -102,13 +102,25 @@ void StartGNamesFinder()
 
 void StartUWorldFinder()
 {
+	bool contin = false;
+	// Check Address
+	if (!Utils::IsValidGNamesAddress(g_names_address))
+		ui::OpenPopup("Warning##NotValidGNames");
+	else if (!Utils::IsValidGObjectsAddress(g_objects_address))
+		ui::OpenPopup("Warning##NotValidGObjects");
+	else
+		contin = true;
+
+	if (!contin)
+		return;
+
 	std::thread t([&]()
 	{
 		DisabledAll();
 		g_world_find_disabled = true;
 
 		UWorldFinder gf;
-		std::vector<uintptr_t> ret = gf.Find();
+		std::vector<uintptr_t> ret = gf.Find(g_objects_address, g_names_address);
 
 		for (auto v : ret)
 		{
@@ -117,7 +129,7 @@ void StartUWorldFinder()
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
 
-			names_listbox_items.push_back(tmpUpper);
+			world_listbox_items.push_back(tmpUpper);
 		}
 
 		g_world_find_disabled = false;
@@ -239,7 +251,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 504);
+					thiz.SetSize(380, 547);
 					cur_tap_id = 1;
 				}
 
@@ -363,12 +375,15 @@ void MainUi(UiWindow& thiz)
 					}
 
 					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-					ui::ListBox("##World_listbox", &world_listbox_item_current, VectorGetter, static_cast<void*>(&world_listbox_items), static_cast<int>(world_listbox_items.size()), 3);
+					ui::ListBox("##World_listbox", &world_listbox_item_current, VectorGetter, static_cast<void*>(&world_listbox_items), static_cast<int>(world_listbox_items.size()), 5);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
 
 				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
+				WarningPopup("NotValidGNames", "Not Valid GNames Address. !!");
+				WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!");
+
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Instance Logger"))
@@ -478,7 +493,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.1.0", "CorrMFinder", 380, 350);
+	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 547);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())
