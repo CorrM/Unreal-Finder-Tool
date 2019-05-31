@@ -26,7 +26,7 @@ public:
 	/// <returns>
 	/// true if it succeeds, false if it fails.
 	/// </returns>
-	static bool Initialize(uintptr_t gObjAddress);
+	static bool Initialize(uintptr_t gObjAddress, bool forceReInit = true);
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static void* GetAddress();

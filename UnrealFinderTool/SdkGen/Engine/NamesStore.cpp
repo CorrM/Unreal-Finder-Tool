@@ -8,8 +8,14 @@ int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
 
 #pragma region NamesStore
-bool NamesStore::Initialize(const uintptr_t gNamesAddress)
+bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReInit)
 {
+	if (!forceReInit && NamesStore::gNamesAddress != NULL)
+		return true;
+
+	delete[] gNames;
+	gNamesChunks = 0;
+
 	NamesStore::gNamesAddress = gNamesAddress;
 	NamesStore::gNamesChunkCount = 16384;
 	return FetchData();
@@ -18,10 +24,7 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress)
 bool NamesStore::FetchData()
 {
 	// GNames
-	if (!ReadGNameArray(gNamesAddress))
-		return false;
-
-	return true;
+	return ReadGNameArray(gNamesAddress);
 }
 
 bool NamesStore::ReadGNameArray(const uintptr_t address)

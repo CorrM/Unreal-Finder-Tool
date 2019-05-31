@@ -20,20 +20,25 @@ inline bool g_names_disabled = false;
 inline int cur_tap_id = 0;
 // => Tabs
 
-// => GObjects, GNames
+// => GObjects, GNames, UWorld
 inline bool g_objects_find_disabled = false;
-inline bool g_names_find_disabled = false;
-
-inline uintptr_t g_objects_address, g_names_address;
+inline uintptr_t g_objects_address;
 inline char g_objects_buf[17] = { 0 };
-inline char g_names_buf[17] = { 0 };
-
 inline std::vector<std::string> obj_listbox_items;
 inline int obj_listbox_item_current = 0;
 
+inline bool g_names_find_disabled = false;
+inline uintptr_t g_names_address;
+inline char g_names_buf[17] = { 0 };
 inline std::vector<std::string> names_listbox_items;
 inline int names_listbox_item_current = 0;
-// => GObjects, GNames
+
+inline bool g_world_find_disabled = false;
+inline uintptr_t g_world_address;
+inline char g_world_buf[17] = { 0 };
+inline std::vector<std::string> world_listbox_items;
+inline int world_listbox_item_current = 0;
+// => GObjects, GNames, UWorld
 
 // => Instance Logger
 inline bool il_start_disabled = false;
@@ -117,16 +122,20 @@ static void HelpMarker(const char* desc)
 	}
 }
 
-static void NotValidProcessPopup()
+static void WarningPopup(const std::string& key, const std::string& message, const std::function<void()> okCallBack = nullptr)
 {
 	// If Not Valid Process, this Popup will show
-	if (ui::BeginPopupModal("Warning##NotValidProcess", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+	if (ui::BeginPopupModal((std::string("Warning##") + key).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 	{
-		ui::Text("Not Valid Process ID. !!");
+		ui::Text("%s", message.c_str());
 		ui::Separator();
 
 		if (ui::Button("Ok", ImVec2(200, 0)))
+		{
+			if (okCallBack)
+				okCallBack();
 			ui::CloseCurrentPopup();
+		}
 		ui::SetItemDefaultFocus();
 		ui::EndPopup();
 	}

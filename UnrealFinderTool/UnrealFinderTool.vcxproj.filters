@@ -168,6 +168,9 @@
     <ClInclude Include="SdkGen\EngineClasses.h">
       <Filter>SdkGen</Filter>
     </ClInclude>
+    <ClInclude Include="UWorldFinder.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -262,6 +265,9 @@
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_demo.cpp">
       <Filter>ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="UWorldFinder.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

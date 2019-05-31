@@ -27,7 +27,7 @@ public:
 	/// Initializes this object.
 	/// </summary>
 	/// <returns>true if it succeeds, false if it fails.</returns>
-	static bool Initialize(uintptr_t gNamesAddress);
+	static bool Initialize(uintptr_t gNamesAddress, bool forceReInit = true);
 
 	/// <summary>Gets the address of the global names store.</summary>
 	/// <returns>The address of the global names store.</returns>
