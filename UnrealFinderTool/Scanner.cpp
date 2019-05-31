@@ -90,7 +90,7 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 		return FALSE;
 	}
 
-	hsNtQueryVirtualMemory QueryVirtualMemory = reinterpret_cast<hsNtQueryVirtualMemory>(QueryVirtualMemoryAddress);
+	auto QueryVirtualMemory = reinterpret_cast<hsNtQueryVirtualMemory>(QueryVirtualMemoryAddress);
 
 	HANDLE ProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessID);
 

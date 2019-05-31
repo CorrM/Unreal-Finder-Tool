@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Memory.h"
-#include <vector>
 #include <TlHelp32.h>
 #include <psapi.h>
 

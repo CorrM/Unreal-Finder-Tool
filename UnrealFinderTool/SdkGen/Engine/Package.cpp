@@ -17,7 +17,6 @@
 #include "ParallelWorker.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
-std::mutex* lock_mutex;
 
 /// <summary>
 /// Compare two properties.
@@ -44,11 +43,9 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
-	int threadCount = Utils::Settings.SdkGen.Threads;
-
-	ParallelWorker<std::unique_ptr<UEObject>> packageProcess(ObjectsStore::GObjObjects, 0, threadCount, [&](const std::unique_ptr<UEObject>& objPtr, std::mutex& gMutex)
+	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const UEObject& obj = *objPtr;
+		const UEObject& obj = ObjectsStore().GetById(i);
 		const auto package = obj.GetPackageObject();
 		if (packageObj == package)
 		{
@@ -74,10 +71,7 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 			static int is_a_sleep_counter = 0;
 			Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 		}
-	});
-	lock_mutex = &packageProcess.GMutex;
-	packageProcess.Start();
-	packageProcess.WaitAll();
+	}
 }
 
 bool Package::Save(const fs::path& path) const
@@ -103,7 +97,6 @@ bool Package::Save(const fs::path& path) const
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
 	{
-		std::lock_guard lock(*lock_mutex);
 		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
 	}
 	
@@ -254,7 +247,6 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.FullName = scriptStructObj.GetFullName();
 
 	{
-		std::lock_guard lock(*lock_mutex);
 		static std::string script_struct_format = std::string("Struct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logStructName = Utils::Settings.SdkGen.LoggerShowStructSaveFileName ? this->GetName() + "." + ss.Name : ss.Name;
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
@@ -319,7 +311,6 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
 
-	std::lock_guard lock(*lock_mutex);
 	ScriptStructs.emplace_back(std::move(ss));
 }
 
@@ -354,7 +345,6 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 		}
 	}
 
-	std::lock_guard lock(*lock_mutex);
 	Enums.emplace_back(std::move(e));
 }
 
@@ -381,7 +371,6 @@ void Package::GenerateClass(const UEClass& classObj)
 	c.FullName = classObj.GetFullName();
 
 	{
-		std::lock_guard lock(*lock_mutex);
 		static std::string class_format = std::string("Class:   %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
 		std::string logClassName = Utils::Settings.SdkGen.LoggerShowClassSaveFileName ? this->GetName() + "." + c.Name : c.Name;
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
@@ -539,7 +528,6 @@ void Package::GenerateClass(const UEClass& classObj)
 		}
 	}
 
-	std::lock_guard lock(*lock_mutex);
 	Classes.emplace_back(std::move(c));
 }
 
@@ -566,7 +554,7 @@ Package::Member Package::CreateBitfieldPadding(size_t id, size_t offset, std::st
 	return ss;
 }
 
-void Package::GenerateMembers(const UEStruct & structObj, size_t offset, const std::vector<UEProperty> & properties, std::vector<Member> & members) const
+void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const std::vector<UEProperty>& properties, std::vector<Member>& members) const
 {
 	extern IGenerator* generator;
 

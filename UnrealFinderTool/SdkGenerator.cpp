@@ -13,6 +13,7 @@
 #include <bitset>
 #include <unordered_set>
 #include <tlhelp32.h>
+#include "ParallelWorker.h"
 
 extern IGenerator* generator;
 
@@ -185,25 +186,32 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
-	for (size_t i = 1; i < packageObjects.size(); i++)
+	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, std::mutex& gMutex)
 	{
-		const UEObject& obj = packageObjects[i];
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
-		++*pPackagesDone;
-
 		if (package->Save(sdkPath))
 		{
-			packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
-				"C: " + std::to_string(package->Classes.size()) + ", " +
-				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-				"E: " + std::to_string(package->Enums.size()) + " ]"
-			);
+			{
+				std::lock_guard lock(gMutex);
+				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+					"C: " + std::to_string(package->Classes.size()) + ", " +
+					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+					"E: " + std::to_string(package->Enums.size()) + " ]"
+				);
+			}
 
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
-	}
+
+		{
+			std::lock_guard lock(gMutex);
+			++*pPackagesDone;
+		}
+	});
+	packageProcess.Start();
+	packageProcess.WaitAll();
 
 	
 
