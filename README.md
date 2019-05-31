@@ -37,6 +37,9 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Some Indie games. (64bit / 32bit)
 
 # Change Log
+##### 31-06-2019
+- Add UWorld Finder.
+
 ##### 30-06-2019
 - Add new settings.
 - Sdk Generator +10% faster.
