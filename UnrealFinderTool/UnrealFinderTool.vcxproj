@@ -210,7 +210,7 @@
     <ClInclude Include="UiWindow.h" />
     <ClInclude Include="UnsortedMap.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="UWorldFinder.h" />
+    <ClInclude Include="ClassFinder.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Driver.cpp" />
@@ -249,7 +249,7 @@
     <ClCompile Include="UiWindow.cpp" />
     <ClCompile Include="UnrealFinderTool.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="UWorldFinder.cpp" />
+    <ClCompile Include="ClassFinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UnrealFinderTool.rc" />

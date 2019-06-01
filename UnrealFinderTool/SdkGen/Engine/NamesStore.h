@@ -15,7 +15,7 @@ public:
 class NamesStore
 {
 	friend NamesIterator;
-	static GName* gNames;
+	static std::vector<GName> gNames;
 	static int gNamesChunkCount, gNamesChunks;
 	static uintptr_t gNamesAddress;
 	static bool FetchData();

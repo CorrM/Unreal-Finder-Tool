@@ -7,7 +7,7 @@
 
 // => Main Options Section
 inline bool process_id_disabled = false;
-inline int process_id;
+inline int process_id = 49492;
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;
@@ -20,25 +20,25 @@ inline bool g_names_disabled = false;
 inline int cur_tap_id = 0;
 // => Tabs
 
-// => GObjects, GNames, UWorld
+// => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[17] = { 0 };
-inline std::vector<std::string> obj_listbox_items;
-inline int obj_listbox_item_current = 0;
+inline char g_objects_buf[17] = "23B44B00000";// { 0 };
+inline std::vector<std::string> g_obj_listbox_items;
+inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[17] = { 0 };
-inline std::vector<std::string> names_listbox_items;
-inline int names_listbox_item_current = 0;
+inline char g_names_buf[17] = "23B3E9A0080"; // { 0 };
+inline std::vector<std::string> g_names_listbox_items;
+inline int g_names_listbox_item_current = 0;
 
-inline bool g_world_find_disabled = false;
-inline uintptr_t g_world_address;
-inline char g_world_buf[17] = { 0 };
-inline std::vector<std::string> world_listbox_items;
-inline int world_listbox_item_current = 0;
-// => GObjects, GNames, UWorld
+inline bool class_find_disabled = false;
+inline bool class_find_input_disabled = false;
+inline char class_find_buf[30] = { 0 };
+inline std::vector<std::string> class_listbox_items;
+inline int class_listbox_item_current = 0;
+// => GObjects, GNames, Class
 
 // => Instance Logger
 inline bool il_start_disabled = false;
@@ -80,6 +80,8 @@ static void DisabledAll()
 
 	g_objects_disabled = true;
 	g_names_disabled = true;
+	class_find_disabled = true;
+	class_find_input_disabled = true;
 
 	il_start_disabled = true;
 	sg_start_disabled = true;
@@ -92,6 +94,8 @@ static void EnabledAll()
 {
 	g_objects_disabled = false;
 	g_names_disabled = false;
+	class_find_disabled = false;
+	class_find_input_disabled = false;
 
 	il_start_disabled = false;
 	sg_start_disabled = false;

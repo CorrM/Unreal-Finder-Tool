@@ -57,6 +57,9 @@ public:
 	template<typename T>
 	bool IsA() const;
 
+	// Check type in target process (Remote check type)
+	bool IsA(const std::string& fullTypeName) const;
+
 	static UEClass StaticClass();
 
 };
@@ -171,10 +174,10 @@ public:
 
 	struct Info
 	{
-		PropertyType Type;
-		size_t Size;
+		PropertyType Type = PropertyType::Unknown;
+		size_t Size = 0;
 		bool CanBeReference;
-		std::string CppType;
+		std::string CppType = "";
 
 		static Info Create(PropertyType type, size_t size, bool reference, std::string&& cppType)
 		{
@@ -592,4 +595,4 @@ bool UEObject::IsA() const
 	}
 
 	return false;
-}
+} 

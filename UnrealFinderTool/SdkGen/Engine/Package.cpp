@@ -429,11 +429,7 @@ void Package::GenerateClass(const UEClass& classObj)
 				&& !prop.IsA<UEFunction>()
 				&& !prop.IsA<UEEnum>()
 				&& !prop.IsA<UEConst>()
-				&& (!super.IsValid()
-					|| (super != classObj
-						&& prop.GetOffset() >= super.GetPropertySize()
-						)
-					)
+				&& (!super.IsValid() || (super != classObj && prop.GetOffset() >= super.GetPropertySize()))
 				)
 			{
 				properties.push_back(prop);
@@ -655,7 +651,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 	}
 }
 
-void Package::GenerateMethods(const UEClass & classObj, std::vector<Method> & methods) const
+void Package::GenerateMethods(const UEClass& classObj, std::vector<Method> & methods) const
 {
 	extern IGenerator* generator;
 

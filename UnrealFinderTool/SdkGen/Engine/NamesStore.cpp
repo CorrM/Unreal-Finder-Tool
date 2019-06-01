@@ -2,7 +2,7 @@
 #include "Memory.h"
 #include "NamesStore.h"
 
-GName* NamesStore::gNames;
+std::vector<GName> NamesStore::gNames;
 int NamesStore::gNamesChunkCount;
 int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
@@ -13,7 +13,7 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReIni
 	if (!forceReInit && NamesStore::gNamesAddress != NULL)
 		return true;
 
-	delete[] gNames;
+	gNames.clear();
 	gNamesChunks = 0;
 
 	NamesStore::gNamesAddress = gNamesAddress;
@@ -47,9 +47,6 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 		gNamesChunks++;
 	}
 
-	// Alloc Size
-	gNames = new GName[gNamesChunkCount * gNamesChunks];
-
 	// Calc AnsiName offset
 	{
 		uintptr_t noneNameAddress = Utils::MemoryObj->ReadAddress(gChunks[0]);
@@ -67,13 +64,16 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 	{
 		for (int j = 0; j < gNamesChunkCount; ++j)
 		{
+			GName tmp;
 			const int offset = ptrSize * j;
 			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!IsValidAddress(fNameAddress))
 			{
-				gNames[i].Index = i;
-				gNames[i].AnsiName = "";
+				tmp.Index = i;
+				tmp.AnsiName = "";
+
+				gNames.emplace_back(std::move(tmp));
 				++i;
 				continue;
 			}
@@ -82,8 +82,10 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
 
 			// Set The Name
-			gNames[i].Index = i;
-			gNames[i].AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
+			tmp.Index = i;
+			tmp.AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
+
+			gNames.emplace_back(std::move(tmp));
 			++i;
 		}
 	}

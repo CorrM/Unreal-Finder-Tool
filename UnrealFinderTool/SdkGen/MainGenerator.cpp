@@ -230,7 +230,7 @@ public:
 
 	std::string GetNamespaceName() const override
 	{
-		return "Classes";
+		return "SDK";
 	}
 
 	std::vector<std::string> GetIncludes() const override

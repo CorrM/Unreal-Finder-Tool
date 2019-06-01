@@ -191,6 +191,12 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 	{
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
+
+		{
+			std::lock_guard lock(gMutex);
+			++*pPackagesDone;
+		}
+
 		if (package->Save(sdkPath))
 		{
 			{
@@ -204,11 +210,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
-		}
-
-		{
-			std::lock_guard lock(gMutex);
-			++*pPackagesDone;
 		}
 	});
 	packageProcess.Start();

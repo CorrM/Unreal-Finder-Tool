@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GnamesFinder.h"
 #include "GObjectsFinder.h"
+#include "ClassFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
 #include "UiWindow.h"
@@ -8,7 +9,6 @@
 #include "ImControl.h"
 
 #include <sstream>
-#include "UWorldFinder.h"
 
 bool memory_init = false;
 
@@ -43,6 +43,7 @@ bool IsReadyToGo()
 
 void StartGObjFinder(const bool easyMethod)
 {
+	g_obj_listbox_items.clear();
 	std::thread t([=]()
 	{
 		DisabledAll();
@@ -50,7 +51,7 @@ void StartGObjFinder(const bool easyMethod)
 
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
-		obj_listbox_items.clear();
+		g_obj_listbox_items.clear();
 
 		for (auto v : ret)
 		{
@@ -59,11 +60,11 @@ void StartGObjFinder(const bool easyMethod)
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
 
-			obj_listbox_items.push_back(tmpUpper);
+			g_obj_listbox_items.push_back(tmpUpper);
 		}
 
 		if (ret.size() == 1)
-			strcpy_s(g_objects_buf, sizeof g_objects_buf, obj_listbox_items[0].data());
+			strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[0].data());
 
 		g_objects_find_disabled = false;
 		EnabledAll();
@@ -73,6 +74,7 @@ void StartGObjFinder(const bool easyMethod)
 
 void StartGNamesFinder()
 {
+	g_names_listbox_items.clear();
 	std::thread t([&]()
 	{
 		DisabledAll();
@@ -88,11 +90,11 @@ void StartGNamesFinder()
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
 
-			names_listbox_items.push_back(tmpUpper);
+			g_names_listbox_items.push_back(tmpUpper);
 		}
 
 		if (ret.size() == 1)
-			strcpy_s(g_names_buf, sizeof g_names_buf, names_listbox_items[0].data());
+			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 
 		g_names_find_disabled = false;
 		EnabledAll();
@@ -100,7 +102,7 @@ void StartGNamesFinder()
 	t.detach();
 }
 
-void StartUWorldFinder()
+void StartClassFinder()
 {
 	bool contin = false;
 	// Check Address
@@ -114,13 +116,14 @@ void StartUWorldFinder()
 	if (!contin)
 		return;
 
+	class_listbox_items.clear();
 	std::thread t([&]()
 	{
 		DisabledAll();
-		g_world_find_disabled = true;
+		class_find_disabled = true;
 
-		UWorldFinder gf;
-		std::vector<uintptr_t> ret = gf.Find(g_objects_address, g_names_address);
+		ClassFinder gf;
+		std::vector<uintptr_t> ret = gf.Find(g_objects_address, g_names_address, class_find_buf);
 
 		for (auto v : ret)
 		{
@@ -129,10 +132,10 @@ void StartUWorldFinder()
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
 
-			world_listbox_items.push_back(tmpUpper);
+			class_listbox_items.push_back(tmpUpper);
 		}
 
-		g_world_find_disabled = false;
+		class_find_disabled = false;
 		EnabledAll();
 	});
 	t.detach();
@@ -303,12 +306,12 @@ void MainUi(UiWindow& thiz)
 
 					if (ui::Button("Use##Objects", { 38.0f, 0.0f }))
 					{
-						if (size_t(obj_listbox_item_current) < obj_listbox_items.size())
-							strcpy_s(g_objects_buf, sizeof g_objects_buf, obj_listbox_items[obj_listbox_item_current].data());
+						if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
+							strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
 					}
 
 					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 10);
-					ui::ListBox("##Obj_listbox", &obj_listbox_item_current, VectorGetter, static_cast<void*>(&obj_listbox_items), static_cast<int>(obj_listbox_items.size()), 3);
+					ui::ListBox("##Obj_listbox", &g_obj_listbox_item_current, VectorGetter, static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()), 3);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
@@ -335,32 +338,36 @@ void MainUi(UiWindow& thiz)
 					// Set to input box
 					if (ui::Button("Use##Names", { 47.0f, 0.0f }))
 					{
-						if (size_t(names_listbox_item_current) < names_listbox_items.size())
-							strcpy_s(g_names_buf, sizeof g_names_buf, names_listbox_items[names_listbox_item_current].data());
+						if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
+							strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
 					}
 
 					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-					ui::ListBox("##Names_listbox", &names_listbox_item_current, VectorGetter, static_cast<void*>(&names_listbox_items), static_cast<int>(names_listbox_items.size()), 3);
+					ui::ListBox("##Names_listbox", &g_names_listbox_item_current, VectorGetter, static_cast<void*>(&g_names_listbox_items), static_cast<int>(g_names_listbox_items.size()), 3);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
 
 				ui::Separator();
-				ui::SetCursorPosX(abs(ui::CalcTextSize("This section need GObjects and/or GNames").x - ui::GetWindowSize().x) / 2);
-				ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "This section need GObjects and/or GNames");
+				ui::SetCursorPosX(abs(ui::CalcTextSize("This section need GObjects and GNames").x - ui::GetWindowSize().x) / 2);
+				ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "This section need GObjects and GNames");
 				ui::Separator();
 
-				// ## UWorld
+				// ## Class
 				{
 					ui::BeginGroup();
 					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UWorld :"); ui::SameLine();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class :"); ui::SameLine();
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
+					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "Engine.LocalPlayer", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
+					ui::PopItemWidth();
+					ui::SameLine();
 
 					// Start Finder
-					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##UWorld"), g_world_find_disabled,
+					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##Class"), class_find_disabled,
 					{
 						if (IsReadyToGo())
-							StartUWorldFinder();
+							StartClassFinder();
 						else
 							ui::OpenPopup("Warning##NotValidProcess");
 					});
@@ -368,14 +375,14 @@ void MainUi(UiWindow& thiz)
 					ui::SameLine();
 
 					// Copy to clipboard
-					if (ui::Button("Copy##World", { 47.0f, 0.0f }))
+					if (ui::Button("Copy##Class", { 45.0f, 0.0f }))
 					{
-						if (size_t(world_listbox_item_current) < world_listbox_items.size())
-							ui::SetClipboardText(world_listbox_items[world_listbox_item_current].c_str());
+						if (size_t(class_listbox_item_current) < class_listbox_items.size())
+							ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
 					}
 
-					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-					ui::ListBox("##World_listbox", &world_listbox_item_current, VectorGetter, static_cast<void*>(&world_listbox_items), static_cast<int>(world_listbox_items.size()), 5);
+					ui::PushItemWidth(ui::GetWindowSize().x - 15);
+					ui::ListBox("##Class_listbox", &class_listbox_item_current, VectorGetter, static_cast<void*>(&class_listbox_items), static_cast<int>(class_listbox_items.size()), 5);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
