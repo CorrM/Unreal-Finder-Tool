@@ -40,8 +40,8 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ##### 01.07-2019
 - Support GObjects Chunks.
   - Some games use `GObject's chunks` as same as `GNames`, so i just support it.
-  - You still cam set the addres of `first UObject` in GObject list or `first chunk` address.
-  - Auto detect it's first `UObject` of first `chunk`.
+  - You still can set the addres of `first UObject` in GObject list or `first chunk` address.
+  - Auto detect it's first `UObject` or first `chunk` address.
   
 ##### 31-06-2019
 - Add `Class Finder`.
