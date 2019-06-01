@@ -359,7 +359,7 @@ void MainUi(UiWindow& thiz)
 					ui::AlignTextToFramePadding();
 					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class :"); ui::SameLine();
 					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "Engine.LocalPlayer", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
+					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, UWorld", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
 					ui::PopItemWidth();
 					ui::SameLine();
 

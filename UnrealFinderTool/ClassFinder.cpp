@@ -24,8 +24,7 @@ std::vector<UEObject> ClassFinder::FindThatObject(const std::string& typeName, c
 
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		auto object = ObjectsStore().GetById(i);
-		if (!object.IsValid()) continue;
+		const auto& object = ObjectsStore().GetById(i);
 
 		if (object.IsA(typeName))
 		{

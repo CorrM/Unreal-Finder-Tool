@@ -7,20 +7,13 @@
 #include "GenericTypes.h"
 
 #pragma region UEObject
-bool UEObject::IsA(const std::string& fullTypeName) const
+bool UEObject::IsA(const std::string& typeName) const
 {
-	static std::string oldName = fullTypeName;
-	static UEClass cmp = ObjectsStore().FindClass("Class " + fullTypeName);
-
-	if (oldName != fullTypeName)
-		cmp = ObjectsStore().FindClass("Class " + fullTypeName);
-
-	if (!cmp.IsValid())
-		return false;
+	if (!IsValid()) return false;
 
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
-		if (super.Object.IsEqual(cmp.Object))
+		if (super.GetName() == typeName || super.GetNameCPP() == typeName)
 			return true;
 	}
 

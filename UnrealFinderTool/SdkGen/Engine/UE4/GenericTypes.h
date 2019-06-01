@@ -58,7 +58,7 @@ public:
 	bool IsA() const;
 
 	// Check type in target process (Remote check type)
-	bool IsA(const std::string& fullTypeName) const;
+	bool IsA(const std::string& typeName) const;
 
 	static UEClass StaticClass();
 
