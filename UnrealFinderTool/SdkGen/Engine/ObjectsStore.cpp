@@ -3,6 +3,7 @@
 #include "ObjectsStore.h"
 #include "SdkGen/EngineClasses.h"
 #include <cassert>
+#include "NamesStore.h"
 
 GObjectInfo ObjectsStore::gInfo;
 std::vector<std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
@@ -87,6 +88,7 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 
 	for (int i = 0; i < gInfo.ChunksCount; ++i)
 	{
+		skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress + size_t(offset)) : gInfo.GObjAddress;
 
@@ -106,6 +108,14 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 			auto curObject = std::make_unique<UEObject>();
 			ReadUObject(dwUObject, uObject, *curObject);
 
+			// Skip bad object in GObjects array
+			if (!IsValidUObject(*curObject))
+			{
+				++skipCount;
+				continue;
+			}
+			skipCount = 0;
+
 			GObjObjects.push_back(std::move(curObject));
 			++gInfo.Count;
 		}
@@ -120,6 +130,7 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 
 	for (int i = 0; i < gInfo.ChunksCount; ++i)
 	{
+		skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress + size_t(offset)) : gInfo.GObjAddress;
 
@@ -142,6 +153,14 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			auto curObject = std::make_unique<UEObject>();
 			ReadUObject(dwUObject, uObject, *curObject);
 
+			// Skip bad object in GObjects array
+			if (!IsValidUObject(*curObject))
+			{
+				++skipCount;
+				continue;
+			}
+			skipCount = 0;
+
 			GObjObjects.push_back(std::move(curObject));
 			++gInfo.Count;
 		}
@@ -157,6 +176,14 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 	retUObj.Object = uObject;
 	retUObj.Object.ObjAddress = uObjectAddress;
 	return true;
+}
+
+bool ObjectsStore::IsValidUObject(const UEObject& uObject)
+{
+	if (NamesStore().GetNamesNum() == 0)
+		throw std::exception("Init NamesStore first.");
+
+	return size_t(uObject.Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum();
 }
 
 uintptr_t ObjectsStore::GetAddress()

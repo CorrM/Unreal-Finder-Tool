@@ -113,7 +113,7 @@ void StartClassFinder()
 	else
 		contin = true;
 
-	if (!contin)
+	if (!contin || std::string(class_find_buf).empty())
 		return;
 
 	class_listbox_items.clear();
@@ -254,7 +254,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 575);
+					thiz.SetSize(380, 578);
 					cur_tap_id = 1;
 				}
 
@@ -501,7 +501,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 575);
+	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())

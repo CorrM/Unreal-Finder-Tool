@@ -6,11 +6,11 @@ std::vector<uintptr_t> ClassFinder::Find(const uintptr_t gObjAddress, const uint
 {
 	std::vector<uintptr_t> ret;
 
-	// Dump GObjects
-	ObjectsStore::Initialize(gObjAddress, false);
-
 	// Dump GNames
 	NamesStore::Initialize(gNamesAddress, false);
+
+	// Dump GObjects
+	ObjectsStore::Initialize(gObjAddress, false);
 
 	for each (UEObject var in FindThatObject(objectType))
 		ret.push_back(reinterpret_cast<uintptr_t>(var.GetAddress()));

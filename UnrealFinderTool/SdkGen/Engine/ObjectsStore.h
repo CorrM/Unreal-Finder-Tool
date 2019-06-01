@@ -26,6 +26,7 @@ class ObjectsStore
 	static bool ReadUObjectArrayPnP();
 	static bool ReadUObjectArrayNormal();
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
+	static bool IsValidUObject(const UEObject& uObject);
 
 public:
 	static std::vector<std::unique_ptr<UEObject>> GObjObjects;
