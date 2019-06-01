@@ -38,7 +38,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 
 # Change Log
 ##### 31-06-2019
-- Add UWorld Finder.
+- Add `Class Finder`.
 
 ##### 30-06-2019
 - Add new settings.
