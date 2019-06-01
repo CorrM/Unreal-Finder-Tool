@@ -6,17 +6,27 @@
 class ObjectsIterator;
 class Memory;
 
+struct GObjectInfo
+{
+	uintptr_t GObjAddress;
+	std::vector<uintptr_t> GChunks;
+	int Count, ChunksCount;
+	bool IsPointerNextToPointer;
+	bool IsChunksAddress;
+};
+
 class ObjectsStore
 {
-	static uintptr_t gObjAddress;
-	static int gObjectsCount;
+	static GObjectInfo gInfo;
 	static int maxZeroAddress;
 
 	static bool FetchData();
-	static bool ReadUObjectArray(uintptr_t address);
-	static bool ReadUObjectArrayPnP(uintptr_t address);
-	static bool ReadUObjectArrayNormal(uintptr_t address);
+	static bool GetGObjectInfo();
+	static bool ReadUObjectArray();
+	static bool ReadUObjectArrayPnP();
+	static bool ReadUObjectArrayNormal();
 	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
+	static bool IsValidUObject(const UEObject& uObject);
 
 public:
 	static std::vector<std::unique_ptr<UEObject>> GObjObjects;
@@ -29,7 +39,7 @@ public:
 	static bool Initialize(uintptr_t gObjAddress, bool forceReInit = true);
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
-	static void* GetAddress();
+	static uintptr_t GetAddress();
 	/// <summary>
 	/// Gets the number of available objects.
 	/// </summary>

@@ -113,7 +113,7 @@ void StartClassFinder()
 	else
 		contin = true;
 
-	if (!contin)
+	if (!contin || std::string(class_find_buf).empty())
 		return;
 
 	class_listbox_items.clear();
@@ -231,7 +231,7 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
-		ui::SameLine(); HelpMarker("First uObject address.\nNot GObjects pointer.\nIt's the address you get from this tool.");
+		ui::SameLine(); HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
 	}
 	
@@ -240,7 +240,7 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
-		ui::SameLine(); HelpMarker("First GNames chunk address.\nNot GNames pointer.\nIt's NOT the address you get from this tool.");
+		ui::SameLine(); HelpMarker("What you can put here .?\n- First GNames chunk address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
 		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 	}
 	
@@ -254,7 +254,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 575);
+					thiz.SetSize(380, 578);
 					cur_tap_id = 1;
 				}
 
@@ -501,7 +501,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 575);
+	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())

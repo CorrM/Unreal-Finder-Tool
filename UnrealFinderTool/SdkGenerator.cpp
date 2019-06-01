@@ -39,19 +39,19 @@ GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPacka
 		return GeneratorState::BadGObject;
 	}
 
-	// Dump GObjects
-	if (!ObjectsStore::Initialize(gObjAddress))
-	{
-		return GeneratorState::BadGObject;
-	}
-	*pObjCount = ObjectsStore().GetObjectsNum();
-
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
 	{
 		return GeneratorState::BadGName;
 	}
 	*pNamesCount = NamesStore().GetNamesNum();
+
+	// Dump GObjects
+	if (!ObjectsStore::Initialize(gObjAddress))
+	{
+		return GeneratorState::BadGObject;
+	}
+	*pObjCount = ObjectsStore().GetObjectsNum();
 
 	// Init Generator Settings
 	if (!generator->Initialize())

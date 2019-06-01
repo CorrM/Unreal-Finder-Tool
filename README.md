@@ -37,8 +37,16 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Some Indie games. (64bit / 32bit)
 
 # Change Log
+##### 01.07-2019
+- Support GObjects Chunks.
+  - Some games use `GObject's chunks` as same as `GNames`, so i just support it.
+  - You still can set the addres of `first UObject` in GObject list or `first chunk` address.
+  - Auto detect it's first `UObject` or first `chunk` address.
+  
 ##### 31-06-2019
 - Add `Class Finder`.
+  - Search for instance with his `class name`.
+  - Useful to find some `hard adrress`, for ex: to make a `sig` to scan.
 
 ##### 30-06-2019
 - Add new settings.

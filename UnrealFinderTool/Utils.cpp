@@ -307,11 +307,13 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	return !resVec.empty();
 }
 
-bool Utils::IsValidGObjectsAddress(const uintptr_t address)
+bool Utils::IsValidGObjectsAddress(uintptr_t address)
 {
+	bool firstCheck = true;
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
 	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
 
+	CheckAgian:
 	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
 		// Check (UObject*) Is Valid Pointer
@@ -361,6 +363,14 @@ bool Utils::IsValidGObjectsAddress(const uintptr_t address)
 
 			return bFoundNameIndex;
 		}
+	}
+
+	// If it's GObjects Chunks
+	if (firstCheck)
+	{
+		firstCheck = false;
+		address = MemoryObj->ReadAddress(address);
+		goto CheckAgian;
 	}
 
 	return false;
