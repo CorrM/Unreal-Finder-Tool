@@ -28,14 +28,6 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_3](/images/ui_3.png)
 ![ui_3](/images/cfg_1.png)
 
-# Tested games
-- PubgMobile (On TGB Emulator). (x32)
-- Snake Pass. (x64)
-- What Remains of Edith Finch. (x64)
-- Unreal Minecraft (UnrealVoxel). (x64)
-- Dauntless. (x64)
-- Some Indie games. (64bit / 32bit)
-
 # Change Log
 ##### 01-07-2019
 - Support `GObjects Chunks`.
