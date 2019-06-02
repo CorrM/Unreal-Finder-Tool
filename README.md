@@ -2,7 +2,7 @@
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
 # Features
-- **Nice UI**.
+- **Nice and Easy UI**.
 - **Find GNames**.
 - **Find GObjects**.
 - **Instance Logger**.
