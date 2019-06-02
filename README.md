@@ -13,8 +13,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 # Compatibility
 - Windows 64bit, (32/64bit) games.
 - Windows 32bit, (32bit) games Only.
-- All UE4 Games (32/64bit).
-- All UE4 Versions.
+- All UE4 Games, (32/64bit).
 
 # How to use
 This video tell you how to use the tool and dump sdk for ue4 game. [Youtube Video](https://www.youtube.com/watch?v=3CjsrnvKtGs)
@@ -61,6 +60,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Add UI.
 - Some changes to `SDK Generator` and `Instance Logger`.
 - Let GObject address getted form `GObject Finder` be valid to use directly.
+  - You can now just set the address you get from `GObjects finder` in the `GObject input field`.
 
 ##### 25-06-2019
 - Add `SDK Generator`.
