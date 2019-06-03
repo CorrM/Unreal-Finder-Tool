@@ -122,8 +122,8 @@ void StartClassFinder()
 		DisabledAll();
 		class_find_disabled = true;
 
-		ClassFinder gf;
-		class_listbox_items = gf.Find(g_objects_address, g_names_address, class_find_buf);
+		ClassFinder cf;
+		class_listbox_items = cf.Find(g_objects_address, g_names_address, class_find_buf);
 
 		class_find_disabled = false;
 		EnabledAll();
