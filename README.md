@@ -36,6 +36,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
     - Put `instance address` and the tool will give you instance `class name`
   - When you search for `class name` you will get also instance thats `derived` from `class name`.
     - it's useful to find your target fast, you will get the name of `derived` next to instance address.
+    - In example you search for `PlayerBase` you will get `PlayerBase`, `PlayerExtarBase` and `GamePlayer`.
   - Now significantly faster.
 
 ##### 01-07-2019
