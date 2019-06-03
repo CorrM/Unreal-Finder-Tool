@@ -50,6 +50,7 @@ public:
 	static int64_t BufToInteger64(void* buffer);
 	static uintptr_t CharArrayToUintptr(std::string str);
 	static bool IsNumber(const std::string& s);
+	static bool IsHexNumber(const std::string& s);
 	// Return size of pointer in target game
 	static int PointerSize();
 	// Check valid address in remote process

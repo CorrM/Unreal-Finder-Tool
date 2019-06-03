@@ -20,12 +20,6 @@ bool UEObject::IsA(const std::string& typeName) const
 	return false;
 }
 
-std::string UEObject::TypeName()
-{
-	static std::string ret = "UObject";
-	return ret;
-}
-
 uintptr_t UEObject::GetAddress() const
 {
 	return Object.ObjAddress;
@@ -61,6 +55,16 @@ std::string UEObject::GetName() const
 
 	objName = name.substr(pos + 1);
 	return objName;
+}
+
+std::string UEObject::GetInstanceClassName() const
+{
+	if (!IsValid()) return "";
+
+	bool find;
+	auto& obj = ObjectsStore().GetByAddress(GetAddress(), find);
+
+	return find ? obj.GetClass().GetNameCPP() : "";
 }
 
 std::string UEObject::GetFullName() const
@@ -178,6 +182,12 @@ UEObject& UEObject::GetPackageObject() const
 	}
 
 	return ObjectsStore().GetByAddress(packageAddress);
+}
+
+std::string UEObject::TypeName()
+{
+	static std::string ret = "UObject";
+	return ret;
 }
 
 UEClass UEObject::StaticClass()

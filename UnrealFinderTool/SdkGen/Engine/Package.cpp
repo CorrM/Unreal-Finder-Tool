@@ -519,7 +519,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	Classes.emplace_back(std::move(c));
 }
 
-Package::Member Package::CreatePadding(size_t id, size_t offset, size_t size, std::string reason)
+Package::Member Package::CreatePadding(const size_t id, const size_t offset, const size_t size, std::string reason)
 {
 	Member ss;
 	ss.Name = tfm::format("UnknownData%02d[0x%X]", id, size);
@@ -531,7 +531,7 @@ Package::Member Package::CreatePadding(size_t id, size_t offset, size_t size, st
 	return ss;
 }
 
-Package::Member Package::CreateBitfieldPadding(size_t id, size_t offset, std::string type, size_t bits)
+Package::Member Package::CreateBitfieldPadding(const size_t id, const size_t offset, std::string type, const size_t bits)
 {
 	Member ss;
 	ss.Name = tfm::format("UnknownData%02d : %d", id, bits);

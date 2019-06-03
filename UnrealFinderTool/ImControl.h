@@ -7,7 +7,7 @@
 
 // => Main Options Section
 inline bool process_id_disabled = false;
-inline int process_id = 83252;
+inline int process_id;
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;
@@ -23,19 +23,19 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[17] = "270E4F60000";// { 0 };
+inline char g_objects_buf[17] = { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[17] = "270E2680080";// { 0 };
+inline char g_names_buf[17] = { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
 inline bool class_find_disabled = false;
 inline bool class_find_input_disabled = false;
-inline char class_find_buf[30] = { 0 };
+inline char class_find_buf[90] = { 0 };
 inline std::vector<std::string> class_listbox_items;
 inline int class_listbox_item_current = 0;
 // => GObjects, GNames, Class

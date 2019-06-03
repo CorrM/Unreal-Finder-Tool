@@ -364,9 +364,6 @@ bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType
 	// Fix and set data
 	FixStructData();
 	InitData();
-
-	// TODO: Some Work Here
-	// free(allocPointer);
 	return true;
 }
 

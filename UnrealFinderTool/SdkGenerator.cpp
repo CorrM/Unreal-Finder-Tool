@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "Memory.h"
 #include "cpplinq.hpp"
 #include "NameValidator.h"
 #include "PrintHelper.h"
@@ -8,6 +7,7 @@
 #include "NamesStore.h"
 #include "SdkGenerator.h"
 
+#include <inttypes.h>
 #include <fstream>
 #include <chrono>
 #include <bitset>
@@ -122,7 +122,7 @@ void SdkGenerator::Dump(const fs::path& path)
 		for (const auto& obj : ObjectsStore())
 		{
 			if (obj.IsValid())
-				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+				tfm::format(o, "[%06i] %-100s 0x%" PRIxPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
 	}
 }

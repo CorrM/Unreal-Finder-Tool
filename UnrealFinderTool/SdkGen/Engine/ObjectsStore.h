@@ -61,6 +61,7 @@ public:
 	/// <param name="objAddress">The address of object.</param>
 	/// <returns>The object.</returns>
 	UEObject& GetByAddress(uintptr_t objAddress) const;
+	UEObject& GetByAddress(const uintptr_t objAddress, bool& success) const;
 
 	/// <summary>
 	/// Searches for the first class with the given name.

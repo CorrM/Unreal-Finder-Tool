@@ -139,6 +139,11 @@ bool Utils::IsNumber(const std::string& s)
 		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
+bool Utils::IsHexNumber(const std::string& s)
+{
+	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
+}
+
 void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
 {
 	// Check next 4byte of pointer equal 0 in local tool memory

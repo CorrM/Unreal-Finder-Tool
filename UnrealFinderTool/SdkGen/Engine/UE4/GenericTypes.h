@@ -29,6 +29,7 @@ public:
 	size_t GetIndex() const;
 
 	std::string GetName() const;
+	std::string GetInstanceClassName() const;
 	std::string GetFullName() const;
 	std::string GetNameCPP() const;
 
@@ -47,6 +48,7 @@ public:
 
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
+
 
 	static std::string TypeName();
 

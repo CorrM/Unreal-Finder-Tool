@@ -205,6 +205,11 @@ UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
 	return *GObjObjects.Find(objAddress);
 }
 
+UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
+{
+	return *GObjObjects.Find(objAddress, success);
+}
+
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
 	auto it = std::find_if(this->begin(), this->end(), [&](const UEObject& obj) -> bool { return obj.GetFullName() == name; });
