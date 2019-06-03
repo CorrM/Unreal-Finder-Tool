@@ -14,39 +14,28 @@ class UEClass;
 class UEObject
 {
 protected:
-	// This vars to speedup
 	mutable UClass objClass;
-	mutable UObject objOuter;
+	mutable uintptr_t packageAddress = NULL;
 	mutable std::string objName, fullName, nameCpp;
-	mutable UObject package;
 
 public:
 	UObject Object;
 
 	UEObject() = default;
+	UEObject(const UObject object) : Object(object) { }
 
-	UEObject(const UObject object) : Object(object)
-	{
-
-	}
-
+	uintptr_t GetAddress() const;
 	bool IsValid() const;
-
 	size_t GetIndex() const;
 
-	UEClass GetClass() const;
-
-	UEObject GetOuter() const;
-
 	std::string GetName() const;
-
+	std::string GetInstanceClassName() const;
 	std::string GetFullName() const;
-
 	std::string GetNameCPP() const;
 
-	UEObject GetPackageObject() const;
-
-	void* GetAddress() const;
+	UEClass GetClass() const;
+	UEObject& GetOuter() const;
+	UEObject& GetPackageObject() const;
 
 	template<typename Base>
 	Base Cast() const
@@ -60,8 +49,10 @@ public:
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
 
-	static UEClass StaticClass();
 
+	static std::string TypeName();
+
+	static UEClass StaticClass();
 };
 
 namespace std
@@ -71,13 +62,14 @@ namespace std
 	{
 		size_t operator()(const UEObject& obj) const noexcept
 		{
-			return std::hash<void*>()(obj.GetAddress());
+			return std::hash<uintptr_t>()(obj.GetAddress());
 		}
 	};
 }
 
+inline UEObject UEObjectEmpty; // IsValid Will Return False for it
 inline bool operator==(const UEObject& lhs, const UEObject& rhs) { return rhs.GetAddress() == lhs.GetAddress(); }
-inline bool operator!=(const UEObject& lhs, const UEObject& rhs) { return !(lhs == rhs); }
+inline bool operator!=(const UEObject& lhs, const UEObject& rhs) { return !(lhs.GetAddress() == rhs.GetAddress()); }
 
 class UEField : public UEObject
 {
@@ -88,6 +80,8 @@ public:
 	using UEObject::UEObject;
 
 	UEField GetNext() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -101,6 +95,8 @@ public:
 
 	std::vector<std::string> GetNames() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -110,6 +106,8 @@ public:
 	using UEField::UEField;
 
 	std::string GetValue() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -129,6 +127,8 @@ public:
 
 	size_t GetPropertySize() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -136,6 +136,8 @@ class UEScriptStruct : public UEStruct
 {
 public:
 	using UEStruct::UEStruct;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -149,6 +151,8 @@ public:
 
 	UEFunctionFlags GetFunctionFlags() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -156,6 +160,8 @@ class UEClass : public UEStruct
 {
 public:
 	using UEStruct::UEStruct;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -205,6 +211,8 @@ public:
 
 	Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -212,6 +220,8 @@ class UENumericProperty : public UEProperty
 {
 public:
 	using UEProperty::UEProperty;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -230,6 +240,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -239,6 +251,8 @@ public:
 	using UENumericProperty::UENumericProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -250,6 +264,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -259,6 +275,8 @@ public:
 	using UENumericProperty::UENumericProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -270,6 +288,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -279,6 +299,8 @@ public:
 	using UENumericProperty::UENumericProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -290,6 +312,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -300,6 +324,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -307,6 +333,8 @@ class UEFloatProperty : public UENumericProperty
 {
 public:
 	using UENumericProperty::UENumericProperty;
+
+	static std::string TypeName();
 
 	UEProperty::Info GetInfo() const;
 
@@ -319,6 +347,8 @@ public:
 	using UENumericProperty::UENumericProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -342,14 +372,16 @@ public:
 
 	uint8_t GetFieldMask() const;
 
-	std::array<int, 2> GetMissingBitsCount(const UEBoolProperty& other) const;
+	std::array<int, 2> GetMissingBitsCount(const UEBoolProperty & other) const;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
 
-inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
+inline bool operator<(const UEBoolProperty& lhs, const UEBoolProperty& rhs)
 {
 	if (lhs.GetByteOffset() == rhs.GetByteOffset())
 	{
@@ -368,6 +400,8 @@ public:
 
 	UEClass GetPropertyClass() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -377,6 +411,8 @@ public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -393,6 +429,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -408,6 +446,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -417,6 +457,8 @@ public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -428,6 +470,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -437,6 +481,8 @@ public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -453,6 +499,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -462,6 +510,8 @@ public:
 	using UEProperty::UEProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -478,6 +528,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -488,6 +540,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -497,6 +551,8 @@ public:
 	using UEProperty::UEProperty;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -512,6 +568,8 @@ public:
 	UEProperty GetInner() const;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -529,6 +587,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -544,6 +604,8 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
@@ -558,6 +620,8 @@ public:
 	UEFunction GetSignatureFunction() const;
 
 	UEProperty::Info GetInfo() const;
+
+	static std::string TypeName();
 
 	static UEClass StaticClass();
 };
@@ -576,23 +640,21 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
+	static std::string TypeName();
+
 	static UEClass StaticClass();
 };
 
 template<typename T>
 bool UEObject::IsA() const
 {
-	auto cmp = T::StaticClass();
-	if (!cmp.IsValid())
-	{
-		return false;
-	}
+	if (!IsValid()) return false;
 
+	std::string cmpTypeName = T::TypeName();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
-		if (super.Object.IsEqual(cmp.Object))
+		if (super.GetName() == cmpTypeName)
 			return true;
 	}
-
 	return false;
-} 
+}

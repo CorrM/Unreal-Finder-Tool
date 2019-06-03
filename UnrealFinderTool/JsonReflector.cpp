@@ -13,6 +13,7 @@ bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 {
 	// read a JSON file
 	std::ifstream i(fileName.c_str());
+	if (!i.good()) return false;
 	i >> *reinterpret_cast<nlohmann::json*>(jsonObj);
 	return true;
 }
@@ -285,22 +286,22 @@ int JsonReflector::VarSizeFromJson(const std::string& typeName)
 bool JsonReflector::IsStructType(const std::string& typeName)
 {
 	const bool isStruct =
-		typeName == "int8"		||
-		typeName == "int16"		||
-		typeName == "int"		||
-		typeName == "int32"		||
-		typeName == "int64"		||
+		typeName == "int8" ||
+		typeName == "int16" ||
+		typeName == "int" ||
+		typeName == "int32" ||
+		typeName == "int64" ||
 
-		typeName == "uint8"		||
-		typeName == "uint16"	||
-		typeName == "uint"		||
-		typeName == "uint32"	||
-		typeName == "uint64"	||
+		typeName == "uint8" ||
+		typeName == "uint16" ||
+		typeName == "uint" ||
+		typeName == "uint32" ||
+		typeName == "uint64" ||
 
-		typeName == "pointer"	||
-		typeName == "DWORD"		||
-		typeName == "DWORD64"	||
-		typeName == "string"	||
+		typeName == "pointer" ||
+		typeName == "DWORD" ||
+		typeName == "DWORD64" ||
+		typeName == "string" ||
 
 		Utils::IsNumber(typeName);
 	return !isStruct;
@@ -363,9 +364,6 @@ bool JsonStruct::ReadData(const uintptr_t address, const std::string& structType
 	// Fix and set data
 	FixStructData();
 	InitData();
-
-	// TODO: Some Work Here
-	// free(allocPointer);
 	return true;
 }
 
@@ -538,7 +536,7 @@ JsonStruct* JsonVar::ReadAsPStruct(const string& ptrType)
 	Struct = new JsonStruct(sStructIt->second);
 	Struct->Init(ptrType);
 	Struct->IsPointerStruct = true;
-	
+
 	if (!Struct->ReadData(calcAddress, ptrType))
 		throw std::exception(("Can't read game memory `" + std::to_string(calcAddress) + "`.").c_str());
 

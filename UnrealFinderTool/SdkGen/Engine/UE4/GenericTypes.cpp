@@ -20,23 +20,51 @@ bool UEObject::IsA(const std::string& typeName) const
 	return false;
 }
 
-void* UEObject::GetAddress() const
+uintptr_t UEObject::GetAddress() const
 {
-	return reinterpret_cast<PVOID>(Object.ObjAddress);
+	return Object.ObjAddress;
 }
 
-UEObject UEObject::GetPackageObject() const
+bool UEObject::IsValid() const
 {
-	// Package Is The Last Outer
-	if (!package.Empty())
-		return UEObject(package);
+	return Object.ObjAddress != NULL && Object.VfTable != NULL && (Object.Name.ComparisonIndex > 0 && size_t(Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum());
+}
 
-	for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+size_t UEObject::GetIndex() const
+{
+	return Object.InternalIndex;
+}
+
+std::string UEObject::GetName() const
+{
+	if (!objName.empty())
+		return objName;
+
+	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
+	if (!name.empty() && Object.Name.Number > 0)
 	{
-		package = outer.Object;
+		name += '_' + std::to_string(Object.Name.Number);
 	}
 
-	return UEObject(package);
+	auto pos = name.rfind('/');
+	if (pos == std::string::npos)
+	{
+		objName = name;
+		return name;
+	}
+
+	objName = name.substr(pos + 1);
+	return objName;
+}
+
+std::string UEObject::GetInstanceClassName() const
+{
+	if (!IsValid()) return "";
+
+	bool find;
+	auto& obj = ObjectsStore().GetByAddress(GetAddress(), find);
+
+	return find ? obj.GetClass().GetNameCPP() : "";
 }
 
 std::string UEObject::GetFullName() const
@@ -101,6 +129,304 @@ std::string UEObject::GetNameCPP() const
 	nameCpp = name;
 
 	return name;
+}
+
+UEClass UEObject::GetClass() const
+{
+	if (objClass.Empty())
+	{
+		if (INVALID_POINTER_VALUE(Object.Class))
+			return UEClass();
+
+		objClass.ObjAddress = Object.Class;
+		Utils::MemoryObj->Read<UClass>(objClass.ObjAddress, objClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		objClass.FixPointers(sizeof UClass);
+	}
+
+	return UEClass(objClass);
+}
+
+UEObject& UEObject::GetOuter() const
+{
+	/*
+	if (objObject.Empty())
+	{
+		// Init
+		JsonStruct uObject;
+
+		// Read as UObject
+		uObject.ReadData(Object.Outer, "UObject");
+
+		// Fill Data into obj
+		objObject.ObjAddress = Object.Outer;
+		objObject = uObject;
+	}
+	*/
+	if (INVALID_POINTER_VALUE(Object.Outer))
+		return UEObjectEmpty;
+
+	return ObjectsStore().GetByAddress(Object.Outer);
+}
+
+UEObject& UEObject::GetPackageObject() const
+{
+	// Package Is The Last Outer
+	if (packageAddress == 0)
+	{
+		UObject package;
+		for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+			package = outer.Object;
+
+		// If outer == null then this object is Package
+		packageAddress = package.ObjAddress == NULL ? Object.ObjAddress : package.ObjAddress;
+	}
+
+	return ObjectsStore().GetByAddress(packageAddress);
+}
+
+std::string UEObject::TypeName()
+{
+	static std::string ret = "UObject";
+	return ret;
+}
+
+UEClass UEObject::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Object");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEField
+UEField UEField::GetNext() const
+{
+	if (objField.Empty())
+		objField = Object.Cast<UField>();
+
+	if (next.Empty())
+	{
+		if (INVALID_POINTER_VALUE(objField.Next))
+			return UEField();
+
+		next.ObjAddress = objField.Next;
+		Utils::MemoryObj->Read<UField>(next.ObjAddress, next, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		next.FixPointers(sizeof UField);
+	}
+
+	return UEField(next);
+}
+
+std::string UEField::TypeName()
+{
+	static std::string ret = "UField";
+	return ret;
+}
+
+UEClass UEField::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Field");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEEnum
+std::vector<std::string> UEEnum::GetNames() const
+{
+	std::vector<std::string> buffer;
+	if (objEnum.Empty())
+		objEnum = Object.Cast<UEnum>();
+
+	// Get Names
+	uintptr_t dataAddress = objEnum.Names.Data;
+	auto cls = new FUEnumItem[objEnum.Names.Num];
+	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Num);
+
+	buffer.reserve(objEnum.Names.Num);
+	for (auto i = 0; i < objEnum.Names.Num; ++i)
+	{
+		size_t index = cls[i].Key.ComparisonIndex;
+		if (index > NamesStore().GetNamesNum() || index == 0)
+			continue;
+
+		buffer.push_back(NamesStore().GetById(index));
+	}
+
+	delete[] cls;
+	return buffer;
+}
+
+std::string UEEnum::TypeName()
+{
+	static std::string ret = "Enum";
+	return ret;
+}
+
+UEClass UEEnum::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Enum");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEConst
+std::string UEConst::GetValue() const
+{
+	throw;
+}
+
+std::string UEConst::TypeName()
+{
+	static std::string ret = "UConst";
+	return ret;
+}
+
+UEClass UEConst::StaticClass()
+{
+	//not supported by UE4
+	return UEClass();
+}
+#pragma endregion
+
+#pragma region UEStruct
+UEStruct UEStruct::GetSuper() const
+{
+	if (objStruct.Empty())
+		objStruct = Object.Cast<UStruct>();
+
+	if (superField.Empty())
+	{
+		if (INVALID_POINTER_VALUE(objStruct.SuperField))
+			return UEStruct();
+
+		superField.ObjAddress = objStruct.SuperField;
+		Utils::MemoryObj->Read<UStruct>(superField.ObjAddress, superField, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		superField.FixPointers(sizeof UStruct);
+	}
+
+	//Sleep(1);
+	return UEStruct(superField);
+}
+
+UEField UEStruct::GetChildren() const
+{
+	if (objStruct.Empty())
+		objStruct = Object.Cast<UStruct>();
+
+	if (children.Empty())
+	{
+		if (INVALID_POINTER_VALUE(objStruct.Children))
+			return UEField();
+
+		children.ObjAddress = objStruct.Children;
+		Utils::MemoryObj->Read<UField>(children.ObjAddress, children, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
+		children.FixPointers(sizeof UField);
+	}
+
+	return UEField(children);
+}
+
+size_t UEStruct::GetPropertySize() const
+{
+	if (objStruct.Empty())
+		objStruct = Object.Cast<UStruct>();
+
+	return objStruct.PropertySize;
+}
+
+std::string UEStruct::TypeName()
+{
+	static std::string ret = "Struct";
+	return ret;
+}
+
+UEClass UEStruct::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Struct");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEScriptStruct
+std::string UEScriptStruct::TypeName()
+{
+	static std::string ret = "ScriptStruct";
+	return ret;
+}
+
+UEClass UEScriptStruct::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ScriptStruct");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEFunction
+UEFunctionFlags UEFunction::GetFunctionFlags() const
+{
+	if (objFunction.Empty())
+		objFunction = Object.Cast<UFunction>();
+
+	return static_cast<UEFunctionFlags>(objFunction.FunctionFlags);
+}
+
+std::string UEFunction::TypeName()
+{
+	static std::string ret = "Function";
+	return ret;
+}
+
+UEClass UEFunction::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Function");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEClass
+std::string UEClass::TypeName()
+{
+	static std::string ret = "Class";
+	return ret;
+}
+
+UEClass UEClass::StaticClass()
+{
+	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Class");
+	return c;
+}
+#pragma endregion
+
+#pragma region UEProperty
+size_t UEProperty::GetArrayDim() const
+{
+	if (objProperty.Empty())
+		objProperty = Object.Cast<UProperty>();
+
+	return objProperty.ArrayDim;
+}
+
+size_t UEProperty::GetElementSize() const
+{
+	if (objProperty.Empty())
+		objProperty = Object.Cast<UProperty>();
+
+	return objProperty.ElementSize;
+}
+
+UEPropertyFlags UEProperty::GetPropertyFlags() const
+{
+	if (objProperty.Empty())
+		objProperty = Object.Cast<UProperty>();
+
+	return static_cast<UEPropertyFlags>(objProperty.PropertyFlags.A);
+}
+
+size_t UEProperty::GetOffset() const
+{
+	if (objProperty.Empty())
+		objProperty = Object.Cast<UProperty>();
+
+	return objProperty.Offset;
 }
 
 UEProperty::Info UEProperty::GetInfo() const
@@ -253,277 +579,10 @@ UEProperty::Info UEProperty::GetInfo() const
 	return { PropertyType::Unknown };
 }
 
-bool UEObject::IsValid() const
+std::string UEProperty::TypeName()
 {
-	return Object.ObjAddress != NULL && Object.VfTable != NULL && (Object.Name.ComparisonIndex > 0 && size_t(Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum());
-}
-
-size_t UEObject::GetIndex() const
-{
-	return Object.InternalIndex;
-}
-
-UEClass UEObject::GetClass() const
-{
-	if (objClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(Object.Class))
-			return UEClass();
-
-		objClass.ObjAddress = Object.Class;
-		Utils::MemoryObj->Read<UClass>(objClass.ObjAddress, objClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		objClass.FixPointers(sizeof UClass);
-	}
-
-	return UEClass(objClass);
-}
-
-UEObject UEObject::GetOuter() const
-{
-	/*
-	if (objObject.Empty())
-	{
-		// Init
-		JsonStruct uObject;
-
-		// Read as UObject
-		uObject.ReadData(Object.Outer, "UObject");
-
-		// Fill Data into obj
-		objObject.ObjAddress = Object.Outer;
-		objObject = uObject;
-	}
-	*/
-	if (objOuter.Empty())
-	{
-		if (INVALID_POINTER_VALUE(Object.Outer))
-			return UEObject();
-
-		objOuter.ObjAddress = Object.Outer;
-		Utils::MemoryObj->Read<UObject>(objOuter.ObjAddress, objOuter, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		objOuter.FixPointers(sizeof UObject);
-	}
-
-	return UEObject(objOuter);
-}
-
-std::string UEObject::GetName() const
-{
-	if (!objName.empty())
-		return objName;
-
-	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
-	if (!name.empty() && Object.Name.Number > 0)
-	{
-		name += '_' + std::to_string(Object.Name.Number);
-	}
-
-	auto pos = name.rfind('/');
-	if (pos == std::string::npos)
-	{
-		objName = name;
-		return name;
-	}
-
-	objName = name.substr(pos + 1);
-	return objName;
-}
-
-UEClass UEObject::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Object");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEField
-UEField UEField::GetNext() const
-{
-	if (objField.Empty())
-		objField = Object.Cast<UField>();
-
-	if (next.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objField.Next))
-			return UEField();
-
-		next.ObjAddress = objField.Next;
-		Utils::MemoryObj->Read<UField>(next.ObjAddress, next, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		next.FixPointers(sizeof UField);
-	}
-
-	return UEField(next);
-}
-
-UEClass UEField::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Field");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEEnum
-std::vector<std::string> UEEnum::GetNames() const
-{
-	std::vector<std::string> buffer;
-	if (objEnum.Empty())
-		objEnum = Object.Cast<UEnum>();
-
-	// Get Names
-	uintptr_t dataAddress = objEnum.Names.Data;
-	auto cls = new FUEnumItem[objEnum.Names.Num];
-	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Num);
-
-	buffer.reserve(objEnum.Names.Num);
-	for (auto i = 0; i < objEnum.Names.Num; ++i)
-	{
-		size_t index = cls[i].Key.ComparisonIndex;
-		if (index > NamesStore().GetNamesNum() || index == 0)
-			continue;
-
-		buffer.push_back(NamesStore().GetById(index));
-	}
-
-	delete[] cls;
-	return buffer;
-}
-
-UEClass UEEnum::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Enum");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEConst
-std::string UEConst::GetValue() const
-{
-	throw;
-}
-
-UEClass UEConst::StaticClass()
-{
-	//not supported by UE4
-	return UEClass();
-}
-#pragma endregion
-
-#pragma region UEStruct
-UEStruct UEStruct::GetSuper() const
-{
-	if (objStruct.Empty())
-		objStruct = Object.Cast<UStruct>();
-
-	if (superField.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objStruct.SuperField))
-			return UEStruct();
-
-		superField.ObjAddress = objStruct.SuperField;
-		Utils::MemoryObj->Read<UStruct>(superField.ObjAddress, superField, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		superField.FixPointers(sizeof UStruct);
-	}
-
-	//Sleep(1);
-	return UEStruct(superField);
-}
-
-UEField UEStruct::GetChildren() const
-{
-	if (objStruct.Empty())
-		objStruct = Object.Cast<UStruct>();
-
-	if (children.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objStruct.Children))
-			return UEField();
-
-		children.ObjAddress = objStruct.Children;
-		Utils::MemoryObj->Read<UField>(children.ObjAddress, children, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		children.FixPointers(sizeof UField);
-	}
-
-	return UEField(children);
-}
-
-size_t UEStruct::GetPropertySize() const
-{
-	if (objStruct.Empty())
-		objStruct = Object.Cast<UStruct>();
-
-	return objStruct.PropertySize;
-}
-
-UEClass UEStruct::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Struct");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEScriptStruct
-UEClass UEScriptStruct::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ScriptStruct");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEFunction
-UEFunctionFlags UEFunction::GetFunctionFlags() const
-{
-	if (objFunction.Empty())
-		objFunction = Object.Cast<UFunction>();
-
-	return static_cast<UEFunctionFlags>(objFunction.FunctionFlags);
-}
-
-UEClass UEFunction::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Function");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEClass
-UEClass UEClass::StaticClass()
-{
-	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Class");
-	return c;
-}
-#pragma endregion
-
-#pragma region UEProperty
-size_t UEProperty::GetArrayDim() const
-{
-	if (objProperty.Empty())
-		objProperty = Object.Cast<UProperty>();
-
-	return objProperty.ArrayDim;
-}
-
-size_t UEProperty::GetElementSize() const
-{
-	if (objProperty.Empty())
-		objProperty = Object.Cast<UProperty>();
-
-	return objProperty.ElementSize;
-}
-
-UEPropertyFlags UEProperty::GetPropertyFlags() const
-{
-	if (objProperty.Empty())
-		objProperty = Object.Cast<UProperty>();
-
-	return static_cast<UEPropertyFlags>(objProperty.PropertyFlags.A);
-}
-
-size_t UEProperty::GetOffset() const
-{
-	if (objProperty.Empty())
-		objProperty = Object.Cast<UProperty>();
-
-	return objProperty.Offset;
+	static std::string ret = "Property";
+	return ret;
 }
 
 UEClass UEProperty::StaticClass()
@@ -534,6 +593,12 @@ UEClass UEProperty::StaticClass()
 #pragma endregion
 
 #pragma region UENumericProperty
+std::string UENumericProperty::TypeName()
+{
+	static std::string ret = "NumericProperty";
+	return ret;
+}
+
 UEClass UENumericProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".NumericProperty");
@@ -545,6 +610,12 @@ UEClass UENumericProperty::StaticClass()
 UEProperty::Info UEUInt16Property::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint16_t), false, "uint16_t");
+}
+
+std::string UEUInt16Property::TypeName()
+{
+	static std::string ret = "UInt16Property";
+	return ret;
 }
 
 UEClass UEUInt16Property::StaticClass()
@@ -560,6 +631,12 @@ UEProperty::Info UEUInt32Property::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(uint32_t), false, "uint32_t");
 }
 
+std::string UEUInt32Property::TypeName()
+{
+	static std::string ret = "UInt32Property";
+	return ret;
+}
+
 UEClass UEUInt32Property::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".UInt32Property");
@@ -571,6 +648,12 @@ UEClass UEUInt32Property::StaticClass()
 UEProperty::Info UEUInt64Property::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint64_t), false, "uint64_t");
+}
+
+std::string UEUInt64Property::TypeName()
+{
+	static std::string ret = "UInt64Property";
+	return ret;
 }
 
 UEClass UEUInt64Property::StaticClass()
@@ -586,6 +669,12 @@ UEProperty::Info UEInt8Property::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(int8_t), false, "int8_t");
 }
 
+std::string UEInt8Property::TypeName()
+{
+	static std::string ret = "Int8Property";
+	return ret;
+}
+
 UEClass UEInt8Property::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Int8Property");
@@ -597,6 +686,12 @@ UEClass UEInt8Property::StaticClass()
 UEProperty::Info UEInt16Property::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(int16_t), false, "int16_t");
+}
+
+std::string UEInt16Property::TypeName()
+{
+	static std::string ret = "Int16Property";
+	return ret;
 }
 
 UEClass UEInt16Property::StaticClass()
@@ -612,6 +707,12 @@ UEProperty::Info UEIntProperty::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(int), false, "int");
 }
 
+std::string UEIntProperty::TypeName()
+{
+	static std::string ret = "IntProperty";
+	return ret;
+}
+
 UEClass UEIntProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".IntProperty");
@@ -625,6 +726,12 @@ UEProperty::Info UEInt64Property::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(int64_t), false, "int64_t");
 }
 
+std::string UEInt64Property::TypeName()
+{
+	static std::string ret = "Int64Property";
+	return ret;
+}
+
 UEClass UEInt64Property::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".Int64Property");
@@ -633,9 +740,16 @@ UEClass UEInt64Property::StaticClass()
 #pragma endregion
 
 #pragma region UEFloatProperty
+
 UEProperty::Info UEFloatProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(float), false, "float");
+}
+
+std::string UEFloatProperty::TypeName()
+{
+	static std::string ret = "FloatProperty";
+	return ret;
 }
 
 UEClass UEFloatProperty::StaticClass()
@@ -649,6 +763,12 @@ UEClass UEFloatProperty::StaticClass()
 UEProperty::Info UEDoubleProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(double), false, "double");
+}
+
+std::string UEDoubleProperty::TypeName()
+{
+	static std::string ret = "DoubleProperty";
+	return ret;
 }
 
 UEClass UEDoubleProperty::StaticClass()
@@ -677,6 +797,12 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 	return UEClass(propertyClass);
 }
 
+std::string UEObjectPropertyBase::TypeName()
+{
+	static std::string ret = "ObjectPropertyBase";
+	return ret;
+}
+
 UEClass UEObjectPropertyBase::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ObjectPropertyBase");
@@ -688,6 +814,12 @@ UEClass UEObjectPropertyBase::StaticClass()
 UEProperty::Info UEObjectProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(void*), false, "class " + MakeValidName(GetPropertyClass().GetNameCPP()) + "*");
+}
+
+std::string UEObjectProperty::TypeName()
+{
+	static std::string ret = "ObjectProperty";
+	return ret;
 }
 
 UEClass UEObjectProperty::StaticClass()
@@ -721,6 +853,12 @@ UEProperty::Info UEClassProperty::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(void*), false, "class " + MakeValidName(GetMetaClass().GetNameCPP()) + "*");
 }
 
+std::string UEClassProperty::TypeName()
+{
+	static std::string ret = "ClassProperty";
+	return ret;
+}
+
 UEClass UEClassProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".ClassProperty");
@@ -752,6 +890,12 @@ UEProperty::Info UEInterfaceProperty::GetInfo() const
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FScriptInterface), true, "TScriptInterface<class " + MakeValidName(GetInterfaceClass().GetNameCPP()) + ">");
 }
 
+std::string UEInterfaceProperty::TypeName()
+{
+	static std::string ret = "InterfaceProperty";
+	return ret;
+}
+
 UEClass UEInterfaceProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".InterfaceProperty");
@@ -763,6 +907,12 @@ UEClass UEInterfaceProperty::StaticClass()
 UEProperty::Info UEWeakObjectProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Container, sizeof(FWeakObjectPtr), false, "TWeakObjectPtr<class " + MakeValidName(GetPropertyClass().GetNameCPP()) + ">");
+}
+
+std::string UEWeakObjectProperty::TypeName()
+{
+	static std::string ret = "WeakObjectProperty";
+	return ret;
 }
 
 UEClass UEWeakObjectProperty::StaticClass()
@@ -778,6 +928,12 @@ UEProperty::Info UELazyObjectProperty::GetInfo() const
 	return Info::Create(PropertyType::Container, sizeof(FLazyObjectPtr), false, "TLazyObjectPtr<class " + MakeValidName(GetPropertyClass().GetNameCPP()) + ">");
 }
 
+std::string UELazyObjectProperty::TypeName()
+{
+	static std::string ret = "LazyObjectProperty";
+	return ret;
+}
+
 UEClass UELazyObjectProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".LazyObjectProperty");
@@ -789,6 +945,12 @@ UEClass UELazyObjectProperty::StaticClass()
 UEProperty::Info UEAssetObjectProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Container, sizeof(FAssetPtr), false, "TAssetPtr<class " + MakeValidName(GetPropertyClass().GetNameCPP()) + ">");
+}
+
+std::string UEAssetObjectProperty::TypeName()
+{
+	static std::string ret = "AssetObjectProperty";
+	return ret;
 }
 
 UEClass UEAssetObjectProperty::StaticClass()
@@ -822,6 +984,12 @@ UEProperty::Info UEAssetClassProperty::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(uint8_t), false, "");
 }
 
+std::string UEAssetClassProperty::TypeName()
+{
+	static std::string ret = "AssetClassProperty";
+	return ret;
+}
+
 UEClass UEAssetClassProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".AssetClassProperty");
@@ -833,6 +1001,12 @@ UEClass UEAssetClassProperty::StaticClass()
 UEProperty::Info UENameProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FName), true, "struct FName");
+}
+
+std::string UENameProperty::TypeName()
+{
+	static std::string ret = "NameProperty";
+	return ret;
 }
 
 UEClass UENameProperty::StaticClass()
@@ -866,6 +1040,12 @@ UEProperty::Info UEStructProperty::GetInfo() const
 	return Info::Create(PropertyType::CustomStruct, GetElementSize(), true, "struct " + MakeUniqueCppName(GetStruct()));
 }
 
+std::string UEStructProperty::TypeName()
+{
+	static std::string ret = "StructProperty";
+	return ret;
+}
+
 UEClass UEStructProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".StructProperty");
@@ -879,6 +1059,12 @@ UEProperty::Info UEStrProperty::GetInfo() const
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FString), true, "struct FString");
 }
 
+std::string UEStrProperty::TypeName()
+{
+	static std::string ret = "StrProperty";
+	return ret;
+}
+
 UEClass UEStrProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".StrProperty");
@@ -890,6 +1076,12 @@ UEClass UEStrProperty::StaticClass()
 UEProperty::Info UETextProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FText), true, "struct FText");
+}
+
+std::string UETextProperty::TypeName()
+{
+	static std::string ret = "TextProperty";
+	return ret;
 }
 
 UEClass UETextProperty::StaticClass()
@@ -929,6 +1121,12 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 	}
 
 	return { PropertyType::Unknown };
+}
+
+std::string UEArrayProperty::TypeName()
+{
+	static std::string ret = "ArrayProperty";
+	return ret;
 }
 
 UEClass UEArrayProperty::StaticClass()
@@ -989,6 +1187,12 @@ UEProperty::Info UEMapProperty::GetInfo() const
 	return { PropertyType::Unknown };
 }
 
+std::string UEMapProperty::TypeName()
+{
+	static std::string ret = "MapProperty";
+	return ret;
+}
+
 UEClass UEMapProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".MapProperty");
@@ -1020,6 +1224,12 @@ UEProperty::Info UEDelegateProperty::GetInfo() const
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FScriptDelegate), true, "struct FScriptDelegate");
 }
 
+std::string UEDelegateProperty::TypeName()
+{
+	static std::string ret = "DelegateProperty";
+	return ret;
+}
+
 UEClass UEDelegateProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".DelegateProperty");
@@ -1049,6 +1259,12 @@ UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FScriptMulticastDelegate), true, "struct FScriptMulticastDelegate");
+}
+
+std::string UEMulticastDelegateProperty::TypeName()
+{
+	static std::string ret = "MulticastDelegateProperty";
+	return ret;
 }
 
 UEClass UEMulticastDelegateProperty::StaticClass()
@@ -1100,6 +1316,12 @@ UEProperty::Info UEEnumProperty::GetInfo() const
 	return Info::Create(PropertyType::Primitive, sizeof(uint8_t), false, MakeUniqueCppName(GetEnum()));
 }
 
+std::string UEEnumProperty::TypeName()
+{
+	static std::string ret = "EnumProperty";
+	return ret;
+}
+
 UEClass UEEnumProperty::StaticClass()
 {
 	static auto c = ObjectsStore().FindClass("Class " + Utils::Settings.SdkGen.CorePackageName + ".EnumProperty");
@@ -1138,6 +1360,12 @@ UEProperty::Info UEByteProperty::GetInfo() const
 		return Info::Create(PropertyType::Primitive, sizeof(uint8_t), false, "TEnumAsByte<" + MakeUniqueCppName(GetEnum()) + ">");
 	}
 	return Info::Create(PropertyType::Primitive, sizeof(uint8_t), false, "unsigned char");
+}
+
+std::string UEByteProperty::TypeName()
+{
+	static std::string ret = "ByteProperty";
+	return ret;
 }
 
 UEClass UEByteProperty::StaticClass()
@@ -1224,6 +1452,12 @@ UEProperty::Info UEBoolProperty::GetInfo() const
 		return Info::Create(PropertyType::Primitive, sizeof(bool), false, "bool");
 	}
 	return Info::Create(PropertyType::Primitive, sizeof(unsigned char), false, "unsigned char");
+}
+
+std::string UEBoolProperty::TypeName()
+{
+	static std::string ret = "BoolProperty";
+	return ret;
 }
 
 UEClass UEBoolProperty::StaticClass()

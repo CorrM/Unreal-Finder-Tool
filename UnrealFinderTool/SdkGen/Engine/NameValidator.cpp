@@ -50,9 +50,7 @@ std::string SimplifyEnumName(std::string&& name)
 {
 	const auto index = name.find_last_of(':');
 	if (index == std::string::npos)
-	{
-		return name;
-	}
+		return "";
 
 	return name.substr(index + 1);
 }

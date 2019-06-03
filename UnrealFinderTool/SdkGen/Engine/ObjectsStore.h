@@ -29,7 +29,8 @@ class ObjectsStore
 	static bool IsValidUObject(const UEObject& uObject);
 
 public:
-	static std::vector<std::unique_ptr<UEObject>> GObjObjects;
+	static UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> GObjObjects;
+
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>
@@ -40,17 +41,28 @@ public:
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static uintptr_t GetAddress();
+
 	/// <summary>
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
 	size_t GetObjectsNum() const;
+
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
-	/// <param name="id">The identifier.</param>
+	/// <param name="index">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject& GetById(size_t id) const;
+	UEObject& GetByIndex(size_t index) const;
+
+	/// <summary>
+	/// Gets the object by id.
+	/// </summary>
+	/// <param name="objAddress">The address of object.</param>
+	/// <returns>The object.</returns>
+	UEObject& GetByAddress(uintptr_t objAddress) const;
+	UEObject& GetByAddress(const uintptr_t objAddress, bool& success) const;
+
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>
@@ -70,7 +82,6 @@ public:
 		if (it != std::end(cache))
 			return it->second;
 
-		int sleepCounter = 0;
 		size_t count = 0;
 		for (const UEObject& obj : *this)
 		{
@@ -96,7 +107,6 @@ class ObjectsIterator : public std::iterator<std::forward_iterator_tag, UEObject
 	UEObject current;
 
 public:
-
 	/// <summary>Constructor.</summary>
 	/// <param name="store">The store to iterate.</param>
 	ObjectsIterator(const ObjectsStore& store);

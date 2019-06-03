@@ -25,7 +25,6 @@ public:
 	void Start();
 	void WaitAll();
 	static uint32_t GetCpuCores();
-
 private:
 	void Worker();
 };

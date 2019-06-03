@@ -35,7 +35,7 @@ inline int g_names_listbox_item_current = 0;
 
 inline bool class_find_disabled = false;
 inline bool class_find_input_disabled = false;
-inline char class_find_buf[30] = { 0 };
+inline char class_find_buf[90] = { 0 };
 inline std::vector<std::string> class_listbox_items;
 inline int class_listbox_item_current = 0;
 // => GObjects, GNames, Class

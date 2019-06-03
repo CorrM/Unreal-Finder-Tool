@@ -287,7 +287,7 @@ namespace std
 	{
 		size_t operator()(const Package& package) const
 		{
-			return std::hash<void*>()(package.packageObj.GetAddress());
+			return std::hash<uintptr_t>()(package.packageObj.GetAddress());
 		}
 	};
 }

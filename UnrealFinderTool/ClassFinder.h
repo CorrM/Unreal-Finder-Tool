@@ -4,8 +4,9 @@
 class ClassFinder
 {
 public:
-	std::vector<uintptr_t> Find(uintptr_t gObjAddress, uintptr_t gNamesAddress, const std::string& objectType);
+	std::vector<std::string> Find(uintptr_t gObjAddress, uintptr_t gNamesAddress, const std::string& objectType);
 
 private:
 	static std::vector<UEObject> FindThatObject(const std::string& typeName, bool firstOnly = false);
+	static std::vector<UEObject> FindThatObjectByAddress(const std::string& typeName, bool firstOnly);
 };

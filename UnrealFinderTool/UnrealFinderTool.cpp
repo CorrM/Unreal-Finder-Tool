@@ -123,17 +123,7 @@ void StartClassFinder()
 		class_find_disabled = true;
 
 		ClassFinder gf;
-		std::vector<uintptr_t> ret = gf.Find(g_objects_address, g_names_address, class_find_buf);
-
-		for (auto v : ret)
-		{
-			std::stringstream ss; ss << std::hex << v;
-
-			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
-
-			class_listbox_items.push_back(tmpUpper);
-		}
+		class_listbox_items = gf.Find(g_objects_address, g_names_address, class_find_buf);
 
 		class_find_disabled = false;
 		EnabledAll();
@@ -240,7 +230,7 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
-		ui::SameLine(); HelpMarker("What you can put here .?\n- First GNames chunk address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
+		ui::SameLine(); HelpMarker("What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
 		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 	}
 	
@@ -254,7 +244,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 578);
+					thiz.SetSize(380, 600);
 					cur_tap_id = 1;
 				}
 
@@ -357,15 +347,17 @@ void MainUi(UiWindow& thiz)
 				{
 					ui::BeginGroup();
 					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class Name :"); ui::SameLine();
-					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, MyGameInstance_C", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
-					ui::SameLine(); HelpMarker("ClassName Ex :\n- LocalPlayer or ULocalPlayer.\n- MyGameInstance_C or UMyGameInstance_C.\n- PlayerController or APlayerController.");
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :"); ui::SameLine();
+					ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
+					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
+					ui::PopItemWidth();
+					ui::SameLine(); HelpMarker("What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
 
 					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons    :"); ui::SameLine();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons :"); ui::SameLine();
 
 					// Start Finder
-					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find Class"), class_find_disabled,
+					ENABLE_DISABLE_WIDGET_IF(ui::Button(" Find Class "), class_find_disabled,
 					{
 						if (IsReadyToGo())
 							StartClassFinder();
@@ -376,14 +368,14 @@ void MainUi(UiWindow& thiz)
 					ui::SameLine();
 
 					// Copy to clipboard
-					if (ui::Button("Copy Address"))
+					if (ui::Button(" Copy Selected "))
 					{
 						if (size_t(class_listbox_item_current) < class_listbox_items.size())
 							ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
 					}
 
 					ui::PushItemWidth(ui::GetWindowSize().x - 15);
-					ui::ListBox("##Class_listbox", &class_listbox_item_current, VectorGetter, static_cast<void*>(&class_listbox_items), static_cast<int>(class_listbox_items.size()), 5);
+					ui::ListBox("##Class_listbox", &class_listbox_item_current, VectorGetter, static_cast<void*>(&class_listbox_items), static_cast<int>(class_listbox_items.size()), 6);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
@@ -501,7 +493,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 578);
+	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())
