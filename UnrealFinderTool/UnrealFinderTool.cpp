@@ -196,7 +196,7 @@ void StartSdkGenerator()
 
 void MainUi(UiWindow& thiz)
 {
-	ui::ShowDemoWindow();
+	// ui::ShowDemoWindow();
 
 	// Settings Button
 	{
