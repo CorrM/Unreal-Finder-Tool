@@ -173,13 +173,23 @@ void UiWindow::SetupImGui()
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO& io = ImGui::GetIO();
 
 	SetStyle();
 
 	// Setup Platform/Renderer bindings
 	ImGui_ImplWin32_Init(hWindow);
 	ImGui_ImplDX11_Init(gPd3dDevice, gPd3dDeviceContext);
+
+	// merge in icons from Font Awesome
+	io.Fonts->AddFontDefault();
+	static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config;
+	icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+	auto fontAwesome = io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FAS, 11.0f, &icons_config, icons_ranges);
+
+	if (fontAwesome == nullptr)
+		throw std::exception("Cant load fonts.!");
 
 	settings.ClearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 }

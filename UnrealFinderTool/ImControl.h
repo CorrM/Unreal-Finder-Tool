@@ -8,6 +8,7 @@
 // => Main Options Section
 inline bool process_id_disabled = false;
 inline int process_id;
+inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;

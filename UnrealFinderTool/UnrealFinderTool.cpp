@@ -15,7 +15,7 @@ bool memory_init = false;
 bool IsValidProcess(const int p_id, HANDLE& pHandle)
 {
 	DWORD exitCode;
-	pHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
+	pHandle = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
 	return p_id != 0 && GetExitCodeProcess(pHandle, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
 }
 
@@ -197,6 +197,25 @@ void StartSdkGenerator()
 void MainUi(UiWindow& thiz)
 {
 	// ui::ShowDemoWindow();
+
+	// Showing a menu with toggles
+	if (ImGui::Button(ICON_FA_COG) && memory_init)
+		ImGui::OpenPopup("ProcessControllerMenu");
+
+	if (ImGui::BeginPopup("ProcessControllerMenu"))
+	{
+		if (ImGui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+		{
+			if (process_controller_toggles[0])
+				Utils::MemoryObj->SuspendProcess();
+			else
+				Utils::MemoryObj->ResumeProcess();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	ui::SameLine();
 	ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
 	ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	
@@ -244,7 +263,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 600);
+					thiz.SetSize(380, 608);
 					cur_tap_id = 1;
 				}
 
@@ -390,7 +409,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 2)
 				{
-					thiz.SetSize(380, 365);
+					thiz.SetSize(380, 372);
 					cur_tap_id = 2;
 				}
 
@@ -422,7 +441,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 582);
+					thiz.SetSize(380, 590);
 					cur_tap_id = 3;
 				}
 

@@ -25,7 +25,7 @@ Memory::Memory(const int processId, const bool useKernal)
 	if (processId == 0)
 		return;
 
-	ProcessHandle = OpenProcess(0x0 | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
+	ProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 	ProcessId = GetProcessId(ProcessHandle);
 	use_kernal = useKernal;
 	if (useKernal && bypaPh == nullptr)
@@ -71,6 +71,22 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	if (hModule) GetModuleInformation(GetCurrentProcess(), hModule, &miInfos, sizeof MODULEINFO);
 
 	return miInfos;
+}
+
+bool Memory::SuspendProcess()
+{
+	typedef LONG(NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
+	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtSuspendProcess"));
+
+	return NT_SUCCESS(pfnNtSuspendProcess(ProcessHandle));
+}
+
+bool Memory::ResumeProcess()
+{
+	typedef LONG(NTAPI * NtResumeProcess)(IN HANDLE ProcessHandle);
+	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
+
+	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
 }
 
 BOOL Memory::SetPrivilegeM(HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)

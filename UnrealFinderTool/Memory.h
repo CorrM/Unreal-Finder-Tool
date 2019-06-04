@@ -52,4 +52,6 @@ public:
 	string ReadPointerText(const uintptr_t address, int offsets[], int offsetCount);
 	static int GetProcessIdByName(char* processName);
 	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
+	bool SuspendProcess();
+	bool ResumeProcess();
 };

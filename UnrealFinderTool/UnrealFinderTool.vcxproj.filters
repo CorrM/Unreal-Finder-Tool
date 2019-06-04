@@ -171,6 +171,9 @@
     <ClInclude Include="ClassFinder.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="IconsFontAwesome.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -277,6 +280,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\Downloads\win.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\Resources\win.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
