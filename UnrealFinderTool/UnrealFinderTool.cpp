@@ -69,6 +69,8 @@ void StartGObjFinder(const bool easyMethod)
 		g_objects_find_disabled = false;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -99,7 +101,7 @@ void StartGNamesFinder()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
-	HANDLE ht = (HANDLE)t.native_handle();
+	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
@@ -130,6 +132,8 @@ void StartClassFinder()
 		class_find_disabled = false;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -155,6 +159,8 @@ void StartInstanceLogger()
 		il_names_count = retState.GNamesCount;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -193,7 +199,7 @@ void StartSdkGenerator()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
-	HANDLE ht = (HANDLE)t.native_handle();
+	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
