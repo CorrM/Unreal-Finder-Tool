@@ -198,26 +198,44 @@ void MainUi(UiWindow& thiz)
 {
 	// ui::ShowDemoWindow();
 
-	// Showing a menu with toggles
-	if (ImGui::Button(ICON_FA_COG) && memory_init)
-		ImGui::OpenPopup("ProcessControllerMenu");
-
-	if (ImGui::BeginPopup("ProcessControllerMenu"))
+	// Settings Button
 	{
-		if (ImGui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+		if (ui::Button(ICON_FA_COG))
 		{
-			if (process_controller_toggles[0])
-				Utils::MemoryObj->SuspendProcess();
+			if (IsReadyToGo())
+				ui::OpenPopup("ProcessControllerMenu");
 			else
-				Utils::MemoryObj->ResumeProcess();
+				ui::OpenPopup("Warning##NotValidProcess");
 		}
 
-		ImGui::EndPopup();
+		if (ui::IsItemHovered())
+		{
+			ui::BeginTooltip();
+			ui::TextUnformatted("Process Options");
+			ui::EndTooltip();
+		}
+		WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
+
+		if (ui::BeginPopup("ProcessControllerMenu"))
+		{
+			if (ui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+			{
+				if (process_controller_toggles[0])
+					Utils::MemoryObj->SuspendProcess();
+				else
+					Utils::MemoryObj->ResumeProcess();
+			}
+
+			ui::EndPopup();
+		}
 	}
 
-	ui::SameLine();
-	ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
-	ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+	// Title
+	{
+		ui::SameLine();
+		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
+		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+	}
 	
 	ui::Separator();
 
@@ -520,6 +538,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	if (Utils::MemoryObj != nullptr)
 	{
+		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 	}
