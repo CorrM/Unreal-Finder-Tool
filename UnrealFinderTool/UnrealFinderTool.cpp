@@ -203,13 +203,6 @@ void MainUi(UiWindow& thiz)
 		if (ui::Button(ICON_FA_COG))
 			ui::OpenPopup("SettingsMenu");
 
-		if (ui::IsItemHovered())
-		{
-			ui::BeginTooltip();
-			ui::TextUnformatted("Process Options");
-			ui::EndTooltip();
-		}
-
 		if (ui::BeginPopup("SettingsMenu"))
 		{
 			if (ImGui::BeginMenu("Process##menu"))
@@ -362,7 +355,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartGNamesFinder();
 						else
-							popup_not_valid_process = false;
+							popup_not_valid_process = true;
 					});
 
 					ui::SameLine();
@@ -404,7 +397,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartClassFinder();
 						else
-							popup_not_valid_process = false;
+							popup_not_valid_process = true;
 					});
 
 					ui::SameLine();
@@ -450,7 +443,7 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartInstanceLogger();
 					else
-						popup_not_valid_process = false;
+						popup_not_valid_process = true;
 				});
 
 				ui::EndTabItem();
@@ -501,7 +494,7 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartSdkGenerator();
 					else
-						popup_not_valid_process = false;
+						popup_not_valid_process = true;
 				});
 
 				ui::EndTabItem();
@@ -513,10 +506,10 @@ void MainUi(UiWindow& thiz)
 
 	// Popups
 	{
-		WarningPopup("SdkFinish", "Sdk Generator finished. !!", sg_finished);
-		WarningPopup("NotValidProcess", "Not Valid Process ID. !!", popup_not_valid_process);
-		WarningPopup("NotValidGNames", "Not Valid GNames Address. !!", popup_not_valid_gnames);
-		WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
+		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
+		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
+		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
 }
 

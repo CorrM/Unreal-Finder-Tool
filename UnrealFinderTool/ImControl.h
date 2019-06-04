@@ -133,9 +133,9 @@ static void HelpMarker(const char* desc)
 	}
 }
 
-static void WarningPopup(const std::string& key, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
+static void WarningPopup(const std::string& title, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
 {
-	std::string id = "Warning##" + key;
+	std::string id = title + "##" + message;
 
 	if (opener)
 		ui::OpenPopup(id.c_str());
