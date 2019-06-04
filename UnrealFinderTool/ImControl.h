@@ -17,6 +17,12 @@ inline bool g_objects_disabled = false;
 inline bool g_names_disabled = false;
 // => Main Options Section
 
+// => Popup
+inline bool popup_not_valid_process = false;
+inline bool popup_not_valid_gnames = false;
+inline bool popup_not_valid_gobjects = false;
+// => Popup
+
 // => Tabs
 inline int cur_tap_id = 0;
 // => Tabs
@@ -127,10 +133,14 @@ static void HelpMarker(const char* desc)
 	}
 }
 
-static void WarningPopup(const std::string& key, const std::string& message, const std::function<void()> okCallBack = nullptr)
+static void WarningPopup(const std::string& key, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
 {
-	// If Not Valid Process, this Popup will show
-	if (ui::BeginPopupModal((std::string("Warning##") + key).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+	std::string id = "Warning##" + key;
+
+	if (opener)
+		ui::OpenPopup(id.c_str());
+
+	if (ui::BeginPopupModal(id.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 	{
 		ui::Text("%s", message.c_str());
 		ui::Separator();
@@ -140,8 +150,10 @@ static void WarningPopup(const std::string& key, const std::string& message, con
 			if (okCallBack)
 				okCallBack();
 			ui::CloseCurrentPopup();
+			opener = false;
 		}
 		ui::SetItemDefaultFocus();
 		ui::EndPopup();
+
 	}
 }

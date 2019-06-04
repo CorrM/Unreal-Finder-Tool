@@ -107,9 +107,9 @@ void StartClassFinder()
 	bool contin = false;
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(g_names_address))
-		ui::OpenPopup("Warning##NotValidGNames");
+		popup_not_valid_gnames = true;
 	else if (!Utils::IsValidGObjectsAddress(g_objects_address))
-		ui::OpenPopup("Warning##NotValidGObjects");
+		popup_not_valid_gobjects = true;
 	else
 		contin = true;
 
@@ -196,17 +196,12 @@ void StartSdkGenerator()
 
 void MainUi(UiWindow& thiz)
 {
-	// ui::ShowDemoWindow();
+	ui::ShowDemoWindow();
 
 	// Settings Button
 	{
 		if (ui::Button(ICON_FA_COG))
-		{
-			if (IsReadyToGo())
-				ui::OpenPopup("ProcessControllerMenu");
-			else
-				ui::OpenPopup("Warning##NotValidProcess");
-		}
+			ui::OpenPopup("SettingsMenu");
 
 		if (ui::IsItemHovered())
 		{
@@ -214,18 +209,28 @@ void MainUi(UiWindow& thiz)
 			ui::TextUnformatted("Process Options");
 			ui::EndTooltip();
 		}
-		WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 
-		if (ui::BeginPopup("ProcessControllerMenu"))
+		if (ui::BeginPopup("SettingsMenu"))
 		{
-			if (ui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+			if (ImGui::BeginMenu("Process##menu"))
 			{
-				if (process_controller_toggles[0])
-					Utils::MemoryObj->SuspendProcess();
-				else
-					Utils::MemoryObj->ResumeProcess();
+				if (ui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+				{
+					if (!IsReadyToGo())
+					{
+						process_controller_toggles[0] = false;
+						popup_not_valid_process = true;
+					}
+					else
+					{
+						if (process_controller_toggles[0])
+							Utils::MemoryObj->SuspendProcess();
+						else
+							Utils::MemoryObj->ResumeProcess();
+					}
+				}
+				ui::EndMenu();
 			}
-
 			ui::EndPopup();
 		}
 	}
@@ -299,7 +304,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							ui::OpenPopup("Easy?");
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = true;
 					});
 
 					// Popup
@@ -357,7 +362,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartGNamesFinder();
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = false;
 					});
 
 					ui::SameLine();
@@ -399,7 +404,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartClassFinder();
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = false;
 					});
 
 					ui::SameLine();
@@ -416,10 +421,6 @@ void MainUi(UiWindow& thiz)
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
-
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
-				WarningPopup("NotValidGNames", "Not Valid GNames Address. !!");
-				WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!");
 
 				ui::EndTabItem();
 			}
@@ -449,10 +450,9 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartInstanceLogger();
 					else
-						ui::OpenPopup("Warning##NotValidProcess");
+						popup_not_valid_process = false;
 				});
 
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Sdk Generator"))
@@ -501,21 +501,22 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartSdkGenerator();
 					else
-						ui::OpenPopup("Warning##NotValidProcess");
+						popup_not_valid_process = false;
 				});
 
-				if (sg_finished)
-				{
-					ui::OpenPopup("Warning##SdkFinish");
-					WarningPopup("SdkFinish", "Sdk Generator finished. !!", []() { sg_finished = false; });
-				}
-
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 
 			ui::EndTabBar();
 		}
+	}
+
+	// Popups
+	{
+		WarningPopup("SdkFinish", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("NotValidProcess", "Not Valid Process ID. !!", popup_not_valid_process);
+		WarningPopup("NotValidGNames", "Not Valid GNames Address. !!", popup_not_valid_gnames);
+		WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
 }
 
