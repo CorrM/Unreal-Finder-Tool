@@ -12,6 +12,19 @@
 
 bool memory_init = false;
 
+int DetectUe4Game()
+{
+	HWND childControl = FindWindow("UnrealWindow", nullptr);
+	if (childControl != nullptr)
+	{
+		DWORD pId;
+		GetWindowThreadProcessId(childControl, &pId);
+		return pId;
+	}
+
+	return 0;
+}
+
 bool IsValidProcess(const int p_id, HANDLE& pHandle)
 {
 	DWORD exitCode;
@@ -48,6 +61,8 @@ void StartGObjFinder(const bool easyMethod)
 	{
 		DisabledAll();
 		g_objects_find_disabled = true;
+		g_objects_disabled = false;
+		g_names_disabled = false;
 
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
@@ -81,6 +96,8 @@ void StartGNamesFinder()
 	{
 		DisabledAll();
 		g_names_find_disabled = true;
+		g_objects_disabled = false;
+		g_names_disabled = false;
 
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
@@ -251,7 +268,11 @@ void MainUi(UiWindow& thiz)
 	{
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
+		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled); ui::SameLine();
+		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
+		{
+			process_id = DetectUe4Game();
+		});
 	}
 	
 	// Use Kernal
@@ -534,6 +555,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
+
+	process_id = DetectUe4Game();
 
 	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);

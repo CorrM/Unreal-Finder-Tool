@@ -7,6 +7,7 @@
 
 // => Main Options Section
 inline bool process_id_disabled = false;
+inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
@@ -83,6 +84,7 @@ inline int sg_packages_item_current = 0;
 static void DisabledAll()
 {
 	process_id_disabled = true;
+	process_detector_disabled = true;
 	use_kernal_disabled = true;
 
 	g_objects_disabled = true;
