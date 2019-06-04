@@ -1,8 +1,11 @@
 #pragma once
 #include <d3d11.h>
-#include "ImGUI/imgui.h"
 #include <thread>
 #include <functional>
+
+#include "ImGUI/imgui.h"
+#include "IconsFontAwesome.h"
+
 #define DIRECTINPUT_VERSION 0x0800
 
 class UiWindow;

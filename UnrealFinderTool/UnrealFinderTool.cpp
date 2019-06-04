@@ -15,7 +15,7 @@ bool memory_init = false;
 bool IsValidProcess(const int p_id, HANDLE& pHandle)
 {
 	DWORD exitCode;
-	pHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, p_id);
+	pHandle = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
 	return p_id != 0 && GetExitCodeProcess(pHandle, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
 }
 
@@ -107,9 +107,9 @@ void StartClassFinder()
 	bool contin = false;
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(g_names_address))
-		ui::OpenPopup("Warning##NotValidGNames");
+		popup_not_valid_gnames = true;
 	else if (!Utils::IsValidGObjectsAddress(g_objects_address))
-		ui::OpenPopup("Warning##NotValidGObjects");
+		popup_not_valid_gobjects = true;
 	else
 		contin = true;
 
@@ -196,9 +196,51 @@ void StartSdkGenerator()
 
 void MainUi(UiWindow& thiz)
 {
-	// ui::ShowDemoWindow();
-	ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
-	ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+	ui::ShowDemoWindow();
+
+	// Settings Button
+	{
+		if (ui::Button(ICON_FA_COG))
+			ui::OpenPopup("SettingsMenu");
+
+		if (ui::IsItemHovered())
+		{
+			ui::BeginTooltip();
+			ui::TextUnformatted("Process Options");
+			ui::EndTooltip();
+		}
+
+		if (ui::BeginPopup("SettingsMenu"))
+		{
+			if (ImGui::BeginMenu("Process##menu"))
+			{
+				if (ui::MenuItem("Pause Process", "", &process_controller_toggles[0]))
+				{
+					if (!IsReadyToGo())
+					{
+						process_controller_toggles[0] = false;
+						popup_not_valid_process = true;
+					}
+					else
+					{
+						if (process_controller_toggles[0])
+							Utils::MemoryObj->SuspendProcess();
+						else
+							Utils::MemoryObj->ResumeProcess();
+					}
+				}
+				ui::EndMenu();
+			}
+			ui::EndPopup();
+		}
+	}
+
+	// Title
+	{
+		ui::SameLine();
+		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
+		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+	}
 	
 	ui::Separator();
 
@@ -244,7 +286,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 600);
+					thiz.SetSize(380, 608);
 					cur_tap_id = 1;
 				}
 
@@ -262,7 +304,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							ui::OpenPopup("Easy?");
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = true;
 					});
 
 					// Popup
@@ -320,7 +362,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartGNamesFinder();
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = false;
 					});
 
 					ui::SameLine();
@@ -362,7 +404,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartClassFinder();
 						else
-							ui::OpenPopup("Warning##NotValidProcess");
+							popup_not_valid_process = false;
 					});
 
 					ui::SameLine();
@@ -380,17 +422,13 @@ void MainUi(UiWindow& thiz)
 					ui::EndGroup();
 				}
 
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
-				WarningPopup("NotValidGNames", "Not Valid GNames Address. !!");
-				WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!");
-
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Instance Logger"))
 			{
 				if (cur_tap_id != 2)
 				{
-					thiz.SetSize(380, 365);
+					thiz.SetSize(380, 372);
 					cur_tap_id = 2;
 				}
 
@@ -412,17 +450,16 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartInstanceLogger();
 					else
-						ui::OpenPopup("Warning##NotValidProcess");
+						popup_not_valid_process = false;
 				});
 
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 			if (ui::BeginTabItem("Sdk Generator"))
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 582);
+					thiz.SetSize(380, 590);
 					cur_tap_id = 3;
 				}
 
@@ -464,21 +501,22 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartSdkGenerator();
 					else
-						ui::OpenPopup("Warning##NotValidProcess");
+						popup_not_valid_process = false;
 				});
 
-				if (sg_finished)
-				{
-					ui::OpenPopup("Warning##SdkFinish");
-					WarningPopup("SdkFinish", "Sdk Generator finished. !!", []() { sg_finished = false; });
-				}
-
-				WarningPopup("NotValidProcess", "Not Valid Process ID. !!");
 				ui::EndTabItem();
 			}
 
 			ui::EndTabBar();
 		}
+	}
+
+	// Popups
+	{
+		WarningPopup("SdkFinish", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("NotValidProcess", "Not Valid Process ID. !!", popup_not_valid_process);
+		WarningPopup("NotValidGNames", "Not Valid GNames Address. !!", popup_not_valid_gnames);
+		WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
 }
 
@@ -501,6 +539,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	if (Utils::MemoryObj != nullptr)
 	{
+		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 	}
