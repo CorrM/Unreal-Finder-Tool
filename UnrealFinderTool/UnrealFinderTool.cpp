@@ -10,19 +10,28 @@
 
 #include <sstream>
 
+#define UNREAL_WINDOW_CLASS "UnrealWindow"
+
 bool memory_init = false;
 
-int DetectUe4Game()
+int DetectUe4Game(HWND* windowHandle)
 {
-	HWND childControl = FindWindow("UnrealWindow", nullptr);
+	HWND childControl = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
 	if (childControl != nullptr)
 	{
 		DWORD pId;
 		GetWindowThreadProcessId(childControl, &pId);
+		if (windowHandle != nullptr)
+			*windowHandle = childControl;
 		return pId;
 	}
 
 	return 0;
+}
+
+int DetectUe4Game()
+{
+	return DetectUe4Game(nullptr);
 }
 
 bool IsValidProcess(const int p_id, HANDLE& pHandle)
@@ -269,6 +278,25 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled); ui::SameLine();
+
+		if (ui::IsItemHovered())
+		{
+			if (process_id != NULL)
+			{
+				ui::BeginTooltip();
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : "); ui::SameLine();
+
+				// Get Window Title
+				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+				char windowTitle[30] = { 0 };
+				GetWindowText(window, windowTitle, 30);
+
+				ui::TextUnformatted(windowTitle);
+				ui::EndTooltip();
+			}
+		}
+
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
 		{
 			process_id = DetectUe4Game();
