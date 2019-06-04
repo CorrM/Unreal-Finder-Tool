@@ -18,15 +18,16 @@ struct GObjectInfo
 class ObjectsStore
 {
 	static GObjectInfo gInfo;
-	static int maxZeroAddress;
+	int maxZeroAddress = 150;
 
-	static bool FetchData();
-	static bool GetGObjectInfo();
-	static bool ReadUObjectArray();
-	static bool ReadUObjectArrayPnP();
-	static bool ReadUObjectArrayNormal();
-	static bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
-	static bool IsValidUObject(const UEObject& uObject);
+	bool FetchData();
+	bool GetGObjectInfo();
+	bool ReadUObjectArray();
+	bool ReadUObjectArrayPnP();
+	bool ReadUObjectArrayNormal();
+	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, UEObject& retUObj);
+
+	bool IsValidUObject(const UObject& uObject, bool outerCheck = false) const;
 
 public:
 	static UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> GObjObjects;
@@ -61,7 +62,7 @@ public:
 	/// <param name="objAddress">The address of object.</param>
 	/// <returns>The object.</returns>
 	UEObject& GetByAddress(uintptr_t objAddress) const;
-	UEObject& GetByAddress(const uintptr_t objAddress, bool& success) const;
+	UEObject& GetByAddress(uintptr_t objAddress, bool& success) const;
 
 	/// <summary>
 	/// Searches for the first class with the given name.
