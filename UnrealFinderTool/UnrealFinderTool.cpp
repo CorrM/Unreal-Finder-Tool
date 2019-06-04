@@ -521,7 +521,8 @@ void MainUi(UiWindow& thiz)
 }
 
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) // Fix vs2019 Problem [wWinMain instead of WinMain]
+// ReSharper disable once CppInconsistentNaming
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hPrevInstance);

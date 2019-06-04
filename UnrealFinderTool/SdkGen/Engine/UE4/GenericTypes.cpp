@@ -165,7 +165,10 @@ UEObject& UEObject::GetOuter() const
 	if (INVALID_POINTER_VALUE(Object.Outer))
 		return UEObjectEmpty;
 
-	return ObjectsStore().GetByAddress(Object.Outer);
+	bool found;
+	UEObject& outer = ObjectsStore().GetByAddress(Object.Outer, found);
+
+	return found ? outer : UEObjectEmpty;
 }
 
 UEObject& UEObject::GetPackageObject() const
