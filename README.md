@@ -27,6 +27,10 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_3](/images/cfg_1.png)
 
 # Change Log
+##### 04-07-2019
+- Add Settings button.
+- Start using [Font Awesome](https://fontawesome.com/)
+
 ##### 03-07-2019
 - Improve `Sdk Generator`.
   - `Sdk Generator` now significantly faster
