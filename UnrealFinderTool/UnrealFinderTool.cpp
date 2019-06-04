@@ -99,6 +99,8 @@ void StartGNamesFinder()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
+	HANDLE ht = (HANDLE)t.native_handle();
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -191,6 +193,8 @@ void StartSdkGenerator()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
+	HANDLE ht = (HANDLE)t.native_handle();
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
