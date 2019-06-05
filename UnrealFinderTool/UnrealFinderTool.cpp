@@ -111,15 +111,19 @@ void StartGNamesFinder()
 
 		std::string searching = "Searching...";
 		g_names_listbox_items.push_back(searching);
-//		strcpy_s(g_names_listbox_items[0].data, 13, "Searching...");
 
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
+		searching = "Found base address...";
+		g_names_listbox_items.push_back(searching);
 
 		auto found = false;
 		uintptr_t gnames_start = ret[0], gnames_start2 = ret[0];
 		uintptr_t gnames_end = 0, gnames_end2 = 0;
 
+		searching = "Finding correct offset";
+		g_names_listbox_items.push_back(searching);
+		searching = "Searching";
 		// HACK: Todo optimise this function
 		// Prototype autodetection
 		for (int x = 1; x <= 15; x++) {
@@ -148,6 +152,7 @@ void StartGNamesFinder()
 					break;
 			}
 			if (found) break;
+			g_names_listbox_items.push_back(searching.append("."));
 		}
 
 		g_names_listbox_items.clear();
