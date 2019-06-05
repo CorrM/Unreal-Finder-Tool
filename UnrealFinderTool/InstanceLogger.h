@@ -1,5 +1,6 @@
 #pragma once
-#include "JsonReflector.h"
+
+class UObject;
 
 struct GObject
 {
@@ -45,7 +46,7 @@ class InstanceLogger
 	bool ReadUObjectArray(uintptr_t address);
 	bool ReadUObjectArrayPnP(uintptr_t address);
 	bool ReadUObjectArrayNormal(uintptr_t address);
-	bool ReadUObject(uintptr_t uObjectAddress, JsonStruct& uObject, GObject& retObj);
+	bool ReadUObject(uintptr_t uObjectAddress, UObject& uObject, GObject& retObj);
 	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();

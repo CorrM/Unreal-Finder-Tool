@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "PatternScan.h"
+#include "InstanceLogger.h"
+#include "EngineClasses.h"
+#include "JsonReflector.h"
 
 #include <string>
 #include <cinttypes>
-
-#include "InstanceLogger.h"
 
 InstanceLogger::InstanceLogger(const uintptr_t gObjObjectsAddress, const uintptr_t gNamesAddress) :
 	gObjectsCount(0), maxZeroAddress(150),
@@ -157,27 +158,32 @@ bool InstanceLogger::ReadUObjectArrayPnP(const uintptr_t address)
 
 bool InstanceLogger::ReadUObjectArrayNormal(const uintptr_t address)
 {
-	JsonStruct fUObjectItem, uObject;
+	static JsonStruct jFUObjectItem = JsonReflector::GetStruct("FUObjectItem");
+	static JsonStruct jUObject = JsonReflector::GetStruct("UObject");
+
+	FUObjectItem uObjectItem;
+	UObject uObject;
+
 	int skipCount = 0;
 	uintptr_t curAddress = 0;
 
 	for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
 	{
-		curAddress = address + uIndex * (fUObjectItem.StructSize - fUObjectItem.SubUnNeededSize());
+		curAddress = address + uIndex * (jFUObjectItem.StructSize - jFUObjectItem.SubUnNeededSize());
 
 		// Read the address as struct
-		if (!fUObjectItem.ReadData(curAddress, "FUObjectItem")) return false;
-		auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
+		uObject.ReadData(curAddress);
+		uObjectItem.ReadData(curAddress);
 
 		// Skip null pointer in GObjects array
-		if (dwUObject == 0)
+		if (uObjectItem.Object == 0)
 		{
 			++skipCount;
 			continue;
 		}
 
 		auto curObject = std::make_unique<GObject>();
-		ReadUObject(dwUObject, uObject, *curObject);
+		ReadUObject(uObjectItem.Object, uObject, *curObject);
 
 		gObjObjects.push_back(std::move(curObject));
 		++gObjectsCount;
@@ -186,7 +192,7 @@ bool InstanceLogger::ReadUObjectArrayNormal(const uintptr_t address)
 	return true;
 }
 
-bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, JsonStruct & uObject, GObject & retObj)
+bool InstanceLogger::ReadUObject(const uintptr_t uObjectAddress, UObject& uObject, GObject& retObj)
 {
 	int i = 0;
 	uintptr_t outer = uObjectAddress;

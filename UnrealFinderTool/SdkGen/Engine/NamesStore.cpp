@@ -31,7 +31,7 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
-	JsonStruct fName;
+	FNameEntity fName;
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;

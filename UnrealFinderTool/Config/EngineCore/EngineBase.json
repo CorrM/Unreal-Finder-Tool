@@ -78,6 +78,15 @@
       "note": ""
     },
     {
+      "name": "FScriptInterface",
+      "super": "",
+      "vars": [
+        { "ObjectPointer": "UObject*" },
+        { "InterfacePointer": "*" }
+      ],
+      "note": ""
+    },
+    {
       "name": "UObject",
       "super": "",
       "vars": [
