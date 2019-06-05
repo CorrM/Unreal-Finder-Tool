@@ -109,6 +109,10 @@ void StartGNamesFinder()
 		g_objects_disabled = false;
 		g_names_disabled = false;
 
+		std::string searching = "Searching...";
+		g_names_listbox_items.push_back(searching);
+//		strcpy_s(g_names_listbox_items[0].data, 13, "Searching...");
+
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
 
@@ -145,6 +149,8 @@ void StartGNamesFinder()
 			}
 			if (found) break;
 		}
+
+		g_names_listbox_items.clear();
 
 		for (auto v : ret)
 		{
