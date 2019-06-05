@@ -140,13 +140,13 @@ void StartGNamesFinder()
 					found = true;
 					break;
 				}
-				else gnames_start += 8;
+				else gnames_start += Utils::PointerSize();
 				if (Utils::IsValidGNamesAddress(gnames_start2)) {
 					ret[0] = gnames_start2;
 					found = true;
 					break;
 				}
-				else gnames_start2 += 8;
+				else gnames_start2 += Utils::PointerSize();
 
 				if (gnames_start > gnames_end || gnames_start2 > gnames_end2)
 					break;
