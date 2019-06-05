@@ -112,6 +112,40 @@ void StartGNamesFinder()
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
 
+		auto found = false;
+		uintptr_t gnames_start = ret[0], gnames_start2 = ret[0];
+		uintptr_t gnames_end = 0, gnames_end2 = 0;
+
+		// HACK: Todo optimise this function
+		// Prototype autodetection
+		for (int x = 1; x <= 15; x++) {
+
+			gnames_end = gnames_start;
+			gnames_start -= 0xA0000;
+
+			gnames_start2 = gnames_end2;
+			gnames_end2 += 0xA0000;
+
+			while (true) {
+				if (Utils::IsValidGNamesAddress(gnames_start)) {
+					ret[0] = gnames_start;
+					found = true;
+					break;
+				}
+				else gnames_start += 8;
+				if (Utils::IsValidGNamesAddress(gnames_start2)) {
+					ret[0] = gnames_start2;
+					found = true;
+					break;
+				}
+				else gnames_start2 += 8;
+
+				if (gnames_start > gnames_end || gnames_start2 > gnames_end2)
+					break;
+			}
+			if (found) break;
+		}
+
 		for (auto v : ret)
 		{
 			std::stringstream ss; ss << std::hex << v;
@@ -587,7 +621,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadJsonCore()) return 0;
 
 	process_id = DetectUe4Game();
-
+/*
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+*/
 	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	uiMainWindow->Show(MainUi);
 
