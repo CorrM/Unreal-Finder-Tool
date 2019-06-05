@@ -145,7 +145,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 	int threadCount = Utils::Settings.SdkGen.Threads;
 	const auto sdkPath = path / "SDK";
 	fs::create_directories(sdkPath);
-
+	
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
 

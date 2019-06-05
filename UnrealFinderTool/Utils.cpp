@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <cctype>
 
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;

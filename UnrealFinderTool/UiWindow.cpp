@@ -25,6 +25,8 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	// Get UiWindow Pointer
 	RECT rect;
 	auto pUiWindow = reinterpret_cast<UiWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	if (pUiWindow == nullptr)
+		return DefWindowProc(hWnd, msg, wParam, lParam);
 
 	switch (msg)
 	{
@@ -74,6 +76,9 @@ void UiWindow::Show(UiFunc uiForm)
 	{
 		uiFunc = std::move(uiForm);
 		loopThread = std::thread(&UiWindow::WinLoop, this);
+		auto ht = static_cast<HANDLE>(loopThread.native_handle());
+		SetThreadPriority(ht, THREAD_PRIORITY_ABOVE_NORMAL);
+		loopThread.join();
 	}
 }
 
@@ -105,7 +110,12 @@ bool UiWindow::CreateUiWindow(std::string& title, std::string& className, const 
 	// Create application window
 	wc = { sizeof(WNDCLASSEX), CS_CLASSDC, &UiWindow::WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, className.c_str(), nullptr };
 	RegisterClassEx(&wc);
-	hWindow = CreateWindow(wc.lpszClassName, title.c_str(), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, 100, 100, width, height, NULL, NULL, wc.hInstance, NULL);
+	hWindow = CreateWindow(wc.lpszClassName, title.c_str(), WS_OVERLAPPED | WS_SYSMENU  | WS_MINIMIZEBOX , 100, 100, width, height, NULL, NULL, wc.hInstance, NULL);
+	if (!hWindow) {
+		UnregisterClass(wc.lpszClassName, wc.hInstance);
+		MessageBox(HWND_DESKTOP, "Unable to create main window!", "CorrM Finder", MB_ICONERROR | MB_OK);
+		return false;
+	}
 
 	HINSTANCE hInstance = wc.hInstance;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
@@ -329,4 +339,14 @@ void UiWindow::SetStyle()
 	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Ruda-Bold.ttf", 14);
 	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Ruda-Bold.ttf", 18);
 	*/
+}
+
+HWND UiWindow::GetWindowHandle()
+{
+	return hWindow;
+}
+
+void UiWindow::FlashWindow()
+{
+	::FlashWindow(hWindow, TRUE);
 }

@@ -12,6 +12,7 @@
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
+UiWindow *uiMainWindow = nullptr;
 bool memory_init = false;
 
 int DetectUe4Game(HWND* windowHandle)
@@ -205,7 +206,7 @@ void StartSdkGenerator()
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
-		                              &sg_packages_done_count,
+		                              &sg_packages_item_current,
 		                              sg_game_name_buf,
 		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]),
 		                              static_cast<SdkType>(sg_type_item_current),
@@ -215,6 +216,7 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
+			uiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
@@ -586,10 +588,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	process_id = DetectUe4Game();
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
-	ui.Show(MainUi);
+	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
+	uiMainWindow->Show(MainUi);
 
-	while (!ui.Closed())
+	while (!uiMainWindow->Closed())
 		Sleep(1);
 
 	if (Utils::MemoryObj != nullptr)
