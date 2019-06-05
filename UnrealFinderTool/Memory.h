@@ -54,4 +54,5 @@ public:
 	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
 	bool SuspendProcess();
 	bool ResumeProcess();
+	bool IsSuspend();
 };

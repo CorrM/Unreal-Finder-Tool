@@ -7,18 +7,18 @@
 
 GObjectInfo ObjectsStore::gInfo;
 UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
-int ObjectsStore::maxZeroAddress = 150;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)
 {
+	ObjectsStore tmp;
 	if (!forceReInit && gInfo.GObjAddress != NULL)
 		return true;
 
 	GObjObjects.clear();
 	gInfo.Count = 0;
 	gInfo.GObjAddress = gObjAddress;
-	return FetchData();
+	return tmp.FetchData();
 }
 
 bool ObjectsStore::FetchData()
@@ -84,11 +84,10 @@ bool ObjectsStore::ReadUObjectArray()
 bool ObjectsStore::ReadUObjectArrayPnP()
 {
 	JsonStruct uObject;
-	int skipCount = 0;
 
 	for (int i = 0; i < gInfo.ChunksCount; ++i)
 	{
-		skipCount = 0;
+		int skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress + size_t(offset)) : gInfo.GObjAddress;
 
@@ -108,7 +107,7 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 			auto curObject = std::make_unique<UEObject>();
 
 			// Skip bad object in GObjects array
-			if (ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(*curObject))
+			if (ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(curObject->Object))
 			{
 				++skipCount;
 				continue;
@@ -125,11 +124,10 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 bool ObjectsStore::ReadUObjectArrayNormal()
 {
 	JsonStruct fUObjectItem, uObject;
-	int skipCount = 0;
 
 	for (int i = 0; i < gInfo.ChunksCount; ++i)
 	{
-		skipCount = 0;
+		int skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress + size_t(offset)) : gInfo.GObjAddress;
 
@@ -152,7 +150,7 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			auto curObject = std::make_unique<UEObject>();
 
 			// Skip bad object in GObjects array
-			if (!ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(*curObject))
+			if (!ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(curObject->Object))
 			{
 				++skipCount;
 				continue;
@@ -177,12 +175,39 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 	return true;
 }
 
-bool ObjectsStore::IsValidUObject(const UEObject& uObject)
+bool ObjectsStore::IsValidUObject(const UObject& uObject, bool outerCheck) const
 {
 	if (NamesStore().GetNamesNum() == 0)
 		throw std::exception("Init NamesStore first.");
 
-	return size_t(uObject.Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum();
+	// Check if FName Index is bigger than current names count
+	if (size_t(uObject.Name.ComparisonIndex) >= NamesStore().GetNamesNum()) return false;
+
+	// Check internal index, it's must be bigger than the last one [ By one ]
+	if (!outerCheck && !GObjObjects.empty())
+	{
+		UEObject& lastObj = *GObjObjects.back().second;
+		if (uObject.InternalIndex < lastObj.Object.InternalIndex ||
+			uObject.InternalIndex > lastObj.Object.InternalIndex + 5)
+			return false;
+	}
+
+	// Check Outer is == NULL or Valid
+	if (uObject.Outer != NULL)
+	{
+		bool found;
+		UEObject& outer2 = GetByAddress(uObject.Outer, found);
+
+		// if not found
+		if (!found) return false;
+
+		// if found, check is valid or not
+		if (!IsValidUObject(outer2.Object, true)) return false;
+	}
+
+	// Check class
+
+	return true;
 }
 
 uintptr_t ObjectsStore::GetAddress()
@@ -207,7 +232,8 @@ UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
 
 UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
 {
-	return *GObjObjects.Find(objAddress, success);
+	auto& uniquePtr = GObjObjects.Find(objAddress, success);
+	return success ? *uniquePtr : UEObjectEmpty;
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

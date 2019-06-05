@@ -7,6 +7,7 @@
 
 // => Main Options Section
 inline bool process_id_disabled = false;
+inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
@@ -83,6 +84,7 @@ inline int sg_packages_item_current = 0;
 static void DisabledAll()
 {
 	process_id_disabled = true;
+	process_detector_disabled = true;
 	use_kernal_disabled = true;
 
 	g_objects_disabled = true;
@@ -133,9 +135,9 @@ static void HelpMarker(const char* desc)
 	}
 }
 
-static void WarningPopup(const std::string& key, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
+static void WarningPopup(const std::string& title, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
 {
-	std::string id = "Warning##" + key;
+	std::string id = title + "##" + message;
 
 	if (opener)
 		ui::OpenPopup(id.c_str());

@@ -32,7 +32,9 @@ public:
 		});
 
 		success = it != this->end();
-		return it->second;
+		if (success)
+			return it->second;
+		return V{}; // if code hit this point then maybe there a problem need to solve :D
 	}
 
 	V& Find(const K& ref)

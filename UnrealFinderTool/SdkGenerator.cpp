@@ -84,8 +84,11 @@ GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPacka
 	if (generator->ShouldDumpArrays())
 	{
 		Dump(outputDirectory);
-		state = "Dump (GNames/GObjects) Done";
+		state = "Dump (GNames/GObjects) Done.";
+		Sleep(3 * 1000);
 	}
+
+	state = "Getting Packages Done.";
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();

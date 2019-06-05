@@ -10,7 +10,29 @@
 
 #include <sstream>
 
+#define UNREAL_WINDOW_CLASS "UnrealWindow"
+
 bool memory_init = false;
+
+int DetectUe4Game(HWND* windowHandle)
+{
+	HWND childControl = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+	if (childControl != nullptr)
+	{
+		DWORD pId;
+		GetWindowThreadProcessId(childControl, &pId);
+		if (windowHandle != nullptr)
+			*windowHandle = childControl;
+		return pId;
+	}
+
+	return 0;
+}
+
+int DetectUe4Game()
+{
+	return DetectUe4Game(nullptr);
+}
 
 bool IsValidProcess(const int p_id, HANDLE& pHandle)
 {
@@ -48,6 +70,8 @@ void StartGObjFinder(const bool easyMethod)
 	{
 		DisabledAll();
 		g_objects_find_disabled = true;
+		g_objects_disabled = false;
+		g_names_disabled = false;
 
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
@@ -69,6 +93,8 @@ void StartGObjFinder(const bool easyMethod)
 		g_objects_find_disabled = false;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -79,6 +105,8 @@ void StartGNamesFinder()
 	{
 		DisabledAll();
 		g_names_find_disabled = true;
+		g_objects_disabled = false;
+		g_names_disabled = false;
 
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
@@ -99,7 +127,7 @@ void StartGNamesFinder()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
-	HANDLE ht = (HANDLE)t.native_handle();
+	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
@@ -130,6 +158,8 @@ void StartClassFinder()
 		class_find_disabled = false;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -155,6 +185,8 @@ void StartInstanceLogger()
 		il_names_count = retState.GNamesCount;
 		EnabledAll();
 	});
+	auto ht = static_cast<HANDLE>(t.native_handle());
+	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -193,7 +225,7 @@ void StartSdkGenerator()
 		g_names_find_disabled = false;
 		EnabledAll();
 	});
-	HANDLE ht = (HANDLE)t.native_handle();
+	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
@@ -206,13 +238,6 @@ void MainUi(UiWindow& thiz)
 	{
 		if (ui::Button(ICON_FA_COG))
 			ui::OpenPopup("SettingsMenu");
-
-		if (ui::IsItemHovered())
-		{
-			ui::BeginTooltip();
-			ui::TextUnformatted("Process Options");
-			ui::EndTooltip();
-		}
 
 		if (ui::BeginPopup("SettingsMenu"))
 		{
@@ -252,7 +277,30 @@ void MainUi(UiWindow& thiz)
 	{
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
+		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled); ui::SameLine();
+
+		if (ui::IsItemHovered())
+		{
+			if (process_id != NULL)
+			{
+				ui::BeginTooltip();
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : "); ui::SameLine();
+
+				// Get Window Title
+				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+				char windowTitle[30] = { 0 };
+				GetWindowText(window, windowTitle, 30);
+
+				ui::TextUnformatted(windowTitle);
+				ui::EndTooltip();
+			}
+		}
+
+		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
+		{
+			process_id = DetectUe4Game();
+		});
 	}
 	
 	// Use Kernal
@@ -366,7 +414,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartGNamesFinder();
 						else
-							popup_not_valid_process = false;
+							popup_not_valid_process = true;
 					});
 
 					ui::SameLine();
@@ -408,7 +456,7 @@ void MainUi(UiWindow& thiz)
 						if (IsReadyToGo())
 							StartClassFinder();
 						else
-							popup_not_valid_process = false;
+							popup_not_valid_process = true;
 					});
 
 					ui::SameLine();
@@ -454,7 +502,7 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartInstanceLogger();
 					else
-						popup_not_valid_process = false;
+						popup_not_valid_process = true;
 				});
 
 				ui::EndTabItem();
@@ -505,7 +553,7 @@ void MainUi(UiWindow& thiz)
 					if (IsReadyToGo())
 						StartSdkGenerator();
 					else
-						popup_not_valid_process = false;
+						popup_not_valid_process = true;
 				});
 
 				ui::EndTabItem();
@@ -517,10 +565,10 @@ void MainUi(UiWindow& thiz)
 
 	// Popups
 	{
-		WarningPopup("SdkFinish", "Sdk Generator finished. !!", sg_finished);
-		WarningPopup("NotValidProcess", "Not Valid Process ID. !!", popup_not_valid_process);
-		WarningPopup("NotValidGNames", "Not Valid GNames Address. !!", popup_not_valid_gnames);
-		WarningPopup("NotValidGObjects", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
+		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
+		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
+		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
 }
 
@@ -535,6 +583,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
+
+	process_id = DetectUe4Game();
 
 	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
