@@ -43,9 +43,8 @@ void Memory::UpdateHandle(const HANDLE processHandle)
 int Memory::GetProcessIdByName(char* processName)
 {
 	PROCESSENTRY32 pe32;
-	HANDLE hSnapshot = nullptr;
 	pe32.dwSize = sizeof(PROCESSENTRY32);
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
 	if (Process32First(hSnapshot, &pe32)) {
 		do
@@ -66,7 +65,7 @@ int Memory::GetProcessIdByName(char* processName)
 
 MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 {
-	MODULEINFO miInfos = { NULL };
+	MODULEINFO miInfos = {nullptr };
 	const HMODULE hModule = GetModuleHandle(lpModuleName);
 	if (hModule) GetModuleInformation(GetCurrentProcess(), hModule, &miInfos, sizeof MODULEINFO);
 
@@ -133,7 +132,7 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-int Memory::ReadBytes(const uintptr_t address, const PVOID buf, const uint32_t len)
+int Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const uint32_t len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -144,7 +143,7 @@ int Memory::ReadBytes(const uintptr_t address, const PVOID buf, const uint32_t l
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			buf,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -161,6 +160,40 @@ int Memory::ReadBytes(const uintptr_t address, const PVOID buf, const uint32_t l
 	return numberOfBytesActuallyRead;
 }
 
+int Memory::ReadBytes(const uintptr_t baseAddress, JsonVar& jsonVar, const LPVOID buf)
+{
+	if (baseAddress == static_cast<uintptr_t>(-1))
+		return 0;
+
+	SIZE_T numberOfBytesActuallyRead = 0;
+	const SIZE_T numberOfBytesToRead = jsonVar.Size;
+
+	if (use_kernal)
+	{
+		const bool state = bypaPh->RWVM(bypaPh->m_hTarget,
+			reinterpret_cast<LPVOID>(baseAddress + jsonVar.Offset),
+			buf,
+			numberOfBytesToRead,
+			&numberOfBytesActuallyRead);
+
+		/*if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
+	}
+	else
+	{
+		const bool success = ReadProcessMemory(ProcessHandle, 
+			reinterpret_cast<LPCVOID>(baseAddress + jsonVar.Offset),
+			buf,
+			numberOfBytesToRead,
+			&numberOfBytesActuallyRead);
+
+		/*if (!success && GetLastError() != 299)
+			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
+	}
+
+	return numberOfBytesActuallyRead;
+}
+
 bool Memory::ReadBool(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
@@ -173,7 +206,7 @@ bool Memory::ReadBool(const uintptr_t address)
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -204,7 +237,7 @@ int Memory::ReadInt(const uintptr_t address)
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -233,7 +266,7 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -262,7 +295,7 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -290,7 +323,7 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -319,7 +352,7 @@ float Memory::ReadFloat(const uintptr_t address) {
 	if (use_kernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<PVOID>(address),
+			reinterpret_cast<LPVOID>(address),
 			&buffer,
 			numberOfBytesToRead,
 			&numberOfBytesActuallyRead);
@@ -386,7 +419,7 @@ string Memory::ReadText(uintptr_t address)
 		if (use_kernal)
 		{
 			const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-				reinterpret_cast<PVOID>(address),
+				reinterpret_cast<LPVOID>(address),
 				&buffer,
 				numberOfBytesToRead,
 				&numberOfBytesActuallyRead);

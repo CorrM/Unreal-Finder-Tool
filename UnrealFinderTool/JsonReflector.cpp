@@ -246,6 +246,8 @@ bool JsonReflector::ReadAndLoadFile(const std::string& fileName, const bool over
 
 int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overrideOld)
 {
+	if (typeName == "bool")
+		return sizeof(bool);
 	if (typeName == "int8")
 		return sizeof(int8_t);
 	if (typeName == "int16")
@@ -293,6 +295,7 @@ int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overr
 bool JsonReflector::IsStructType(const std::string& typeName)
 {
 	const bool isStruct =
+		typeName == "bool" ||
 		typeName == "int8" ||
 		typeName == "int16" ||
 		typeName == "int" ||
