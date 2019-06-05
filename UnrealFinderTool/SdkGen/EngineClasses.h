@@ -175,18 +175,24 @@ public:
 		m->ReadBytes(objAddress, jStruct["InterfacePointer"], &InterfacePointer);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// It's Initialized
 		init = true;
 
 		// Return next var offset
-		return jStruct.StructSize;
+		return jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 
 	bool IsInit()
@@ -264,13 +270,13 @@ public:
 		m->ReadBytes(objAddress, jStruct["SerialNumber"], &SerialNumber);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// It's Initialized
 		init = true;
 
 		// Return next var offset
-		return jStruct.StructSize;
+		return jStruct.GetSize();
 	}
 
 	int ReadData()
@@ -278,9 +284,61 @@ public:
 		return ReadData(ObjAddress);
 	}
 
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
+
 	bool IsInit()
 	{
 		return init;
+	}
+};
+
+class FNameEntity
+{
+	Memory* m = Utils::MemoryObj;
+
+public:
+	// Object remote address
+	uintptr_t ObjAddress = NULL;
+
+	size_t Index;
+	std::string AnsiName;
+
+	FNameEntity() = default;
+	explicit FNameEntity(const size_t index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
+
+	std::string TypeName() { return "FNameEntity"; }
+
+	void FixPointers(const int fullStructSize)
+	{
+		// 
+	}
+
+	int ReadData(const uintptr_t objAddress, const int ansiNameOffset)
+	{
+		ObjAddress = objAddress;
+
+		if (ObjAddress == NULL)
+			throw std::exception("ObjAddress cant be zero !!");
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		m->ReadBytes(objAddress, jStruct["Index"], &Index);
+		AnsiName = m->ReadText(objAddress + ansiNameOffset);
+
+		// Fix pointer for x32 tool version
+		FixPointers(jStruct.GetSize());
+
+		// Return next var offset
+		return jStruct.GetSize();
+	}
+
+	int ReadData(const int ansiNameOffset)
+	{
+		return ReadData(ObjAddress, ansiNameOffset);
 	}
 };
 
@@ -331,17 +389,23 @@ public:
 		m->ReadBytes(ObjAddress, jStruct["Outer"], &Outer);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// It's initialized
 		init = true;
 
-		return jStruct.StructSize;
+		return jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 
 	bool IsEqual(const UObject& toCheck) const
@@ -399,14 +463,20 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Next"], &Next);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -441,15 +511,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff , jStruct["CppForm"], &CppForm);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -485,15 +561,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["MinAlignment"], &MinAlignment);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -516,15 +598,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -574,15 +662,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Func"], &Func);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -605,15 +699,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -666,15 +766,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["PostConstructLinkNext"], &PostConstructLinkNext);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -697,15 +803,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -732,15 +844,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Enum"], &Enum);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -763,15 +881,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -794,15 +918,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -825,15 +955,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -856,15 +992,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -887,15 +1029,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -918,15 +1066,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -949,15 +1103,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -980,15 +1140,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1011,15 +1177,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1051,15 +1223,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["FieldMask"], &FieldMask);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1086,15 +1264,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["PropertyClass"], &PropertyClass);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1117,15 +1301,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1152,15 +1342,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["MetaClass"], &MetaClass);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1187,15 +1383,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["InterfaceClass"], &InterfaceClass);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1218,15 +1420,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1249,15 +1457,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1280,15 +1494,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1315,15 +1535,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["MetaClass"], &MetaClass);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1346,15 +1572,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1381,15 +1613,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Struct"], &Struct);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1412,15 +1650,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1443,15 +1687,21 @@ public:
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1478,15 +1728,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Inner"], &Inner);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1518,15 +1774,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["ValueProp"], &ValueProp);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1553,15 +1815,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["SignatureFunction"], &SignatureFunction);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1588,15 +1856,21 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["SignatureFunction"], &SignatureFunction);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -1628,14 +1902,20 @@ public:
 		m->ReadBytes(ObjAddress + lastOff, jStruct["Enum"], &Enum);
 
 		// Fix pointer for x32 tool version
-		FixPointers(jStruct.StructSize);
+		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.StructSize;
+		return lastOff + jStruct.GetSize();
 	}
 
 	int ReadData()
 	{
 		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };

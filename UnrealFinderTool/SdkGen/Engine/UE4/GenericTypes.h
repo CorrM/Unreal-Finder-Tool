@@ -13,7 +13,7 @@ class UEClass;
 class UEObject
 {
 protected:
-	mutable UClass objClass;
+	mutable UClass objClass{};
 	mutable uintptr_t packageAddress = NULL;
 	mutable std::string objName, fullName, nameCpp;
 
@@ -21,7 +21,7 @@ public:
 	UObject Object;
 
 	UEObject() = default;
-	UEObject(const UObject object) : Object(object) { }
+	explicit UEObject(const UObject object) : Object(object) { }
 
 	uintptr_t GetAddress() const;
 	bool IsValid() const;

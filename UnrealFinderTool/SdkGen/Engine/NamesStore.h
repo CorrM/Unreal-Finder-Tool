@@ -5,17 +5,10 @@
 class Memory;
 class NamesIterator;
 
-class GName
-{
-public:
-	size_t Index;
-	std::string AnsiName;
-};
-
 class NamesStore
 {
 	friend NamesIterator;
-	static std::vector<GName> gNames;
+	static std::vector<FNameEntity> gNames;
 	static int gNamesChunkCount, gNamesChunks;
 	static uintptr_t gNamesAddress;
 	static bool FetchData();
@@ -59,7 +52,7 @@ public:
 	std::string GetById(size_t id);
 };
 
-class NamesIterator : public std::iterator<std::forward_iterator_tag, GName>
+class NamesIterator : public std::iterator<std::forward_iterator_tag, FNameEntity>
 {
 	const NamesStore& store;
 	size_t index;
@@ -79,7 +72,7 @@ public:
 
 	bool operator!=(const NamesIterator& rhs) const;
 
-	GName operator*() const;
+	FNameEntity operator*() const;
 
-	GName operator->() const;
+	FNameEntity operator->() const;
 };

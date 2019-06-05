@@ -1,5 +1,7 @@
 #include "pch.h"
+#include "JsonReflector.h"
 #include "Memory.h"
+
 #include <TlHelp32.h>
 #include <psapi.h>
 
@@ -12,7 +14,7 @@ Memory::Memory(const HANDLE processHandle, const bool useKernal)
 
 	ProcessHandle = processHandle;
 	ProcessId = GetProcessId(processHandle);
-	use_kernal = useKernal;
+	this->useKernal = useKernal;
 	if (useKernal && bypaPh == nullptr)
 		bypaPh = new BypaPH(ProcessId);
 
@@ -27,7 +29,7 @@ Memory::Memory(const int processId, const bool useKernal)
 
 	ProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 	ProcessId = GetProcessId(ProcessHandle);
-	use_kernal = useKernal;
+	this->useKernal = useKernal;
 	if (useKernal && bypaPh == nullptr)
 		bypaPh = new BypaPH(ProcessId);
 
@@ -93,7 +95,7 @@ bool Memory::IsSuspend()
 	return false;
 }
 
-BOOL Memory::SetPrivilegeM(HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)
+BOOL Memory::SetPrivilegeM(const HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)
 {
 	TOKEN_PRIVILEGES tp;
 	LUID luid;
@@ -140,7 +142,7 @@ int Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const uint32_t 
 	SIZE_T numberOfBytesActuallyRead = 0;
 	const SIZE_T numberOfBytesToRead = len;
 
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -168,7 +170,7 @@ int Memory::ReadBytes(const uintptr_t baseAddress, JsonVar& jsonVar, const LPVOI
 	SIZE_T numberOfBytesActuallyRead = 0;
 	const SIZE_T numberOfBytesToRead = jsonVar.Size;
 
-	if (use_kernal)
+	if (useKernal)
 	{
 		const bool state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(baseAddress + jsonVar.Offset),
@@ -203,7 +205,7 @@ bool Memory::ReadBool(const uintptr_t address)
 	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 1
 	SIZE_T numberOfBytesActuallyRead;
 
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -234,7 +236,7 @@ int Memory::ReadInt(const uintptr_t address)
 	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 4
 	SIZE_T numberOfBytesActuallyRead;
 
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -263,7 +265,7 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 	INT64 buffer = 0;
 	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 8
 	SIZE_T numberOfBytesActuallyRead;
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -292,7 +294,7 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 	UINT32 buffer = 0;
 	const SIZE_T numberOfBytesToRead = sizeof buffer; //this is equal to 4
 	SIZE_T numberOfBytesActuallyRead;
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -320,7 +322,7 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 	UINT64 buffer = 0;
 	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 8
 	SIZE_T numberOfBytesActuallyRead;
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -349,7 +351,7 @@ float Memory::ReadFloat(const uintptr_t address) {
 	float buffer = 0.0;
 	const SIZE_T numberOfBytesToRead = sizeof(buffer); //this is equal to 4
 	SIZE_T numberOfBytesActuallyRead;
-	if (use_kernal)
+	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 			reinterpret_cast<LPVOID>(address),
@@ -404,9 +406,9 @@ float Memory::ReadPointerFloat(const uintptr_t address, int offsets[], int offse
 	return ReadFloat(GetPointerAddress(address, offsets, offsetCount));
 }
 
-string Memory::ReadText(uintptr_t address)
+std::string Memory::ReadText(uintptr_t address)
 {
-	string ret;
+	std::string ret;
 	if (address == static_cast<uintptr_t>(-1))
 		return "";
 
@@ -416,7 +418,7 @@ string Memory::ReadText(uintptr_t address)
 
 	while (true)
 	{
-		if (use_kernal)
+		if (useKernal)
 		{
 			const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
 				reinterpret_cast<LPVOID>(address),
@@ -441,7 +443,7 @@ string Memory::ReadText(uintptr_t address)
 	return ret;
 }
 
-string Memory::ReadPointerText(const uintptr_t address, int offsets[], int offsetCount) {
+std::string Memory::ReadPointerText(const uintptr_t address, int offsets[], int offsetCount) {
 	if (address == static_cast<uintptr_t>(-1))
 		return "";
 	return ReadText(GetPointerAddress(address, offsets, offsetCount));

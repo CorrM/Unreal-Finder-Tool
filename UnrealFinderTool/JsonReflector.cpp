@@ -71,7 +71,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, const bool overrid
 							offset += jVar.Size;
 						}
 
-						structSize += s->second.StructSize;
+						structSize += s->second.GetSize();
 					}
 				}
 				else
@@ -104,7 +104,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, const bool overrid
 			// Init struct
 			tempToSave.StructName = eName;
 			tempToSave.Vars = vars;
-			tempToSave.StructSize = structSize;
+			tempToSave.SetSize(structSize);
 
 			// [Copy] the struct to structs list
 			{
@@ -174,7 +174,7 @@ bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
 						offset += jVar.Size;
 					}
 
-					structSize += s->second.StructSize;
+					structSize += s->second.GetSize();
 				}
 			}
 			else
@@ -206,7 +206,7 @@ bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
 		// Init struct
 		tempToSave.StructName = eName;
 		tempToSave.Vars = vars;
-		tempToSave.StructSize = structSize;
+		tempToSave.SetSize(structSize);
 
 		// [Copy] the struct to structs list
 		{
@@ -285,7 +285,7 @@ int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overr
 		{
 			auto s = StructsList.find(typeName);
 			if (s != StructsList.end())
-				return s->second.StructSize;
+				return s->second.GetSize();
 		}
 		throw std::exception(("Cant find struct `" + typeName + "`.").c_str());
 	}
@@ -319,7 +319,7 @@ bool JsonReflector::IsStructType(const std::string& typeName)
 #pragma endregion
 
 #pragma region JsonStruct
-int JsonStruct::SubUnNeededSize()
+int JsonStruct::GetSize()
 {
 	int sSub = 0;
 	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
@@ -335,12 +335,17 @@ int JsonStruct::SubUnNeededSize()
 					var.second.ReadAsStruct();
 
 				if (var.second.Struct != nullptr)
-					sSub += var.second.Struct->SubUnNeededSize();
+					sSub += var.second.Struct->GetSize();
 			}
 		}
 	}
 
-	return sSub;
+	return structSize - sSub;
+}
+
+void JsonStruct::SetSize(const int newSize)
+{
+	structSize = newSize;
 }
 
 JsonVar& JsonStruct::operator[](const std::string& varName)

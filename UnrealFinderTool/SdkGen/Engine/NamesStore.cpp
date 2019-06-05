@@ -2,7 +2,7 @@
 #include "Memory.h"
 #include "NamesStore.h"
 
-std::vector<GName> NamesStore::gNames;
+std::vector<FNameEntity> NamesStore::gNames;
 int NamesStore::gNamesChunkCount;
 int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
@@ -31,7 +31,6 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
-	FNameEntity fName;
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -64,28 +63,25 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 	{
 		for (int j = 0; j < gNamesChunkCount; ++j)
 		{
-			GName tmp;
+			FNameEntity tmp;
 			const int offset = ptrSize * j;
 			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!IsValidAddress(fNameAddress))
 			{
+				// Push Empty, if i just skip will case a problems, so just add empty item
 				tmp.Index = i;
 				tmp.AnsiName = "";
 
-				gNames.emplace_back(std::move(tmp));
+				gNames.push_back(std::move(tmp));
 				++i;
 				continue;
 			}
 
 			// Read FName
-			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
+			if (!tmp.ReadData(fNameAddress, nameOffset)) return false;
 
-			// Set The Name
-			tmp.Index = i;
-			tmp.AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
-
-			gNames.emplace_back(std::move(tmp));
+			gNames.push_back(std::move(tmp));
 			++i;
 		}
 	}
@@ -118,8 +114,7 @@ void* NamesStore::GetAddress()
 
 size_t NamesStore::GetNamesNum() const
 {
-	int num = gNamesChunkCount * gNamesChunks;
-	return size_t(num);
+	return gNamesChunkCount * gNamesChunks;
 }
 
 bool NamesStore::IsValid(const size_t id)
@@ -204,13 +199,13 @@ bool NamesIterator::operator!=(const NamesIterator& rhs) const
 	return index != rhs.index;
 }
 
-GName NamesIterator::operator*() const
+FNameEntity NamesIterator::operator*() const
 {
-	return { index, NamesStore(store).GetById(index) };
+	return NamesStore::gNames[index];
 }
 
-GName NamesIterator::operator->() const
+FNameEntity NamesIterator::operator->() const
 {
-	return { index, NamesStore(store).GetById(index) };
+	return NamesStore::gNames[index];
 }
 #pragma endregion

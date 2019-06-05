@@ -77,7 +77,9 @@ private:
 
 class JsonStruct
 {
-	bool _init = false;
+	// Size of this struct
+	int structSize = 0;
+
 public:
 	// Struct Name
 	std::string StructName;
@@ -85,11 +87,11 @@ public:
 	std::string StructSuper;
 	// Variables inside this struct
 	JsonVariables Vars;
-	// Size of this struct
-	int StructSize = 0;
 
-	// Get size must sub from struct size, useful for 32bit games in 64bit version of this tool
-	int SubUnNeededSize();
+	// Size of this struct, useful for 32bit games in 64bit version of this tool
+	int GetSize();
+	// Don't use it outside `JsonReflector Load Functions`
+	void SetSize(int newSize);
 	// Access to variable inside this struct
 	JsonVar& operator[](const std::string& varName);
 	// Access to variable inside this struct
