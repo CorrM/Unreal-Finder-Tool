@@ -9,6 +9,7 @@
 
 // #define OFFSET(s, m) ((size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
 #define OFFSET(m) ((int)&reinterpret_cast<char const volatile&>((((decltype(this))0)->m)))
+#define FILL_DATA(pData, var, offset) var = *reinterpret_cast<decltype(var)*>(&pData[offset])
 #define SIZE_OF_ME sizeof(decltype(this))
 
 class UClass;
@@ -128,6 +129,7 @@ class FScriptInterface
 {
 	bool init = false;
 	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
 
 public:
 	// Object remote address
@@ -165,16 +167,34 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(objAddress, jStruct["ObjectPointer"], &ObjectPointer);
-		m->ReadBytes(objAddress, jStruct["InterfacePointer"], &InterfacePointer);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, ObjectPointer, jStruct["ObjectPointer"].Offset);
+		FILL_DATA(pData, InterfacePointer, jStruct["InterfacePointer"].Offset);
 
 		// It's Initialized
 		init = true;
 
-		// Return next var offset
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+
 		return jStruct.GetSize();
 	}
 
@@ -232,6 +252,7 @@ class FUObjectItem
 {
 	bool init = false;
 	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
 
 public:
 	// Object remote address
@@ -246,7 +267,7 @@ public:
 
 	void FixPointers(const int fullStructSize)
 	{
-		// 
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Object) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -258,19 +279,38 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(objAddress, jStruct["Object"], &Object);
-		m->ReadBytes(objAddress, jStruct["Flags"], &Flags);
-		m->ReadBytes(objAddress, jStruct["ClusterIndex"], &ClusterIndex);
-		m->ReadBytes(objAddress, jStruct["SerialNumber"], &SerialNumber);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Read this struct
+		FILL_DATA(pData, Object, jStruct["Object"].Offset);
+		FILL_DATA(pData, Flags, jStruct["Flags"].Offset);
+		FILL_DATA(pData, ClusterIndex, jStruct["ClusterIndex"].Offset);
+		FILL_DATA(pData, SerialNumber, jStruct["SerialNumber"].Offset);
 
 		// It's Initialized
 		init = true;
 
-		// Return next var offset
-		return jStruct.GetSize();
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		
+		return true;
 	}
 
 	bool ReadData()
@@ -292,7 +332,9 @@ public:
 
 class FNameEntity
 {
+	bool init = false;
 	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
 
 public:
 	// Object remote address
@@ -320,18 +362,41 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(objAddress, jStruct["Index"], &Index);
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, Index, jStruct["Index"].Offset);
 		AnsiName = m->ReadText(objAddress + ansiNameOffset);
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
-
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
 	bool ReadData(const int ansiNameOffset)
 	{
 		return ReadData(ObjAddress, ansiNameOffset);
+	}
+
+	bool IsInit()
+	{
+		return init;
 	}
 };
 
@@ -340,6 +405,7 @@ class UObject
 	bool init = false;
 protected:
 	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
 
 public:
 	// Object remote address
@@ -372,22 +438,37 @@ public:
 			return false;
 
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Read this struct
-		m->ReadBytes(ObjAddress, jStruct["VfTable"], &VfTable);
-		m->ReadBytes(ObjAddress, jStruct["Flags"], &Flags);
-		m->ReadBytes(ObjAddress, jStruct["InternalIndex"], &InternalIndex);
-		m->ReadBytes(ObjAddress, jStruct["Class"], &Class);
-		m->ReadBytes(ObjAddress, jStruct["Name"], &Name);
-		m->ReadBytes(ObjAddress, jStruct["Outer"], &Outer);
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, VfTable, jStruct["VfTable"].Offset);
+		FILL_DATA(pData, Flags, jStruct["Flags"].Offset);
+		FILL_DATA(pData, InternalIndex, jStruct["InternalIndex"].Offset);
+		FILL_DATA(pData, Class, jStruct["Class"].Offset);
+		FILL_DATA(pData, Name, jStruct["Name"].Offset);
+		FILL_DATA(pData, Outer, jStruct["Outer"].Offset);
 
 		// It's initialized
 		init = true;
 
-		return jStruct.GetSize();
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
 	}
 
 	bool ReadData()
@@ -445,16 +526,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObject::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["Next"], &Next);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObject::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Next, jStruct["Next"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -491,19 +594,40 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UField::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["CppType"], &CppType);
-		m->ReadBytes(ObjAddress, jStruct["Names"], &Names);
-		m->ReadBytes(ObjAddress, jStruct["CppForm"], &CppForm);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, CppType, jStruct["CppType"].Offset);
+		FILL_DATA(pData, Names, jStruct["Names"].Offset);
+		FILL_DATA(pData, CppForm, jStruct["CppForm"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -540,20 +664,41 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UField::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["SuperField"], &SuperField);
-		m->ReadBytes(ObjAddress, jStruct["Children"], &Children);
-		m->ReadBytes(ObjAddress, jStruct["PropertySize"], &PropertySize);
-		m->ReadBytes(ObjAddress, jStruct["MinAlignment"], &MinAlignment);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SuperField, jStruct["SuperField"].Offset);
+		FILL_DATA(pData, Children, jStruct["Children"].Offset);
+		FILL_DATA(pData, PropertySize, jStruct["PropertySize"].Offset);
+		FILL_DATA(pData, MinAlignment, jStruct["MinAlignment"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -581,16 +726,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UStruct::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -635,26 +799,47 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UStruct::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["FunctionFlags"], &FunctionFlags);
-		m->ReadBytes(ObjAddress, jStruct["NumParms"], &NumParms);
-		m->ReadBytes(ObjAddress, jStruct["ParmsSize"], &ParmsSize);
-		m->ReadBytes(ObjAddress, jStruct["ReturnValueOffset"], &ReturnValueOffset);
-		m->ReadBytes(ObjAddress, jStruct["RPCId"], &RPCId);
-		m->ReadBytes(ObjAddress, jStruct["RPCResponseId"], &RPCResponseId);
-		m->ReadBytes(ObjAddress, jStruct["FirstPropertyToInit"], &FirstPropertyToInit);
-		m->ReadBytes(ObjAddress, jStruct["EventGraphFunction"], &EventGraphFunction);
-		m->ReadBytes(ObjAddress, jStruct["EventGraphCallOffset"], &EventGraphCallOffset);
-		m->ReadBytes(ObjAddress, jStruct["Func"], &Func);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+			FILL_DATA(pData, Func, jStruct["Func"].Offset);
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, FunctionFlags, jStruct["FunctionFlags"].Offset);
+		FILL_DATA(pData, NumParms, jStruct["NumParms"].Offset);
+		FILL_DATA(pData, ParmsSize, jStruct["ParmsSize"].Offset);
+		FILL_DATA(pData, ReturnValueOffset, jStruct["ReturnValueOffset"].Offset);
+		FILL_DATA(pData, RPCId, jStruct["RPCId"].Offset);
+		FILL_DATA(pData, RPCResponseId, jStruct["RPCResponseId"].Offset);
+		FILL_DATA(pData, FirstPropertyToInit, jStruct["FirstPropertyToInit"].Offset);
+		FILL_DATA(pData, EventGraphFunction, jStruct["EventGraphFunction"].Offset);
+		FILL_DATA(pData, EventGraphCallOffset, jStruct["EventGraphCallOffset"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -682,16 +867,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UStruct::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -735,24 +939,45 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UField::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["ArrayDim"], &ArrayDim);
-		m->ReadBytes(ObjAddress, jStruct["ElementSize"], &ElementSize);
-		m->ReadBytes(ObjAddress, jStruct["PropertyFlags"], &PropertyFlags);
-		m->ReadBytes(ObjAddress, jStruct["Offset"], &Offset);
-		m->ReadBytes(ObjAddress, jStruct["PropertyLinkNext"], &PropertyLinkNext);
-		m->ReadBytes(ObjAddress, jStruct["NextRef"], &NextRef);
-		m->ReadBytes(ObjAddress, jStruct["DestructorLinkNext"], &DestructorLinkNext);
-		m->ReadBytes(ObjAddress, jStruct["PostConstructLinkNext"], &PostConstructLinkNext);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, ArrayDim, jStruct["ArrayDim"].Offset);
+		FILL_DATA(pData, ElementSize, jStruct["ElementSize"].Offset);
+		FILL_DATA(pData, PropertyFlags, jStruct["PropertyFlags"].Offset);
+		FILL_DATA(pData, Offset, jStruct["Offset"].Offset);
+		FILL_DATA(pData, PropertyLinkNext, jStruct["PropertyLinkNext"].Offset);
+		FILL_DATA(pData, NextRef, jStruct["NextRef"].Offset);
+		FILL_DATA(pData, DestructorLinkNext, jStruct["DestructorLinkNext"].Offset);
+		FILL_DATA(pData, PostConstructLinkNext, jStruct["PostConstructLinkNext"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -780,16 +1005,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -820,17 +1064,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["Enum"], &Enum);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Enum, jStruct["Enum"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -858,16 +1123,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -895,16 +1179,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -932,16 +1235,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -969,16 +1291,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1006,16 +1347,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1043,16 +1403,36 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		// Read Remote Memory
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1080,16 +1460,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1117,16 +1516,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1154,16 +1572,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UNumericProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1196,20 +1633,41 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["FieldSize"], &FieldSize);
-		m->ReadBytes(ObjAddress, jStruct["ByteOffset"], &ByteOffset);
-		m->ReadBytes(ObjAddress, jStruct["ByteMask"], &ByteMask);
-		m->ReadBytes(ObjAddress, jStruct["FieldMask"], &FieldMask);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, FieldSize, jStruct["FieldSize"].Offset);
+		FILL_DATA(pData, ByteOffset, jStruct["ByteOffset"].Offset);
+		FILL_DATA(pData, ByteMask, jStruct["ByteMask"].Offset);
+		FILL_DATA(pData, FieldMask, jStruct["FieldMask"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1240,17 +1698,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["PropertyClass"], &PropertyClass);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, PropertyClass, jStruct["PropertyClass"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1278,16 +1757,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObjectPropertyBase::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1318,17 +1816,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObjectProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["MetaClass"], &MetaClass);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, MetaClass, jStruct["MetaClass"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1359,17 +1878,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["InterfaceClass"], &InterfaceClass);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, InterfaceClass, jStruct["InterfaceClass"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1397,16 +1937,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObjectPropertyBase::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1434,16 +1993,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObjectPropertyBase::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1471,16 +2049,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UObjectPropertyBase::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1511,17 +2108,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UAssetObjectProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["MetaClass"], &MetaClass);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UAssetObjectProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, MetaClass, jStruct["MetaClass"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1549,16 +2167,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1589,17 +2226,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["Struct"], &Struct);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Struct, jStruct["Struct"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1627,16 +2285,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1664,16 +2341,35 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1704,17 +2400,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["Inner"], &Inner);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Inner, jStruct["Inner"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1749,18 +2466,39 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["KeyProp"], &KeyProp);
-		m->ReadBytes(ObjAddress, jStruct["ValueProp"], &ValueProp);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, KeyProp, jStruct["KeyProp"].Offset);
+		FILL_DATA(pData, ValueProp, jStruct["ValueProp"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1791,17 +2529,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["SignatureFunction"], &SignatureFunction);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SignatureFunction, jStruct["SignatureFunction"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1832,17 +2591,38 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["SignatureFunction"], &SignatureFunction);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SignatureFunction, jStruct["SignatureFunction"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
 		return true;
 	}
 
@@ -1877,18 +2657,40 @@ public:
 
 	bool ReadData(const uintptr_t objAddress)
 	{
-		// Read super first
-		UProperty::ReadData(objAddress);
+		// Set object remote address
+		ObjAddress = objAddress;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress, jStruct["UnderlyingProp"], &UnderlyingProp);
-		m->ReadBytes(ObjAddress, jStruct["Enum"], &Enum);
+		static int jSize = jStruct.GetSize();
 
-		// Fix pointer for x32 tool version
-		FixPointers(jStruct.GetSize());
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
 
-		// Return next var offset
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, UnderlyingProp, jStruct["UnderlyingProp"].Offset);
+		FILL_DATA(pData, Enum, jStruct["Enum"].Offset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+
 		return true;
 	}
 
