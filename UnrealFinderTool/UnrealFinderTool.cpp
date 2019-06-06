@@ -8,6 +8,8 @@
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 
+#include "Debug.h"
+
 #include <sstream>
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
@@ -619,6 +621,7 @@ void MainUi(UiWindow& thiz)
 	}
 }
 
+#pragma warning(disable:4996)
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 // ReSharper disable once CppInconsistentNaming
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
@@ -632,10 +635,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadJsonCore()) return 0;
 
 	process_id = DetectUe4Game();
-/*
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-*/
+
+	Debugging *d = new Debugging();
+	d->EnterDebugMode();
+
 	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	uiMainWindow->Show(MainUi);
 
