@@ -570,7 +570,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 590);
+					thiz.SetSize(380, 616);
 					cur_tap_id = 3;
 				}
 
