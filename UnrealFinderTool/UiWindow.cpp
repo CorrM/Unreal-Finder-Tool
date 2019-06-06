@@ -78,7 +78,7 @@ void UiWindow::Show(UiFunc uiForm)
 		loopThread = std::thread(&UiWindow::WinLoop, this);
 		auto ht = static_cast<HANDLE>(loopThread.native_handle());
 		SetThreadPriority(ht, THREAD_PRIORITY_ABOVE_NORMAL);
-		loopThread.join();
+		loopThread.detach();
 	}
 }
 
@@ -199,7 +199,7 @@ void UiWindow::SetupImGui()
 	auto fontAwesome = io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FAS, 11.0f, &icons_config, icons_ranges);
 
 	if (fontAwesome == nullptr)
-		throw std::exception("Cant load fonts.!");
+		io.Fonts->AddFontDefault();
 
 	settings.ClearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 }
