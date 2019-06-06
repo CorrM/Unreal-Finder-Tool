@@ -50,15 +50,9 @@ struct TArray
 
 	friend struct FString;
 
-public:
-	size_t Num() const
-	{
-		return Count;
-	};
-
 	bool IsValidIndex(const size_t i) const
 	{
-		return i < Num();
+		return i < Count;
 	}
 
 	void FixPointers(const int fullStructSize)

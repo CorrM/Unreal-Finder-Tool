@@ -43,11 +43,6 @@ class InstanceLogger
 	std::string GetName(int fNameIndex, bool& success);
 	std::string GetName(GObject obj);
 	LoggerState FetchData();
-	bool ReadUObjectArray(uintptr_t address);
-	bool ReadUObjectArrayPnP(uintptr_t address);
-	bool ReadUObjectArrayNormal(uintptr_t address);
-	bool ReadUObject(uintptr_t uObjectAddress, UObject& uObject, GObject& retObj);
-	bool ReadGNameArray(uintptr_t address);
 	bool ObjectDump();
 	bool NameDump();
 public:

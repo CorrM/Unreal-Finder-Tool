@@ -7,7 +7,7 @@
 #include "NamesStore.h"
 #include "SdkGenerator.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <fstream>
 #include <chrono>
 #include <bitset>

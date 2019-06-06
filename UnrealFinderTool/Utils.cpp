@@ -10,6 +10,7 @@
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;
 
+#pragma region Json
 bool Utils::LoadEngineCore()
 {
 	// Get all engine files and load it's structs
@@ -62,7 +63,18 @@ bool Utils::LoadSettings()
 	Settings.SdkGen.LoggerSpaceCount = sdkParas["logger SpaceCount"];
 	return true;
 }
+#pragma endregion
 
+#pragma region FileManager
+bool Utils::FileExists(const std::string& filePath)
+{
+	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+	return fs::exists(path);
+}
+
+#pragma endregion
+
+#pragma region string
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
 	std::vector<std::string> strings;
@@ -95,15 +107,19 @@ bool Utils::EndsWith(const std::string& value, const std::string& ending)
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-bool Utils::ProgramIs64()
+bool Utils::IsNumber(const std::string& s)
 {
-#if _WIN64
-	return true;
-#else
-	return false;
-#endif
+	return !s.empty() && std::find_if(s.begin(),
+		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
+bool Utils::IsHexNumber(const std::string& s)
+{
+	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
+}
+#pragma endregion
+
+#pragma region Types Converter
 int Utils::BufToInteger(void* buffer)
 {
 	return *reinterpret_cast<DWORD*>(buffer);
@@ -126,108 +142,9 @@ uintptr_t Utils::CharArrayToUintptr(const std::string& str)
 
 	return retVal;
 }
+#pragma endregion
 
-bool Utils::IsNumber(const std::string& s)
-{
-	return !s.empty() && std::find_if(s.begin(),
-		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
-}
-
-bool Utils::IsHexNumber(const std::string& s)
-{
-	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
-}
-
-void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
-{
-	// Check next 4byte of pointer equal 0 in local tool memory
-	// in 32bit game pointer is 4byte so i must zero the second part of uintptr_t in the tool memory
-	// so here i check if second part of uintptr_t is zero so it's didn't need fix
-	// this check is good for solve some problem when cast UObject to something like UEnum
-	// the base (UObject) is fixed but the other (UEnum members) not fixed so, this wil fix really members need to fix
-	// That's it :D
-	//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
-	//if (!needFix) return;
-
-	if (ProgramIs64() && MemoryObj->Is64Bit)
-		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
-
-	const int destSize = abs(varOffset - structSize);
-	const int srcSize = abs(varOffset - structSize) - 0x4;
-
-	char* src = static_cast<char*>(structBase) + varOffset;
-	char* dest = src + 0x4;
-
-	memcpy_s(dest, destSize, src, srcSize);
-	memset(dest, 0x0, 0x4);
-}
-
-uintptr_t Utils::ReadPointer(void* structBase, const int varOffset, const int structSize, const bool is64BitGame)
-{
-	uintptr_t ret = 0;
-	uintptr_t calcAddress = *reinterpret_cast<uintptr_t*>(structBase) + varOffset;
-
-	if (!is64BitGame)
-	{
-		ret = static_cast<DWORD>(calcAddress); // 4byte
-		if (ProgramIs64())
-			FixStructPointer(structBase, varOffset, structSize);
-	}
-	else
-	{
-		ret = static_cast<DWORD64>(calcAddress); // 8byte
-	}
-
-	return ret;
-}
-
-uintptr_t Utils::ReadPointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
-{
-	uintptr_t ret = 0;
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->GetAllocPointer()) + structBase->GetVar(varName).Offset;
-
-	if (!is64BitGame)
-	{
-		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
-		if (ProgramIs64())
-			FixStructPointer(structBase->GetAllocPointer(), structBase->GetVar(varName).Offset, structBase->StructSize);
-	}
-	else
-	{
-		ret = *reinterpret_cast<DWORD64*>(calcAddress); // 8byte
-	}
-
-	return ret;
-}
-
-void Utils::FixPointersInJsonStruct(JsonStruct* structBase, const bool is64BitGame)
-{
-	if (structBase == nullptr)
-		return;
-
-	if (!is64BitGame && ProgramIs64())
-	{
-		for (auto& var : structBase->Vars)
-		{
-			if (Utils::EndsWith(var.second.Type, "*"))
-				ReadPointer(structBase, var.first, is64BitGame);
-			else if (var.second.IsStruct)
-			{
-				if (var.second.Struct == nullptr)
-					var.second.ReadAsStruct();
-
-				if (var.second.Struct != nullptr)
-					FixPointersInJsonStruct(var.second.Struct, is64BitGame);
-			}
-		}
-	}
-}
-
-int Utils::PointerSize()
-{
-	return MemoryObj->Is64Bit ? 0x8 : 0x4;
-}
-
+#pragma region Address stuff
 bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
 {
 	if (INVALID_POINTER_VALUE(address))
@@ -375,6 +292,48 @@ bool Utils::IsValidGObjectsAddress(uintptr_t address)
 	return false;
 }
 
+void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
+{
+	{
+		// Check next 4byte of pointer equal 0 in local tool memory
+		// in 32bit game pointer is 4byte so i must zero the second part of uintptr_t in the tool memory
+		// so here i check if second part of uintptr_t is zero so it's didn't need fix
+		// this check is good for solve some problem when cast UObject to something like UEnum
+		// the base (UObject) is fixed but the other (UEnum members) not fixed so, this wil fix really members need to fix
+		// That's it :D
+		//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
+		//if (!needFix) return;
+	}
+
+	if (ProgramIs64() && MemoryObj->Is64Bit)
+		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
+
+	const int destSize = abs(varOffset - structSize);
+	const int srcSize = abs(varOffset - structSize) - 0x4;
+
+	char* src = static_cast<char*>(structBase) + varOffset;
+	char* dest = src + 0x4;
+
+	memcpy_s(dest, destSize, src, srcSize);
+	memset(dest, 0x0, 0x4);
+}
+
+int Utils::PointerSize()
+{
+	return MemoryObj->Is64Bit ? 0x8 : 0x4;
+}
+#pragma endregion
+
+#pragma region Tool stuff
+bool Utils::ProgramIs64()
+{
+	#if _WIN64
+		return true;
+	#else
+		return false;
+	#endif
+}
+
 void Utils::SleepEvery(const int ms, int& counter, const int every)
 {
 	if (every == 0)
@@ -393,3 +352,4 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 		++counter;
 	}
 }
+#pragma endregion
