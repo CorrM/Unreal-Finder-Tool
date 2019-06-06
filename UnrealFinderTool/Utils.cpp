@@ -406,15 +406,18 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 
 bool Utils::UnrealEngineVersion(std::string &ver)
 {
+	auto ret = false;
+
 	auto process = Utils::MemoryObj->ProcessHandle;
 	if (!process)
-		return false;
+		return ret;
 
 	std::string path;
 	path.resize(MAX_PATH, '\0');
 
 	DWORD path_size = MAX_PATH;
-	QueryFullProcessImageName(process, 0, path.data(), &path_size);
+	if (!QueryFullProcessImageName(process, 0, path.data(), &path_size))
+		return ret;
 	
 	unsigned long version_size = GetFileVersionInfoSize(path.c_str(), &version_size);
 	if (version_size > 0) {
@@ -435,10 +438,10 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 
 			std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." + std::to_string(v3);
 			ver = engine_version;
-			return true;
+			ret = true;
 		}
 		delete pData;
 	}
-	return false;
+	return ret;
 }
 
