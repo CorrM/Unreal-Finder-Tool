@@ -99,6 +99,8 @@ public:
 	/// <param name="structBase">Pointer to instance of struct</param>
 	/// <param name="is64BitGame">Target game is 64bit game</param>
 	static void FixPointersInJsonStruct(JsonStruct * structBase, bool is64BitGame);
+	static bool UnrealEngineVersion(std::string &ver);
+
 private:
 	/// <summary>
 	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.

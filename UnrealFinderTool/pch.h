@@ -9,6 +9,9 @@
 #ifndef PCH_H
 #define PCH_H
 
+#pragma comment(lib, "version")
+#pragma comment(lib, "mincore")
+
 #include <Windows.h>
 #include "BypaPH.h"
 #include "Utils.h"
