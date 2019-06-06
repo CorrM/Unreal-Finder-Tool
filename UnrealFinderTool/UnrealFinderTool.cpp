@@ -8,6 +8,8 @@
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 
+#include "Debug.h"
+
 #include <sstream>
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
@@ -50,6 +52,9 @@ void SetupMemoryStuff(const HANDLE pHandle)
 		memory_init = true;
 		Utils::MemoryObj = new Memory(pHandle, use_kernal);
 		if (!use_kernal) Utils::MemoryObj->GetDebugPrivileges();
+
+		// Grab engine version information
+		Utils::UnrealEngineVersion(ue_version);
 	}
 }
 
@@ -350,13 +355,20 @@ void MainUi(UiWindow& thiz)
 		});
 	}
 	
-	// Use Kernal
+	// Unreal version
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernal : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : "); ui::SameLine();
+		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
 	}
 	
+	// Use Kernel
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : "); ui::SameLine();
+		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+	}
+
 	// GObjects Address
 	{
 		ui::AlignTextToFramePadding();
@@ -619,6 +631,7 @@ void MainUi(UiWindow& thiz)
 	}
 }
 
+#pragma warning(disable:4996)
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 // ReSharper disable once CppInconsistentNaming
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
@@ -631,17 +644,21 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
+	// Autodetect incase game already open
 	process_id = DetectUe4Game();
-/*
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-*/
+
+	// Run the new debugging tools
+	Debugging *d = new Debugging();
+	d->EnterDebugMode();
+
+	// Launch the main window
 	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	uiMainWindow->Show(MainUi);
 
 	while (!uiMainWindow->Closed())
 		Sleep(1);
 
+	// Cleanup
 	if (Utils::MemoryObj != nullptr)
 	{
 		Utils::MemoryObj->ResumeProcess();
