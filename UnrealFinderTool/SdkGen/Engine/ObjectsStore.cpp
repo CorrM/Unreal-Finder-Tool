@@ -1,23 +1,23 @@
 #include "pch.h"
 #include "Memory.h"
 #include "ObjectsStore.h"
-#include "SdkGen/EngineClasses.h"
+#include "EngineClasses.h"
 #include "NamesStore.h"
 #include <cassert>
 
-GObjectInfo ObjectsStore::gInfo;
+GObjectInfo ObjectsStore::GInfo;
 UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)
 {
 	ObjectsStore tmp;
-	if (!forceReInit && gInfo.GObjAddress != NULL)
+	if (!forceReInit && GInfo.GObjAddress != NULL)
 		return true;
 
 	GObjObjects.clear();
-	gInfo.Count = 0;
-	gInfo.GObjAddress = gObjAddress;
+	GInfo.Count = 0;
+	GInfo.GObjAddress = gObjAddress;
 	return tmp.FetchData();
 }
 
@@ -34,7 +34,7 @@ bool ObjectsStore::GetGObjectInfo()
 		int skipCount = 0;
 		for (size_t uIndex = 0; uIndex <= 20 && skipCount <= 5; ++uIndex)
 		{
-			uintptr_t curAddress = gInfo.GObjAddress + uIndex * Utils::PointerSize();
+			uintptr_t curAddress = GInfo.GObjAddress + uIndex * Utils::PointerSize();
 			uintptr_t chunk = Utils::MemoryObj->ReadAddress(curAddress);
 
 			// Skip null address
@@ -45,32 +45,32 @@ bool ObjectsStore::GetGObjectInfo()
 			}
 
 			skipCount = 0;
-			gInfo.GChunks.push_back(chunk);
-			++gInfo.ChunksCount;
+			GInfo.GChunks.push_back(chunk);
+			++GInfo.ChunksCount;
 		}
 
 		if (skipCount >= 5)
 		{
-			gInfo.IsChunksAddress = true;
+			GInfo.IsChunksAddress = true;
 		}
 		else
 		{
-			gInfo.IsChunksAddress = false;
-			gInfo.GChunks.clear();
-			gInfo.ChunksCount = 1;
+			GInfo.IsChunksAddress = false;
+			GInfo.GChunks.clear();
+			GInfo.ChunksCount = 1;
 		}
 	}
 
 	// Get Work Method [Pointer Next Pointer or FUObjectItem(Flags, ClusterIndex, etc)]
 	{
-		uintptr_t firstUObj = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress) : gInfo.GObjAddress;
+		uintptr_t firstUObj = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress) : GInfo.GObjAddress;
 		uintptr_t obj1 = Utils::MemoryObj->ReadAddress(firstUObj);
 		uintptr_t obj2 = Utils::MemoryObj->ReadAddress(firstUObj + Utils::PointerSize());
 
 		if (!Utils::IsValidAddress(Utils::MemoryObj, obj1)) return false;
 
 		// Not Valid mean it's not Pointer Next To Pointer, or GObject address is wrong.
-		gInfo.IsPointerNextToPointer = Utils::IsValidAddress(Utils::MemoryObj, obj2);
+		GInfo.IsPointerNextToPointer = Utils::IsValidAddress(Utils::MemoryObj, obj2);
 	}
 
 	return true;
@@ -78,18 +78,18 @@ bool ObjectsStore::GetGObjectInfo()
 
 bool ObjectsStore::ReadUObjectArray()
 {
-	for (int i = 0; i < gInfo.ChunksCount; ++i)
+	for (int i = 0; i < GInfo.ChunksCount; ++i)
 	{
 		int skipCount = 0;
 		int offset = i * Utils::PointerSize();
-		uintptr_t chunkAddress = gInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(gInfo.GObjAddress + size_t(offset)) : gInfo.GObjAddress;
+		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
 
 		for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
 		{
 			uintptr_t dwUObject = NULL;
 
 			// Get object address
-			if (gInfo.IsPointerNextToPointer)
+			if (GInfo.IsPointerNextToPointer)
 			{
 				dwUObject = Utils::MemoryObj->ReadAddress(chunkAddress + uIndex * Utils::PointerSize());
 			}
@@ -121,7 +121,7 @@ bool ObjectsStore::ReadUObjectArray()
 			skipCount = 0;
 
 			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
-			++gInfo.Count;
+			++GInfo.Count;
 		}
 	}
 
@@ -131,7 +131,7 @@ bool ObjectsStore::ReadUObjectArray()
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, UEObject& retUObj)
 {
 	UObject tmp;
-	if (tmp.ReadData(uObjectAddress) == 0) return false;
+	if (!tmp.ReadData(uObjectAddress)) return false;
 
 	retUObj.Object = tmp;
 	return true;
@@ -174,12 +174,12 @@ bool ObjectsStore::IsValidUObject(const UObject& uObject, const bool outerCheck)
 
 uintptr_t ObjectsStore::GetAddress()
 {
-	return gInfo.GObjAddress;
+	return GInfo.GObjAddress;
 }
 
-size_t ObjectsStore::GetObjectsNum() const 
+int ObjectsStore::GetObjectsNum() const 
 {
-	return gInfo.Count;
+	return GInfo.Count;
 }
 
 UEObject& ObjectsStore::GetByIndex(const size_t index) const

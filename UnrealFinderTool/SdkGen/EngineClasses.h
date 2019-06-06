@@ -50,7 +50,7 @@ struct TArray
 
 	friend struct FString;
 
-	bool IsValidIndex(const size_t i) const
+	bool IsValidIndex(const int i) const
 	{
 		return i < Count;
 	}
@@ -156,12 +156,12 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		ObjAddress = objAddress;
 
 		if (ObjAddress == NULL)
-			throw std::exception("ObjAddress cant be zero !!");
+			return false;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -178,7 +178,7 @@ public:
 		return jStruct.GetSize();
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -249,12 +249,12 @@ public:
 		// 
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		ObjAddress = objAddress;
 
 		if (ObjAddress == NULL)
-			throw std::exception("ObjAddress cant be zero !!");
+			return false;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -273,7 +273,7 @@ public:
 		return jStruct.GetSize();
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -302,7 +302,7 @@ public:
 	std::string AnsiName;
 
 	FNameEntity() = default;
-	explicit FNameEntity(const size_t index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
+	explicit FNameEntity(const size_t index, const std::string ansiName) : Index(index), AnsiName(ansiName) { }
 
 	std::string TypeName() { return "FNameEntity"; }
 
@@ -311,12 +311,12 @@ public:
 		// 
 	}
 
-	int ReadData(const uintptr_t objAddress, const int ansiNameOffset)
+	bool ReadData(const uintptr_t objAddress, const int ansiNameOffset)
 	{
 		ObjAddress = objAddress;
 
 		if (ObjAddress == NULL)
-			throw std::exception("ObjAddress cant be zero !!");
+			return false;
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -326,11 +326,10 @@ public:
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
-		// Return next var offset
-		return jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData(const int ansiNameOffset)
+	bool ReadData(const int ansiNameOffset)
 	{
 		return ReadData(ObjAddress, ansiNameOffset);
 	}
@@ -364,13 +363,13 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Set object remote address
 		ObjAddress = objAddress;
 
 		if (ObjAddress == NULL)
-			throw std::exception("ObjAddress cant be zero !!");
+			return false;
 
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 
@@ -391,7 +390,7 @@ public:
 		return jStruct.GetSize();
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -425,10 +424,7 @@ public:
 
 		// it's just to solve start up problem, for really Utils::MemoryObj will never == nullptr
 		if (Utils::MemoryObj != nullptr)
-		{
-			castType.ObjAddress = ObjAddress;
-			castType.ReadData();
-		}
+			castType.ReadData(ObjAddress);
 
 		return castType;
 	}
@@ -447,22 +443,22 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Next) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObject::ReadData(objAddress);
+		UObject::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Next"], &Next);
+		m->ReadBytes(ObjAddress, jStruct["Next"], &Next);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -493,25 +489,25 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UField::ReadData(objAddress);
+		UField::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["CppType"], &CppType);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Names"], &Names);
-		m->ReadBytes(ObjAddress + lastOff , jStruct["CppForm"], &CppForm);
+		m->ReadBytes(ObjAddress, jStruct["CppType"], &CppType);
+		m->ReadBytes(ObjAddress, jStruct["Names"], &Names);
+		m->ReadBytes(ObjAddress, jStruct["CppForm"], &CppForm);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -542,26 +538,26 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UField::ReadData(objAddress);
+		UField::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["SuperField"], &SuperField);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Children"], &Children);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["PropertySize"], &PropertySize);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["MinAlignment"], &MinAlignment);
+		m->ReadBytes(ObjAddress, jStruct["SuperField"], &SuperField);
+		m->ReadBytes(ObjAddress, jStruct["Children"], &Children);
+		m->ReadBytes(ObjAddress, jStruct["PropertySize"], &PropertySize);
+		m->ReadBytes(ObjAddress, jStruct["MinAlignment"], &MinAlignment);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -583,10 +579,10 @@ public:
 		UStruct::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UStruct::ReadData(objAddress);
+		UStruct::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -595,10 +591,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -637,32 +633,32 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UStruct::ReadData(objAddress);
+		UStruct::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["FunctionFlags"], &FunctionFlags);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["NumParms"], &NumParms);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ParmsSize"], &ParmsSize);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ReturnValueOffset"], &ReturnValueOffset);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["RPCId"], &RPCId);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["RPCResponseId"], &RPCResponseId);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["FirstPropertyToInit"], &FirstPropertyToInit);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["EventGraphFunction"], &EventGraphFunction);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["EventGraphCallOffset"], &EventGraphCallOffset);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Func"], &Func);
+		m->ReadBytes(ObjAddress, jStruct["FunctionFlags"], &FunctionFlags);
+		m->ReadBytes(ObjAddress, jStruct["NumParms"], &NumParms);
+		m->ReadBytes(ObjAddress, jStruct["ParmsSize"], &ParmsSize);
+		m->ReadBytes(ObjAddress, jStruct["ReturnValueOffset"], &ReturnValueOffset);
+		m->ReadBytes(ObjAddress, jStruct["RPCId"], &RPCId);
+		m->ReadBytes(ObjAddress, jStruct["RPCResponseId"], &RPCResponseId);
+		m->ReadBytes(ObjAddress, jStruct["FirstPropertyToInit"], &FirstPropertyToInit);
+		m->ReadBytes(ObjAddress, jStruct["EventGraphFunction"], &EventGraphFunction);
+		m->ReadBytes(ObjAddress, jStruct["EventGraphCallOffset"], &EventGraphCallOffset);
+		m->ReadBytes(ObjAddress, jStruct["Func"], &Func);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -684,10 +680,10 @@ public:
 		UStruct::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UStruct::ReadData(objAddress);
+		UStruct::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -696,10 +692,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -718,10 +714,7 @@ public:
 	int32_t ArrayDim = 0;
 	int32_t ElementSize = 0;
 	FQWord PropertyFlags;
-	uint16_t RepIndex = 0;
-	uint8_t BlueprintReplicationCondition = 0;
 	int32_t Offset = 0;
-	FName RepNotifyFunc;
 	uintptr_t PropertyLinkNext = 0;
 	uintptr_t NextRef = 0;
 	uintptr_t DestructorLinkNext = 0;
@@ -740,33 +733,30 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UField::ReadData(objAddress);
+		UField::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ArrayDim"], &ArrayDim);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ElementSize"], &ElementSize);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["PropertyFlags"], &PropertyFlags);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["RepIndex"], &RepIndex);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["BlueprintReplicationCondition"], &BlueprintReplicationCondition);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Offset"], &Offset);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["RepNotifyFunc"], &RepNotifyFunc);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["PropertyLinkNext"], &PropertyLinkNext);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["NextRef"], &NextRef);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["DestructorLinkNext"], &DestructorLinkNext);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["PostConstructLinkNext"], &PostConstructLinkNext);
+		m->ReadBytes(ObjAddress, jStruct["ArrayDim"], &ArrayDim);
+		m->ReadBytes(ObjAddress, jStruct["ElementSize"], &ElementSize);
+		m->ReadBytes(ObjAddress, jStruct["PropertyFlags"], &PropertyFlags);
+		m->ReadBytes(ObjAddress, jStruct["Offset"], &Offset);
+		m->ReadBytes(ObjAddress, jStruct["PropertyLinkNext"], &PropertyLinkNext);
+		m->ReadBytes(ObjAddress, jStruct["NextRef"], &NextRef);
+		m->ReadBytes(ObjAddress, jStruct["DestructorLinkNext"], &DestructorLinkNext);
+		m->ReadBytes(ObjAddress, jStruct["PostConstructLinkNext"], &PostConstructLinkNext);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -788,10 +778,10 @@ public:
 		UProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -800,10 +790,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -828,23 +818,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Enum) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Enum"], &Enum);
+		m->ReadBytes(ObjAddress, jStruct["Enum"], &Enum);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -866,10 +856,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -878,10 +868,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -903,10 +893,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -915,10 +905,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -940,10 +930,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -952,10 +942,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -977,10 +967,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -989,10 +979,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1014,10 +1004,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1026,10 +1016,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1051,10 +1041,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1063,10 +1053,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1088,10 +1078,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1100,10 +1090,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1125,10 +1115,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1137,10 +1127,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1162,10 +1152,10 @@ public:
 		UNumericProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UNumericProperty::ReadData(objAddress);
+		UNumericProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1174,10 +1164,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1204,26 +1194,26 @@ public:
 		UProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["FieldSize"], &FieldSize);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ByteOffset"], &ByteOffset);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ByteMask"], &ByteMask);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["FieldMask"], &FieldMask);
+		m->ReadBytes(ObjAddress, jStruct["FieldSize"], &FieldSize);
+		m->ReadBytes(ObjAddress, jStruct["ByteOffset"], &ByteOffset);
+		m->ReadBytes(ObjAddress, jStruct["ByteMask"], &ByteMask);
+		m->ReadBytes(ObjAddress, jStruct["FieldMask"], &FieldMask);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1248,23 +1238,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(PropertyClass) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["PropertyClass"], &PropertyClass);
+		m->ReadBytes(ObjAddress, jStruct["PropertyClass"], &PropertyClass);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1286,10 +1276,10 @@ public:
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObjectPropertyBase::ReadData(objAddress);
+		UObjectPropertyBase::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1298,10 +1288,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1326,23 +1316,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObjectProperty::ReadData(objAddress);
+		UObjectProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["MetaClass"], &MetaClass);
+		m->ReadBytes(ObjAddress, jStruct["MetaClass"], &MetaClass);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1367,23 +1357,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(InterfaceClass) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["InterfaceClass"], &InterfaceClass);
+		m->ReadBytes(ObjAddress, jStruct["InterfaceClass"], &InterfaceClass);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1405,10 +1395,10 @@ public:
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObjectPropertyBase::ReadData(objAddress);
+		UObjectPropertyBase::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1417,10 +1407,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1442,10 +1432,10 @@ public:
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObjectPropertyBase::ReadData(objAddress);
+		UObjectPropertyBase::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1454,10 +1444,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1479,10 +1469,10 @@ public:
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UObjectPropertyBase::ReadData(objAddress);
+		UObjectPropertyBase::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1491,10 +1481,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1519,23 +1509,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UAssetObjectProperty::ReadData(objAddress);
+		UAssetObjectProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["MetaClass"], &MetaClass);
+		m->ReadBytes(ObjAddress, jStruct["MetaClass"], &MetaClass);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1557,10 +1547,10 @@ public:
 		UProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1569,10 +1559,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1597,23 +1587,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Struct) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Struct"], &Struct);
+		m->ReadBytes(ObjAddress, jStruct["Struct"], &Struct);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1635,10 +1625,10 @@ public:
 		UProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1647,10 +1637,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1672,10 +1662,10 @@ public:
 		UProperty::FixPointers(fullStructSize);
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
@@ -1684,10 +1674,10 @@ public:
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1712,23 +1702,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Inner) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Inner"], &Inner);
+		m->ReadBytes(ObjAddress, jStruct["Inner"], &Inner);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1757,24 +1747,24 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["KeyProp"], &KeyProp);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["ValueProp"], &ValueProp);
+		m->ReadBytes(ObjAddress, jStruct["KeyProp"], &KeyProp);
+		m->ReadBytes(ObjAddress, jStruct["ValueProp"], &ValueProp);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1799,23 +1789,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["SignatureFunction"], &SignatureFunction);
+		m->ReadBytes(ObjAddress, jStruct["SignatureFunction"], &SignatureFunction);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1840,23 +1830,23 @@ public:
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["SignatureFunction"], &SignatureFunction);
+		m->ReadBytes(ObjAddress, jStruct["SignatureFunction"], &SignatureFunction);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}
@@ -1885,24 +1875,24 @@ public:
 		});
 	}
 
-	int ReadData(const uintptr_t objAddress)
+	bool ReadData(const uintptr_t objAddress)
 	{
 		// Read super first
-		int lastOff = UProperty::ReadData(objAddress);
+		UProperty::ReadData(objAddress);
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		m->ReadBytes(ObjAddress + lastOff, jStruct["UnderlyingProp"], &UnderlyingProp);
-		m->ReadBytes(ObjAddress + lastOff, jStruct["Enum"], &Enum);
+		m->ReadBytes(ObjAddress, jStruct["UnderlyingProp"], &UnderlyingProp);
+		m->ReadBytes(ObjAddress, jStruct["Enum"], &Enum);
 
 		// Fix pointer for x32 tool version
 		FixPointers(jStruct.GetSize());
 
 		// Return next var offset
-		return lastOff + jStruct.GetSize();
+		return true;
 	}
 
-	int ReadData()
+	bool ReadData()
 	{
 		return ReadData(ObjAddress);
 	}

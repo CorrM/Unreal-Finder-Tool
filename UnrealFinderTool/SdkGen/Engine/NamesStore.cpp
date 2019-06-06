@@ -3,7 +3,7 @@
 #include "NamesStore.h"
 
 std::vector<FNameEntity> NamesStore::gNames;
-int NamesStore::gNamesChunkCount;
+int NamesStore::chunkCount = 16384;
 int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
 
@@ -17,13 +17,6 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReIni
 	gNamesChunks = 0;
 
 	NamesStore::gNamesAddress = gNamesAddress;
-	NamesStore::gNamesChunkCount = 16384;
-	return FetchData();
-}
-
-bool NamesStore::FetchData()
-{
-	// GNames
 	return ReadGNameArray(gNamesAddress);
 }
 
@@ -61,7 +54,7 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
 	{
-		for (int j = 0; j < gNamesChunkCount; ++j)
+		for (int j = 0; j < chunkCount; ++j)
 		{
 			FNameEntity tmp;
 			const int offset = ptrSize * j;
@@ -112,17 +105,17 @@ void* NamesStore::GetAddress()
 	return reinterpret_cast<void*>(gNamesAddress);
 }
 
-size_t NamesStore::GetNamesNum() const
+int NamesStore::GetNamesNum() const
 {
-	return gNamesChunkCount * gNamesChunks;
+	return chunkCount * gNamesChunks;
 }
 
 bool NamesStore::IsValid(const size_t id)
 {
-	return id >= 0 && id <= GetNamesNum() && !GetById(id).empty();
+	return id >= 0 && id <= GetNamesNum() && !GetByIndex(id).empty();
 }
 
-std::string NamesStore::GetById(const size_t id)
+std::string NamesStore::GetByIndex(const size_t id)
 {
 	// TODO: i think here is a problem, set BP at (return "") and check call stack. (why wrong id)
 	if (id > GetNamesNum())

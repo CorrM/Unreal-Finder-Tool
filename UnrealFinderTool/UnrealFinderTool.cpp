@@ -584,14 +584,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadEngineCore()) return 0;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (!Utils::OverrideLoadedEngineCore("4.0.0")) return 0;
+	// if (!Utils::OverrideLoadedEngineCore("4.0.0")) return 0;
 
-	auto test = JsonReflector::StructsList;
+	// auto test = JsonReflector::StructsList;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	process_id = DetectUe4Game();
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
+	UiWindow ui("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())

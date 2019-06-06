@@ -1,11 +1,11 @@
 #include "pch.h"
-#include "Package.h"
 
 #include <fstream>
 #include <unordered_set>
+#include <cinttypes>
+
 #include "tinyformat.h"
 #include "cpplinq.hpp"
-
 #include "IGenerator.h"
 #include "Logger.h"
 #include "NameValidator.h"
@@ -15,6 +15,7 @@
 #include "FunctionFlags.h"
 #include "PrintHelper.h"
 #include "ParallelWorker.h"
+#include "Package.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 
@@ -239,7 +240,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.FullName = scriptStructObj.GetFullName();
 
 	{
-		static std::string script_struct_format = std::string("Struct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		static std::string script_struct_format = std::string("Struct:  %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%" PRIXPTR;
 		std::string logStructName = Utils::Settings.SdkGen.LoggerShowStructSaveFileName ? this->GetName() + "." + ss.Name : ss.Name;
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
 	}
@@ -363,7 +364,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	c.FullName = classObj.GetFullName();
 
 	{
-		static std::string class_format = std::string("Class:   %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%P";
+		static std::string class_format = std::string("Class:   %-") + std::to_string(Utils::Settings.SdkGen.LoggerSpaceCount) + "s - instance: 0x%" PRIXPTR;
 		std::string logClassName = Utils::Settings.SdkGen.LoggerShowClassSaveFileName ? this->GetName() + "." + c.Name : c.Name;
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
 	}

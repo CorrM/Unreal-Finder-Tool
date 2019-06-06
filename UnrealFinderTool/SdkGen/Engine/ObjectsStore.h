@@ -16,7 +16,6 @@ struct GObjectInfo
 
 class ObjectsStore
 {
-	static GObjectInfo gInfo;
 	int maxZeroAddress = 150;
 
 	bool FetchData();
@@ -27,6 +26,7 @@ class ObjectsStore
 	bool IsValidUObject(const UObject& uObject, bool outerCheck = false) const;
 
 public:
+	static GObjectInfo GInfo;
 	static UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> GObjObjects;
 
 	/// <summary>
@@ -44,7 +44,7 @@ public:
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	size_t GetObjectsNum() const;
+	int GetObjectsNum() const;
 
 	/// <summary>
 	/// Gets the object by id.

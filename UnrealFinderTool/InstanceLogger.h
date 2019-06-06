@@ -2,23 +2,11 @@
 
 class UObject;
 
-struct GObject
-{
-	uintptr_t ObjAddress;
-	int FNameIndexs[20];
-	int OuterCount;
-};
-
-class GName
-{
-public:
-	int Index;
-	std::string AnsiName;
-};
-
 enum class LoggerState
 {
 	Good,
+	BadGObjectAddress,
+	BadGNameAddress,
 	BadGObject,
 	BadGName
 };
@@ -32,16 +20,8 @@ struct LoggerRetState
 
 class InstanceLogger
 {
-	std::vector<std::unique_ptr<GObject>> gObjObjects; 
-	int gObjectsCount, maxZeroAddress;
-
-	GName* gNames;
-	int gNamesChunkCount, gNamesChunks;
-
 	uintptr_t gObjectsAddress, gNamesAddress;
 
-	std::string GetName(int fNameIndex, bool& success);
-	std::string GetName(GObject obj);
 	LoggerState FetchData();
 	bool ObjectDump();
 	bool NameDump();

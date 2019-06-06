@@ -2,8 +2,8 @@
 #include "json.hpp"
 #include "UnsortedMap.h"
 
-class JsonVar;
 class JsonStruct;
+class JsonVar;
 class Memory;
 
 using JsonStructs = UnsortedMap<std::string, JsonStruct>;
@@ -38,43 +38,6 @@ public:
 	static int VarSizeFromJson(const std::string& typeName, bool overrideOld);
 };
 
-class JsonVar
-{
-public:
-	// Variable Name
-	std::string Name;
-	// Variable Type
-	std::string Type;
-	// Variable Size
-	int Size = 0;
-	// Variable offset of his parent
-	int Offset = 0;
-	// Variable is struct
-	bool IsStruct = false;
-	// If this variable is struct this is pointer to struct contains variables
-	JsonStruct* Struct;
-
-	JsonVar(const std::string& name, const std::string& type, int offset, bool isStruct);
-	~JsonVar();
-
-	// Access variable inside this variable, ONLY work if this variable is struct
-	JsonVar& operator[](const std::string& varName);
-	// Read variable as struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
-	JsonStruct* ReadAsStruct();
-	// Read variable as [derived] struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
-	template <typename T>
-	T ReadAsStruct()
-	{
-		T tmp = *reinterpret_cast<T*>(ReadAsStruct());
-		tmp.FixStructData();
-		tmp.InitData();
-		return tmp;
-	}
-private:
-	// Access variable in this variable if this variable is struct
-	JsonVar& GetVar(const std::string& varName);
-};
-
 class JsonStruct
 {
 	// Size of this struct
@@ -95,5 +58,32 @@ public:
 	// Access to variable inside this struct
 	JsonVar& operator[](const std::string& varName);
 	// Access to variable inside this struct
+	JsonVar& GetVar(const std::string& varName);
+};
+
+class JsonVar
+{
+public:
+	// Variable Name
+	std::string Name;
+	// Variable Type
+	std::string Type;
+	// Variable Size
+	int Size = 0;
+	// Variable offset of his parent
+	int Offset = 0;
+	// Variable is struct
+	bool IsStruct = false;
+	// If this variable is struct this is pointer to struct contains variables
+	JsonStruct Struct{};
+
+	JsonVar(const std::string& name, const std::string& type, int offset, bool isStruct);
+
+	// Access variable inside this variable, ONLY work if this variable is struct
+	JsonVar& operator[](const std::string& varName);
+	// Read variable as struct, ONLY work if this variable is struct [NOT POINTER TO STRUCT]
+	void LoadStructVars();
+private:
+	// Access variable in this variable if this variable is struct
 	JsonVar& GetVar(const std::string& varName);
 };

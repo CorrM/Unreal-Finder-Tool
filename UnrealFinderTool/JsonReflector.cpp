@@ -321,6 +321,9 @@ bool JsonReflector::IsStructType(const std::string& typeName)
 #pragma region JsonStruct
 int JsonStruct::GetSize()
 {
+	if (Utils::MemoryObj == nullptr)
+		return structSize;
+
 	int sSub = 0;
 	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
 	{
@@ -330,13 +333,7 @@ int JsonStruct::GetSize()
 			if (Utils::EndsWith(var.second.Type, "*"))
 				sSub += 0x4;
 			else if (var.second.IsStruct)
-			{
-				if (var.second.Struct == nullptr)
-					var.second.ReadAsStruct();
-
-				if (var.second.Struct != nullptr)
-					sSub += var.second.Struct->GetSize();
-			}
+				sSub += var.second.Struct.GetSize();
 		}
 	}
 
@@ -363,19 +360,16 @@ JsonVar& JsonStruct::GetVar(const std::string& varName)
 #pragma endregion
 
 #pragma region JsonVar
-JsonVar::JsonVar(const std::string& name, const std::string& type, const int offset, const bool isStruct) : Struct(nullptr)
+JsonVar::JsonVar(const std::string& name, const std::string& type, const int offset, const bool isStruct)
 {
 	Name = name;
 	Type = type;
 	Size = JsonReflector::VarSizeFromJson(Type, false);
 	Offset = offset;
 	IsStruct = isStruct;
-}
 
-JsonVar::~JsonVar()
-{
-	if (IsStruct && Struct != nullptr)
-		delete Struct;
+	if (IsStruct)
+		LoadStructVars();
 }
 
 JsonVar& JsonVar::operator[](const std::string& varName)
@@ -391,31 +385,21 @@ JsonVar& JsonVar::GetVar(const std::string& varName)
 	if (!IsStruct)
 		throw std::exception((Name + " not a struct.").c_str());
 
-	if (Struct == nullptr)
-		ReadAsStruct();
-
-	if (Struct != nullptr)
-	{
-		if (Struct->Vars.find(varName) != Struct->Vars.end())
-			return Struct->Vars.find(varName)->second;
-	}
+	if (Struct.Vars.find(varName) != Struct.Vars.end())
+		return Struct.Vars.find(varName)->second;
 
 	throw std::exception(("Not found " + varName + " in JsonVariables").c_str());
 }
 
-JsonStruct* JsonVar::ReadAsStruct()
+void JsonVar::LoadStructVars()
 {
 	if (!IsStruct)
 		throw std::exception((Name + " Not a struct.").c_str());
-
-	if (Struct != nullptr)
-		return Struct;
 
 	auto sStructIt = JsonReflector::StructsList.find(Type);
 	if (sStructIt == JsonReflector::StructsList.end())
 		throw std::exception(("Can't find struct When try read as " + Type).c_str());
 
-	Struct = new JsonStruct(sStructIt->second);
-	return Struct;
+	Struct = sStructIt->second;
 }
 #pragma endregion

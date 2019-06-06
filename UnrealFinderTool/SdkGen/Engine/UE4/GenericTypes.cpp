@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SdkGen/EngineClasses.h"
+#include "EngineClasses.h"
 #include "IGenerator.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
@@ -40,7 +40,7 @@ std::string UEObject::GetName() const
 	if (!objName.empty())
 		return objName;
 
-	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
+	auto name = NamesStore().GetByIndex(Object.Name.ComparisonIndex);
 	if (!name.empty() && Object.Name.Number > 0)
 	{
 		name += '_' + std::to_string(Object.Name.Number);
@@ -247,7 +247,7 @@ std::vector<std::string> UEEnum::GetNames() const
 		if (index > NamesStore().GetNamesNum() || index == 0)
 			continue;
 
-		buffer.push_back(NamesStore().GetById(index));
+		buffer.push_back(NamesStore().GetByIndex(index));
 	}
 
 	delete[] cls;

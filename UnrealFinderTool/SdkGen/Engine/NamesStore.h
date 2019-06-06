@@ -9,9 +9,8 @@ class NamesStore
 {
 	friend NamesIterator;
 	static std::vector<FNameEntity> gNames;
-	static int gNamesChunkCount, gNamesChunks;
+	static int chunkCount, gNamesChunks;
 	static uintptr_t gNamesAddress;
-	static bool FetchData();
 	static bool ReadGNameArray(uintptr_t address);
 	static bool IsValidAddress(uintptr_t address);
 
@@ -35,7 +34,7 @@ public:
 	/// Gets the number of available names.
 	/// </summary>
 	/// <returns>The number of names.</returns>
-	size_t GetNamesNum() const;
+	int GetNamesNum() const;
 
 	/// <summary>
 	/// Test if the given id is valid.
@@ -49,7 +48,7 @@ public:
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The name.</returns>
-	std::string GetById(size_t id);
+	std::string GetByIndex(size_t id);
 };
 
 class NamesIterator : public std::iterator<std::forward_iterator_tag, FNameEntity>
