@@ -52,6 +52,9 @@ void SetupMemoryStuff(const HANDLE pHandle)
 		memory_init = true;
 		Utils::MemoryObj = new Memory(pHandle, use_kernal);
 		if (!use_kernal) Utils::MemoryObj->GetDebugPrivileges();
+
+		// Grab engine version information
+		Utils::UnrealEngineVersion(ue_version);
 	}
 }
 
@@ -354,12 +357,9 @@ void MainUi(UiWindow& thiz)
 	
 	// Unreal version
 	{
-		std::string ver;
-		Utils::UnrealEngineVersion(ver);
-
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : "); ui::SameLine();
-		ui::LabelText("##UnrealVer", "%s", ver.c_str());
+		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
 	}
 	
 	// Use Kernel
@@ -643,9 +643,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
-
-	// Should be initalised prior to launching the gui
-	IsReadyToGo();
 
 	// Autodetect incase game already open
 	process_id = DetectUe4Game();

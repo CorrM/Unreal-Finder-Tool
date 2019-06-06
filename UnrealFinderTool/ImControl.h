@@ -80,6 +80,9 @@ inline std::vector<std::string> sg_packages_items;
 inline int sg_packages_item_current = 0;
 // => Sdk Generator
 
+// For UE Version string
+std::string ue_version;
+
 // => Help Functions
 static void DisabledAll()
 {
