@@ -432,11 +432,8 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 			auto v1 = HIWORD(ffi->dwFileVersionMS);
 			auto v2 = LOWORD(ffi->dwFileVersionMS);
 			auto v3 = HIWORD(ffi->dwFileVersionLS);
-			auto v4 = LOWORD(ffi->dwFileVersionLS);
 
-			std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." +
-										 std::to_string(v3) + "." + std::to_string(v4);
-			
+			std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." + std::to_string(v3);
 			ver = engine_version;
 			return true;
 		}

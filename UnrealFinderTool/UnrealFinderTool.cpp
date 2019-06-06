@@ -352,13 +352,23 @@ void MainUi(UiWindow& thiz)
 		});
 	}
 	
-	// Use Kernal
+	// Unreal version
 	{
+		std::string ver;
+		Utils::UnrealEngineVersion(ver);
+
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernal : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : "); ui::SameLine();
+		ui::LabelText("##UnrealVer", "%s", ver.c_str());
 	}
 	
+	// Use Kernel
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : "); ui::SameLine();
+		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+	}
+
 	// GObjects Address
 	{
 		ui::AlignTextToFramePadding();
@@ -634,17 +644,24 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
+	// Should be initalised prior to launching the gui
+	IsReadyToGo();
+
+	// Autodetect incase game already open
 	process_id = DetectUe4Game();
 
+	// Run the new debugging tools
 	Debugging *d = new Debugging();
 	d->EnterDebugMode();
 
+	// Launch the main window
 	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	uiMainWindow->Show(MainUi);
 
 	while (!uiMainWindow->Closed())
 		Sleep(1);
 
+	// Cleanup
 	if (Utils::MemoryObj != nullptr)
 	{
 		Utils::MemoryObj->ResumeProcess();
