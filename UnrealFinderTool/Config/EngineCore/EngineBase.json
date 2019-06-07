@@ -144,7 +144,9 @@
       "super": "UStruct",
       "vars": [
         { "FunctionFlags": "int32" },
+        { "RepOffset": "int16" },
         { "NumParms": "int8" },
+        { "pad_1": "1" },
         { "ParmsSize": "int16" },
         { "ReturnValueOffset": "uint16" },
         { "RPCId": "uint16" },
@@ -152,6 +154,7 @@
         { "FirstPropertyToInit": "UProperty*" },
         { "EventGraphFunction": "UFunction*" },
         { "EventGraphCallOffset": "int" },
+        { "pad_2": "4" },
         { "Func": "*" }
       ],
       "note": ""
