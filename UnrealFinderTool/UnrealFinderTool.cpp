@@ -9,8 +9,11 @@
 #include "ImControl.h"
 
 #include "Debug.h"
+#include "Scanner.h"
 
 #include <sstream>
+
+
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
@@ -135,9 +138,7 @@ void StartGNamesFinder()
 	{
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
-
-		auto found = false;
-
+		/*
 		uintptr_t end = ret[0];
 		uintptr_t start2 = ret[0];
 		uintptr_t start = (end - 0x17FFFF0); //0xA0000
@@ -172,7 +173,40 @@ void StartGNamesFinder()
 			if (start == end || start2 == end2 || found)
 				break;
 		}
+		*/
 
+		auto addr = ret[0];
+		using namespace Hyperscan;
+
+		// We only want to go 5 pointers deep, prevent infinite loops
+		for (int x = 1; x < 5; x++) {
+			if (Utils::IsValidGNamesAddress(addr)) {
+				ret[0] = addr;
+				break;
+			}
+			std::vector<uintptr_t> address_holder = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, addr, Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
+			
+			// Nothing returned quit
+			if (address_holder.size() < 1)
+				break;
+			
+			for (int i = 0; i < address_holder.size(); i++) {
+				// Any address larger than this is usually garbage
+				if (address_holder[i] > 0x7ff000000000)
+					continue;
+				if (Utils::IsValidGNamesAddress(address_holder[i])) {
+					ret[0] = address_holder[i];
+					break;
+				}
+				else {
+					auto retn = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, address_holder[i], Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
+					if (retn.size() != 1)
+						continue;
+					addr = retn[0];
+					break;
+				}
+			}
+		}
 		g_names_listbox_items.clear();
 
 		for (auto v : ret)
@@ -266,15 +300,16 @@ void StartInstanceLogger()
 
 void StartSdkGenerator()
 {
+	DisabledAll();
+	g_objects_find_disabled = true;
+	//		g_names_find_disabled = true;
+
+	sg_objects_count = 0;
+	sg_names_count = 0;
+	sg_state = "Running . . .";
+
 	std::thread t([&]()
 	{
-		DisabledAll();
-		g_objects_find_disabled = true;
-		g_names_find_disabled = true;
-
-		sg_objects_count = 0;
-		sg_names_count = 0;
-		sg_state = "Running . . .";
 		SdkGenerator sg(g_objects_address, g_names_address);
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
@@ -297,8 +332,8 @@ void StartSdkGenerator()
 		else if (ret == GeneratorState::BadGName)
 			sg_state = "Wrong (GNames) Address.!!";
 
-		g_objects_find_disabled = false;
-		g_names_find_disabled = false;
+//		g_objects_find_disabled = false;
+//		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -417,13 +452,25 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : ");
 		ui::SameLine();
+
+		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+		
+		if(Utils::IsValidGNamesAddress(g_names_address))
+			ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+		else 
+			ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+
 		ENABLE_DISABLE_WIDGET(
 			ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal),
 			g_names_disabled);
+
+		ui::PopStyleColor();
+
 		ui::SameLine();
 		HelpMarker(
 			"What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
-		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+		
+		
 	}
 
 	ui::Separator();
