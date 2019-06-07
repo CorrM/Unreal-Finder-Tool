@@ -14,7 +14,7 @@
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
-UiWindow* uiMainWindow = nullptr;
+UiWindow* UiMainWindow = nullptr;
 bool memory_init = false;
 
 int DetectUe4Game(HWND* windowHandle)
@@ -130,22 +130,26 @@ void StartGNamesFinder()
 		g_names_listbox_items.push_back(searching);
 		searching = "Searching";
 
-		uintptr_t start, end = ret[0];
-		uintptr_t start2 = ret[0], end2;
-		start = (end - 0x17FFFF0);//0xA0000
-		end2 = (start2 + 0x17FFFF0);
+		uintptr_t end = ret[0];
+		uintptr_t start2 = ret[0];
+		uintptr_t start = (end - 0x17FFFF0); //0xA0000
+		uintptr_t end2 = (start2 + 0x17FFFF0);
 
 		auto step = Utils::PointerSize();
 
-		while (!found) {
+		while (!found)
+		{
 			if (!Utils::IsValidGNamesAddress(start))
 				start += step;
-			else {
-				ret[0] = start; found = true;
+			else
+			{
+				ret[0] = start;
+				found = true;
 			}
 			if (!Utils::IsValidGNamesAddress(start2))
 				start2 += step;
-			else {
+			else
+			{
 				ret[0] = start2;
 				found = true;
 			}
@@ -269,7 +273,7 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
-			uiMainWindow->FlashWindow();
+			UiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
@@ -356,9 +360,9 @@ void MainUi(UiWindow& thiz)
 		}
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
-		                         {
-			                         process_id = DetectUe4Game();
-		                         });
+		{
+		    process_id = DetectUe4Game();
+		});
 	}
 
 	// Unreal version
@@ -430,12 +434,12 @@ void MainUi(UiWindow& thiz)
 
 					// Open Popup / Start Finder
 					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects"), g_objects_find_disabled,
-					                         {
-						                         if (IsReadyToGo())
-						                         ui::OpenPopup("Easy?");
-						                         else
-						                         popup_not_valid_process = true;
-					                         });
+					{
+					    if (IsReadyToGo())
+					    ui::OpenPopup("Easy?");
+					    else
+					    popup_not_valid_process = true;
+					});
 
 					// Popup
 					if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -493,12 +497,12 @@ void MainUi(UiWindow& thiz)
 
 					// Start Finder
 					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
-					                         {
-						                         if (IsReadyToGo())
-						                         StartGNamesFinder();
-						                         else
-						                         popup_not_valid_process = true;
-					                         });
+					{
+					    if (IsReadyToGo())
+					    StartGNamesFinder();
+					    else
+					    popup_not_valid_process = true;
+					});
 
 					ui::SameLine();
 
@@ -545,12 +549,12 @@ void MainUi(UiWindow& thiz)
 
 					// Start Finder
 					ENABLE_DISABLE_WIDGET_IF(ui::Button(" Find Class "), class_find_disabled,
-					                         {
-						                         if (IsReadyToGo())
-						                         StartClassFinder();
-						                         else
-						                         popup_not_valid_process = true;
-					                         });
+					{
+					    if (IsReadyToGo())
+					    StartClassFinder();
+					    else
+					    popup_not_valid_process = true;
+					});
 
 					ui::SameLine();
 
@@ -595,14 +599,13 @@ void MainUi(UiWindow& thiz)
 				ui::Text("%s", il_state.c_str());
 
 				// Start Logger
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x - 14.0f, 0.0f }),
-				                         il_start_disabled,
-				                         {
-					                         if (IsReadyToGo())
-					                         StartInstanceLogger();
-					                         else
-					                         popup_not_valid_process = true;
-				                         });
+				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x - 14.0f, 0.0f }), il_start_disabled,
+				{
+				    if (IsReadyToGo())
+				    StartInstanceLogger();
+				    else
+				    popup_not_valid_process = true;
+				});
 
 				ui::EndTabItem();
 			}
@@ -660,14 +663,13 @@ void MainUi(UiWindow& thiz)
 				ui::PopItemWidth();
 
 				// Start Generator
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x - 14.0f, 0.0f }),
-				                         sg_start_disabled,
-				                         {
-					                         if (IsReadyToGo())
-					                         StartSdkGenerator();
-					                         else
-					                         popup_not_valid_process = true;
-				                         });
+				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x - 14.0f, 0.0f }), sg_start_disabled,
+				{
+				    if (IsReadyToGo())
+				    StartSdkGenerator();
+				    else
+				    popup_not_valid_process = true;
+				});
 
 				ui::EndTabItem();
 			}
@@ -687,9 +689,9 @@ void MainUi(UiWindow& thiz)
 
 #pragma warning(disable:4996)
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+// Fix vs2019 Problem [wWinMain instead of WinMain]
 // ReSharper disable once CppInconsistentNaming
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)
-// Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -707,10 +709,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d->EnterDebugMode();
 
 	// Launch the main window
-	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
-	uiMainWindow->Show(MainUi);
+	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
+	UiMainWindow->Show(MainUi);
 
-	while (!uiMainWindow->Closed())
+	while (!UiMainWindow->Closed())
 		Sleep(1);
 
 	// Cleanup
