@@ -174,12 +174,20 @@ void StartInstanceLogger()
 		InstanceLogger il(g_objects_address, g_names_address);
 		auto retState = il.Start();
 
-		if (retState.State == LoggerState::Good)
+		switch (retState.State)
+		{
+		case LoggerState::Good:
 			il_state = "Finished.!!";
-		else if (retState.State == LoggerState::BadGObject)
+			break;
+		case LoggerState::BadGObject:
+		case LoggerState::BadGObjectAddress:
 			il_state = "Wrong (GObjects) Address.!!";
-		else if (retState.State == LoggerState::BadGName)
+			break;
+		case LoggerState::BadGName:
+		case LoggerState::BadGNameAddress:
 			il_state = "Wrong (GNames) Address.!!";
+			break;
+		}
 
 		il_objects_count = retState.GObjectsCount;
 		il_names_count = retState.GNamesCount;

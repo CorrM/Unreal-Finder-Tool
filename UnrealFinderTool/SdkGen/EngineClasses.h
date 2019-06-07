@@ -168,6 +168,11 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["ObjectPointer"].Offset,
+			jStruct["InterfacePointer"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -183,8 +188,8 @@ public:
 			FixPointers(jSize);
 		}
 
-		FILL_DATA(pData, ObjectPointer, jStruct["ObjectPointer"].Offset);
-		FILL_DATA(pData, InterfacePointer, jStruct["InterfacePointer"].Offset);
+		FILL_DATA(pData, ObjectPointer, offsets[0]);
+		FILL_DATA(pData, InterfacePointer, offsets[1]);
 
 		// It's Initialized
 		init = true;
@@ -195,7 +200,7 @@ public:
 			pData = nullptr;
 		}
 
-		return jStruct.GetSize();
+		return true;
 	}
 
 	bool ReadData()
@@ -280,6 +285,13 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["Object"].Offset,
+			jStruct["Flags"].Offset,
+			jStruct["ClusterIndex"].Offset,
+			jStruct["SerialNumber"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -296,10 +308,10 @@ public:
 		}
 
 		// Read this struct
-		FILL_DATA(pData, Object, jStruct["Object"].Offset);
-		FILL_DATA(pData, Flags, jStruct["Flags"].Offset);
-		FILL_DATA(pData, ClusterIndex, jStruct["ClusterIndex"].Offset);
-		FILL_DATA(pData, SerialNumber, jStruct["SerialNumber"].Offset);
+		FILL_DATA(pData, Object, offsets[0]);
+		FILL_DATA(pData, Flags, offsets[1]);
+		FILL_DATA(pData, ClusterIndex, offsets[2]);
+		FILL_DATA(pData, SerialNumber, offsets[3]);
 
 		// It's Initialized
 		init = true;
@@ -363,6 +375,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Index"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -378,7 +391,7 @@ public:
 			FixPointers(jSize);
 		}
 
-		FILL_DATA(pData, Index, jStruct["Index"].Offset);
+		FILL_DATA(pData, Index, offsets[0]);
 		AnsiName = m->ReadText(objAddress + ansiNameOffset);
 
 		if (dataAllocer)
@@ -439,6 +452,15 @@ public:
 
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["VfTable"].Offset,
+			jStruct["Flags"].Offset,
+			jStruct["InternalIndex"].Offset,
+			jStruct["Class"].Offset,
+			jStruct["Name"].Offset,
+			jStruct["Outer"].Offset
+		};
 
 		bool dataAllocer = false;
 		if (pData == nullptr)
@@ -453,12 +475,12 @@ public:
 			FixPointers(jSize);
 		}
 
-		FILL_DATA(pData, VfTable, jStruct["VfTable"].Offset);
-		FILL_DATA(pData, Flags, jStruct["Flags"].Offset);
-		FILL_DATA(pData, InternalIndex, jStruct["InternalIndex"].Offset);
-		FILL_DATA(pData, Class, jStruct["Class"].Offset);
-		FILL_DATA(pData, Name, jStruct["Name"].Offset);
-		FILL_DATA(pData, Outer, jStruct["Outer"].Offset);
+		FILL_DATA(pData, VfTable, offsets[0]);
+		FILL_DATA(pData, Flags, offsets[1]);
+		FILL_DATA(pData, InternalIndex, offsets[2]);
+		FILL_DATA(pData, Class, offsets[3]);
+		FILL_DATA(pData, Name, offsets[4]);
+		FILL_DATA(pData, Outer, offsets[5]);
 
 		// It's initialized
 		init = true;
@@ -532,6 +554,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Next"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -551,7 +574,7 @@ public:
 		UObject::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, Next, jStruct["Next"].Offset);
+		FILL_DATA(pData, Next, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -600,6 +623,12 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["CppType"].Offset,
+			jStruct["Names"].Offset,
+			jStruct["CppForm"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -619,9 +648,9 @@ public:
 		UField::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, CppType, jStruct["CppType"].Offset);
-		FILL_DATA(pData, Names, jStruct["Names"].Offset);
-		FILL_DATA(pData, CppForm, jStruct["CppForm"].Offset);
+		FILL_DATA(pData, CppType, offsets[0]);
+		FILL_DATA(pData, Names, offsets[1]);
+		FILL_DATA(pData, CppForm, offsets[2]);
 
 		if (dataAllocer)
 		{
@@ -670,6 +699,13 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["SuperField"].Offset,
+			jStruct["Children"].Offset,
+			jStruct["PropertySize"].Offset,
+			jStruct["MinAlignment"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -689,10 +725,10 @@ public:
 		UField::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, SuperField, jStruct["SuperField"].Offset);
-		FILL_DATA(pData, Children, jStruct["Children"].Offset);
-		FILL_DATA(pData, PropertySize, jStruct["PropertySize"].Offset);
-		FILL_DATA(pData, MinAlignment, jStruct["MinAlignment"].Offset);
+		FILL_DATA(pData, SuperField, offsets[0]);
+		FILL_DATA(pData, Children, offsets[1]);
+		FILL_DATA(pData, PropertySize, offsets[2]);
+		FILL_DATA(pData, MinAlignment, offsets[3]);
 
 		if (dataAllocer)
 		{
@@ -775,14 +811,8 @@ class UFunction : public UStruct
 {
 public:
 	int32_t FunctionFlags = 0;
-	int8_t NumParms = 0;
-	int16_t ParmsSize = 0;
-	uint16_t ReturnValueOffset = 0;
-	uint16_t RPCId = 0;
-	uint16_t RPCResponseId = 0;
 	uintptr_t FirstPropertyToInit = 0;
 	uintptr_t EventGraphFunction = 0;
-	int32_t EventGraphCallOffset = 0;
 	uintptr_t Func = 0;
 
 	std::string TypeName() { return "UFunction"; }
@@ -805,6 +835,13 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["FunctionFlags"].Offset,
+			jStruct["FirstPropertyToInit"].Offset,
+			jStruct["EventGraphFunction"].Offset,
+			jStruct["Func"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -825,15 +862,10 @@ public:
 		UStruct::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, FunctionFlags, jStruct["FunctionFlags"].Offset);
-		FILL_DATA(pData, NumParms, jStruct["NumParms"].Offset);
-		FILL_DATA(pData, ParmsSize, jStruct["ParmsSize"].Offset);
-		FILL_DATA(pData, ReturnValueOffset, jStruct["ReturnValueOffset"].Offset);
-		FILL_DATA(pData, RPCId, jStruct["RPCId"].Offset);
-		FILL_DATA(pData, RPCResponseId, jStruct["RPCResponseId"].Offset);
-		FILL_DATA(pData, FirstPropertyToInit, jStruct["FirstPropertyToInit"].Offset);
-		FILL_DATA(pData, EventGraphFunction, jStruct["EventGraphFunction"].Offset);
-		FILL_DATA(pData, EventGraphCallOffset, jStruct["EventGraphCallOffset"].Offset);
+		FILL_DATA(pData, FunctionFlags, offsets[0]);
+		FILL_DATA(pData, FirstPropertyToInit, offsets[1]);
+		FILL_DATA(pData, EventGraphFunction, offsets[2]);
+		FILL_DATA(pData, Func, offsets[3]);
 
 		if (dataAllocer)
 		{
@@ -911,7 +943,6 @@ public:
 	}
 };
 
-// ToDo: Check what UProperty really need!!, then don't read anything u don't need
 class UProperty : public UField
 {
 public:
@@ -945,6 +976,17 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["ArrayDim"].Offset,
+			jStruct["ElementSize"].Offset,
+			jStruct["PropertyFlags"].Offset,
+			jStruct["Offset"].Offset,
+			jStruct["PropertyLinkNext"].Offset,
+			jStruct["NextRef"].Offset,
+			jStruct["DestructorLinkNext"].Offset,
+			jStruct["PostConstructLinkNext"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -964,14 +1006,14 @@ public:
 		UField::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, ArrayDim, jStruct["ArrayDim"].Offset);
-		FILL_DATA(pData, ElementSize, jStruct["ElementSize"].Offset);
-		FILL_DATA(pData, PropertyFlags, jStruct["PropertyFlags"].Offset);
-		FILL_DATA(pData, Offset, jStruct["Offset"].Offset);
-		FILL_DATA(pData, PropertyLinkNext, jStruct["PropertyLinkNext"].Offset);
-		FILL_DATA(pData, NextRef, jStruct["NextRef"].Offset);
-		FILL_DATA(pData, DestructorLinkNext, jStruct["DestructorLinkNext"].Offset);
-		FILL_DATA(pData, PostConstructLinkNext, jStruct["PostConstructLinkNext"].Offset);
+		FILL_DATA(pData, ArrayDim, offsets[0]);
+		FILL_DATA(pData, ElementSize, offsets[1]);
+		FILL_DATA(pData, PropertyFlags, offsets[2]);
+		FILL_DATA(pData, Offset, offsets[3]);
+		FILL_DATA(pData, PropertyLinkNext, offsets[4]);
+		FILL_DATA(pData, NextRef, offsets[5]);
+		FILL_DATA(pData, DestructorLinkNext, offsets[6]);
+		FILL_DATA(pData, PostConstructLinkNext, offsets[7]);
 
 		if (dataAllocer)
 		{
@@ -1070,6 +1112,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Enum"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1089,7 +1132,7 @@ public:
 		UNumericProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, Enum, jStruct["Enum"].Offset);
+		FILL_DATA(pData, Enum, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -1639,6 +1682,13 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["FieldSize"].Offset,
+			jStruct["ByteOffset"].Offset,
+			jStruct["ByteMask"].Offset,
+			jStruct["FieldMask"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1658,10 +1708,10 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, FieldSize, jStruct["FieldSize"].Offset);
-		FILL_DATA(pData, ByteOffset, jStruct["ByteOffset"].Offset);
-		FILL_DATA(pData, ByteMask, jStruct["ByteMask"].Offset);
-		FILL_DATA(pData, FieldMask, jStruct["FieldMask"].Offset);
+		FILL_DATA(pData, FieldSize, offsets[0]);
+		FILL_DATA(pData, ByteOffset, offsets[1]);
+		FILL_DATA(pData, ByteMask, offsets[2]);
+		FILL_DATA(pData, FieldMask, offsets[3]);
 
 		if (dataAllocer)
 		{
@@ -1704,6 +1754,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["PropertyClass"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1723,7 +1774,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, PropertyClass, jStruct["PropertyClass"].Offset);
+		FILL_DATA(pData, PropertyClass, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -1822,6 +1873,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["MetaClass"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1841,7 +1893,7 @@ public:
 		UObjectProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, MetaClass, jStruct["MetaClass"].Offset);
+		FILL_DATA(pData, MetaClass, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -1884,6 +1936,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["InterfaceClass"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1903,7 +1956,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, InterfaceClass, jStruct["InterfaceClass"].Offset);
+		FILL_DATA(pData, InterfaceClass, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2114,6 +2167,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["MetaClass"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2133,7 +2187,7 @@ public:
 		UAssetObjectProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, MetaClass, jStruct["MetaClass"].Offset);
+		FILL_DATA(pData, MetaClass, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2232,6 +2286,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Struct"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2251,7 +2306,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, Struct, jStruct["Struct"].Offset);
+		FILL_DATA(pData, Struct, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2406,6 +2461,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Inner"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2425,7 +2481,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, Inner, jStruct["Inner"].Offset);
+		FILL_DATA(pData, Inner, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2472,6 +2528,11 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["KeyProp"].Offset,
+			jStruct["ValueProp"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2491,8 +2552,8 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, KeyProp, jStruct["KeyProp"].Offset);
-		FILL_DATA(pData, ValueProp, jStruct["ValueProp"].Offset);
+		FILL_DATA(pData, KeyProp, offsets[0]);
+		FILL_DATA(pData, ValueProp, offsets[1]);
 
 		if (dataAllocer)
 		{
@@ -2535,6 +2596,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["SignatureFunction"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2554,7 +2616,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, SignatureFunction, jStruct["SignatureFunction"].Offset);
+		FILL_DATA(pData, SignatureFunction, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2597,6 +2659,7 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["SignatureFunction"].Offset };
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2616,7 +2679,7 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, SignatureFunction, jStruct["SignatureFunction"].Offset);
+		FILL_DATA(pData, SignatureFunction, offsets[0]);
 
 		if (dataAllocer)
 		{
@@ -2663,6 +2726,11 @@ public:
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["UnderlyingProp"].Offset,
+			jStruct["Enum"].Offset
+		};
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2682,8 +2750,8 @@ public:
 		UProperty::ReadData(objAddress);
 
 		// Init `this` variables
-		FILL_DATA(pData, UnderlyingProp, jStruct["UnderlyingProp"].Offset);
-		FILL_DATA(pData, Enum, jStruct["Enum"].Offset);
+		FILL_DATA(pData, UnderlyingProp, offsets[0]);
+		FILL_DATA(pData, Enum, offsets[1]);
 
 		if (dataAllocer)
 		{
