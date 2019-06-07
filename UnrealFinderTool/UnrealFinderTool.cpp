@@ -110,19 +110,21 @@ void StartGObjFinder(const bool easyMethod)
 *
 *	Definately some thread safety issues happening here
 *	will need to look into more.
+*
+*	Turns out g_names_find_disabled causes imgui to crash.
 */
 void StartGNamesFinder()
 {
 	std::string s = "Searching...";
 	g_names_listbox_items.push_back(s);
 
+	DisabledAll();
+//	g_names_find_disabled = true;
+	g_objects_disabled = false;
+	g_names_disabled = false;
+
 	std::thread t([&]()
-	{
-//		DisabledAll();
-//		g_names_find_disabled = true;
-//		g_objects_disabled = false;
-//		g_names_disabled = false;
-	
+	{	
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
 	
@@ -166,7 +168,8 @@ void StartGNamesFinder()
 		if (ret.size() == 1) {
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
-//		EnabledAll();
+
+		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
