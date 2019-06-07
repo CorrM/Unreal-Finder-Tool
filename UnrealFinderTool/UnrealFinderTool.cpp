@@ -24,6 +24,10 @@ int DetectUe4Game(HWND* windowHandle)
 	{
 		DWORD pId;
 		GetWindowThreadProcessId(childControl, &pId);
+
+		if (Memory::GetProcessNameById(pId) == "EpicGamesLauncher.exe")
+			return 0;
+
 		if (windowHandle != nullptr)
 			*windowHandle = childControl;
 
@@ -56,6 +60,9 @@ void SetupMemoryStuff(const HANDLE pHandle)
 
 		// Grab engine version information
 		Utils::UnrealEngineVersion(ue_version);
+
+		// Override UE4 Engine Structs
+		Utils::OverrideLoadedEngineCore(ue_version);
 	}
 }
 
@@ -419,7 +426,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 608);
+					thiz.SetSize(380, 620);
 					cur_tap_id = 1;
 				}
 
@@ -535,9 +542,7 @@ void MainUi(UiWindow& thiz)
 					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
 					ui::SameLine();
 					ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
-					ENABLE_DISABLE_WIDGET(
-						ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(
-							class_find_buf)), class_find_input_disabled);
+					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
 					ui::PopItemWidth();
 					ui::SameLine();
 					HelpMarker(
@@ -568,7 +573,7 @@ void MainUi(UiWindow& thiz)
 					ui::PushItemWidth(ui::GetWindowSize().x - 15);
 					ui::ListBox("##Class_listbox", &class_listbox_item_current, VectorGetter,
 					            static_cast<void*>(&class_listbox_items), static_cast<int>(class_listbox_items.size()),
-					            6);
+					            5);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
@@ -579,7 +584,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 2)
 				{
-					thiz.SetSize(380, 372);
+					thiz.SetSize(380, 407);
 					cur_tap_id = 2;
 				}
 
@@ -613,7 +618,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 616);
+					thiz.SetSize(380, 622);
 					cur_tap_id = 3;
 				}
 
@@ -700,6 +705,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadEngineCore()) return 0;
+
+	Memory::GetProcessIdByName("EpicGamesLauncher.exe");
+	Memory::GetProcessNameById(95128);
 
 	// Autodetect in case game already open
 	process_id = DetectUe4Game();

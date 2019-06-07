@@ -27,7 +27,7 @@ bool Utils::LoadEngineCore()
 
 void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 {
-	// Get all engine files and load it's structs, if return false then there is no override for target engine and use the EngineBase
+	// Get engine files and Override it's structs on EngineBase, if return false then there is no override for target engine and use the EngineBase
 	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\Engine-" + engineVersion + ".json", true);
 }
 
@@ -355,7 +355,7 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 {
 	auto ret = false;
 
-	auto process = Utils::MemoryObj->ProcessHandle;
+	auto process = MemoryObj->ProcessHandle;
 	if (!process)
 		return ret;
 

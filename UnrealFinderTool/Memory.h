@@ -19,6 +19,13 @@ public:
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
+	static int GetProcessIdByName(const std::string& processName);
+	static std::string GetProcessNameById(DWORD pId);
+	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
+	bool SuspendProcess();
+	bool ResumeProcess();
+	bool IsSuspend();
+
 	template<typename T>
 	int Read(const uintptr_t address, T& ret)
 	{
@@ -51,9 +58,4 @@ public:
 	float ReadPointerFloat(uintptr_t address, int offsets[], int offsetCount);
 	std::string ReadText(uintptr_t address);
 	std::string ReadPointerText(const uintptr_t address, int offsets[], int offsetCount);
-	static int GetProcessIdByName(char* processName);
-	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
-	bool SuspendProcess();
-	bool ResumeProcess();
-	bool IsSuspend();
 };

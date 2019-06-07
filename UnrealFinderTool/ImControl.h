@@ -11,7 +11,7 @@ inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
-inline std::string ue_version;
+inline std::string ue_version = "0.0.0";
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;

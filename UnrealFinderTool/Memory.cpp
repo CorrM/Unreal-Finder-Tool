@@ -42,18 +42,20 @@ void Memory::UpdateHandle(const HANDLE processHandle)
 	ProcessHandle = processHandle;
 }
 
-int Memory::GetProcessIdByName(char* processName)
+int Memory::GetProcessIdByName(const std::string& processName)
 {
 	PROCESSENTRY32 pe32;
 	pe32.dwSize = sizeof(PROCESSENTRY32);
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-	if (Process32First(hSnapshot, &pe32)) {
+	if (Process32First(hSnapshot, &pe32))
+	{
 		do
 		{
-			if (strcmp(pe32.szExeFile, processName) == 0)
+			if (processName == pe32.szExeFile)
 				break;
-		} while (Process32Next(hSnapshot, &pe32));
+		}
+		while (Process32Next(hSnapshot, &pe32));
 	}
 
 	if (hSnapshot != INVALID_HANDLE_VALUE)
@@ -65,9 +67,39 @@ int Memory::GetProcessIdByName(char* processName)
 	return pe32.th32ProcessID;
 }
 
+std::string Memory::GetProcessNameById(const DWORD pId)
+{
+	std::string ret;
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (Process32First(hSnapshot, &pe32))
+	{
+		do
+		{
+			if (pe32.th32ProcessID == pId)
+			{
+				ret = pe32.szExeFile;
+				break;
+			}
+		}
+		while (Process32Next(hSnapshot, &pe32));
+	}
+
+	if (hSnapshot != INVALID_HANDLE_VALUE)
+		CloseHandle(hSnapshot);
+
+	const int err = GetLastError();
+	//std::cout << err << std::endl;
+	if (err != 0)
+		return ret;
+	return ret;
+}
+
 MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 {
-	MODULEINFO miInfos = {nullptr };
+	MODULEINFO miInfos = {nullptr};
 	const HMODULE hModule = GetModuleHandle(lpModuleName);
 	if (hModule) GetModuleInformation(GetCurrentProcess(), hModule, &miInfos, sizeof MODULEINFO);
 
@@ -76,16 +108,18 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 
 bool Memory::SuspendProcess()
 {
-	typedef LONG(NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtSuspendProcess"));
+	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
+	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(
+		GetModuleHandle("ntdll"), "NtSuspendProcess"));
 
 	return NT_SUCCESS(pfnNtSuspendProcess(ProcessHandle));
 }
 
 bool Memory::ResumeProcess()
 {
-	typedef LONG(NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
+	typedef LONG (NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
+	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(
+		GetModuleHandle("ntdll"), "NtResumeProcess"));
 
 	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
 }
@@ -100,7 +134,8 @@ BOOL Memory::SetPrivilegeM(const HANDLE hToken, const LPCTSTR lpszPrivilege, con
 	TOKEN_PRIVILEGES tp;
 	LUID luid;
 
-	if (!LookupPrivilegeValue(nullptr, lpszPrivilege, &luid)) {
+	if (!LookupPrivilegeValue(nullptr, lpszPrivilege, &luid))
+	{
 		//printf("LookupPrivilegeValue error: %u\n", GetLastError() );
 		return FALSE;
 	}
@@ -112,12 +147,15 @@ BOOL Memory::SetPrivilegeM(const HANDLE hToken, const LPCTSTR lpszPrivilege, con
 	else
 		tp.Privileges[0].Attributes = 0;
 
-	if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), static_cast<PTOKEN_PRIVILEGES>(nullptr), static_cast<PDWORD>(nullptr))) {
+	if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), static_cast<PTOKEN_PRIVILEGES>(nullptr),
+	                           static_cast<PDWORD>(nullptr)))
+	{
 		//printf("AdjustTokenPrivileges error: %u\n", GetLastError() );
 		return FALSE;
 	}
 
-	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
+	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+	{
 		//printf("The token does not have the specified privilege. \n");
 		return FALSE;
 	}
@@ -130,7 +168,7 @@ BOOL Memory::GetDebugPrivileges()
 	HANDLE hToken = nullptr;
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 		return FALSE;
-	
+
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
@@ -145,20 +183,21 @@ int Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const uint32_t 
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			buf,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                buf,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		/*if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
 			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
 	else
 	{
-		const auto success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), buf, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto success = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), buf,
+		                                       numberOfBytesToRead, &numberOfBytesActuallyRead);
 		/*if (!success && GetLastError() != 299)
 			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
-	
+
 	return numberOfBytesActuallyRead;
 }
 
@@ -173,21 +212,21 @@ int Memory::ReadBytes(const uintptr_t baseAddress, JsonVar& jsonVar, const LPVOI
 	if (useKernal)
 	{
 		const bool state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(baseAddress + jsonVar.Offset),
-			buf,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(baseAddress + jsonVar.Offset),
+		                                buf,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 
 		/*if (state != STATUS_PARTIAL_COPY && state != STATUS_SUCCESS)
 			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
 	}
 	else
 	{
-		const bool success = ReadProcessMemory(ProcessHandle, 
-			reinterpret_cast<LPCVOID>(baseAddress + jsonVar.Offset),
-			buf,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		const bool success = ReadProcessMemory(ProcessHandle,
+		                                       reinterpret_cast<LPCVOID>(baseAddress + jsonVar.Offset),
+		                                       buf,
+		                                       numberOfBytesToRead,
+		                                       &numberOfBytesActuallyRead);
 
 		/*if (!success && GetLastError() != 299)
 			std::cout << "Memory Error! " << GetLastError() << std::endl;*/
@@ -208,16 +247,17 @@ bool Memory::ReadBool(const uintptr_t address)
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return false;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			return false;
@@ -239,16 +279,17 @@ int Memory::ReadInt(const uintptr_t address)
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return -1;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			return -1;
@@ -268,16 +309,17 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return -1;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			return -1;
@@ -297,16 +339,17 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return -1;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			return -1;
@@ -325,16 +368,17 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return -1;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			// std::cout << "Memory Error! " << GetLastError() << std::endl;
@@ -344,7 +388,8 @@ UINT64 Memory::ReadUInt64(const uintptr_t address)
 	return buffer;
 }
 
-float Memory::ReadFloat(const uintptr_t address) {
+float Memory::ReadFloat(const uintptr_t address)
+{
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
 
@@ -354,16 +399,17 @@ float Memory::ReadFloat(const uintptr_t address) {
 	if (useKernal)
 	{
 		const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-			reinterpret_cast<LPVOID>(address),
-			&buffer,
-			numberOfBytesToRead,
-			&numberOfBytesActuallyRead);
+		                                reinterpret_cast<LPVOID>(address),
+		                                &buffer,
+		                                numberOfBytesToRead,
+		                                &numberOfBytesActuallyRead);
 		if (state != STATUS_SUCCESS)
 			return -1;
 	}
 	else
 	{
-		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+		const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+		                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 		if (!state)
 		{
 			return -1;
@@ -392,7 +438,8 @@ uintptr_t Memory::ReadAddress(const uintptr_t address)
 	return Is64Bit ? ReadInt64(address) : ReadInt(address);
 }
 
-int Memory::ReadPointerInt(const uintptr_t address, int offsets[], const int offsetCount) {
+int Memory::ReadPointerInt(const uintptr_t address, int offsets[], const int offsetCount)
+{
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
 
@@ -421,16 +468,17 @@ std::string Memory::ReadText(uintptr_t address)
 		if (useKernal)
 		{
 			const auto state = bypaPh->RWVM(bypaPh->m_hTarget,
-				reinterpret_cast<LPVOID>(address),
-				&buffer,
-				numberOfBytesToRead,
-				&numberOfBytesActuallyRead);
+			                                reinterpret_cast<LPVOID>(address),
+			                                &buffer,
+			                                numberOfBytesToRead,
+			                                &numberOfBytesActuallyRead);
 			if (state != STATUS_SUCCESS)
 				return "";
 		}
 		else
 		{
-			const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer, numberOfBytesToRead, &numberOfBytesActuallyRead);
+			const auto state = ReadProcessMemory(ProcessHandle, reinterpret_cast<LPCVOID>(address), &buffer,
+			                                     numberOfBytesToRead, &numberOfBytesActuallyRead);
 			if (!state)
 				return "";
 		}
@@ -443,7 +491,8 @@ std::string Memory::ReadText(uintptr_t address)
 	return ret;
 }
 
-std::string Memory::ReadPointerText(const uintptr_t address, int offsets[], int offsetCount) {
+std::string Memory::ReadPointerText(const uintptr_t address, int offsets[], int offsetCount)
+{
 	if (address == static_cast<uintptr_t>(-1))
 		return "";
 	return ReadText(GetPointerAddress(address, offsets, offsetCount));
