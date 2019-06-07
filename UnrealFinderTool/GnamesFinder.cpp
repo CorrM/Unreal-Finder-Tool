@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "GnamesFinder.h"
+#include "Scanner.h"
 
 Pattern GNamesFinder::noneSig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
 Pattern GNamesFinder::byteSig = PatternScan::Parse("Byte", 0, "42 79 74 65 50 72 6F 70 65 72 74 79 00", 0xFF);
@@ -57,7 +58,40 @@ std::vector<uintptr_t> GNamesFinder::Find()
 	for (uintptr_t i : cmp3)
 	{
 		i = i - nameOffset;
-		ret.push_back(i);
+		ret.push_back(GetChunksAddress(i));
+	}
+
+	return ret;
+}
+
+uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fname_address)
+{
+	using namespace Hyperscan;
+	uintptr_t ret = fname_address;
+
+	// Get GName array address
+	auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, fname_address, HyperscanAllignment8Bytes, HyperscanTypeExact);
+
+	// Nothing returned quit
+	if (!address_holder.empty())
+	{
+		for (uintptr_t i : address_holder)
+		{
+			// Any address larger than this is usually garbage
+			if (i > uintptr_t(0x7ff000000000))
+				continue;
+
+			// Scan for Gnames chunks address
+			auto gname_array_address = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, i, HyperscanAllignment8Bytes, HyperscanTypeExact);
+			for (uintptr_t chunk_address : gname_array_address)
+			{
+				if (Utils::IsValidGNamesAddress(chunk_address))
+				{
+					ret = chunk_address;
+					break;
+				}
+			}
+		}
 	}
 
 	return ret;

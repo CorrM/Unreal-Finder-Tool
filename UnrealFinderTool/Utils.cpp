@@ -204,16 +204,25 @@ bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
 
 bool Utils::IsValidGNamesAddress(const uintptr_t address)
 {
-	if (MemoryObj == nullptr)
+	if (MemoryObj == nullptr || !IsValidAddress(MemoryObj, address))
 		return false;
 
-	// Read First Chunk Address
-	uintptr_t firstChunk = MemoryObj->ReadAddress(address);
-	if (!IsValidAddress(MemoryObj, firstChunk)) return false;
+	bool last_is_null = false;
+
+	// Chunks array must have null pointers, if not then it's not valid
+	for (int read_address = 0; read_address <= 10; ++read_address)
+	{
+		// Read Chunk Address
+		uintptr_t chunk_address = MemoryObj->ReadAddress(address + size_t(read_address * PointerSize()));
+		last_is_null = chunk_address == NULL;
+	}
+
+	if (!last_is_null)
+		return false;
 
 	// Read First FName Address
-	uintptr_t noneFName = MemoryObj->ReadAddress(firstChunk);
-	if (!Utils::IsValidAddress(MemoryObj, noneFName)) return false;
+	uintptr_t noneFName = MemoryObj->ReadAddress(MemoryObj->ReadAddress(address));
+	if (!IsValidAddress(MemoryObj, noneFName)) return false;
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);

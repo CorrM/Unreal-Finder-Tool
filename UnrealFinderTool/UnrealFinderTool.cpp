@@ -137,91 +137,21 @@ void StartGNamesFinder()
 	std::thread t([&]()
 	{
 		GNamesFinder gf;
-		std::vector<uintptr_t> ret = gf.Find();
-		/*
-		uintptr_t end = ret[0];
-		uintptr_t start2 = ret[0];
-		uintptr_t start = (end - 0x17FFFF0); //0xA0000
-		uintptr_t end2 = (start2 + 0x17FFFF0);
+		uintptr_t gname_address = gf.Find()[0]; // always return one address
 
-		auto step = Utils::PointerSize();
-
-		while (!found)
-		{
-			if (!Utils::IsValidGNamesAddress(start))
-				start += step;
-			else
-			{
-				ret[0] = start;
-				found = true;
-			}
-			if (!Utils::IsValidGNamesAddress(start2))
-				start2 += step;
-			else
-			{
-				ret[0] = start2;
-				found = true;
-			}
-			if (!Utils::IsValidGNamesAddress(start2))
-				start2 += step;
-			else
-			{
-				ret[0] = start2;
-				found = true;
-			}
-
-			if (start == end || start2 == end2 || found)
-				break;
-		}
-		*/
-
-		auto addr = ret[0];
-		using namespace Hyperscan;
-
-		// We only want to go 5 pointers deep, prevent infinite loops
-		for (int x = 1; x < 5; x++) {
-			if (Utils::IsValidGNamesAddress(addr)) {
-				ret[0] = addr;
-				break;
-			}
-			std::vector<uintptr_t> address_holder = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, addr, Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
-			
-			// Nothing returned quit
-			if (address_holder.size() < 1)
-				break;
-			
-			for (int i = 0; i < address_holder.size(); i++) {
-				// Any address larger than this is usually garbage
-				if (address_holder[i] > 0x7ff000000000)
-					continue;
-				if (Utils::IsValidGNamesAddress(address_holder[i])) {
-					ret[0] = address_holder[i];
-					break;
-				}
-				else {
-					auto retn = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, address_holder[i], Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
-					if (retn.size() != 1)
-						continue;
-					addr = retn[0];
-					break;
-				}
-			}
-		}
 		g_names_listbox_items.clear();
 
-		for (auto v : ret)
+		if (gname_address != NULL)
 		{
-			std::stringstream ss;
-			ss << std::hex << v;
+			// Convert to hex string
+			std::stringstream ss; ss << std::hex << gname_address;
 
+			// Make hex char is Upper
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
 
+			// Set value for UI
 			g_names_listbox_items.push_back(tmpUpper);
-		}
-
-		if (ret.size() == 1)
-		{
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
@@ -412,9 +342,9 @@ void MainUi(UiWindow& thiz)
 		}
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
-		                         {
-			                         process_id = DetectUe4Game();
-		                         });
+		{
+		    process_id = DetectUe4Game();
+		});
 	}
 
 	// Unreal version
@@ -438,12 +368,9 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
 		ui::SameLine();
-		ENABLE_DISABLE_WIDGET(
-			ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal
-			), g_objects_disabled);
+		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
 		ui::SameLine();
-		HelpMarker(
-			"What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
+		HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
 	}
 
@@ -454,23 +381,24 @@ void MainUi(UiWindow& thiz)
 		ui::SameLine();
 
 		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
-		
-		if(Utils::IsValidGNamesAddress(g_names_address))
-			ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-		else 
-			ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-		ENABLE_DISABLE_WIDGET(
-			ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal),
-			g_names_disabled);
+		bool style_pushed = false;
+		if (!g_names_disabled)
+		{
+			style_pushed = true;
+			if (Utils::IsValidGNamesAddress(g_names_address))
+				ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+			else
+				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+		}
 
-		ui::PopStyleColor();
+		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
+
+		if (style_pushed)
+			ui::PopStyleColor();
 
 		ui::SameLine();
-		HelpMarker(
-			"What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
-		
-		
+		HelpMarker( "What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's the address you get from this tool.");
 	}
 
 	ui::Separator();
