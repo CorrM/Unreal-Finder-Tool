@@ -138,9 +138,6 @@ void StartGNamesFinder()
 	{
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
-
-		auto found = false;
-
 		/*
 		uintptr_t end = ret[0];
 		uintptr_t start2 = ret[0];
@@ -181,20 +178,23 @@ void StartGNamesFinder()
 		auto addr = ret[0];
 		using namespace Hyperscan;
 
-		while (!found) {
-
+		// We only want to go 5 pointers deep, prevent infinite loops
+		for (int x = 1; x < 5; x++) {
 			if (Utils::IsValidGNamesAddress(addr)) {
-				found = true;
 				ret[0] = addr;
 				break;
 			}
 			std::vector<uintptr_t> address_holder = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, addr, Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
 			
+			// Nothing returned quit
+			if (address_holder.size() < 1)
+				break;
+			
 			for (int i = 0; i < address_holder.size(); i++) {
+				// Any address larger than this is usually garbage
 				if (address_holder[i] > 0x7ff000000000)
 					continue;
 				if (Utils::IsValidGNamesAddress(address_holder[i])) {
-					found = true;
 					ret[0] = address_holder[i];
 					break;
 				}
