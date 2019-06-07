@@ -191,6 +191,8 @@ void StartGNamesFinder()
 			std::vector<uintptr_t> address_holder = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, addr, Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
 			
 			for (int i = 0; i < address_holder.size(); i++) {
+				if (address_holder[i] > 0x7ff000000000)
+					continue;
 				if (Utils::IsValidGNamesAddress(address_holder[i])) {
 					found = true;
 					ret[0] = address_holder[i];
@@ -198,7 +200,7 @@ void StartGNamesFinder()
 				}
 				else {
 					auto retn = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, address_holder[i], Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
-					if (retn.size() < 1 || retn.size() > 1)
+					if (retn.size() != 1)
 						continue;
 					addr = retn[0];
 					break;
