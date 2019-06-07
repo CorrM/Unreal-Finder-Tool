@@ -57,5 +57,8 @@ public:
 	bool Closed();
 	void CenterPos();
 	void SetSize(int newWidth, int newHeight);
+
+	HWND GetWindowHandle();
+	void FlashWindow();
 };
 

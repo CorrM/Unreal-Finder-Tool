@@ -1,3 +1,5 @@
+
+
 #include "pch.h"
 #include "JsonReflector.h"
 #include "PatternScan.h"
@@ -6,6 +8,8 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <cctype>
+#include <tchar.h>
 
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;
@@ -47,7 +51,7 @@ bool Utils::LoadSettings()
 
 	// Sdk Generator Settings
 	auto sdkParas = j.at("sdkGenerator");
-	Settings.SdkGen.CorePackageName = sdkParas["core Name"]; 
+	Settings.SdkGen.CorePackageName = sdkParas["core Name"];
 	Settings.SdkGen.MemoryHeader = sdkParas["memory header"];
 	Settings.SdkGen.MemoryRead = sdkParas["memory read"];
 	Settings.SdkGen.MemoryWrite = sdkParas["memory write"];
@@ -353,3 +357,44 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 	}
 }
 #pragma endregion
+
+bool Utils::UnrealEngineVersion(std::string &ver)
+{
+	auto ret = false;
+
+	auto process = Utils::MemoryObj->ProcessHandle;
+	if (!process)
+		return ret;
+
+	std::string path;
+	path.resize(MAX_PATH, '\0');
+
+	DWORD path_size = MAX_PATH;
+	if (!QueryFullProcessImageName(process, 0, path.data(), &path_size))
+		return ret;
+
+	unsigned long version_size = GetFileVersionInfoSize(path.c_str(), &version_size);
+	if (version_size > 0) {
+		PBYTE pData = new BYTE[version_size];
+		GetFileVersionInfo(path.c_str(), 0, version_size, static_cast<LPVOID>(pData));
+
+		void *fixed = nullptr;
+		unsigned int size = 0;
+		VS_FIXEDFILEINFO *ffi = nullptr;
+
+		VerQueryValue(pData, _T("\\"), &fixed, &size);
+		if (fixed) {
+			ffi = (VS_FIXEDFILEINFO*)fixed;
+
+			auto v1 = HIWORD(ffi->dwFileVersionMS);
+			auto v2 = LOWORD(ffi->dwFileVersionMS);
+			auto v3 = HIWORD(ffi->dwFileVersionLS);
+
+			std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." + std::to_string(v3);
+			ver = engine_version;
+			ret = true;
+		}
+		delete pData;
+	}
+	return ret;
+}

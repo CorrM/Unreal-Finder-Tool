@@ -8,10 +8,13 @@
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 
+#include "Debug.h"
+
 #include <sstream>
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
+UiWindow *uiMainWindow = nullptr;
 bool memory_init = false;
 
 int DetectUe4Game(HWND* windowHandle)
@@ -49,6 +52,9 @@ void SetupMemoryStuff(const HANDLE pHandle)
 		memory_init = true;
 		Utils::MemoryObj = new Memory(pHandle, use_kernal);
 		if (!use_kernal) Utils::MemoryObj->GetDebugPrivileges();
+
+		// Grab engine version information
+		Utils::UnrealEngineVersion(ue_version);
 	}
 }
 
@@ -108,8 +114,53 @@ void StartGNamesFinder()
 		g_objects_disabled = false;
 		g_names_disabled = false;
 
+		std::string searching = "Searching...";
+		g_names_listbox_items.push_back(searching);
+
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
+		searching = "Found base address...";
+		g_names_listbox_items.push_back(searching);
+
+		auto found = false;
+		uintptr_t gnames_start = ret[0], gnames_start2 = ret[0];
+		uintptr_t gnames_end = 0, gnames_end2 = 0;
+
+		searching = "Finding correct offset";
+		g_names_listbox_items.push_back(searching);
+		searching = "Searching";
+		// HACK: Todo optimise this function
+		// Prototype autodetection
+		for (int x = 1; x <= 15; x++) {
+
+			gnames_end = gnames_start;
+			gnames_start -= 0xA0000;
+
+			gnames_start2 = gnames_end2;
+			gnames_end2 += 0xA0000;
+
+			while (true) {
+				if (Utils::IsValidGNamesAddress(gnames_start)) {
+					ret[0] = gnames_start;
+					found = true;
+					break;
+				}
+				else gnames_start += Utils::PointerSize();
+				if (Utils::IsValidGNamesAddress(gnames_start2)) {
+					ret[0] = gnames_start2;
+					found = true;
+					break;
+				}
+				else gnames_start2 += Utils::PointerSize();
+
+				if (gnames_start > gnames_end || gnames_start2 > gnames_end2)
+					break;
+			}
+			if (found) break;
+			g_names_listbox_items.push_back(searching.append("."));
+		}
+
+		g_names_listbox_items.clear();
 
 		for (auto v : ret)
 		{
@@ -213,7 +264,7 @@ void StartSdkGenerator()
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
-		                              &sg_packages_done_count,
+		                              &sg_packages_item_current,
 		                              sg_game_name_buf,
 		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]),
 		                              static_cast<SdkType>(sg_type_item_current),
@@ -223,6 +274,7 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
+			uiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
@@ -278,7 +330,7 @@ void MainUi(UiWindow& thiz)
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
 		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
-	
+
 	ui::Separator();
 
 	// Process ID
@@ -310,14 +362,21 @@ void MainUi(UiWindow& thiz)
 			process_id = DetectUe4Game();
 		});
 	}
-	
-	// Use Kernal
+
+	// Unreal version
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernal : "); ui::SameLine();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : "); ui::SameLine();
+		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
+	}
+
+	// Use Kernel
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : "); ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
 	}
-	
+
 	// GObjects Address
 	{
 		ui::AlignTextToFramePadding();
@@ -326,7 +385,7 @@ void MainUi(UiWindow& thiz)
 		ui::SameLine(); HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
 	}
-	
+
 	// GNames Address
 	{
 		ui::AlignTextToFramePadding();
@@ -335,7 +394,7 @@ void MainUi(UiWindow& thiz)
 		ui::SameLine(); HelpMarker("What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
 		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 	}
-	
+
 	ui::Separator();
 
 	// Tabs
@@ -580,6 +639,7 @@ void MainUi(UiWindow& thiz)
 	}
 }
 
+#pragma warning(disable:4996)
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 // ReSharper disable once CppInconsistentNaming
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
@@ -597,14 +657,21 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// auto test = JsonReflector::StructsList;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Autodetect incase game already open
 	process_id = DetectUe4Game();
 
-	UiWindow ui("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
-	ui.Show(MainUi);
+	// Run the new debugging tools
+	Debugging *d = new Debugging();
+	d->EnterDebugMode();
 
-	while (!ui.Closed())
+	// Launch the main window
+	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
+	uiMainWindow->Show(MainUi);
+
+	while (!uiMainWindow->Closed())
 		Sleep(1);
 
+	// Cleanup
 	if (Utils::MemoryObj != nullptr)
 	{
 		Utils::MemoryObj->ResumeProcess();
