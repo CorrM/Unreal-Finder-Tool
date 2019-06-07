@@ -151,7 +151,6 @@ void StartGNamesFinder()
 				ret[0] = start2;
 				found = true;
 			}
-			}
 			if (!Utils::IsValidGNamesAddress(start2))
 				start2 += step;
 			else {
