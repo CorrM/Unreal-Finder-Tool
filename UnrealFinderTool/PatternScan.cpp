@@ -48,9 +48,9 @@ Pattern PatternScan::Parse(const std::string& name, const int offset, const std:
  * \param firstOnly Get first address only
  * \return uintptr_t
  */
-std::map<string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns, const bool firstOnly)
+std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns, const bool firstOnly)
 {
-	std::map<string, std::vector<uintptr_t>> ret;
+	std::map<std::string, std::vector<uintptr_t>> ret;
 	std::vector<uintptr_t> result;
 
 	// Init map

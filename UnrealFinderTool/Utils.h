@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <filesystem>
 #include "Memory.h"
 #include "JsonReflector.h"
+
+namespace fs = std::filesystem;
 
 struct MySettings
 {
@@ -41,15 +44,31 @@ public:
 	// Main Memory reader for read game memory props
 	static Memory* MemoryObj;
 
-	static bool LoadJsonCore();
+	// Load settings form the file
 	static bool LoadSettings();
+	// Check file Exists
+	bool FileExists(const std::string& filePath);
+	// Load engine structs from `EngineBase.json`
+	static bool LoadEngineCore();
+	// Override engine structs that load form another engine structs, `engineVersion` must look like '4.0.0'
+	static void OverrideLoadedEngineCore(const std::string& engineVersion);
+	// Split string by other string
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
+	// Replace string
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
+	// Check if string ends with other string
+	static bool EndsWith(const std::string& value, const std::string& ending);
+	// Determine if tool is working on x64 version. (Not Target game version)
 	static bool ProgramIs64();
+	// Convert Bytes to Int
 	static int BufToInteger(void* buffer);
+	// Convert Bytes to Int64
 	static int64_t BufToInteger64(void* buffer);
-	static uintptr_t CharArrayToUintptr(std::string str);
+	// Convert string to uintptr_t
+	static uintptr_t CharArrayToUintptr(const std::string& str);
+	// Determine if string is number
 	static bool IsNumber(const std::string& s);
+	// Determine if string is HEX number
 	static bool IsHexNumber(const std::string& s);
 	// Return size of pointer in target game
 	static int PointerSize();

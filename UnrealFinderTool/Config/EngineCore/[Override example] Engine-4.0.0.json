@@ -1,0 +1,14 @@
+{
+  "engine version": "4.0.0",
+  "structs": [
+    {
+      "name": "FPointer",
+      "super": "",
+      "vars": [
+        { "Dummy": "*" },
+        { "Dummy2": "*" }
+      ],
+      "note": "* mean it's pointer"
+    }
+  ]
+}
