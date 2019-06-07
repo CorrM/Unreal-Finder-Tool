@@ -513,275 +513,274 @@ void MainUi(UiWindow& thiz)
 					ui::SameLine();
 
 					// Start Finder
-						                         ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
-					                         {
-						                         if (IsReadyToGo()) {
-							                         StartGNamesFinder();
-						                         }
-						                         else
-						                         popup_not_valid_process = true;
-						                         });
+					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
+					{
+						if (IsReadyToGo())
+							StartGNamesFinder();
+						else
+							popup_not_valid_process = true;
+					});
 
-						                         ui::SameLine();
+					ui::SameLine();
 
-						                         // Set to input box
-						                         if (ui::Button("Use##Names", {47.0f, 0.0f}))
-						                         {
-							                         if (size_t(g_names_listbox_item_current) < g_names_listbox_items.
-								                         size())
-								                         strcpy_s(g_names_buf, sizeof g_names_buf,
-								                                  g_names_listbox_items[g_names_listbox_item_current].
-								                                  data());
-						                         }
+					// Set to input box
+					if (ui::Button("Use##Names", {47.0f, 0.0f}))
+					{
+						if (size_t(g_names_listbox_item_current) < g_names_listbox_items.
+							size())
+							strcpy_s(g_names_buf, sizeof g_names_buf,
+							         g_names_listbox_items[g_names_listbox_item_current].
+							         data());
+					}
 
-						                         ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-						                         ui::ListBox("##Names_listbox", &g_names_listbox_item_current,
-						                                     VectorGetter,
-						                                     static_cast<void*>(&g_names_listbox_items),
-						                                     static_cast<int>(g_names_listbox_items.size()), 3);
-						                         ui::PopItemWidth();
-						                         ui::EndGroup();
-						                         }
+					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
+					ui::ListBox("##Names_listbox", &g_names_listbox_item_current,
+					            VectorGetter,
+					            static_cast<void*>(&g_names_listbox_items),
+					            static_cast<int>(g_names_listbox_items.size()), 3);
+					ui::PopItemWidth();
+					ui::EndGroup();
+				}
 
-						                         ui::Separator();
-						                         ui::SetCursorPosX(
-							                         abs(ui::CalcTextSize("This section need GObjects and GNames").x -
-								                         ui::GetWindowSize().x) / 2);
-						                         ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-						                                         "This section need GObjects and GNames");
-						                         ui::Separator();
+				ui::Separator();
+				ui::SetCursorPosX(
+					abs(ui::CalcTextSize("This section need GObjects and GNames").x -
+						ui::GetWindowSize().x) / 2);
+				ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+				                "This section need GObjects and GNames");
+				ui::Separator();
 
-						                         // ## Class
-						                         {
-							                         ui::BeginGroup();
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
-							                         ui::SameLine();
-							                         ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
-							                         ENABLE_DISABLE_WIDGET(
-								                         ui::InputTextWithHint("##FindClass",
-									                         "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(
-										                         class_find_buf)), class_find_input_disabled);
-							                         ui::PopItemWidth();
-							                         ui::SameLine();
-							                         HelpMarker(
-								                         "What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
+				// ## Class
+				{
+					ui::BeginGroup();
+					ui::AlignTextToFramePadding();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
+					ui::SameLine();
+					ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
+					ENABLE_DISABLE_WIDGET(
+						ui::InputTextWithHint("##FindClass",
+							"LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(
+								class_find_buf)), class_find_input_disabled);
+					ui::PopItemWidth();
+					ui::SameLine();
+					HelpMarker(
+						"What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons :");
-							                         ui::SameLine();
+					ui::AlignTextToFramePadding();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons :");
+					ui::SameLine();
 
-							                         // Start Finder
-							                         ENABLE_DISABLE_WIDGET_IF(
-								                         ui::Button(" Find Class "), class_find_disabled,
-								                         {
-									                         if (IsReadyToGo())
-									                         StartClassFinder();
-									                         else
-									                         popup_not_valid_process = true;
-								                         });
+					// Start Finder
+					ENABLE_DISABLE_WIDGET_IF(
+						ui::Button(" Find Class "), class_find_disabled,
+						{
+							if (IsReadyToGo())
+							StartClassFinder();
+							else
+							popup_not_valid_process = true;
+						});
 
-							                         ui::SameLine();
+					ui::SameLine();
 
-							                         // Copy to clipboard
-							                         if (ui::Button(" Copy Selected "))
-							                         {
-								                         if (size_t(class_listbox_item_current) < class_listbox_items.
-									                         size())
-									                         ui::SetClipboardText(
-										                         class_listbox_items[class_listbox_item_current].
-										                         c_str());
-							                         }
+					// Copy to clipboard
+					if (ui::Button(" Copy Selected "))
+					{
+						if (size_t(class_listbox_item_current) < class_listbox_items.
+							size())
+							ui::SetClipboardText(
+								class_listbox_items[class_listbox_item_current].
+								c_str());
+					}
 
-							                         ui::PushItemWidth(ui::GetWindowSize().x - 15);
-							                         ui::ListBox("##Class_listbox", &class_listbox_item_current,
-							                                     VectorGetter,
-							                                     static_cast<void*>(&class_listbox_items),
-							                                     static_cast<int>(class_listbox_items.size()),
-							                                     5);
-							                         ui::PopItemWidth();
-							                         ui::EndGroup();
-						                         }
+					ui::PushItemWidth(ui::GetWindowSize().x - 15);
+					ui::ListBox("##Class_listbox", &class_listbox_item_current,
+					            VectorGetter,
+					            static_cast<void*>(&class_listbox_items),
+					            static_cast<int>(class_listbox_items.size()),
+					            5);
+					ui::PopItemWidth();
+					ui::EndGroup();
+				}
 
-						                         ui::EndTabItem();
-						                         }
-						                         if (ui::BeginTabItem("Instance Logger"))
-						                         {
-							                         if (cur_tap_id != 2)
-							                         {
-								                         thiz.SetSize(380, 407);
-								                         cur_tap_id = 2;
-							                         }
+				ui::EndTabItem();
+			}
+			if (ui::BeginTabItem("Instance Logger"))
+			{
+				if (cur_tap_id != 2)
+				{
+					thiz.SetSize(380, 407);
+					cur_tap_id = 2;
+				}
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Objects Count : ");
-							                         ui::SameLine();
-							                         ui::Text("%d", il_objects_count);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Objects Count : ");
+				ui::SameLine();
+				ui::Text("%d", il_objects_count);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Names Count   : ");
-							                         ui::SameLine();
-							                         ui::Text("%d", il_names_count);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Names Count   : ");
+				ui::SameLine();
+				ui::Text("%d", il_names_count);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "State         : ");
-							                         ui::SameLine();
-							                         ui::Text("%s", il_state.c_str());
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "State         : ");
+				ui::SameLine();
+				ui::Text("%s", il_state.c_str());
 
-							                         // Start Logger
-							                         ENABLE_DISABLE_WIDGET_IF(
-								                         ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x -
-									                         14.0f, 0.0f }), il_start_disabled,
-								                         {
-									                         if (IsReadyToGo())
-									                         StartInstanceLogger();
-									                         else
-									                         popup_not_valid_process = true;
-								                         });
+				// Start Logger
+				ENABLE_DISABLE_WIDGET_IF(
+					ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x -
+						14.0f, 0.0f }), il_start_disabled,
+					{
+						if (IsReadyToGo())
+						StartInstanceLogger();
+						else
+						popup_not_valid_process = true;
+					});
 
-							                         ui::EndTabItem();
-						                         }
-						                         if (ui::BeginTabItem("Sdk Generator"))
-						                         {
-							                         if (cur_tap_id != 3)
-							                         {
-								                         thiz.SetSize(380, 622);
-								                         cur_tap_id = 3;
-							                         }
+				ui::EndTabItem();
+			}
+			if (ui::BeginTabItem("Sdk Generator"))
+			{
+				if (cur_tap_id != 3)
+				{
+					thiz.SetSize(380, 622);
+					cur_tap_id = 3;
+				}
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Objects/Names : ");
-							                         ui::SameLine();
-							                         ui::Text("%d / %d", sg_objects_count, sg_names_count);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Objects/Names : ");
+				ui::SameLine();
+				ui::Text("%d / %d", sg_objects_count, sg_names_count);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Packages      : ");
-							                         ui::SameLine();
-							                         ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Packages      : ");
+				ui::SameLine();
+				ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Sdk Type      : ");
-							                         ui::SameLine();
-							                         ui::PushItemWidth(100);
-							                         ENABLE_DISABLE_WIDGET(
-								                         ui::Combo("##SdkType", &sg_type_item_current, VectorGetter,
-									                         static_cast<void*>(&sg_type_items),
-									                         static_cast<int>(sg_type_items.size()), 4),
-								                         sg_type_disabled);
-							                         ui::PopItemWidth();
-							                         ui::SameLine();
-							                         HelpMarker(
-								                         "- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Sdk Type      : ");
+				ui::SameLine();
+				ui::PushItemWidth(100);
+				ENABLE_DISABLE_WIDGET(
+					ui::Combo("##SdkType", &sg_type_item_current, VectorGetter,
+						static_cast<void*>(&sg_type_items),
+						static_cast<int>(sg_type_items.size()), 4),
+					sg_type_disabled);
+				ui::PopItemWidth();
+				ui::SameLine();
+				HelpMarker(
+					"- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Game Name     : ");
-							                         ui::SameLine();
-							                         ENABLE_DISABLE_WIDGET(
-								                         ui::InputTextWithHint("##GameName", "PUBG, Fortnite",
-									                         sg_game_name_buf, IM_ARRAYSIZE(
-										                         sg_game_name_buf)), sg_game_name_disabled);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Game Name     : ");
+				ui::SameLine();
+				ENABLE_DISABLE_WIDGET(
+					ui::InputTextWithHint("##GameName", "PUBG, Fortnite",
+						sg_game_name_buf, IM_ARRAYSIZE(
+							sg_game_name_buf)), sg_game_name_disabled);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "Game Version  : ");
-							                         ui::SameLine();
-							                         ENABLE_DISABLE_WIDGET(
-								                         ui::InputInt3("##GameVersion", sg_game_version),
-								                         sg_game_version_disabled);
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "Game Version  : ");
+				ui::SameLine();
+				ENABLE_DISABLE_WIDGET(
+					ui::InputInt3("##GameVersion", sg_game_version),
+					sg_game_version_disabled);
 
-							                         ui::AlignTextToFramePadding();
-							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-							                                         "State         : ");
-							                         ui::SameLine();
-							                         ui::Text("%s", sg_state.c_str());
+				ui::AlignTextToFramePadding();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+				                "State         : ");
+				ui::SameLine();
+				ui::Text("%s", sg_state.c_str());
 
-							                         // Packages Box
-							                         ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
-							                         ui::ListBox("##Packages_listbox", &sg_packages_item_current,
-							                                     VectorGetter,
-							                                     static_cast<void*>(&sg_packages_items),
-							                                     static_cast<int>(sg_packages_items.size()), 5);
-							                         ui::PopItemWidth();
+				// Packages Box
+				ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
+				ui::ListBox("##Packages_listbox", &sg_packages_item_current,
+				            VectorGetter,
+				            static_cast<void*>(&sg_packages_items),
+				            static_cast<int>(sg_packages_items.size()), 5);
+				ui::PopItemWidth();
 
-							                         // Start Generator
-							                         ENABLE_DISABLE_WIDGET_IF(
-								                         ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x -
-									                         14.0f, 0.0f }), sg_start_disabled,
-								                         {
-									                         if (IsReadyToGo())
-									                         StartSdkGenerator();
-									                         else
-									                         popup_not_valid_process = true;
-								                         });
+				// Start Generator
+				ENABLE_DISABLE_WIDGET_IF(
+					ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x -
+						14.0f, 0.0f }), sg_start_disabled,
+					{
+						if (IsReadyToGo())
+						StartSdkGenerator();
+						else
+						popup_not_valid_process = true;
+					});
 
-							                         ui::EndTabItem();
-						                         }
+				ui::EndTabItem();
+			}
 
-						                         ui::EndTabBar();
-						                         }
-						                         }
+			ui::EndTabBar();
+		}
+	}
 
-						                         // Popups
-						                         {
-							                         WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
-							                         WarningPopup("Warning", "Not Valid Process ID. !!",
-							                                      popup_not_valid_process);
-							                         WarningPopup("Warning", "Not Valid GNames Address. !!",
-							                                      popup_not_valid_gnames);
-							                         WarningPopup("Warning", "Not Valid GObjects Address. !!",
-							                                      popup_not_valid_gobjects);
-						                         }
-						                         }
+	// Popups
+	{
+		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Warning", "Not Valid Process ID. !!",
+		             popup_not_valid_process);
+		WarningPopup("Warning", "Not Valid GNames Address. !!",
+		             popup_not_valid_gnames);
+		WarningPopup("Warning", "Not Valid GObjects Address. !!",
+		             popup_not_valid_gobjects);
+	}
+}
 
 #pragma warning(disable:4996)
-						                         // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-						                         // Fix vs2019 Problem [wWinMain instead of WinMain]
-						                         // ReSharper disable once CppInconsistentNaming
-						                         int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-						                                               LPWSTR lpCmdLine, int nShowCmd)
-						                         // NOLINT(readability-non-const-parameter)
-						                         {
-							                         // Remove unneeded variables
-							                         UNREFERENCED_PARAMETER(hPrevInstance);
-							                         UNREFERENCED_PARAMETER(lpCmdLine);
+// int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+// Fix vs2019 Problem [wWinMain instead of WinMain]
+// ReSharper disable once CppInconsistentNaming
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                      LPWSTR lpCmdLine, int nShowCmd)
+// NOLINT(readability-non-const-parameter)
+{
+	// Remove unneeded variables
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-							                         // Load Settings / Json Core
-							                         if (!Utils::LoadSettings()) return 0;
-							                         if (!Utils::LoadEngineCore()) return 0;
+	// Load Settings / Json Core
+	if (!Utils::LoadSettings()) return 0;
+	if (!Utils::LoadEngineCore()) return 0;
 
-							                         Memory::GetProcessIdByName("EpicGamesLauncher.exe");
-							                         Memory::GetProcessNameById(95128);
+	Memory::GetProcessIdByName("EpicGamesLauncher.exe");
+	Memory::GetProcessNameById(95128);
 
-							                         // Autodetect in case game already open
-							                         process_id = DetectUe4Game();
+	// Autodetect in case game already open
+	process_id = DetectUe4Game();
 
-							                         // Run the new debugging tools
-							                         auto d = new Debugging();
-							                         d->EnterDebugMode();
+	// Run the new debugging tools
+	auto d = new Debugging();
+	d->EnterDebugMode();
 
-							                         // Launch the main window
-							                         UiMainWindow = new UiWindow(
-								                         "Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
-							                         UiMainWindow->Show(MainUi);
+	// Launch the main window
+	UiMainWindow = new UiWindow(
+		"Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
+	UiMainWindow->Show(MainUi);
 
-							                         while (!UiMainWindow->Closed())
-								                         Sleep(1);
+	while (!UiMainWindow->Closed())
+		Sleep(1);
 
-							                         // Cleanup
-							                         if (Utils::MemoryObj != nullptr)
-							                         {
-								                         Utils::MemoryObj->ResumeProcess();
-								                         CloseHandle(Utils::MemoryObj->ProcessHandle);
-								                         delete Utils::MemoryObj;
-								                         delete d;
-							                         }
+	// Cleanup
+	if (Utils::MemoryObj != nullptr)
+	{
+		Utils::MemoryObj->ResumeProcess();
+		CloseHandle(Utils::MemoryObj->ProcessHandle);
+		delete Utils::MemoryObj;
+		delete d;
+	}
 
-							                         return ERROR_SUCCESS;
-						                         }
+	return ERROR_SUCCESS;
+}
