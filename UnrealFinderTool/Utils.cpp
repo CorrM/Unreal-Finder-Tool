@@ -1,5 +1,3 @@
-
-
 #include "pch.h"
 #include "JsonReflector.h"
 #include "PatternScan.h"
@@ -27,16 +25,10 @@ bool Utils::LoadEngineCore()
 	return true;
 }
 
-bool Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
+void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 {
-	// Get all engine files and load it's structs
-	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\Engine-" + engineVersion + ".json", true))
-	{
-		MessageBox(nullptr, std::string("Can't read Engine-" + engineVersion + " file.").c_str(), "Error", MB_OK);
-		return false;
-	}
-
-	return true;
+	// Get all engine files and load it's structs, if return false then there is no override for target engine and use the EngineBase
+	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\Engine-" + engineVersion + ".json", true);
 }
 
 bool Utils::LoadSettings()
@@ -114,7 +106,7 @@ bool Utils::EndsWith(const std::string& value, const std::string& ending)
 bool Utils::IsNumber(const std::string& s)
 {
 	return !s.empty() && std::find_if(s.begin(),
-		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
+	                                  s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
 }
 
 bool Utils::IsHexNumber(const std::string& s)
@@ -222,7 +214,7 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
-	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
+	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, {pattern}, true);
 	auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
 }
@@ -231,9 +223,10 @@ bool Utils::IsValidGObjectsAddress(uintptr_t address)
 {
 	bool firstCheck = true;
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4,
+	          ptrVfTableObject5;
 
-	CheckAgian:
+CheckAgian:
 	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
 		// Check (UObject*) Is Valid Pointer
@@ -331,11 +324,11 @@ int Utils::PointerSize()
 #pragma region Tool stuff
 bool Utils::ProgramIs64()
 {
-	#if _WIN64
-		return true;
-	#else
+#if _WIN64
+	return true;
+#else
 		return false;
-	#endif
+#endif
 }
 
 void Utils::SleepEvery(const int ms, int& counter, const int every)
@@ -358,7 +351,7 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 }
 #pragma endregion
 
-bool Utils::UnrealEngineVersion(std::string &ver)
+bool Utils::UnrealEngineVersion(std::string& ver)
 {
 	auto ret = false;
 
@@ -374,17 +367,18 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 		return ret;
 
 	unsigned long version_size = GetFileVersionInfoSize(path.c_str(), &version_size);
-	if (version_size > 0) {
-		PBYTE pData = new BYTE[version_size];
+	if (version_size > 0)
+	{
+		auto pData = new BYTE[version_size];
 		GetFileVersionInfo(path.c_str(), 0, version_size, static_cast<LPVOID>(pData));
 
-		void *fixed = nullptr;
+		void* fixed = nullptr;
 		unsigned int size = 0;
-		VS_FIXEDFILEINFO *ffi = nullptr;
 
 		VerQueryValue(pData, _T("\\"), &fixed, &size);
-		if (fixed) {
-			ffi = (VS_FIXEDFILEINFO*)fixed;
+		if (fixed)
+		{
+			auto ffi = static_cast<VS_FIXEDFILEINFO*>(fixed);
 
 			auto v1 = HIWORD(ffi->dwFileVersionMS);
 			auto v2 = LOWORD(ffi->dwFileVersionMS);
@@ -394,7 +388,7 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 			ver = engine_version;
 			ret = true;
 		}
-		delete pData;
+		delete[] pData;
 	}
 	return ret;
 }
