@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -152,8 +152,6 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;WIN32_LEAN_AND_MEAN;UNREALENGINE_VERSION=0400;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -162,6 +160,8 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir);.\SDKGen\;.\SDKGen\Engine\;.\SDKGen\Engine\UE4\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>false</OpenMPSupport>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -191,6 +191,7 @@
     <ClInclude Include="JsonReflector.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="KProcessHacker.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
@@ -230,6 +231,7 @@
     <ClCompile Include="imGUI\imgui_widgets.cpp" />
     <ClCompile Include="InstanceLogger.cpp" />
     <ClCompile Include="JsonReflector.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="pch.cpp">
@@ -241,7 +243,6 @@
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="GObjectsFinder.cpp" />
     <ClCompile Include="SdkGenerator.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="SdkGen\Engine\NamesStore.cpp" />
     <ClCompile Include="SdkGen\Engine\NameValidator.cpp" />
     <ClCompile Include="SdkGen\Engine\ObjectsStore.cpp" />

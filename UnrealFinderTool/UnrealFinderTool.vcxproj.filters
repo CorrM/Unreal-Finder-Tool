@@ -171,10 +171,10 @@
     <ClInclude Include="IconsFontAwesome.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Debug.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
@@ -272,10 +272,10 @@
     <ClCompile Include="ClassFinder.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Debug.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
