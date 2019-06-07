@@ -243,15 +243,16 @@ void StartInstanceLogger()
 
 void StartSdkGenerator()
 {
+	DisabledAll();
+	g_objects_find_disabled = true;
+	//		g_names_find_disabled = true;
+
+	sg_objects_count = 0;
+	sg_names_count = 0;
+	sg_state = "Running . . .";
+
 	std::thread t([&]()
 	{
-		DisabledAll();
-		g_objects_find_disabled = true;
-		g_names_find_disabled = true;
-
-		sg_objects_count = 0;
-		sg_names_count = 0;
-		sg_state = "Running . . .";
 		SdkGenerator sg(g_objects_address, g_names_address);
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
@@ -273,8 +274,8 @@ void StartSdkGenerator()
 		else if (ret == GeneratorState::BadGName)
 			sg_state = "Wrong (GNames) Address.!!";
 
-		g_objects_find_disabled = false;
-		g_names_find_disabled = false;
+//		g_objects_find_disabled = false;
+//		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
