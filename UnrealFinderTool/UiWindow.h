@@ -4,13 +4,12 @@
 #include <functional>
 
 #include "ImGUI/imgui.h"
-#include "IconsFontAwesome.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 
 class UiWindow;
 namespace ui = ImGui;
-using UiFunc = std::function<void(UiWindow&)>;
+using UiFunc = std::function<void(const UiWindow&)>;
 
 struct WindowSettings
 {
@@ -57,6 +56,7 @@ public:
 	bool Closed();
 	void CenterPos();
 	void SetSize(int newWidth, int newHeight);
+	ImVec2 GetSize();
 
 	HWND GetWindowHandle();
 	void FlashWindow();

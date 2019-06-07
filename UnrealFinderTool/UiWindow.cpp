@@ -3,6 +3,7 @@
 #include "ImGUI/imgui_internal.h"
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
+#include "IconsFontAwesome.h"
 
 #include <tchar.h>
 #include "resource.h"
@@ -105,6 +106,11 @@ void UiWindow::SetSize(const int newWidth, const int newHeight)
 	SetWindowPos(hWindow, nullptr, 0, 0, settings.Width, settings.Height, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOREDRAW);
 }
 
+ImVec2 UiWindow::GetSize()
+{
+	return { static_cast<float>(settings.Width), static_cast<float>(settings.Height) };
+}
+
 bool UiWindow::CreateUiWindow(std::string& title, std::string& className, const int width, const int height)
 {
 	// Create application window
@@ -198,7 +204,8 @@ void UiWindow::SetupImGui()
 	icons_config.MergeMode = true; icons_config.PixelSnapH = true;
 	auto fontAwesome = io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FAS, 11.0f, &icons_config, icons_ranges);
 
-	if (fontAwesome == nullptr) {
+	if (fontAwesome == nullptr)
+	{
 		std::string msg = "Unable to load " + std::string(FONT_ICON_FILE_NAME_FAS) + ".";
 		ShowWindow(hWindow, SW_HIDE);
 		MessageBox(HWND_DESKTOP, msg.c_str(), "Error!", MB_OK | MB_ICONERROR);
@@ -259,6 +266,7 @@ void UiWindow::RenderFrame()
 
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::SetNextWindowSize({ static_cast<float>(settings.Width - 15), static_cast<float>(settings.Height - 38) });
+	ImGui::SetNextWindowContentSize({ static_cast<float>(settings.Width - 15), static_cast<float>(settings.Height - 38) });
 	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
 	uiFunc(*this);
 	ImGui::End();
