@@ -204,6 +204,9 @@ bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
 
 bool Utils::IsValidGNamesAddress(const uintptr_t address)
 {
+	if (MemoryObj == nullptr)
+		return false;
+
 	// Read First Chunk Address
 	uintptr_t firstChunk = MemoryObj->ReadAddress(address);
 	if (!IsValidAddress(MemoryObj, firstChunk)) return false;

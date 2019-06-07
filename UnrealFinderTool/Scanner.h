@@ -47,15 +47,15 @@ namespace Hyperscan
 
 	typedef class HYPERSCAN_SCANNER
 	{
-	private: static std::vector<UINT_PTR> ScanMemory(DWORD ProcessID, UINT_PTR ModuleBaseAddress, UINT_PTR ModuleSize, INT ScanValue,
+	private: static std::vector<UINT_PTR> ScanMemory(DWORD ProcessID, UINT_PTR ModuleBaseAddress, UINT_PTR ModuleSize, uintptr_t ScanValue,
 		ScanAllignment AllignmentOfScan, ScanType TypeOfScan);
 
-	private: static std::vector<UINT_PTR> ScanModules(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan,
+	private: static std::vector<UINT_PTR> ScanModules(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan,
 		ScanType TypeOfScan);
 
-	private: static std::vector<UINT_PTR> ScanWholeMemoryWithDelimiters(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan,
-		ScanType TypeOfScan, DWORD BeginAddress = 0x000000000, DWORD EndAddress = 0x7FFFFFFFF);
+	private: static std::vector<UINT_PTR> ScanWholeMemoryWithDelimiters(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan,
+		ScanType TypeOfScan, uintptr_t BeginAddress = 0x000000000, uintptr_t EndAddress = 0x7fffffffffff);
 
-	public: static std::vector<UINT_PTR> Scan(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan, ScanType TypeOfScan);
+	public: static std::vector<UINT_PTR> Scan(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan, ScanType TypeOfScan);
 	} *PHYPERSCAN_SCANNER;
 }

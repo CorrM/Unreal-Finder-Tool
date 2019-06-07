@@ -9,8 +9,11 @@
 #include "ImControl.h"
 
 #include "Debug.h"
+#include "Scanner.h"
 
 #include <sstream>
+
+
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
@@ -138,6 +141,7 @@ void StartGNamesFinder()
 
 		auto found = false;
 
+		/*
 		uintptr_t end = ret[0];
 		uintptr_t start2 = ret[0];
 		uintptr_t start = (end - 0x17FFFF0); //0xA0000
@@ -172,7 +176,35 @@ void StartGNamesFinder()
 			if (start == end || start2 == end2 || found)
 				break;
 		}
+		*/
 
+		auto addr = ret[0];
+		using namespace Hyperscan;
+
+		while (!found) {
+
+			if (Utils::IsValidGNamesAddress(addr)) {
+				found = true;
+				ret[0] = addr;
+				break;
+			}
+			std::vector<uintptr_t> address_holder = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, addr, Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
+			
+			for (int i = 0; i < address_holder.size(); i++) {
+				if (Utils::IsValidGNamesAddress(address_holder[i])) {
+					found = true;
+					ret[0] = address_holder[i];
+					break;
+				}
+				else {
+					auto retn = Hyperscan::HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, address_holder[i], Hyperscan::HyperscanAllignment8Bytes, Hyperscan::HyperscanTypeExact);
+					if (retn.size() < 1 || retn.size() > 1)
+						continue;
+					addr = retn[0];
+					break;
+				}
+			}
+		}
 		g_names_listbox_items.clear();
 
 		for (auto v : ret)
@@ -280,7 +312,7 @@ void StartSdkGenerator()
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
-		                              &sg_packages_item_current,
+		                              &sg_packages_done_count,
 		                              sg_game_name_buf,
 		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) +
 		                              "." + std::to_string(sg_game_version[2]),
@@ -418,13 +450,25 @@ void MainUi(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : ");
 		ui::SameLine();
+
+		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+		
+		if(Utils::IsValidGNamesAddress(g_names_address))
+			ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+		else 
+			ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+
 		ENABLE_DISABLE_WIDGET(
 			ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal),
 			g_names_disabled);
+
+		ui::PopStyleColor();
+
 		ui::SameLine();
 		HelpMarker(
 			"What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
-		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+		
+		
 	}
 
 	ui::Separator();

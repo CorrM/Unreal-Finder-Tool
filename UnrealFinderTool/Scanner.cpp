@@ -164,7 +164,7 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 	return FALSE;
 }
 
-std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanMemory(DWORD ProcessID, UINT_PTR ModuleBaseAddress, UINT_PTR ModuleSize, INT ScanValue,
+std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanMemory(DWORD ProcessID, UINT_PTR ModuleBaseAddress, UINT_PTR ModuleSize, uintptr_t ScanValue,
 	ScanAllignment AllignmentOfScan, ScanType TypeOfScan)
 {
 	std::vector<UINT_PTR> AddressHolder;
@@ -210,35 +210,35 @@ std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanMemory(DWORD ProcessID, UINT_PTR Mo
 					}
 					else if (HyperscanTypeExact == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeSmaller == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) < ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) < ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeBigger == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) > ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) > ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeDifferent == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) != ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) != ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
@@ -254,7 +254,7 @@ std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanMemory(DWORD ProcessID, UINT_PTR Mo
 	return AddressHolder;
 }
 
-std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanModules(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan,
+std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanModules(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan,
 	ScanType TypeOfScan)
 {
 	std::vector<UINT_PTR> AddressHolder;
@@ -293,8 +293,8 @@ std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanModules(DWORD ProcessID, INT ScanVa
 	return AddressHolder;
 }
 
-std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan,
-	ScanType TypeOfScan, DWORD BeginAddress, DWORD EndAddress)
+std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan,
+	ScanType TypeOfScan, uintptr_t BeginAddress, uintptr_t EndAddress)
 {
 	std::vector<UINT_PTR> AddressHolder;
 	AddressHolder.clear();
@@ -337,35 +337,35 @@ std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD Pro
 					}
 					else if (HyperscanTypeExact == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeSmaller == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) < ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) < ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeBigger == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) > ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) > ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else if (HyperscanTypeDifferent == TypeOfScan)
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) != ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) != ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
 					}
 					else
 					{
-						if (*reinterpret_cast<INT*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
+						if (*reinterpret_cast<uintptr_t*>(MemoryBlock + scanIndex * AllignmentOfScan) == ScanValue)
 						{
 							AddressHolder.push_back(AddressForScan + scanIndex * AllignmentOfScan);
 						}
@@ -381,7 +381,7 @@ std::vector<UINT_PTR> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD Pro
 	return AddressHolder;
 }
 
-std::vector<UINT_PTR> HYPERSCAN_SCANNER::Scan(DWORD ProcessID, INT ScanValue, ScanAllignment AllignmentOfScan, ScanType TypeOfScan)
+std::vector<UINT_PTR> HYPERSCAN_SCANNER::Scan(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan, ScanType TypeOfScan)
 {
 	std::vector<UINT_PTR> AddressHolder;
 	AddressHolder.clear();
