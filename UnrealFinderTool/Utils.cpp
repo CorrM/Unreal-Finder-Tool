@@ -70,12 +70,12 @@ bool Utils::FileExists(const std::string& filePath)
 
 #pragma endregion
 
-#pragma region string
+#pragma region String
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
 	std::vector<std::string> strings;
 
-	std::string::size_type pos = 0;
+	std::string::size_type pos;
 	std::string::size_type prev = 0;
 	while ((pos = str.find(delimiter, prev)) != std::string::npos)
 	{
@@ -91,8 +91,7 @@ std::vector<std::string> Utils::SplitString(const std::string& str, const std::s
 
 std::string Utils::ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace)
 {
-	size_t position = 0;
-	for (position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
+	for (size_t position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
 		str.replace(position, to_find.length(), to_replace);
 	return str;
 }
@@ -213,7 +212,8 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	for (int read_address = 0; read_address <= 10; ++read_address)
 	{
 		// Read Chunk Address
-		uintptr_t chunk_address = MemoryObj->ReadAddress(address + size_t(read_address * PointerSize()));
+		size_t offset = read_address * PointerSize();
+		uintptr_t chunk_address = MemoryObj->ReadAddress(address + offset);
 		last_is_null = chunk_address == NULL;
 	}
 
@@ -363,6 +363,32 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 }
 #pragma endregion
 
+#pragma region UnrealEngine
+int Utils::DetectUnrealGameId(HWND* windowHandle)
+{
+	HWND childControl = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+	if (childControl != nullptr)
+	{
+		DWORD pId;
+		GetWindowThreadProcessId(childControl, &pId);
+
+		if (Memory::GetProcessNameById(pId) == "EpicGamesLauncher.exe")
+			return 0;
+
+		if (windowHandle != nullptr)
+			* windowHandle = childControl;
+
+		return pId;
+	}
+
+	return 0;
+}
+
+int Utils::DetectUnrealGameId()
+{
+	return DetectUnrealGameId(nullptr);
+}
+
 bool Utils::UnrealEngineVersion(std::string& ver)
 {
 	auto ret = false;
@@ -404,3 +430,4 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 	}
 	return ret;
 }
+#pragma endregion

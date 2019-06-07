@@ -365,7 +365,7 @@ public:
 		// 
 	}
 
-	bool ReadData(const uintptr_t objAddress, const int ansiNameOffset)
+	bool ReadData(const uintptr_t objAddress, const size_t ansiNameOffset)
 	{
 		ObjAddress = objAddress;
 
@@ -402,7 +402,7 @@ public:
 		return true;
 	}
 
-	bool ReadData(const int ansiNameOffset)
+	bool ReadData(const size_t ansiNameOffset)
 	{
 		return ReadData(ObjAddress, ansiNameOffset);
 	}

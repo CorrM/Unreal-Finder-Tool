@@ -3,9 +3,9 @@
 #include <vector>
 #include <filesystem>
 #include "Memory.h"
-#include "JsonReflector.h"
 
 namespace fs = std::filesystem;
+#define UNREAL_WINDOW_CLASS "UnrealWindow"
 
 struct MySettings
 {
@@ -90,35 +90,18 @@ public:
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
 	/// <param name="varOffset">Offset to variable based on `ElementType`</param>
-	template <typename ElementType>
-	static void FixPointer(ElementType* structBase, const int varOffset)
-	{
-		if (ProgramIs64() && MemoryObj->Is64Bit)
-			return;
-		FixStructPointer(structBase, varOffset, sizeof(ElementType));
-	}
+	template <typename ElementType> static void FixPointer(ElementType* structBase, const int varOffset);
 	/// <summary>
 	/// Fix pointers size in struct or class. used for convert 64bit to 32bit pointer.
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
 	/// <param name="fullStructSize">Full size of struct => (Base Structs + Target struct)</param>
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
-	template <typename ElementType>
-	static void FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
-	{
-		if (ProgramIs64() && MemoryObj->Is64Bit)
-			return;
+	template <typename ElementType> static void FixPointers(ElementType* structBase, int fullStructSize, std::vector<int> varsOffsets);
 
-		for (int varOff : varsOffsets)
-			FixStructPointer(structBase, varOff, fullStructSize);
-	}
-	/// <summary>
-	/// Fix all pointers in struct to be safe to read as `uintptr_t`
-	/// </summary>
-	/// <param name="structBase">Pointer to instance of struct</param>
-	/// <param name="is64BitGame">Target game is 64bit game</param>
-	static void FixPointersInJsonStruct(JsonStruct * structBase, bool is64BitGame);
-	static bool UnrealEngineVersion(std::string &ver);
+	static int DetectUnrealGameId(HWND* windowHandle);
+	static int DetectUnrealGameId();
+	static bool UnrealEngineVersion(std::string& ver);
 
 private:
 	/// <summary>
@@ -129,19 +112,22 @@ private:
 	/// <param name="varOffset">Offset to variable based on `structBase`</param>
 	/// <param name="structSize">Size of struct</param>
 	static void FixStructPointer(void* structBase, int varOffset, int structSize);
-	/// <summary>
-	/// Read pointer for 32bit and 64bit games
-	/// </summary>
-	/// <param name="structBase">Pointer to instance of struct</param>
-	/// <param name="varOffset">Offset to variable based on `structBase`</param>
-	/// <param name="structSize">Size of struct</param>
-	/// <param name="is64BitGame">Target game is 64bit game</param>
-	static uintptr_t ReadPointer(void* structBase, int varOffset, int structSize, bool is64BitGame);
-	/// <summary>
-	/// Read pointer for 32bit and 64bit games, Use `FixPointersInStruct` Instead
-	/// </summary>
-	/// <param name="structBase">Pointer to instance of struct</param>
-	/// <param name="varName">Size of struct</param>
-	/// <param name="is64BitGame">Target game is 64bit game</param>
-	static uintptr_t ReadPointer(JsonStruct* structBase, const std::string& varName, bool is64BitGame);
 };
+
+template <typename ElementType>
+void Utils::FixPointer(ElementType* structBase, const int varOffset)
+{
+	if (ProgramIs64() && MemoryObj->Is64Bit)
+		return;
+	FixStructPointer(structBase, varOffset, sizeof(ElementType));
+}
+
+template <typename ElementType>
+void Utils::FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
+{
+	if (ProgramIs64() && MemoryObj->Is64Bit)
+		return;
+
+	for (int varOff : varsOffsets)
+		FixStructPointer(structBase, varOff, fullStructSize);
+}

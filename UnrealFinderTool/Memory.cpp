@@ -106,6 +106,13 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	return miInfos;
 }
 
+bool Memory::IsValidProcess(const int p_id, HANDLE& pHandle)
+{
+	DWORD exitCode;
+	pHandle = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
+	return p_id != 0 && GetExitCodeProcess(pHandle, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
+}
+
 bool Memory::SuspendProcess()
 {
 	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
@@ -172,7 +179,7 @@ BOOL Memory::GetDebugPrivileges()
 	return SetPrivilegeM(hToken, SE_DEBUG_NAME, TRUE);
 }
 
-int Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const uint32_t len)
+size_t Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const size_t len)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return 0;
@@ -201,7 +208,7 @@ int Memory::ReadBytes(const uintptr_t address, const LPVOID buf, const uint32_t 
 	return numberOfBytesActuallyRead;
 }
 
-int Memory::ReadBytes(const uintptr_t baseAddress, JsonVar& jsonVar, const LPVOID buf)
+size_t Memory::ReadBytes(const uintptr_t baseAddress, JsonVar& jsonVar, const LPVOID buf)
 {
 	if (baseAddress == static_cast<uintptr_t>(-1))
 		return 0;

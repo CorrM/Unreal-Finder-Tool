@@ -1,10 +1,11 @@
 #include "pch.h"
+#include <Windows.h>
 #include "Tools.h"
 
 std::wstring str2wstr(std::string  in) { std::wstring out; out.assign(in.begin(), in.end()); return out; }
 std::string  wstr2str(std::wstring in) { std::string  out; out.assign(in.begin(), in.end()); return out; }
 
-bool SetPrivilegeW(const LPCWSTR lpszPrivilege, const BOOL bEnablePrivilege) {
+bool CustomSetPrivilegeW(const LPCWSTR lpszPrivilege, const BOOL bEnablePrivilege) {
 	TOKEN_PRIVILEGES priv = { 0,0,0,0 };
 	HANDLE hToken = nullptr;
 	LUID luid = { 0,0 };
@@ -31,7 +32,7 @@ bool SetPrivilegeW(const LPCWSTR lpszPrivilege, const BOOL bEnablePrivilege) {
 	return true;
 }
 
-bool SetPrivilegeA(const LPCSTR lpszPrivilege, const BOOL bEnablePrivilege) {
+bool CustomSetPrivilegeA(const LPCSTR lpszPrivilege, const BOOL bEnablePrivilege) {
 	TOKEN_PRIVILEGES priv = { 0,0,0,0 };
 	HANDLE hToken = nullptr;
 	LUID luid = { 0,0 };
@@ -58,7 +59,7 @@ bool SetPrivilegeA(const LPCSTR lpszPrivilege, const BOOL bEnablePrivilege) {
 	return true;
 }
 
-bool WriteDataToFile(const UCHAR pBuffer[], const DWORD dwSize, const std::string& strFileName, const DWORD dwCreationDisposition)
+bool WriteDataToFile(const UCHAR pBuffer[], const size_t dwSize, const std::string& strFileName, const DWORD dwCreationDisposition)
 {
 	const auto hFile = CreateFileA(strFileName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) return false;

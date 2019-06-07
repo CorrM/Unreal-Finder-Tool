@@ -3,16 +3,16 @@
 #include <string>
 
 #ifdef UNICODE
-#define SetPrivilege  SetPrivilegeW
+#define CustomSetPrivilege  CustomSetPrivilegeW
 #else
-#define SetPrivilege  SetPrivilegeA
+#define CustomSetPrivilege  CustomSetPrivilegeA
 #endif
 
 std::wstring str2wstr(std::string  in);
 std::string  wstr2str(std::wstring in);
 
-bool SetPrivilegeW(LPCWSTR lpszPrivilege, BOOL bEnablePrivilege);
+bool CustomSetPrivilegeW(LPCWSTR lpszPrivilege, BOOL bEnablePrivilege);
 
-bool SetPrivilegeA(LPCSTR lpszPrivilege, BOOL bEnablePrivilege);
+bool CustomSetPrivilegeA(LPCSTR lpszPrivilege, BOOL bEnablePrivilege);
 
-bool WriteDataToFile(const UCHAR pBuffer[], DWORD dwSize, const std::string& strFileName, DWORD dwCreationDisposition = CREATE_NEW);
+bool WriteDataToFile(const UCHAR pBuffer[], size_t dwSize, const std::string& strFileName, DWORD dwCreationDisposition = CREATE_NEW);

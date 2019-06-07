@@ -16,19 +16,19 @@ void Debugging::EnterDebugMode(const bool bConsole)
 		bConsoleEnabled = true;
 	}
 
-	IsX64 = Utils::ProgramIs64();
-	ExpHandle = AddVectoredExceptionHandler(1ul, ExceptionHandler);
+	isX64 = Utils::ProgramIs64();
+	expHandle = AddVectoredExceptionHandler(1UL, ExceptionHandler);
 }
 
-LONG WINAPI Debugging::ExceptionHandler(struct _EXCEPTION_POINTERS* e)
+LONG WINAPI Debugging::ExceptionHandler(EXCEPTION_POINTERS* e)
 {
 	//UNREFERENCED_PARAMETER(e);
 	if (CreateMiniDump(e))
 	{
-		MessageBox(
-			HWND_DESKTOP,
+		MessageBox(HWND_DESKTOP,
 			"Program encountered an issue and was terminated. Dump information is located in Dumps folder in program directory.",
-			"Error", MB_ICONERROR | MB_OK);
+			"Error",
+			MB_ICONERROR | MB_OK);
 	}
 
 	return EXCEPTION_NONCONTINUABLE_EXCEPTION;
@@ -47,9 +47,11 @@ BOOL Debugging::CreateMiniDump(EXCEPTION_POINTERS* e)
 	        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
 	        GetCurrentProcessId(), GetCurrentThreadId());
 
-	HANDLE hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE, nullptr,
-	                          CREATE_ALWAYS, 0,
-	                          nullptr);
+	HANDLE hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE,
+							 nullptr,
+	                         CREATE_ALWAYS,
+							 0,
+	                         nullptr);
 
 	md.ThreadId = GetCurrentThreadId();
 	md.ExceptionPointers = e;
@@ -99,6 +101,6 @@ void Debugging::CreateLogFile()
 
 Debugging::~Debugging()
 {
-	if (ExpHandle)
-		RemoveVectoredExceptionHandler(ExpHandle);
+	if (expHandle)
+		RemoveVectoredExceptionHandler(expHandle);
 }

@@ -44,7 +44,7 @@ public:
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	int GetObjectsNum() const;
+	size_t GetObjectsNum() const;
 
 	/// <summary>
 	/// Gets the object by id.

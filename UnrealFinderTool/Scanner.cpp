@@ -68,13 +68,11 @@ typedef enum _MEMORY_INFORMATION_CLASS
 	MemoryBasicInformationCapped
 } MEMORY_INFORMATION_CLASS;
 
-typedef NTSTATUS(NTAPI * hsNtQueryVirtualMemory)(
+typedef NTSTATUS(NTAPI *hsNtQueryVirtualMemory)(
 	HANDLE ProcessHandle,
 	PVOID BaseAddress, MEMORY_INFORMATION_CLASS MemoryInformationClass,
 	PVOID Buffer, SIZE_T Length, PSIZE_T ResultLength
 	);
-
-#define NT_SUCCESS(Status) ((Status) >= 0)
 
 BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 {

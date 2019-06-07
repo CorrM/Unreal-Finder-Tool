@@ -1,8 +1,12 @@
 #pragma once
-#include "Driver.h"
-#include "KProcessHacker.h"
+#pragma warning(disable: 4005)
 #include <string>
 #include <winioctl.h>
+#include <ntstatus.h>
+
+#include "Driver.h"
+#include "KProcessHacker.h"
+#include "Tools.h"
 
 #define KPH_DEVICE_TYPE 0x9999
 #define KPH_CTL_CODE(x) CTL_CODE(KPH_DEVICE_TYPE, 0x800 + x, METHOD_NEITHER, FILE_ANY_ACCESS)
@@ -23,7 +27,7 @@ public:
 	BypaPH(DWORD dwTargetPid = NULL)
 	{
 		pID = dwTargetPid;
-		SetPrivilege(SE_DEBUG_NAME, TRUE);
+		CustomSetPrivilege(SE_DEBUG_NAME, TRUE);
 
 		SYSTEM_INFO si;
 		GetNativeSystemInfo(&si);
@@ -42,7 +46,7 @@ public:
 		delete m_drv;
 		if (m_hTarget)
 			CloseHandle(m_hTarget);
-		SetPrivilege(SE_DEBUG_NAME, FALSE);
+		CustomSetPrivilege(SE_DEBUG_NAME, FALSE);
 	}
 
 	NTSTATUS RWVM(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesReadOrWritten = nullptr, bool read = true, bool unsafe = false)
@@ -139,7 +143,7 @@ public:
 
 		auto* buf = new wchar_t[ReadSize];
 		ZeroMemory(buf, sizeof(wchar_t) * ReadSize);
-		NTSTATUS gg = RWVM(m_hTarget, BaseAddress, buf, ReadSize, NumberOfBytesRead);
+		RWVM(m_hTarget, BaseAddress, buf, ReadSize, NumberOfBytesRead);
 		std::wstring ret(buf);
 
 		delete[] buf;

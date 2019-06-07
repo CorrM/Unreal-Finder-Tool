@@ -34,7 +34,7 @@ std::vector<uintptr_t> GNamesFinder::Find()
 	const auto cmp2 = GetNearNumbers(cmp1, int_r, 0x150);
 	const auto cmp3 = GetNearNumbers(cmp2, multicast_r, 0x400);
 
-	uint32_t nameOffset = Utils::MemoryObj->Is64Bit ? 0x10 : 0x8;
+	size_t nameOffset = Utils::MemoryObj->Is64Bit ? 0x10 : 0x8;
 	uintptr_t byteAddress = 0;
 
 	// Calc Name Offset

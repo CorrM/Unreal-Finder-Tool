@@ -177,7 +177,7 @@ uintptr_t ObjectsStore::GetAddress()
 	return GInfo.GObjAddress;
 }
 
-int ObjectsStore::GetObjectsNum() const 
+size_t ObjectsStore::GetObjectsNum() const 
 {
 	return GInfo.Count;
 }

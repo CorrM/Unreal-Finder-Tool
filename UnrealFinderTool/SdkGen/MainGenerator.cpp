@@ -203,7 +203,7 @@ public:
 		return gameName;
 	}
 
-	void SetGameName(std::string& gameName) const override
+	void SetGameName(const std::string& gameName) const override
 	{
 		this->gameName = gameName;
 	}
@@ -213,7 +213,7 @@ public:
 		return this->gameVersion;
 	}
 
-	void SetGameVersion(std::string& gameVersion) const override
+	void SetGameVersion(const std::string& gameVersion) const override
 	{
 		this->gameVersion = gameVersion;
 	}

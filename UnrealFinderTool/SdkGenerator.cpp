@@ -29,8 +29,9 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
-GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPackagesCount, int* pPackagesDone,
-		std::string gameName, std::string gameVersion, const SdkType sdkType, std::string& state, std::vector<std::string>& packagesDone)
+GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
+								   const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
+								   std::string& state, std::vector<std::string>& packagesDone)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
@@ -133,7 +134,7 @@ void SdkGenerator::Dump(const fs::path& path)
 /// <param name="pPackagesDone"></param>
 /// <param name="state"></param>
 /// <param name="packagesDone"></param>
-void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, int* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
+void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount, size_t* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
 	using namespace cpplinq;
 

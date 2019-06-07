@@ -23,7 +23,7 @@ public:
 
 	/// <summary>Gets the address of the global names store.</summary>
 	/// <returns>The address of the global names store.</returns>
-	static void* GetAddress();
+	static uintptr_t GetAddress();
 
 	NamesIterator begin();
 	NamesIterator begin() const;
@@ -34,7 +34,7 @@ public:
 	/// Gets the number of available names.
 	/// </summary>
 	/// <returns>The number of names.</returns>
-	int GetNamesNum() const;
+	size_t GetNamesNum() const;
 
 	/// <summary>
 	/// Test if the given id is valid.

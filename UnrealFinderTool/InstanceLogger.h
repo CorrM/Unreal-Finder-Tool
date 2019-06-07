@@ -14,8 +14,8 @@ enum class LoggerState
 struct LoggerRetState
 {
 	LoggerState State;
-	int GObjectsCount;
-	int GNamesCount;
+	size_t GObjectsCount;
+	size_t GNamesCount;
 };
 
 class InstanceLogger

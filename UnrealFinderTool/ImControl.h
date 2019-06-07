@@ -52,8 +52,8 @@ inline int class_listbox_item_current = 0;
 
 // => Instance Logger
 inline bool il_start_disabled = false;
-inline int il_objects_count = 0;
-inline int il_names_count = 0;
+inline size_t il_objects_count = 0;
+inline size_t il_names_count = 0;
 inline std::string il_state = "Ready ..!!";
 // => Instance Logger
 
@@ -61,10 +61,10 @@ inline std::string il_state = "Ready ..!!";
 inline bool sg_start_disabled = false;
 inline bool sg_finished = false;
 
-inline int sg_objects_count = 0;
-inline int sg_names_count = 0;
-inline int sg_packages_count = 0;
-inline int sg_packages_done_count = 0;
+inline size_t sg_objects_count = 0;
+inline size_t sg_names_count = 0;
+inline size_t sg_packages_count = 0;
+inline size_t sg_packages_done_count = 0;
 
 inline bool sg_type_disabled = false;
 inline std::vector<std::string> sg_type_items = { "Internal", "External" };

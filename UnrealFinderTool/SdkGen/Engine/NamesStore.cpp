@@ -100,12 +100,12 @@ bool NamesStore::IsValidAddress(const uintptr_t address)
 	return false;
 }
 
-void* NamesStore::GetAddress()
+uintptr_t NamesStore::GetAddress()
 {
-	return reinterpret_cast<void*>(gNamesAddress);
+	return gNamesAddress;
 }
 
-int NamesStore::GetNamesNum() const
+size_t NamesStore::GetNamesNum() const
 {
 	return chunkCount * gNamesChunks;
 }

@@ -44,13 +44,13 @@ public:
 	/// Gets the name of the game.
 	/// </summary>
 	/// <returns>The game name. </returns>
-	virtual void SetGameName(std::string& gameName) const = 0;
+	virtual void SetGameName(const std::string& gameName) const = 0;
 
 	/// <summary>
 	/// Sets the version of the game.
 	/// </summary>
 	/// <returns>The version of the game.</returns>
-	virtual void SetGameVersion(std::string& gameVersion) const = 0;
+	virtual void SetGameVersion(const std::string& gameVersion) const = 0;
 
 	/// <summary>
 	/// Gets the version of the game.
