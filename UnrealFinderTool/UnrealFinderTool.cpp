@@ -123,41 +123,32 @@ void StartGNamesFinder()
 		g_names_listbox_items.push_back(searching);
 
 		auto found = false;
-		uintptr_t gnames_start = ret[0], gnames_start2 = ret[0];
-		uintptr_t gnames_end = 0, gnames_end2 = 0;
 
 		searching = "Finding correct offset";
 		g_names_listbox_items.push_back(searching);
 		searching = "Searching";
-		// HACK: Todo optimise this function
-		// Prototype autodetection
-		for (int x = 1; x <= 15; x++) {
 
-			gnames_end = gnames_start;
-			gnames_start -= 0xA0000;
+		uintptr_t start, end = ret[0];
+		uintptr_t start2 = ret[0], end2;
+		start = (end - 0x17FFFF0);//0xA0000
+		end2 = (start2 + 0x17FFFF0);
 
-			gnames_start2 = gnames_end2;
-			gnames_end2 += 0xA0000;
+		auto step = Utils::PointerSize();
 
-			while (true) {
-				if (Utils::IsValidGNamesAddress(gnames_start)) {
-					ret[0] = gnames_start;
-					found = true;
-					break;
-				}
-				else gnames_start += Utils::PointerSize();
-				if (Utils::IsValidGNamesAddress(gnames_start2)) {
-					ret[0] = gnames_start2;
-					found = true;
-					break;
-				}
-				else gnames_start2 += Utils::PointerSize();
-
-				if (gnames_start > gnames_end || gnames_start2 > gnames_end2)
-					break;
+		while (!found) {
+			if (!Utils::IsValidGNamesAddress(start))
+				start += step;
+			else {
+				ret[0] = start; found = true;
 			}
-			if (found) break;
-			g_names_listbox_items.push_back(searching.append("."));
+			if (!Utils::IsValidGNamesAddress(start2))
+				start2 += step;
+			else {
+				ret[0] = start2;
+				found = true;
+			}
+			if (start == end || start2 == end2 || found)
+				break;
 		}
 
 		g_names_listbox_items.clear();
@@ -570,7 +561,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 3)
 				{
-					thiz.SetSize(380, 590);
+					thiz.SetSize(380, 616);
 					cur_tap_id = 3;
 				}
 

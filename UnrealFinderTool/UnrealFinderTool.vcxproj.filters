@@ -111,9 +111,6 @@
     <ClInclude Include="SdkGen\Engine\NamesStore.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="SdkGen\Engine\Logger.h">
-      <Filter>SdkGen\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="SdkGen\Engine\IGenerator.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
@@ -174,6 +171,12 @@
     <ClInclude Include="IconsFontAwesome.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -224,9 +227,6 @@
     <ClCompile Include="SdkGen\Engine\UE4\PropertyFlags.cpp">
       <Filter>SdkGen\Engine\UE4</Filter>
     </ClCompile>
-    <ClCompile Include="SdkGen\Engine\Logger.cpp">
-      <Filter>SdkGen\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="SdkGen\Engine\NamesStore.cpp">
       <Filter>SdkGen\Engine</Filter>
     </ClCompile>
@@ -271,6 +271,12 @@
     </ClCompile>
     <ClCompile Include="ClassFinder.cpp">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
