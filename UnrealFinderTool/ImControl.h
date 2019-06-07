@@ -11,6 +11,8 @@ inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
+inline std::string ue_version = "0.0.0";
+
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;
 
@@ -79,9 +81,6 @@ inline std::string sg_state = "Ready ..!!";
 inline std::vector<std::string> sg_packages_items;
 inline int sg_packages_item_current = 0;
 // => Sdk Generator
-
-// For UE Version string
-std::string ue_version;
 
 // => Help Functions
 static void DisabledAll()
