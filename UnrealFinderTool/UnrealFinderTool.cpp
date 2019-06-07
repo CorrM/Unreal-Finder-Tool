@@ -279,7 +279,7 @@ void StartSdkGenerator()
 		GeneratorState ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
-		                              &sg_packages_item_current,
+		                              &sg_packages_done_count,
 		                              sg_game_name_buf,
 		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) +
 		                              "." + std::to_string(sg_game_version[2]),
