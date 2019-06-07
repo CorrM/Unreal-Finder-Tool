@@ -128,6 +128,10 @@ void StartGNamesFinder()
 	
 		auto found = false;
 
+		searching = "Finding correct offset";
+		g_names_listbox_items.push_back(searching);
+		searching = "Searching";
+
 		uintptr_t start, end = ret[0];
 		uintptr_t start2 = ret[0], end2;
 		start = (end - 0x17FFFF0);//0xA0000
@@ -147,6 +151,14 @@ void StartGNamesFinder()
 				ret[0] = start2;
 				found = true;
 			}
+			}
+			if (!Utils::IsValidGNamesAddress(start2))
+				start2 += step;
+			else {
+				ret[0] = start2;
+				found = true;
+			}
+
 			if (start == end || start2 == end2 || found)
 				break;
 		}
