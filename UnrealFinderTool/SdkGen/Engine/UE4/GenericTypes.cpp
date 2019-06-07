@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SdkGen/EngineClasses.h"
+#include "EngineClasses.h"
 #include "IGenerator.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
@@ -40,7 +40,7 @@ std::string UEObject::GetName() const
 	if (!objName.empty())
 		return objName;
 
-	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
+	auto name = NamesStore().GetByIndex(Object.Name.ComparisonIndex);
 	if (!name.empty() && Object.Name.Number > 0)
 	{
 		name += '_' + std::to_string(Object.Name.Number);
@@ -138,9 +138,7 @@ UEClass UEObject::GetClass() const
 		if (INVALID_POINTER_VALUE(Object.Class))
 			return UEClass();
 
-		objClass.ObjAddress = Object.Class;
-		Utils::MemoryObj->Read<UClass>(objClass.ObjAddress, objClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		objClass.FixPointers(sizeof UClass);
+		objClass.ReadData(Object.Class);
 	}
 
 	return UEClass(objClass);
@@ -211,9 +209,7 @@ UEField UEField::GetNext() const
 		if (INVALID_POINTER_VALUE(objField.Next))
 			return UEField();
 
-		next.ObjAddress = objField.Next;
-		Utils::MemoryObj->Read<UField>(next.ObjAddress, next, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		next.FixPointers(sizeof UField);
+		next.ReadData(objField.Next);
 	}
 
 	return UEField(next);
@@ -241,17 +237,17 @@ std::vector<std::string> UEEnum::GetNames() const
 
 	// Get Names
 	uintptr_t dataAddress = objEnum.Names.Data;
-	auto cls = new FUEnumItem[objEnum.Names.Num];
-	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Num);
+	auto cls = new FUEnumItem[objEnum.Names.Count];
+	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Count);
 
-	buffer.reserve(objEnum.Names.Num);
-	for (auto i = 0; i < objEnum.Names.Num; ++i)
+	buffer.reserve(objEnum.Names.Count);
+	for (auto i = 0; i < objEnum.Names.Count; ++i)
 	{
 		size_t index = cls[i].Key.ComparisonIndex;
 		if (index > NamesStore().GetNamesNum() || index == 0)
 			continue;
 
-		buffer.push_back(NamesStore().GetById(index));
+		buffer.push_back(NamesStore().GetByIndex(index));
 	}
 
 	delete[] cls;
@@ -301,9 +297,7 @@ UEStruct UEStruct::GetSuper() const
 		if (INVALID_POINTER_VALUE(objStruct.SuperField))
 			return UEStruct();
 
-		superField.ObjAddress = objStruct.SuperField;
-		Utils::MemoryObj->Read<UStruct>(superField.ObjAddress, superField, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		superField.FixPointers(sizeof UStruct);
+		superField.ReadData(objStruct.SuperField);
 	}
 
 	//Sleep(1);
@@ -320,9 +314,7 @@ UEField UEStruct::GetChildren() const
 		if (INVALID_POINTER_VALUE(objStruct.Children))
 			return UEField();
 
-		children.ObjAddress = objStruct.Children;
-		Utils::MemoryObj->Read<UField>(children.ObjAddress, children, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		children.FixPointers(sizeof UField);
+		children.ReadData(objStruct.Children);
 	}
 
 	return UEField(children);
@@ -792,9 +784,7 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 		if (INVALID_POINTER_VALUE(objObjectPropertyBase.PropertyClass))
 			return UEClass();
 
-		propertyClass.ObjAddress = objObjectPropertyBase.PropertyClass;
-		Utils::MemoryObj->Read<UObjectPropertyBase>(propertyClass.ObjAddress, propertyClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		propertyClass.FixPointers(sizeof UObjectPropertyBase);
+		propertyClass.ReadData(objObjectPropertyBase.PropertyClass);
 	}
 
 	return UEClass(propertyClass);
@@ -843,9 +833,7 @@ UEClass UEClassProperty::GetMetaClass() const
 		if (INVALID_POINTER_VALUE(objClassProperty.MetaClass))
 			return UEClass();
 
-		metaClass.ObjAddress = objClassProperty.MetaClass;
-		Utils::MemoryObj->Read<UClassProperty>(metaClass.ObjAddress, metaClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		metaClass.FixPointers(sizeof UClassProperty);
+		metaClass.ReadData(objClassProperty.MetaClass);
 	}
 
 	return UEClass(metaClass);
@@ -880,9 +868,7 @@ UEClass UEInterfaceProperty::GetInterfaceClass() const
 		if (INVALID_POINTER_VALUE(objInterfaceProperty.InterfaceClass))
 			return UEClass();
 
-		interfaceClass.ObjAddress = objInterfaceProperty.InterfaceClass;
-		Utils::MemoryObj->Read<UInterfaceProperty>(interfaceClass.ObjAddress, interfaceClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		interfaceClass.FixPointers(sizeof UInterfaceProperty);
+		interfaceClass.ReadData(objInterfaceProperty.InterfaceClass);
 	}
 
 	return UEClass(interfaceClass);
@@ -974,9 +960,7 @@ UEClass UEAssetClassProperty::GetMetaClass() const
 		if (INVALID_POINTER_VALUE(objAssetClassProperty.MetaClass))
 			return UEClass();
 
-		metaClass.ObjAddress = objAssetClassProperty.MetaClass;
-		Utils::MemoryObj->Read<UClass>(metaClass.ObjAddress, metaClass, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		metaClass.FixPointers(sizeof UClass);
+		metaClass.ReadData(objAssetClassProperty.MetaClass);
 	}
 
 	return UEClass(metaClass);
@@ -1030,9 +1014,7 @@ UEScriptStruct UEStructProperty::GetStruct() const
 		if (INVALID_POINTER_VALUE(objStructProperty.Struct))
 			return UEScriptStruct();
 
-		objStruct.ObjAddress = objStructProperty.Struct;
-		Utils::MemoryObj->Read<UStructProperty>(objStruct.ObjAddress, objStruct, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		objStruct.FixPointers(sizeof UStructProperty);
+		objStruct.ReadData(objStructProperty.Struct);
 	}
 
 	return UEScriptStruct(objStruct);
@@ -1105,9 +1087,7 @@ UEProperty UEArrayProperty::GetInner() const
 		if (INVALID_POINTER_VALUE(objArrayProperty.Inner))
 			return UEProperty();
 
-		inner.ObjAddress = objArrayProperty.Inner;
-		Utils::MemoryObj->Read<UArrayProperty>(inner.ObjAddress, inner, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		inner.FixPointers(sizeof UArrayProperty);
+		inner.ReadData(objArrayProperty.Inner);
 	}
 
 	return UEProperty(inner);
@@ -1120,7 +1100,7 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 	{
 		extern IGenerator* generator;
 
-		return Info::Create(PropertyType::Container, sizeof(TArray<void*>), false, "TArray<" + generator->GetOverrideType(inner.CppType) + ">");
+		return Info::Create(PropertyType::Container, sizeof(TArray), false, "TArray<" + generator->GetOverrideType(inner.CppType) + ">");
 	}
 
 	return { PropertyType::Unknown };
@@ -1150,9 +1130,7 @@ UEProperty UEMapProperty::GetKeyProperty() const
 		if (INVALID_POINTER_VALUE(objMapProperty.KeyProp))
 			return UEProperty();
 
-		keyProp.ObjAddress = objMapProperty.KeyProp;
-		Utils::MemoryObj->Read<UMapProperty>(keyProp.ObjAddress, keyProp, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		keyProp.FixPointers(sizeof UMapProperty);
+		keyProp.ReadData(objMapProperty.KeyProp);
 	}
 
 	return UEProperty(keyProp);
@@ -1168,9 +1146,7 @@ UEProperty UEMapProperty::GetValueProperty() const
 		if (INVALID_POINTER_VALUE(objMapProperty.ValueProp))
 			return UEProperty();
 
-		valueProp.ObjAddress = objMapProperty.ValueProp;
-		Utils::MemoryObj->Read<UMapProperty>(valueProp.ObjAddress, valueProp, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		valueProp.FixPointers(sizeof UMapProperty);
+		valueProp.ReadData(objMapProperty.ValueProp);
 	}
 
 	return UEProperty(valueProp);
@@ -1214,9 +1190,7 @@ UEFunction UEDelegateProperty::GetSignatureFunction() const
 		if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
 			return UEFunction();
 
-		signatureFunction.ObjAddress = objDelegateProperty.SignatureFunction;
-		Utils::MemoryObj->Read<UDelegateProperty>(signatureFunction.ObjAddress, signatureFunction, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		signatureFunction.FixPointers(sizeof UDelegateProperty);
+		signatureFunction.ReadData(objDelegateProperty.SignatureFunction);
 	}
 
 	return UEFunction(signatureFunction);
@@ -1251,9 +1225,7 @@ UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 		if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
 			return UEFunction();
 
-		signatureFunction.ObjAddress = objDelegateProperty.SignatureFunction;
-		Utils::MemoryObj->Read<UDelegateProperty>(signatureFunction.ObjAddress, signatureFunction, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		signatureFunction.FixPointers(sizeof UDelegateProperty);
+		signatureFunction.ReadData(objDelegateProperty.SignatureFunction);
 	}
 
 	return UEFunction(signatureFunction);
@@ -1288,9 +1260,7 @@ UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 		if (INVALID_POINTER_VALUE(objEnumProperty.UnderlyingProp))
 			return UENumericProperty();
 
-		underlyingProp.ObjAddress = objEnumProperty.UnderlyingProp;
-		Utils::MemoryObj->Read<UEnumProperty>(underlyingProp.ObjAddress, underlyingProp, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		underlyingProp.FixPointers(sizeof UEnumProperty);
+		underlyingProp.ReadData(objEnumProperty.UnderlyingProp);
 	}
 
 	return UENumericProperty(underlyingProp);
@@ -1306,9 +1276,7 @@ UEEnum UEEnumProperty::GetEnum() const
 		if (INVALID_POINTER_VALUE(objEnumProperty.Enum))
 			return UEEnum();
 
-		Enum.ObjAddress = objEnumProperty.Enum;
-		Utils::MemoryObj->Read<UEnumProperty>(Enum.ObjAddress, Enum, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		Enum.FixPointers(sizeof UEnumProperty);
+		Enum.ReadData(objEnumProperty.Enum);
 	}
 
 	return UEEnum(Enum);
@@ -1348,9 +1316,7 @@ UEEnum UEByteProperty::GetEnum() const
 		if (INVALID_POINTER_VALUE(objByteProperty.Enum))
 			return UEEnum();
 
-		enumProperty.ObjAddress = objByteProperty.Enum;
-		Utils::MemoryObj->Read<UEnum>(enumProperty.ObjAddress, enumProperty, sizeof(uintptr_t)); // Skip ObjAddress in SdkUObject
-		enumProperty.FixPointers(sizeof UEnum);
+		enumProperty.ReadData(objByteProperty.Enum);
 	}
 
 	return UEEnum(enumProperty);

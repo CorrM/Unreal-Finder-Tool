@@ -1,5 +1,3 @@
-
-
 #include "pch.h"
 #include "JsonReflector.h"
 #include "PatternScan.h"
@@ -14,30 +12,23 @@
 Memory* Utils::MemoryObj = nullptr;
 MySettings Utils::Settings;
 
-bool Utils::LoadJsonCore()
+#pragma region Json
+bool Utils::LoadEngineCore()
 {
-	// Read core GNames
-	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GNames.json"))
+	// Get all engine files and load it's structs
+	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\EngineBase.json"))
 	{
-		MessageBox(nullptr, "Can't read GNames file.", "Error", MB_OK);
-		return false;
-	}
-
-	// Read core GObjects
-	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GObjects.json"))
-	{
-		MessageBox(nullptr, "Can't read GObject file.", "Error", MB_OK);
-		return false;
-	}
-
-	// Read core CoreStructs
-	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\CoreStructs.json"))
-	{
-		MessageBox(nullptr, "Can't read CoreStructs file.", "Error", MB_OK);
+		MessageBox(nullptr, "Can't read EngineBase file.", "Error", MB_OK);
 		return false;
 	}
 
 	return true;
+}
+
+void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
+{
+	// Get engine files and Override it's structs on EngineBase, if return false then there is no override for target engine and use the EngineBase
+	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\Engine-" + engineVersion + ".json", true);
 }
 
 bool Utils::LoadSettings()
@@ -52,7 +43,7 @@ bool Utils::LoadSettings()
 
 	// Sdk Generator Settings
 	auto sdkParas = j.at("sdkGenerator");
-	Settings.SdkGen.CorePackageName = sdkParas["core Name"]; 
+	Settings.SdkGen.CorePackageName = sdkParas["core Name"];
 	Settings.SdkGen.MemoryHeader = sdkParas["memory header"];
 	Settings.SdkGen.MemoryRead = sdkParas["memory read"];
 	Settings.SdkGen.MemoryWrite = sdkParas["memory write"];
@@ -68,7 +59,18 @@ bool Utils::LoadSettings()
 	Settings.SdkGen.LoggerSpaceCount = sdkParas["logger SpaceCount"];
 	return true;
 }
+#pragma endregion
 
+#pragma region FileManager
+bool Utils::FileExists(const std::string& filePath)
+{
+	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+	return fs::exists(path);
+}
+
+#pragma endregion
+
+#pragma region string
 std::vector<std::string> Utils::SplitString(const std::string& str, const std::string& delimiter)
 {
 	std::vector<std::string> strings;
@@ -95,15 +97,25 @@ std::string Utils::ReplaceString(std::string str, const std::string& to_find, co
 	return str;
 }
 
-bool Utils::ProgramIs64()
+bool Utils::EndsWith(const std::string& value, const std::string& ending)
 {
-#if _WIN64
-	return true;
-#else
-	return false;
-#endif
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
+bool Utils::IsNumber(const std::string& s)
+{
+	return !s.empty() && std::find_if(s.begin(),
+	                                  s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
+}
+
+bool Utils::IsHexNumber(const std::string& s)
+{
+	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
+}
+#pragma endregion
+
+#pragma region Types Converter
 int Utils::BufToInteger(void* buffer)
 {
 	return *reinterpret_cast<DWORD*>(buffer);
@@ -114,20 +126,10 @@ int64_t Utils::BufToInteger64(void* buffer)
 	return *reinterpret_cast<DWORD64*>(buffer);
 }
 
-uintptr_t Utils::CharArrayToUintptr(const std::string str)
+uintptr_t Utils::CharArrayToUintptr(const std::string& str)
 {
 	if (str.empty())
 		return 0;
-
-	//try
-	//{
-	//	return std::stoull(str);
-	//}
-	//catch (std::exception const& e)
-	//{
-	//	// This could not be parsed into a number so an exception is thrown.
-	//	// atoi() would return 0, which is less helpful if it could be a valid value.
-	//}
 
 	uintptr_t retVal;
 	std::stringstream ss;
@@ -136,108 +138,9 @@ uintptr_t Utils::CharArrayToUintptr(const std::string str)
 
 	return retVal;
 }
+#pragma endregion
 
-bool Utils::IsNumber(const std::string& s)
-{
-	return !s.empty() && std::find_if(s.begin(),
-		s.end(), [](const char c) { return !std::isdigit(c); }) == s.end();
-}
-
-bool Utils::IsHexNumber(const std::string& s)
-{
-	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
-}
-
-void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
-{
-	// Check next 4byte of pointer equal 0 in local tool memory
-	// in 32bit game pointer is 4byte so i must zero the second part of uintptr_t in the tool memory
-	// so here i check if second part of uintptr_t is zero so it's didn't need fix
-	// this check is good for solve some problem when cast UObject to something like UEnum
-	// the base (UObject) is fixed but the other (UEnum members) not fixed so, this wil fix really members need to fix
-	// That's it :D
-	//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
-	//if (!needFix) return;
-
-	if (ProgramIs64() && MemoryObj->Is64Bit)
-		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
-
-	const int destSize = abs(varOffset - structSize);
-	const int srcSize = abs(varOffset - structSize) - 0x4;
-
-	char* src = static_cast<char*>(structBase) + varOffset;
-	char* dest = src + 0x4;
-
-	memcpy_s(dest, destSize, src, srcSize);
-	memset(dest, 0x0, 0x4);
-}
-
-uintptr_t Utils::ReadPointer(void* structBase, const int varOffset, const int structSize, const bool is64BitGame)
-{
-	uintptr_t ret = 0;
-	uintptr_t calcAddress = *reinterpret_cast<uintptr_t*>(structBase) + varOffset;
-
-	if (!is64BitGame)
-	{
-		ret = static_cast<DWORD>(calcAddress); // 4byte
-		if (ProgramIs64())
-			FixStructPointer(structBase, varOffset, structSize);
-	}
-	else
-	{
-		ret = static_cast<DWORD64>(calcAddress); // 8byte
-	}
-
-	return ret;
-}
-
-uintptr_t Utils::ReadPointer(JsonStruct* structBase, const string& varName, const bool is64BitGame)
-{
-	uintptr_t ret = 0;
-	uintptr_t calcAddress = reinterpret_cast<uintptr_t>(structBase->GetAllocPointer()) + structBase->GetVar(varName).Offset;
-
-	if (!is64BitGame)
-	{
-		ret = *reinterpret_cast<DWORD*>(calcAddress); // 4byte
-		if (ProgramIs64())
-			FixStructPointer(structBase->GetAllocPointer(), structBase->GetVar(varName).Offset, structBase->StructSize);
-	}
-	else
-	{
-		ret = *reinterpret_cast<DWORD64*>(calcAddress); // 8byte
-	}
-
-	return ret;
-}
-
-void Utils::FixPointersInJsonStruct(JsonStruct* structBase, const bool is64BitGame)
-{
-	if (structBase == nullptr)
-		return;
-
-	if (!is64BitGame && ProgramIs64())
-	{
-		for (auto& var : structBase->Vars)
-		{
-			if (var.second.Type == "pointer")
-				ReadPointer(structBase, var.first, is64BitGame);
-			else if (var.second.IsStruct)
-			{
-				if (var.second.Struct == nullptr)
-					var.second.ReadAsStruct();
-
-				if (var.second.Struct != nullptr)
-					FixPointersInJsonStruct(var.second.Struct, is64BitGame);
-			}
-		}
-	}
-}
-
-int Utils::PointerSize()
-{
-	return MemoryObj->Is64Bit ? 0x8 : 0x4;
-}
-
+#pragma region Address stuff
 bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
 {
 	if (INVALID_POINTER_VALUE(address))
@@ -311,7 +214,7 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
-	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
+	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, {pattern}, true);
 	auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
 }
@@ -320,9 +223,10 @@ bool Utils::IsValidGObjectsAddress(uintptr_t address)
 {
 	bool firstCheck = true;
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4, ptrVfTableObject5;
+	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4,
+	          ptrVfTableObject5;
 
-	CheckAgian:
+CheckAgian:
 	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
 		// Check (UObject*) Is Valid Pointer
@@ -385,6 +289,48 @@ bool Utils::IsValidGObjectsAddress(uintptr_t address)
 	return false;
 }
 
+void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
+{
+	{
+		// Check next 4byte of pointer equal 0 in local tool memory
+		// in 32bit game pointer is 4byte so i must zero the second part of uintptr_t in the tool memory
+		// so here i check if second part of uintptr_t is zero so it's didn't need fix
+		// this check is good for solve some problem when cast UObject to something like UEnum
+		// the base (UObject) is fixed but the other (UEnum members) not fixed so, this wil fix really members need to fix
+		// That's it :D
+		//bool needFix = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(structBase) + varOffset + 0x4) != 0;
+		//if (!needFix) return;
+	}
+
+	if (ProgramIs64() && MemoryObj->Is64Bit)
+		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
+
+	const int destSize = abs(varOffset - structSize);
+	const int srcSize = abs(varOffset - structSize) - 0x4;
+
+	char* src = static_cast<char*>(structBase) + varOffset;
+	char* dest = src + 0x4;
+
+	memcpy_s(dest, destSize, src, srcSize);
+	memset(dest, 0x0, 0x4);
+}
+
+int Utils::PointerSize()
+{
+	return MemoryObj->Is64Bit ? 0x8 : 0x4;
+}
+#pragma endregion
+
+#pragma region Tool stuff
+bool Utils::ProgramIs64()
+{
+#if _WIN64
+	return true;
+#else
+		return false;
+#endif
+}
+
 void Utils::SleepEvery(const int ms, int& counter, const int every)
 {
 	if (every == 0)
@@ -403,12 +349,13 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 		++counter;
 	}
 }
+#pragma endregion
 
-bool Utils::UnrealEngineVersion(std::string &ver)
+bool Utils::UnrealEngineVersion(std::string& ver)
 {
 	auto ret = false;
 
-	auto process = Utils::MemoryObj->ProcessHandle;
+	auto process = MemoryObj->ProcessHandle;
 	if (!process)
 		return ret;
 
@@ -418,19 +365,20 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 	DWORD path_size = MAX_PATH;
 	if (!QueryFullProcessImageName(process, 0, path.data(), &path_size))
 		return ret;
-	
+
 	unsigned long version_size = GetFileVersionInfoSize(path.c_str(), &version_size);
-	if (version_size > 0) {
-		PBYTE pData = new BYTE[version_size];
+	if (version_size > 0)
+	{
+		auto pData = new BYTE[version_size];
 		GetFileVersionInfo(path.c_str(), 0, version_size, static_cast<LPVOID>(pData));
 
-		void *fixed = nullptr;
+		void* fixed = nullptr;
 		unsigned int size = 0;
-		VS_FIXEDFILEINFO *ffi = nullptr;
-		
+
 		VerQueryValue(pData, _T("\\"), &fixed, &size);
-		if (fixed) {
-			ffi = (VS_FIXEDFILEINFO*)fixed;
+		if (fixed)
+		{
+			auto ffi = static_cast<VS_FIXEDFILEINFO*>(fixed);
 
 			auto v1 = HIWORD(ffi->dwFileVersionMS);
 			auto v2 = LOWORD(ffi->dwFileVersionMS);
@@ -440,8 +388,7 @@ bool Utils::UnrealEngineVersion(std::string &ver)
 			ver = engine_version;
 			ret = true;
 		}
-		delete pData;
+		delete[] pData;
 	}
 	return ret;
 }
-

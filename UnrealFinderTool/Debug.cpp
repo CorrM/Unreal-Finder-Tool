@@ -6,9 +6,10 @@
 
 #pragma comment(lib, "dbghelp")
 
-void Debugging::EnterDebugMode(bool bConsole)
+void Debugging::EnterDebugMode(const bool bConsole)
 {
-	if (bConsole) {
+	if (bConsole)
+	{
 		AllocConsole();
 		freopen("CONOUT$", "w", stdout);
 
@@ -19,43 +20,46 @@ void Debugging::EnterDebugMode(bool bConsole)
 	ExpHandle = AddVectoredExceptionHandler(1ul, ExceptionHandler);
 }
 
-LONG WINAPI Debugging::ExceptionHandler(struct _EXCEPTION_POINTERS * e)
-{	
+LONG WINAPI Debugging::ExceptionHandler(struct _EXCEPTION_POINTERS* e)
+{
 	//UNREFERENCED_PARAMETER(e);
-	if (CreateMiniDump(e)) {
-		MessageBox(HWND_DESKTOP, "Program encountered an issue and was terminated. Dump information is located in Dumps folder in program directory.", "Error", MB_ICONERROR | MB_OK);
+	if (CreateMiniDump(e))
+	{
+		MessageBox(
+			HWND_DESKTOP,
+			"Program encountered an issue and was terminated. Dump information is located in Dumps folder in program directory.",
+			"Error", MB_ICONERROR | MB_OK);
 	}
-	
+
 	return EXCEPTION_NONCONTINUABLE_EXCEPTION;
 }
 
-BOOL Debugging::CreateMiniDump(EXCEPTION_POINTERS *e)
+BOOL Debugging::CreateMiniDump(EXCEPTION_POINTERS* e)
 {
-	BOOL bSuccess = false;
-
-	HANDLE hDump;
 	SYSTEMTIME st;
 	MINIDUMP_EXCEPTION_INFORMATION md;
 	TCHAR szPath[MAX_PATH] = { 0 };
 
 	GetLocalTime(&st);
-	CreateDirectory(_T("Dumps"), NULL);
+	CreateDirectory(_T("Dumps"), nullptr);
 
-	sprintf(szPath, "Dumps\\%04d%02d%02d-%02d%02d%02d-%ld-%ld.mdmp",
-		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
-		GetCurrentProcessId(), GetCurrentThreadId());
+	sprintf_s(szPath, MAX_PATH, "Dumps\\%04d%02d%02d-%02d%02d%02d-%ld-%ld.mdmp",
+	        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
+	        GetCurrentProcessId(), GetCurrentThreadId());
 
-	hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, 0, 0);
-	
-	md.ThreadId			 = GetCurrentThreadId();
+	HANDLE hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE, nullptr,
+	                          CREATE_ALWAYS, 0,
+	                          nullptr);
+
+	md.ThreadId = GetCurrentThreadId();
 	md.ExceptionPointers = e;
-	md.ClientPointers	 = TRUE;
+	md.ClientPointers = TRUE;
 
-	bSuccess = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump, MiniDumpWithDataSegs, &md, NULL, NULL);
+	BOOL bSuccess = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump, MiniDumpWithDataSegs, &md, nullptr, nullptr);
 	return bSuccess;
 }
 
-void Debugging::Log(const char *format, ...)
+void Debugging::Log(const char* format, ...)
 {
 	if (!bConsoleEnabled)
 		return;
@@ -67,12 +71,14 @@ void Debugging::Log(const char *format, ...)
 	va_end(arg);
 }
 
-void Debugging::LogFile(const char *format, ...)
+void Debugging::LogFile(const char* format, ...)
 {
 	if (!fp)
+	{
 		CreateLogFile();
-	if (!fp)
 		return;
+	}
+		
 
 	va_list arg;
 	va_start(arg, format);
@@ -85,7 +91,7 @@ void Debugging::CreateLogFile()
 {
 	const char logfile[] = "Dumps\\Debug.log";
 
-	if(!fp)
+	if (!fp)
 		fp = fopen(logfile, "w");
 
 	return;

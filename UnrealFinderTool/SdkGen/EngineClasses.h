@@ -9,11 +9,13 @@
 
 // #define OFFSET(s, m) ((size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
 #define OFFSET(m) ((int)&reinterpret_cast<char const volatile&>((((decltype(this))0)->m)))
+#define FILL_DATA(pData, var, offset) var = *reinterpret_cast<decltype(var)*>(&pData[offset])
 #define SIZE_OF_ME sizeof(decltype(this))
 
 class UClass;
 class UObject;
 
+#pragma region Same Size As Engine
 struct FPointer
 {
 	uintptr_t Dummy;
@@ -26,136 +28,53 @@ struct FPointer
 
 struct FQWord
 {
-	int A;
-	int B;
+	int32_t A;
+	int32_t B;
+
+	void FixPointers(const int fullStructSize)
+	{
+		// 
+	}
 };
 
 struct FName
 {
 	int32_t ComparisonIndex;
 	int32_t Number;
-
-	FName(): ComparisonIndex(0), Number(0)
-	{
-	}
-
-	FName(const int32_t index, const int32_t number): ComparisonIndex(index), Number(number)
-	{
-	}
 };
 
-template<class T>
 struct TArray
 {
-private:
-	T* Data;
-	int32_t Count;
-	int32_t Max;
+	uintptr_t Data = NULL;
+	int32_t Count = 0;
+	int32_t Max = 0;
 
-public:
 	friend struct FString;
 
-	TArray()
+	bool IsValidIndex(const int i) const
 	{
-		Data = nullptr;
-		Count = Max = 0;
-	};
+		return i < Count;
+	}
 
-	size_t Num() const
+	void FixPointers(const int fullStructSize)
 	{
-		return Count;
-	};
-
-	T& operator[](size_t i)
-	{
-		return Data[i];
-	};
-
-	const T& operator[](size_t i) const
-	{
-		return Data[i];
-	};
-
-	bool IsValidIndex(size_t i) const
-	{
-		return i < Num();
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
 };
 
-template<typename KeyType, typename ValueType>
-class TPair
+struct FString : TArray // <wchar_t>
 {
-public:
-	KeyType   Key;
-	ValueType Value;
-};
-
-struct FString : TArray<wchar_t>
-{
-	std::string ToString() const
+	/*std::string ToString() const
 	{
 		int size = WideCharToMultiByte(CP_UTF8, 0, Data, Count, nullptr, 0, nullptr, nullptr);
 		std::string str(size, 0);
 		WideCharToMultiByte(CP_UTF8, 0, Data, Count, &str[0], size, nullptr, nullptr);
 		return str;
-	}
-
-	void FixPointers(void* baseStruct, const int varOffset, const int fullStructSize)
-	{
-		Utils::FixPointers(baseStruct, fullStructSize, { varOffset + OFFSET(Data) });
-	}
-};
-
-class FScriptInterface
-{
-	UObject* ObjectPointer = nullptr;
-	void* InterfacePointer = nullptr;
-
-public:
-	UObject* GetObj() const
-	{
-		return ObjectPointer;
-	}
-
-	UObject*& GetObjectRef()
-	{
-		return ObjectPointer;
-	}
-
-	void* GetInterface() const
-	{
-		return ObjectPointer != nullptr ? InterfacePointer : nullptr;
-	}
+	}*/
 
 	void FixPointers(const int fullStructSize)
 	{
-		// Utils::FixPointers(this, fullStructSize, { OFFSET(ObjectPointer), OFFSET(InterfacePointer) });
-	}
-};
-
-template<class InterfaceType>
-class TScriptInterface : public FScriptInterface
-{
-public:
-	InterfaceType* operator->() const
-	{
-		return reinterpret_cast<InterfaceType*>(GetInterface());
-	}
-
-	InterfaceType& operator*() const
-	{
-		return *reinterpret_cast<InterfaceType*>(GetInterface());
-	}
-
-	operator bool() const
-	{
-		return GetInterface() != nullptr;
-	}
-
-	void FixPointers(const int fullStructSize)
-	{
-		FScriptInterface::FixPointers(fullStructSize);
-		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+		TArray::FixPointers(fullStructSize);
 	}
 };
 
@@ -175,13 +94,139 @@ struct FStringAssetReference
 	FString AssetLongPathname;
 };
 
-template<typename TObjectID>
+struct FGuid
+{
+	uint32_t A;
+	uint32_t B;
+	uint32_t C;
+	uint32_t D;
+};
+
+struct FUniqueObjectGuid
+{
+	FGuid Guid;
+};
+
+struct FScriptDelegate
+{
+	unsigned char UnknownData[20];
+};
+
+struct FScriptMulticastDelegate
+{
+	unsigned char UnknownData[16];
+};
+
+struct FUEnumItem // Same As TPair
+{
+	FName Key;
+	uint64_t Value = 0;
+};
+
+#pragma endregion
+
+class FScriptInterface
+{
+	bool init = false;
+	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
+
+public:
+	// Object remote address
+	uintptr_t ObjAddress = NULL;
+
+	uintptr_t ObjectPointer = NULL;
+	uintptr_t InterfacePointer = NULL;
+
+	uintptr_t GetObj() const
+	{
+		return ObjectPointer;
+	}
+
+	uintptr_t GetInterface() const
+	{
+		return ObjectPointer != NULL ? InterfacePointer : NULL;
+	}
+
+	std::string TypeName() { return "FScriptInterface"; }
+
+	void FixPointers(const int fullStructSize)
+	{
+		Utils::FixPointers(this, fullStructSize, {
+			OFFSET(ObjectPointer),
+			OFFSET(InterfacePointer)
+		});
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		ObjAddress = objAddress;
+
+		if (ObjAddress == NULL)
+			return false;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["ObjectPointer"].Offset,
+			jStruct["InterfacePointer"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, ObjectPointer, offsets[0]);
+		FILL_DATA(pData, InterfacePointer, offsets[1]);
+
+		// It's Initialized
+		init = true;
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
+
+	bool IsInit()
+	{
+		return init;
+	}
+};
+
+template<typename TObjectId>
 class TPersistentObjectPtr
 {
 public:
 	FWeakObjectPtr WeakPtr;
 	int32_t TagAtLastTest;
-	TObjectID ObjectID;
+	TObjectId ObjectId;
 
 	void FixPointers(const int fullStructSize)
 	{
@@ -196,21 +241,7 @@ public:
 	void FixPointers(const int fullStructSize)
 	{
 		TPersistentObjectPtr::FixPointers(fullStructSize);
-		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
-};
-
-struct FGuid
-{
-	uint32_t A;
-	uint32_t B;
-	uint32_t C;
-	uint32_t D;
-};
-
-struct FUniqueObjectGuid
-{
-	FGuid Guid;
 };
 
 class FLazyObjectPtr : public TPersistentObjectPtr<FUniqueObjectGuid>
@@ -219,43 +250,178 @@ public:
 	void FixPointers(const int fullStructSize)
 	{
 		TPersistentObjectPtr::FixPointers(fullStructSize);
-		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
 };
 
-struct FScriptDelegate
+class FUObjectItem
 {
-	unsigned char UnknownData[20];
-};
+	bool init = false;
+	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
 
-struct FScriptMulticastDelegate
-{
-	unsigned char UnknownData[16];
-};
-
-class FUEnumItem
-{
 public:
-	FName Key;
-	uint64_t Value = 0;
-};
+	// Object remote address
+	uintptr_t ObjAddress = NULL;
 
-class TUEnumArray
-{
-public:
-	uintptr_t Data = 0;
-	int Num = 0;
-	int Max = 0;
+	uintptr_t Object = NULL;
+	int32_t Flags = 0;
+	int32_t ClusterIndex = 0;
+	int32_t SerialNumber = 0;
 
-	void FixPointers(void* baseStruct, const int varOffset, const int fullStructSize)
+	std::string TypeName() { return "FUObjectItem"; }
+
+	void FixPointers(const int fullStructSize)
 	{
-		Utils::FixPointers(baseStruct, fullStructSize, { varOffset + OFFSET(Data) });
+		Utils::FixPointers(this, fullStructSize, { OFFSET(Object) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		ObjAddress = objAddress;
+
+		if (ObjAddress == NULL)
+			return false;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["Object"].Offset,
+			jStruct["Flags"].Offset,
+			jStruct["ClusterIndex"].Offset,
+			jStruct["SerialNumber"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Read this struct
+		FILL_DATA(pData, Object, offsets[0]);
+		FILL_DATA(pData, Flags, offsets[1]);
+		FILL_DATA(pData, ClusterIndex, offsets[2]);
+		FILL_DATA(pData, SerialNumber, offsets[3]);
+
+		// It's Initialized
+		init = true;
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
+
+	bool IsInit()
+	{
+		return init;
+	}
+};
+
+class FNameEntity
+{
+	bool init = false;
+	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
+
+public:
+	// Object remote address
+	uintptr_t ObjAddress = NULL;
+
+	size_t Index;
+	std::string AnsiName;
+
+	FNameEntity() = default;
+	explicit FNameEntity(const size_t index, const std::string ansiName) : Index(index), AnsiName(ansiName) { }
+
+	std::string TypeName() { return "FNameEntity"; }
+
+	void FixPointers(const int fullStructSize)
+	{
+		// 
+	}
+
+	bool ReadData(const uintptr_t objAddress, const int ansiNameOffset)
+	{
+		ObjAddress = objAddress;
+
+		if (ObjAddress == NULL)
+			return false;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Index"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, Index, offsets[0]);
+		AnsiName = m->ReadText(objAddress + ansiNameOffset);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData(const int ansiNameOffset)
+	{
+		return ReadData(ObjAddress, ansiNameOffset);
+	}
+
+	bool IsInit()
+	{
+		return init;
 	}
 };
 
 class UObject
 {
+	bool init = false;
+protected:
+	Memory* m = Utils::MemoryObj;
+	PBYTE pData = nullptr;
+
 public:
+	// Object remote address
 	uintptr_t ObjAddress = 0;
 
 	uintptr_t VfTable = 0;
@@ -264,6 +430,8 @@ public:
 	uintptr_t Class = 0;
 	FName Name;
 	uintptr_t Outer = 0;
+
+	std::string TypeName() { return "UObject"; }
 
 	void FixPointers(const int fullStructSize)
 	{
@@ -274,22 +442,76 @@ public:
 		});
 	}
 
-	void operator=(JsonStruct& uObject)
+	bool ReadData(const uintptr_t objAddress)
 	{
-		VfTable = uObject["VfTable"].ReadAs<uintptr_t>();
-		Flags = uObject["Flags"].ReadAs<int>();
-		InternalIndex = uObject["InternalIndex"].ReadAs<int>();
-		Class = uObject["Class"].ReadAs<uintptr_t>();
-		Outer = uObject["Outer"].ReadAs<uintptr_t>();
+		// Set object remote address
+		ObjAddress = objAddress;
 
-		// Read FName
-		JsonStruct tmpFName = *uObject["Name"].ReadAsStruct();
-		Name = FName(tmpFName["Index"].ReadAs<int>(), tmpFName["Number"].ReadAs<int>());
+		if (ObjAddress == NULL)
+			return false;
+
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["VfTable"].Offset,
+			jStruct["Flags"].Offset,
+			jStruct["InternalIndex"].Offset,
+			jStruct["Class"].Offset,
+			jStruct["Name"].Offset,
+			jStruct["Outer"].Offset
+		};
+
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		FILL_DATA(pData, VfTable, offsets[0]);
+		FILL_DATA(pData, Flags, offsets[1]);
+		FILL_DATA(pData, InternalIndex, offsets[2]);
+		FILL_DATA(pData, Class, offsets[3]);
+		FILL_DATA(pData, Name, offsets[4]);
+		FILL_DATA(pData, Outer, offsets[5]);
+
+		// It's initialized
+		init = true;
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 
 	bool IsEqual(const UObject& toCheck) const
 	{
 		return toCheck.InternalIndex == this->InternalIndex && toCheck.Name.ComparisonIndex == this->Name.ComparisonIndex;
+	}
+
+	bool IsInit()
+	{
+		return init;
 	}
 
 	bool Empty() const
@@ -303,12 +525,9 @@ public:
 		// it's like internal cast, but for remote process
 		USdkStruct castType;
 
+		// it's just to solve start up problem, for really Utils::MemoryObj will never == nullptr
 		if (Utils::MemoryObj != nullptr)
-		{
-			castType.ObjAddress = ObjAddress;
-			Utils::MemoryObj->Read<USdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in UObject
-			castType.FixPointers(sizeof USdkStruct);
-		}
+			castType.ReadData(ObjAddress);
 
 		return castType;
 	}
@@ -319,25 +538,137 @@ class UField : public UObject
 public:
 	uintptr_t Next = 0;
 
+	std::string TypeName() { return "UField"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObject::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Next) });
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Next"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObject::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Next, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
+// TODO: Check here
 class UEnum : public UField
 {
 public:
 	FString CppType;
-	TUEnumArray Names; /*TArray<TPair<FName, uint64_t>> */
-	__int64 CppForm = 0;
+	TArray Names; /*TArray<TPair<FName, uint64_t>> */
+	int64_t CppForm = 0;
+
+	std::string TypeName() { return "UEnum"; }
 
 	void FixPointers(const int fullStructSize)
 	{
 		UField::FixPointers(fullStructSize);
-		CppType.FixPointers(this, OFFSET(CppType), fullStructSize);
-		Names.FixPointers(this, OFFSET(Names), fullStructSize);
+		Utils::FixPointers(this, fullStructSize, {
+			OFFSET(CppType.Data),
+			OFFSET(Names.Data)
+		});
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["CppType"].Offset,
+			jStruct["Names"].Offset,
+			jStruct["CppForm"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, CppType, offsets[0]);
+		FILL_DATA(pData, Names, offsets[1]);
+		FILL_DATA(pData, CppForm, offsets[2]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -348,7 +679,8 @@ public:
 	uintptr_t Children = 0;
 	int32_t PropertySize = 0;
 	int32_t MinAlignment = 0;
-	char Pad0X0048[0x40] = { 0 };
+
+	std::string TypeName() { return "UStruct"; }
 
 	void FixPointers(const int fullStructSize)
 	{
@@ -358,34 +690,132 @@ public:
 			OFFSET(Children)
 		});
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["SuperField"].Offset,
+			jStruct["Children"].Offset,
+			jStruct["PropertySize"].Offset,
+			jStruct["MinAlignment"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SuperField, offsets[0]);
+		FILL_DATA(pData, Children, offsets[1]);
+		FILL_DATA(pData, PropertySize, offsets[2]);
+		FILL_DATA(pData, MinAlignment, offsets[3]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
 class UScriptStruct : public UStruct
 {
 public:
-	char pad_0x0088[0x10];
-	//char pad_0x0089[0x1];
+	std::string TypeName() { return "UScriptStruct"; }
 
 	void FixPointers(const int fullStructSize)
 	{
 		UStruct::FixPointers(fullStructSize);
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
+// ToDo: Check what UFunction really need!!, then don't read anything u don't need
 class UFunction : public UStruct
 {
 public:
 	int32_t FunctionFlags = 0;
-	int8_t NumParms = 0;
-	char pad1[0x1];
-	int16_t ParmsSize = 0;
-	uint16_t ReturnValueOffset = 0;
-	uint16_t RPCId = 0;
-	uint16_t RPCResponseId = 0;
 	uintptr_t FirstPropertyToInit = 0;
 	uintptr_t EventGraphFunction = 0;
-	int32_t EventGraphCallOffset = 0;
 	uintptr_t Func = 0;
+
+	std::string TypeName() { return "UFunction"; }
 
 	void FixPointers(const int fullStructSize)
 	{
@@ -396,33 +826,136 @@ public:
 			OFFSET(Func)
 		});
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["FunctionFlags"].Offset,
+			jStruct["FirstPropertyToInit"].Offset,
+			jStruct["EventGraphFunction"].Offset,
+			jStruct["Func"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+			FILL_DATA(pData, Func, jStruct["Func"].Offset);
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, FunctionFlags, offsets[0]);
+		FILL_DATA(pData, FirstPropertyToInit, offsets[1]);
+		FILL_DATA(pData, EventGraphFunction, offsets[2]);
+		FILL_DATA(pData, Func, offsets[3]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
 class UClass : public UStruct
 {
 public:
-	char Pad0X0088[0x198] = { 0 };
+	std::string TypeName() { return "UClass"; }
 
 	void FixPointers(const int fullStructSize)
 	{
 		UStruct::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UStruct::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UProperty : public UField
 {
 public:
-	int ArrayDim = 0;
-	int ElementSize = 0;
+	int32_t ArrayDim = 0;
+	int32_t ElementSize = 0;
 	FQWord PropertyFlags;
-	uint16_t RepIndex = 0;
-	uint8_t BlueprintReplicationCondition = 0;
-	int Offset = 0;
-	FName RepNotifyFunc;
+	int32_t Offset = 0;
 	uintptr_t PropertyLinkNext = 0;
 	uintptr_t NextRef = 0;
 	uintptr_t DestructorLinkNext = 0;
 	uintptr_t PostConstructLinkNext = 0;
+
+	std::string TypeName() { return "UProperty"; }
 
 	void FixPointers(const int fullStructSize)
 	{
@@ -434,14 +967,127 @@ public:
 			OFFSET(PostConstructLinkNext)
 		});
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["ArrayDim"].Offset,
+			jStruct["ElementSize"].Offset,
+			jStruct["PropertyFlags"].Offset,
+			jStruct["Offset"].Offset,
+			jStruct["PropertyLinkNext"].Offset,
+			jStruct["NextRef"].Offset,
+			jStruct["DestructorLinkNext"].Offset,
+			jStruct["PostConstructLinkNext"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UField::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, ArrayDim, offsets[0]);
+		FILL_DATA(pData, ElementSize, offsets[1]);
+		FILL_DATA(pData, PropertyFlags, offsets[2]);
+		FILL_DATA(pData, Offset, offsets[3]);
+		FILL_DATA(pData, PropertyLinkNext, offsets[4]);
+		FILL_DATA(pData, NextRef, offsets[5]);
+		FILL_DATA(pData, DestructorLinkNext, offsets[6]);
+		FILL_DATA(pData, PostConstructLinkNext, offsets[7]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
 class UNumericProperty : public UProperty
 {
 public:
+	std::string TypeName() { return "UNumericProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -450,91 +1096,566 @@ class UByteProperty : public UNumericProperty
 public:
 	uintptr_t Enum = 0;
 
+	std::string TypeName() { return "UByteProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Enum) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Enum"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Enum, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UUInt16Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UUInt16Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UUInt32Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UUInt32Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UUInt64Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UUInt64Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UInt8Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UInt8Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UInt16Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UInt16Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UIntProperty : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UIntProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		// Read Remote Memory
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UInt64Property : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UInt64Property"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UFloatProperty : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UFloatProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UDoubleProperty : public UNumericProperty
 {
 public:
+	std::string TypeName() { return "UDoubleProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UNumericProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -546,9 +1667,69 @@ public:
 	uint8_t ByteMask = 0;
 	uint8_t FieldMask = 0;
 
+	std::string TypeName() { return "UBoolProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["FieldSize"].Offset,
+			jStruct["ByteOffset"].Offset,
+			jStruct["ByteMask"].Offset,
+			jStruct["FieldMask"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, FieldSize, offsets[0]);
+		FILL_DATA(pData, ByteOffset, offsets[1]);
+		FILL_DATA(pData, ByteMask, offsets[2]);
+		FILL_DATA(pData, FieldMask, offsets[3]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -557,19 +1738,117 @@ class UObjectPropertyBase : public UProperty
 public:
 	uintptr_t PropertyClass = 0;
 
+	std::string TypeName() { return "UObjectPropertyBase"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(PropertyClass) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["PropertyClass"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, PropertyClass, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UObjectProperty : public UObjectPropertyBase
 {
 public:
+	std::string TypeName() { return "UObjectProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -578,10 +1857,61 @@ class UClassProperty : public UObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
+	std::string TypeName() { return "UClassProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObjectProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["MetaClass"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, MetaClass, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -590,37 +1920,229 @@ class UInterfaceProperty : public UProperty
 public:
 	uintptr_t InterfaceClass = 0;
 
+	std::string TypeName() { return "UInterfaceProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(InterfaceClass) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["InterfaceClass"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, InterfaceClass, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UWeakObjectProperty : public UObjectPropertyBase
 {
 public:
+	std::string TypeName() { return "UWeakObjectProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class ULazyObjectProperty : public UObjectPropertyBase
 {
 public:
+	std::string TypeName() { return "ULazyObjectProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UAssetObjectProperty : public UObjectPropertyBase
 {
 public:
+	std::string TypeName() { return "UAssetObjectProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UObjectPropertyBase::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -629,19 +2151,117 @@ class UAssetClassProperty : public UAssetObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
+	std::string TypeName() { return "UAssetClassProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UAssetObjectProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["MetaClass"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UAssetObjectProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, MetaClass, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UNameProperty : public UProperty
 {
 public:
+	std::string TypeName() { return "UNameProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -650,28 +2270,173 @@ class UStructProperty : public UProperty
 public:
 	uintptr_t Struct = 0;
 
+	std::string TypeName() { return "UStructProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Struct) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Struct"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Struct, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UStrProperty : public UProperty
 {
 public:
+	std::string TypeName() { return "UStrProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
 class UTextProperty : public UProperty
 {
 public:
+	std::string TypeName() { return "UTextProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -680,10 +2445,61 @@ class UArrayProperty : public UProperty
 public:
 	uintptr_t Inner = 0;
 
+	std::string TypeName() { return "UArrayProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Inner) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["Inner"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, Inner, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -693,6 +2509,8 @@ public:
 	uintptr_t KeyProp = 0;
 	uintptr_t ValueProp = 0;
 
+	std::string TypeName() { return "UMapProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
@@ -701,6 +2519,60 @@ public:
 			OFFSET(ValueProp)
 		});
 	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["KeyProp"].Offset,
+			jStruct["ValueProp"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, KeyProp, offsets[0]);
+		FILL_DATA(pData, ValueProp, offsets[1]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
+	}
 };
 
 class UDelegateProperty : public UProperty
@@ -708,10 +2580,61 @@ class UDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
+	std::string TypeName() { return "UDelegateProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["SignatureFunction"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SignatureFunction, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -720,10 +2643,61 @@ class UMulticastDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
+	std::string TypeName() { return "UMulticastDelegateProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] = { jStruct["SignatureFunction"].Offset };
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, SignatureFunction, offsets[0]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };
 
@@ -733,6 +2707,8 @@ public:
 	uintptr_t UnderlyingProp = 0;
 	uintptr_t Enum = 0;
 
+	std::string TypeName() { return "UEnumProperty"; }
+
 	void FixPointers(const int fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
@@ -740,5 +2716,60 @@ public:
 			OFFSET(UnderlyingProp),
 			OFFSET(Enum)
 		});
+	}
+
+	bool ReadData(const uintptr_t objAddress)
+	{
+		// Set object remote address
+		ObjAddress = objAddress;
+
+		// Read this struct
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		static int jSize = jStruct.GetSize();
+		static int offsets[] =
+		{
+			jStruct["UnderlyingProp"].Offset,
+			jStruct["Enum"].Offset
+		};
+
+		// Read Remote Memory
+		bool dataAllocer = false;
+		if (pData == nullptr)
+		{
+			dataAllocer = true;
+			pData = new BYTE[jSize];
+
+			// Read this struct
+			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
+
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+		}
+
+		// Init super variables first
+		UProperty::ReadData(objAddress);
+
+		// Init `this` variables
+		FILL_DATA(pData, UnderlyingProp, offsets[0]);
+		FILL_DATA(pData, Enum, offsets[1]);
+
+		if (dataAllocer)
+		{
+			delete pData;
+			pData = nullptr;
+		}
+
+		return true;
+	}
+
+	bool ReadData()
+	{
+		return ReadData(ObjAddress);
+	}
+
+	int StructSize()
+	{
+		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
+		return jStruct.GetSize();
 	}
 };

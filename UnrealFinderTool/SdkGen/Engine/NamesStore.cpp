@@ -2,8 +2,8 @@
 #include "Memory.h"
 #include "NamesStore.h"
 
-std::vector<GName> NamesStore::gNames;
-int NamesStore::gNamesChunkCount;
+std::vector<FNameEntity> NamesStore::gNames;
+int NamesStore::chunkCount = 16384;
 int NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
 
@@ -17,13 +17,6 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReIni
 	gNamesChunks = 0;
 
 	NamesStore::gNamesAddress = gNamesAddress;
-	NamesStore::gNamesChunkCount = 16384;
-	return FetchData();
-}
-
-bool NamesStore::FetchData()
-{
-	// GNames
 	return ReadGNameArray(gNamesAddress);
 }
 
@@ -31,7 +24,6 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 {
 	int ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
-	JsonStruct fName;
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -62,30 +54,27 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
 	{
-		for (int j = 0; j < gNamesChunkCount; ++j)
+		for (int j = 0; j < chunkCount; ++j)
 		{
-			GName tmp;
+			FNameEntity tmp;
 			const int offset = ptrSize * j;
 			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!IsValidAddress(fNameAddress))
 			{
+				// Push Empty, if i just skip will case a problems, so just add empty item
 				tmp.Index = i;
 				tmp.AnsiName = "";
 
-				gNames.emplace_back(std::move(tmp));
+				gNames.push_back(std::move(tmp));
 				++i;
 				continue;
 			}
 
 			// Read FName
-			if (!fName.ReadData(fNameAddress, "FNameEntity")) return false;
+			if (!tmp.ReadData(fNameAddress, nameOffset)) return false;
 
-			// Set The Name
-			tmp.Index = i;
-			tmp.AnsiName = Utils::MemoryObj->ReadText(fNameAddress + nameOffset);
-
-			gNames.emplace_back(std::move(tmp));
+			gNames.push_back(std::move(tmp));
 			++i;
 		}
 	}
@@ -116,18 +105,17 @@ void* NamesStore::GetAddress()
 	return reinterpret_cast<void*>(gNamesAddress);
 }
 
-size_t NamesStore::GetNamesNum() const
+int NamesStore::GetNamesNum() const
 {
-	int num = gNamesChunkCount * gNamesChunks;
-	return size_t(num);
+	return chunkCount * gNamesChunks;
 }
 
 bool NamesStore::IsValid(const size_t id)
 {
-	return id >= 0 && id <= GetNamesNum() && !GetById(id).empty();
+	return id >= 0 && id <= GetNamesNum() && !GetByIndex(id).empty();
 }
 
-std::string NamesStore::GetById(const size_t id)
+std::string NamesStore::GetByIndex(const size_t id)
 {
 	// TODO: i think here is a problem, set BP at (return "") and check call stack. (why wrong id)
 	if (id > GetNamesNum())
@@ -204,13 +192,13 @@ bool NamesIterator::operator!=(const NamesIterator& rhs) const
 	return index != rhs.index;
 }
 
-GName NamesIterator::operator*() const
+FNameEntity NamesIterator::operator*() const
 {
-	return { index, NamesStore(store).GetById(index) };
+	return NamesStore::gNames[index];
 }
 
-GName NamesIterator::operator->() const
+FNameEntity NamesIterator::operator->() const
 {
-	return { index, NamesStore(store).GetById(index) };
+	return NamesStore::gNames[index];
 }
 #pragma endregion

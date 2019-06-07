@@ -6,15 +6,14 @@
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
 #include "IGenerator.h"
-#include "SdkGen/EngineClasses.h"
-#include "Utils.h"
+#include "EngineClasses.h"
 
 class UEClass;
 
 class UEObject
 {
 protected:
-	mutable UClass objClass;
+	mutable UClass objClass{};
 	mutable uintptr_t packageAddress = NULL;
 	mutable std::string objName, fullName, nameCpp;
 
@@ -22,7 +21,7 @@ public:
 	UObject Object;
 
 	UEObject() = default;
-	UEObject(const UObject object) : Object(object) { }
+	explicit UEObject(const UObject object) : Object(object) { }
 
 	uintptr_t GetAddress() const;
 	bool IsValid() const;
@@ -48,7 +47,6 @@ public:
 
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
-
 
 	static std::string TypeName();
 

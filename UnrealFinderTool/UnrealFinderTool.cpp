@@ -14,7 +14,7 @@
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 
-UiWindow *uiMainWindow = nullptr;
+UiWindow* UiMainWindow = nullptr;
 bool memory_init = false;
 
 int DetectUe4Game(HWND* windowHandle)
@@ -24,8 +24,13 @@ int DetectUe4Game(HWND* windowHandle)
 	{
 		DWORD pId;
 		GetWindowThreadProcessId(childControl, &pId);
+
+		if (Memory::GetProcessNameById(pId) == "EpicGamesLauncher.exe")
+			return 0;
+
 		if (windowHandle != nullptr)
 			*windowHandle = childControl;
+
 		return pId;
 	}
 
@@ -55,6 +60,9 @@ void SetupMemoryStuff(const HANDLE pHandle)
 
 		// Grab engine version information
 		Utils::UnrealEngineVersion(ue_version);
+
+		// Override UE4 Engine Structs
+		Utils::OverrideLoadedEngineCore(ue_version);
 	}
 }
 
@@ -85,7 +93,8 @@ void StartGObjFinder(const bool easyMethod)
 
 		for (auto v : ret)
 		{
-			std::stringstream ss; ss << std::hex << v;
+			std::stringstream ss;
+			ss << std::hex << v;
 
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
@@ -104,11 +113,10 @@ void StartGObjFinder(const bool easyMethod)
 	t.detach();
 }
 
-
 /*
 *	TODO: BUG
 *
-*	Definately some thread safety issues happening here
+*	Definitely some thread safety issues happening here
 *	will need to look into more.
 *
 *	Turns out g_names_find_disabled causes imgui to crash.
@@ -119,39 +127,44 @@ void StartGNamesFinder()
 	g_names_listbox_items.push_back(s);
 
 	DisabledAll();
-//	g_names_find_disabled = true;
+	//	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
 
 	std::thread t([&]()
-	{	
+	{
 		GNamesFinder gf;
 		std::vector<uintptr_t> ret = gf.Find();
-	
+
 		auto found = false;
 
-		uintptr_t start, end = ret[0];
-		uintptr_t start2 = ret[0], end2;
-		start = (end - 0x17FFFF0);//0xA0000
-		end2 = (start2 + 0x17FFFF0);
+		uintptr_t end = ret[0];
+		uintptr_t start2 = ret[0];
+		uintptr_t start = (end - 0x17FFFF0); //0xA0000
+		uintptr_t end2 = (start2 + 0x17FFFF0);
 
 		auto step = Utils::PointerSize();
 
-		while (!found) {
+		while (!found)
+		{
 			if (!Utils::IsValidGNamesAddress(start))
 				start += step;
-			else {
-				ret[0] = start; found = true;
+			else
+			{
+				ret[0] = start;
+				found = true;
 			}
 			if (!Utils::IsValidGNamesAddress(start2))
 				start2 += step;
-			else {
+			else
+			{
 				ret[0] = start2;
 				found = true;
 			}
 			if (!Utils::IsValidGNamesAddress(start2))
 				start2 += step;
-			else {
+			else
+			{
 				ret[0] = start2;
 				found = true;
 			}
@@ -164,7 +177,8 @@ void StartGNamesFinder()
 
 		for (auto v : ret)
 		{
-			std::stringstream ss; ss << std::hex << v;
+			std::stringstream ss;
+			ss << std::hex << v;
 
 			std::string tmpUpper = ss.str();
 			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
@@ -172,7 +186,8 @@ void StartGNamesFinder()
 			g_names_listbox_items.push_back(tmpUpper);
 		}
 
-		if (ret.size() == 1) {
+		if (ret.size() == 1)
+		{
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
@@ -225,12 +240,20 @@ void StartInstanceLogger()
 		InstanceLogger il(g_objects_address, g_names_address);
 		auto retState = il.Start();
 
-		if (retState.State == LoggerState::Good)
+		switch (retState.State)
+		{
+		case LoggerState::Good:
 			il_state = "Finished.!!";
-		else if (retState.State == LoggerState::BadGObject)
+			break;
+		case LoggerState::BadGObject:
+		case LoggerState::BadGObjectAddress:
 			il_state = "Wrong (GObjects) Address.!!";
-		else if (retState.State == LoggerState::BadGName)
+			break;
+		case LoggerState::BadGName:
+		case LoggerState::BadGNameAddress:
 			il_state = "Wrong (GNames) Address.!!";
+			break;
+		}
 
 		il_objects_count = retState.GObjectsCount;
 		il_names_count = retState.GNamesCount;
@@ -258,7 +281,8 @@ void StartSdkGenerator()
 		                              &sg_packages_count,
 		                              &sg_packages_item_current,
 		                              sg_game_name_buf,
-		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]),
+		                              std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) +
+		                              "." + std::to_string(sg_game_version[2]),
 		                              static_cast<SdkType>(sg_type_item_current),
 		                              sg_state, sg_packages_items);
 
@@ -266,7 +290,7 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
-			uiMainWindow->FlashWindow();
+			UiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
@@ -322,14 +346,16 @@ void MainUi(UiWindow& thiz)
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
 		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
-	
+
 	ui::Separator();
 
 	// Process ID
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled); ui::SameLine();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : ");
+		ui::SameLine();
+		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
+		ui::SameLine();
 
 		if (ui::IsItemHovered())
 		{
@@ -337,11 +363,12 @@ void MainUi(UiWindow& thiz)
 			{
 				ui::BeginTooltip();
 				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : "); ui::SameLine();
+				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : ");
+				ui::SameLine();
 
 				// Get Window Title
 				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-				char windowTitle[30] = { 0 };
+				char windowTitle[30] = {0};
 				GetWindowText(window, windowTitle, 30);
 
 				ui::TextUnformatted(windowTitle);
@@ -350,43 +377,55 @@ void MainUi(UiWindow& thiz)
 		}
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
-		{
-			process_id = DetectUe4Game();
-		});
+		                         {
+			                         process_id = DetectUe4Game();
+		                         });
 	}
-	
+
 	// Unreal version
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : "); ui::SameLine();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : ");
+		ui::SameLine();
 		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
 	}
-	
+
 	// Use Kernel
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : "); ui::SameLine();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : ");
+		ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
 	}
 
 	// GObjects Address
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
-		ui::SameLine(); HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
+		ui::SameLine();
+		ENABLE_DISABLE_WIDGET(
+			ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal
+			), g_objects_disabled);
+		ui::SameLine();
+		HelpMarker(
+			"What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
 	}
-	
+
 	// GNames Address
 	{
 		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : "); ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
-		ui::SameLine(); HelpMarker("What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : ");
+		ui::SameLine();
+		ENABLE_DISABLE_WIDGET(
+			ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal),
+			g_names_disabled);
+		ui::SameLine();
+		HelpMarker(
+			"What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's NOT the address you get from this tool.");
 		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 	}
-	
+
 	ui::Separator();
 
 	// Tabs
@@ -397,7 +436,7 @@ void MainUi(UiWindow& thiz)
 			{
 				if (cur_tap_id != 1)
 				{
-					thiz.SetSize(380, 608);
+					thiz.SetSize(380, 620);
 					cur_tap_id = 1;
 				}
 
@@ -407,21 +446,23 @@ void MainUi(UiWindow& thiz)
 
 					// Label
 					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects :"); ui::SameLine();
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects :");
+					ui::SameLine();
 
 					// Open Popup / Start Finder
 					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects"), g_objects_find_disabled,
-					{
-						if (IsReadyToGo())
-							ui::OpenPopup("Easy?");
-						else
-							popup_not_valid_process = true;
-					});
+					                         {
+						                         if (IsReadyToGo())
+						                         ui::OpenPopup("Easy?");
+						                         else
+						                         popup_not_valid_process = true;
+					                         });
 
 					// Popup
 					if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
-						ui::Text("First try EASY method. not work.?\nUse HARD method and wait some time.!\nUse Easy Method .?\n\n");
+						ui::Text(
+							"First try EASY method. not work.?\nUse HARD method and wait some time.!\nUse Easy Method .?\n\n");
 						ui::Separator();
 
 						if (ui::Button("Yes", ImVec2(75, 0)))
@@ -447,14 +488,17 @@ void MainUi(UiWindow& thiz)
 
 					ui::SameLine();
 
-					if (ui::Button("Use##Objects", { 38.0f, 0.0f }))
+					if (ui::Button("Use##Objects", {38.0f, 0.0f}))
 					{
 						if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
-							strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+							strcpy_s(g_objects_buf, sizeof g_objects_buf,
+							         g_obj_listbox_items[g_obj_listbox_item_current].data());
 					}
 
 					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 10);
-					ui::ListBox("##Obj_listbox", &g_obj_listbox_item_current, VectorGetter, static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()), 3);
+					ui::ListBox("##Obj_listbox", &g_obj_listbox_item_current, VectorGetter,
+					            static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
+					            3);
 					ui::PopItemWidth();
 					ui::EndGroup();
 				}
@@ -465,207 +509,279 @@ void MainUi(UiWindow& thiz)
 				{
 					ui::BeginGroup();
 					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames :"); ui::SameLine();
-
-					// Start Finder
-					ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
-					{
-						if (IsReadyToGo()) {
-							StartGNamesFinder();
-						}
-						else
-							popup_not_valid_process = true;
-					});
-
+					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames :");
 					ui::SameLine();
 
-					// Set to input box
-					if (ui::Button("Use##Names", { 47.0f, 0.0f }))
-					{
-						if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
-							strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
-					}
-
-					ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
-					ui::ListBox("##Names_listbox", &g_names_listbox_item_current, VectorGetter, static_cast<void*>(&g_names_listbox_items), static_cast<int>(g_names_listbox_items.size()), 3);
-					ui::PopItemWidth();
-					ui::EndGroup();
-				}
-
-				ui::Separator();
-				ui::SetCursorPosX(abs(ui::CalcTextSize("This section need GObjects and GNames").x - ui::GetWindowSize().x) / 2);
-				ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "This section need GObjects and GNames");
-				ui::Separator();
-
-				// ## Class
-				{
-					ui::BeginGroup();
-					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :"); ui::SameLine();
-					ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
-					ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
-					ui::PopItemWidth();
-					ui::SameLine(); HelpMarker("What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
-
-					ui::AlignTextToFramePadding();
-					ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons :"); ui::SameLine();
-
 					// Start Finder
-					ENABLE_DISABLE_WIDGET_IF(ui::Button(" Find Class "), class_find_disabled,
-					{
-						if (IsReadyToGo())
-							StartClassFinder();
-						else
-							popup_not_valid_process = true;
-					});
+						                         ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
+					                         {
+						                         if (IsReadyToGo()) {
+							                         StartGNamesFinder();
+						                         }
+						                         else
+						                         popup_not_valid_process = true;
+						                         });
 
-					ui::SameLine();
+						                         ui::SameLine();
 
-					// Copy to clipboard
-					if (ui::Button(" Copy Selected "))
-					{
-						if (size_t(class_listbox_item_current) < class_listbox_items.size())
-							ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
-					}
+						                         // Set to input box
+						                         if (ui::Button("Use##Names", {47.0f, 0.0f}))
+						                         {
+							                         if (size_t(g_names_listbox_item_current) < g_names_listbox_items.
+								                         size())
+								                         strcpy_s(g_names_buf, sizeof g_names_buf,
+								                                  g_names_listbox_items[g_names_listbox_item_current].
+								                                  data());
+						                         }
 
-					ui::PushItemWidth(ui::GetWindowSize().x - 15);
-					ui::ListBox("##Class_listbox", &class_listbox_item_current, VectorGetter, static_cast<void*>(&class_listbox_items), static_cast<int>(class_listbox_items.size()), 6);
-					ui::PopItemWidth();
-					ui::EndGroup();
-				}
+						                         ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
+						                         ui::ListBox("##Names_listbox", &g_names_listbox_item_current,
+						                                     VectorGetter,
+						                                     static_cast<void*>(&g_names_listbox_items),
+						                                     static_cast<int>(g_names_listbox_items.size()), 3);
+						                         ui::PopItemWidth();
+						                         ui::EndGroup();
+						                         }
 
-				ui::EndTabItem();
-			}
-			if (ui::BeginTabItem("Instance Logger"))
-			{
-				if (cur_tap_id != 2)
-				{
-					thiz.SetSize(380, 372);
-					cur_tap_id = 2;
-				}
+						                         ui::Separator();
+						                         ui::SetCursorPosX(
+							                         abs(ui::CalcTextSize("This section need GObjects and GNames").x -
+								                         ui::GetWindowSize().x) / 2);
+						                         ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+						                                         "This section need GObjects and GNames");
+						                         ui::Separator();
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Objects Count : "); ui::SameLine();
-				ui::Text("%d", il_objects_count);
+						                         // ## Class
+						                         {
+							                         ui::BeginGroup();
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
+							                         ui::SameLine();
+							                         ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
+							                         ENABLE_DISABLE_WIDGET(
+								                         ui::InputTextWithHint("##FindClass",
+									                         "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(
+										                         class_find_buf)), class_find_input_disabled);
+							                         ui::PopItemWidth();
+							                         ui::SameLine();
+							                         HelpMarker(
+								                         "What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Names Count   : "); ui::SameLine();
-				ui::Text("%d", il_names_count);
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Buttons :");
+							                         ui::SameLine();
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State         : "); ui::SameLine();
-				ui::Text("%s", il_state.c_str());
+							                         // Start Finder
+							                         ENABLE_DISABLE_WIDGET_IF(
+								                         ui::Button(" Find Class "), class_find_disabled,
+								                         {
+									                         if (IsReadyToGo())
+									                         StartClassFinder();
+									                         else
+									                         popup_not_valid_process = true;
+								                         });
 
-				// Start Logger
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x - 14.0f, 0.0f }), il_start_disabled,
-				{
-					if (IsReadyToGo())
-						StartInstanceLogger();
-					else
-						popup_not_valid_process = true;
-				});
+							                         ui::SameLine();
 
-				ui::EndTabItem();
-			}
-			if (ui::BeginTabItem("Sdk Generator"))
-			{
-				if (cur_tap_id != 3)
-				{
-					thiz.SetSize(380, 616);
-					cur_tap_id = 3;
-				}
+							                         // Copy to clipboard
+							                         if (ui::Button(" Copy Selected "))
+							                         {
+								                         if (size_t(class_listbox_item_current) < class_listbox_items.
+									                         size())
+									                         ui::SetClipboardText(
+										                         class_listbox_items[class_listbox_item_current].
+										                         c_str());
+							                         }
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Objects/Names : "); ui::SameLine();
-				ui::Text("%d / %d", sg_objects_count, sg_names_count);
+							                         ui::PushItemWidth(ui::GetWindowSize().x - 15);
+							                         ui::ListBox("##Class_listbox", &class_listbox_item_current,
+							                                     VectorGetter,
+							                                     static_cast<void*>(&class_listbox_items),
+							                                     static_cast<int>(class_listbox_items.size()),
+							                                     5);
+							                         ui::PopItemWidth();
+							                         ui::EndGroup();
+						                         }
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Packages      : "); ui::SameLine();
-				ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
+						                         ui::EndTabItem();
+						                         }
+						                         if (ui::BeginTabItem("Instance Logger"))
+						                         {
+							                         if (cur_tap_id != 2)
+							                         {
+								                         thiz.SetSize(380, 407);
+								                         cur_tap_id = 2;
+							                         }
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : "); ui::SameLine();
-				ui::PushItemWidth(100);
-				ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
-				ui::PopItemWidth(); ui::SameLine();
-				HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Objects Count : ");
+							                         ui::SameLine();
+							                         ui::Text("%d", il_objects_count);
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : "); ui::SameLine();
-				ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Names Count   : ");
+							                         ui::SameLine();
+							                         ui::Text("%d", il_names_count);
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : "); ui::SameLine();
-				ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "State         : ");
+							                         ui::SameLine();
+							                         ui::Text("%s", il_state.c_str());
 
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State         : "); ui::SameLine();
-				ui::Text("%s", sg_state.c_str());
+							                         // Start Logger
+							                         ENABLE_DISABLE_WIDGET_IF(
+								                         ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x -
+									                         14.0f, 0.0f }), il_start_disabled,
+								                         {
+									                         if (IsReadyToGo())
+									                         StartInstanceLogger();
+									                         else
+									                         popup_not_valid_process = true;
+								                         });
 
-				// Packages Box
-				ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
-				ui::ListBox("##Packages_listbox", &sg_packages_item_current, VectorGetter, static_cast<void*>(&sg_packages_items), static_cast<int>(sg_packages_items.size()), 5);
-				ui::PopItemWidth();
+							                         ui::EndTabItem();
+						                         }
+						                         if (ui::BeginTabItem("Sdk Generator"))
+						                         {
+							                         if (cur_tap_id != 3)
+							                         {
+								                         thiz.SetSize(380, 622);
+								                         cur_tap_id = 3;
+							                         }
 
-				// Start Generator
-				ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x - 14.0f, 0.0f }), sg_start_disabled,
-				{
-					if (IsReadyToGo())
-						StartSdkGenerator();
-					else
-						popup_not_valid_process = true;
-				});
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Objects/Names : ");
+							                         ui::SameLine();
+							                         ui::Text("%d / %d", sg_objects_count, sg_names_count);
 
-				ui::EndTabItem();
-			}
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Packages      : ");
+							                         ui::SameLine();
+							                         ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
 
-			ui::EndTabBar();
-		}
-	}
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Sdk Type      : ");
+							                         ui::SameLine();
+							                         ui::PushItemWidth(100);
+							                         ENABLE_DISABLE_WIDGET(
+								                         ui::Combo("##SdkType", &sg_type_item_current, VectorGetter,
+									                         static_cast<void*>(&sg_type_items),
+									                         static_cast<int>(sg_type_items.size()), 4),
+								                         sg_type_disabled);
+							                         ui::PopItemWidth();
+							                         ui::SameLine();
+							                         HelpMarker(
+								                         "- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
-	// Popups
-	{
-		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
-		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
-		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
-		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
-	}
-}
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Game Name     : ");
+							                         ui::SameLine();
+							                         ENABLE_DISABLE_WIDGET(
+								                         ui::InputTextWithHint("##GameName", "PUBG, Fortnite",
+									                         sg_game_name_buf, IM_ARRAYSIZE(
+										                         sg_game_name_buf)), sg_game_name_disabled);
+
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "Game Version  : ");
+							                         ui::SameLine();
+							                         ENABLE_DISABLE_WIDGET(
+								                         ui::InputInt3("##GameVersion", sg_game_version),
+								                         sg_game_version_disabled);
+
+							                         ui::AlignTextToFramePadding();
+							                         ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+							                                         "State         : ");
+							                         ui::SameLine();
+							                         ui::Text("%s", sg_state.c_str());
+
+							                         // Packages Box
+							                         ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
+							                         ui::ListBox("##Packages_listbox", &sg_packages_item_current,
+							                                     VectorGetter,
+							                                     static_cast<void*>(&sg_packages_items),
+							                                     static_cast<int>(sg_packages_items.size()), 5);
+							                         ui::PopItemWidth();
+
+							                         // Start Generator
+							                         ENABLE_DISABLE_WIDGET_IF(
+								                         ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x -
+									                         14.0f, 0.0f }), sg_start_disabled,
+								                         {
+									                         if (IsReadyToGo())
+									                         StartSdkGenerator();
+									                         else
+									                         popup_not_valid_process = true;
+								                         });
+
+							                         ui::EndTabItem();
+						                         }
+
+						                         ui::EndTabBar();
+						                         }
+						                         }
+
+						                         // Popups
+						                         {
+							                         WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+							                         WarningPopup("Warning", "Not Valid Process ID. !!",
+							                                      popup_not_valid_process);
+							                         WarningPopup("Warning", "Not Valid GNames Address. !!",
+							                                      popup_not_valid_gnames);
+							                         WarningPopup("Warning", "Not Valid GObjects Address. !!",
+							                                      popup_not_valid_gobjects);
+						                         }
+						                         }
 
 #pragma warning(disable:4996)
-// int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-// ReSharper disable once CppInconsistentNaming
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // Fix vs2019 Problem [wWinMain instead of WinMain] // NOLINT(readability-non-const-parameter)
-{
-	// Remove unneeded variables
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+						                         // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+						                         // Fix vs2019 Problem [wWinMain instead of WinMain]
+						                         // ReSharper disable once CppInconsistentNaming
+						                         int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+						                                               LPWSTR lpCmdLine, int nShowCmd)
+						                         // NOLINT(readability-non-const-parameter)
+						                         {
+							                         // Remove unneeded variables
+							                         UNREFERENCED_PARAMETER(hPrevInstance);
+							                         UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// Load Settings / Json Core
-	if (!Utils::LoadSettings()) return 0;
-	if (!Utils::LoadJsonCore()) return 0;
+							                         // Load Settings / Json Core
+							                         if (!Utils::LoadSettings()) return 0;
+							                         if (!Utils::LoadEngineCore()) return 0;
 
-	// Autodetect incase game already open
-	process_id = DetectUe4Game();
+							                         Memory::GetProcessIdByName("EpicGamesLauncher.exe");
+							                         Memory::GetProcessNameById(95128);
 
-	// Run the new debugging tools
-	Debugging *d = new Debugging();
-	d->EnterDebugMode();
+							                         // Autodetect in case game already open
+							                         process_id = DetectUe4Game();
 
-	// Launch the main window
-	uiMainWindow = new UiWindow("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
-	uiMainWindow->Show(MainUi);
+							                         // Run the new debugging tools
+							                         auto d = new Debugging();
+							                         d->EnterDebugMode();
 
-	while (!uiMainWindow->Closed())
-		Sleep(1);
+							                         // Launch the main window
+							                         UiMainWindow = new UiWindow(
+								                         "Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
+							                         UiMainWindow->Show(MainUi);
 
-	// Cleanup
-	if (Utils::MemoryObj != nullptr)
-	{
-		Utils::MemoryObj->ResumeProcess();
-		CloseHandle(Utils::MemoryObj->ProcessHandle);
-		delete Utils::MemoryObj;
-	}
+							                         while (!UiMainWindow->Closed())
+								                         Sleep(1);
 
-	return ERROR_SUCCESS;
-}
+							                         // Cleanup
+							                         if (Utils::MemoryObj != nullptr)
+							                         {
+								                         Utils::MemoryObj->ResumeProcess();
+								                         CloseHandle(Utils::MemoryObj->ProcessHandle);
+								                         delete Utils::MemoryObj;
+								                         delete d;
+							                         }
+
+							                         return ERROR_SUCCESS;
+						                         }

@@ -7,7 +7,7 @@
 #include "NamesStore.h"
 #include "SdkGenerator.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <fstream>
 #include <chrono>
 #include <bitset>
@@ -18,7 +18,10 @@
 extern IGenerator* generator;
 
 // TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
-// TODO: Change Parallel from package loop to another loop like IsA or GetSuperClass 
+// TODO: Change Parallel from package loop to another loop like IsA or GetSuperClass
+// TODO: Find a way to store all read address, like in `UEObject::IsA()` it's read a lot of address to get the right type.
+// TODO: So just check if it's read before, if true then just get it don't read the memory again for the same address
+// TODO: maybe vector of this address and data, but take care about memory size
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
@@ -31,26 +34,18 @@ GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPacka
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
-	{
 		return GeneratorState::BadGName;
-	}
 	if (!Utils::IsValidGObjectsAddress(gObjAddress))
-	{
 		return GeneratorState::BadGObject;
-	}
 
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
-	{
 		return GeneratorState::BadGName;
-	}
 	*pNamesCount = NamesStore().GetNamesNum();
 
 	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
-	{
 		return GeneratorState::BadGObject;
-	}
 	*pObjCount = ObjectsStore().GetObjectsNum();
 
 	// Init Generator Settings
@@ -120,12 +115,12 @@ void SdkGenerator::Dump(const fs::path& path)
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
 		std::ofstream o(path / "ObjectsDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GetAddress());
+		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GInfo.GObjAddress);
 
 		for (const auto& obj : ObjectsStore())
 		{
 			if (obj.IsValid())
-				tfm::format(o, "[%06i] %-100s 0x%" PRIxPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
 		}
 	}
 }
