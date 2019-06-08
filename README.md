@@ -18,7 +18,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 This video tell you how to use the tool and dump sdk for ue4 game.
 [![Youtube Video](/images/youtube_thumbnail.png)](https://www.youtube.com/watch?v=3CjsrnvKtGs)
 
-# Screen SHots
+# Screen Shots
 ![ui_1](/images/ui_1.png)
 ![ui_2](/images/ui_2.png)
 ![ui_3](/images/ui_3.png)
