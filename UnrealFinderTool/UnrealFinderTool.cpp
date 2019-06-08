@@ -124,7 +124,7 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
-		g_names_find_disabled = false;
+		//g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -426,13 +426,12 @@ void Finder(UiWindow* thiz)
 					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
 			}
 
-			ui::PushItemWidth(RightWidth / 2.5f);
+			ui::SetNextItemWidth(RightWidth / 2.5f);
 			ui::ListBox("##Obj_listbox",
 				&g_obj_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
 				3);
-			ui::PopItemWidth();
 
 			// Popup
 			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
@@ -494,14 +493,13 @@ void Finder(UiWindow* thiz)
 					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
 			}
 
-			ui::PushItemWidth(RightWidth / 2.5f);
+			ui::SetNextItemWidth(RightWidth / 2.5f);
 			ui::ListBox("##Names_listbox",
 				&g_names_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&g_names_listbox_items),
 				static_cast<int>(g_names_listbox_items.size()),
 				3);
-			ui::PopItemWidth();
 			ui::EndGroup();
 		}
 
