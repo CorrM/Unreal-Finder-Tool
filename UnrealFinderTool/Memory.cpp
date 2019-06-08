@@ -128,8 +128,7 @@ bool Memory::IsValidProcess(const int p_id)
 bool Memory::SuspendProcess()
 {
 	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(
-		GetModuleHandle("ntdll"), "NtSuspendProcess"));
+	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtSuspendProcess"));
 
 	return NT_SUCCESS(pfnNtSuspendProcess(ProcessHandle));
 }
@@ -137,8 +136,7 @@ bool Memory::SuspendProcess()
 bool Memory::ResumeProcess()
 {
 	typedef LONG (NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(
-		GetModuleHandle("ntdll"), "NtResumeProcess"));
+	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
 
 	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
 }

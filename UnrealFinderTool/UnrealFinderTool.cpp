@@ -21,6 +21,13 @@
 
 static MemoryEditor mem_edit;
 UiWindow* UiMainWindow = nullptr;
+
+// => Address Viewer
+PBYTE PCurrentAddressData = nullptr;
+int BufSize = 0x200;
+uintptr_t CurrentViewerAddress;
+// => Address Viewer
+
 bool memory_init = false;
 float LeftWidth, RightWidth;
 
@@ -55,6 +62,16 @@ bool IsReadyToGo()
 	}
 	return false;
 }
+
+#pragma region Address Viewer
+MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
+{
+	if (!PCurrentAddressData)
+		return 0;
+
+	return PCurrentAddressData[off];
+}
+#pragma endregion
 
 #pragma region Work Functions
 void StartGObjFinder(const bool easyMethod)
@@ -281,7 +298,7 @@ void TitleBar(UiWindow* thiz)
 	{
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
-		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
 
 	ui::Separator();
@@ -384,7 +401,7 @@ void MemoryInterface(UiWindow* thiz)
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
-		mem_edit.DrawContents(UiMainWindow, sizeof(*UiMainWindow), reinterpret_cast<size_t>(UiMainWindow));
+		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();
 	}
 	ui::PopStyleColor();
@@ -423,7 +440,22 @@ void Finder(UiWindow* thiz)
 			if (ui::Button("Use##Objects", { RightWidth / 5.4f, 0.0f }))
 			{
 				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
+				{
 					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+
+					if (Utils::MemoryObj)
+					{
+						g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
+
+						// Only alloc once
+						if (!PCurrentAddressData)
+							PCurrentAddressData = new BYTE[BufSize];
+
+						Utils::MemoryObj->ReadBytes(g_objects_address, PCurrentAddressData, BufSize);
+						CurrentViewerAddress = g_objects_address;
+						
+					}
+				}
 			}
 
 			ui::SetNextItemWidth(RightWidth / 2.5f);
@@ -490,7 +522,21 @@ void Finder(UiWindow* thiz)
 			if (ui::Button("Use##Names", { RightWidth / 5.4f, 0.0f }))
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
+				{
 					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
+
+					if (Utils::MemoryObj)
+					{
+						g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+
+						// Only alloc once
+						if (!PCurrentAddressData)
+							PCurrentAddressData = new BYTE[BufSize];
+
+						Utils::MemoryObj->ReadBytes(g_names_address, PCurrentAddressData, BufSize);
+						CurrentViewerAddress = g_names_address;
+					}
+				}
 			}
 
 			ui::SetNextItemWidth(RightWidth / 2.5f);
@@ -553,7 +599,7 @@ void Finder(UiWindow* thiz)
 				VectorGetter,
 				static_cast<void*>(&class_listbox_items),
 				static_cast<int>(class_listbox_items.size()),
-				5);
+				7);
 			ui::EndGroup();
 		}
 
@@ -650,7 +696,7 @@ void SdkGenerator(UiWindow* thiz)
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 5);
+			static_cast<int>(sg_packages_items.size()), 8);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
@@ -769,6 +815,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.OptShowDataPreviewBin = false;
 	mem_edit.OptShowDataPreviewHex = true;
 	mem_edit.ReadOnly = true;
+	mem_edit.ReadFn = &AddressViewerReadFn;
 
 	// Run the new debugging tools
 	auto d = new Debugging();
