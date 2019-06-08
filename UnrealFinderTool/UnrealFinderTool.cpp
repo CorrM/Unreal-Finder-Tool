@@ -43,7 +43,7 @@ void SetupMemoryStuff(const HANDLE pHandle)
 bool IsReadyToGo()
 {
 	HANDLE pHandle;
-	if (Memory::IsValidProcess(process_id, pHandle))
+	if (Memory::IsValidProcess(process_id, &pHandle))
 	{
 		SetupMemoryStuff(pHandle);
 		return true;
@@ -88,21 +88,13 @@ void StartGObjFinder(const bool easyMethod)
 	t.detach();
 }
 
-/*
-*	TODO: BUG
-*
-*	Definitely some thread safety issues happening here
-*	will need to look into more.
-*
-*	Turns on g_names_find_disabled causes imgui to crash.
-*/
 void StartGNamesFinder()
 {
 	std::string s = "Searching...";
 	g_names_listbox_items.push_back(s);
 
 	DisabledAll();
-	//	g_names_find_disabled = true;
+	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
 
@@ -127,6 +119,7 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
+		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -299,25 +292,6 @@ void InformationSection(const UiWindow& thiz)
 		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
 		ui::SameLine();
 
-		if (ui::IsItemHovered())
-		{
-			if (process_id != NULL)
-			{
-				ui::BeginTooltip();
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : ");
-				ui::SameLine();
-
-				// Get Window Title
-				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-				char windowTitle[30] = { 0 };
-				GetWindowText(window, windowTitle, 30);
-
-				ui::TextUnformatted(windowTitle);
-				ui::EndTooltip();
-			}
-		}
-
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
 		{
 			process_id = Utils::DetectUnrealGameId();
@@ -376,6 +350,24 @@ void InformationSection(const UiWindow& thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : ");
 		ui::SameLine();
 		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
+	}
+
+	// Window Title
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Win Title  : ");
+		ui::SameLine();
+
+		if (process_id != NULL && Memory::IsValidProcess(process_id))
+		{
+			// Get Window Title
+			if (!window_title.empty())
+			{
+				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+				GetWindowText(window, window_title.data(), 30);
+			}
+			ui::Text("%s", window_title.c_str());
+		}
 	}
 }
 

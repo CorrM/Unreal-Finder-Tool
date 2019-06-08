@@ -19,7 +19,8 @@ public:
 
 	static int GetProcessIdByName(const std::string& processName);
 	static std::string GetProcessNameById(DWORD pId);
-	static bool IsValidProcess(int p_id, HANDLE& pHandle);
+	static bool IsValidProcess(int p_id, HANDLE* pHandle);
+	static bool IsValidProcess(int p_id);
 
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
