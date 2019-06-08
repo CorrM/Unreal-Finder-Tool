@@ -189,8 +189,8 @@ void UiWindow::SetupImGui()
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-
+	ImGuiIO& io = ui::GetIO();
+	uiStyle = &ui::GetStyle();
 	SetStyle();
 
 	// Setup Platform/Renderer bindings
@@ -267,8 +267,8 @@ void UiWindow::RenderFrame()
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::SetNextWindowSize({ static_cast<float>(settings.Width - 15), static_cast<float>(settings.Height - 38) });
 	ImGui::SetNextWindowContentSize({ static_cast<float>(settings.Width - 15), static_cast<float>(settings.Height - 38) });
-	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
-	uiFunc(*this);
+	ImGui::Begin("Main", &settings.IsOpen, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	uiFunc(this);
 	ImGui::End();
 
 	// Rendering
@@ -350,6 +350,11 @@ void UiWindow::SetStyle()
 	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Ruda-Bold.ttf", 14);
 	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Ruda-Bold.ttf", 18);
 	*/
+}
+
+ImGuiStyle& UiWindow::GetUiStyle()
+{
+	return *uiStyle;
 }
 
 HWND UiWindow::GetWindowHandle()

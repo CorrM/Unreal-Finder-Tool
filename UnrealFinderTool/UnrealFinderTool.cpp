@@ -22,7 +22,7 @@
 static MemoryEditor mem_edit;
 UiWindow* UiMainWindow = nullptr;
 bool memory_init = false;
-float TabControlWidth;
+float LeftWidth, RightWidth;
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -243,7 +243,7 @@ void StartSdkGenerator()
 #pragma endregion
 
 #pragma region User Interface
-void TitleBar(const UiWindow& thiz)
+void TitleBar(UiWindow* thiz)
 {
 	// ui::ShowDemoWindow();
 
@@ -287,13 +287,14 @@ void TitleBar(const UiWindow& thiz)
 	ui::Separator();
 }
 
-void InformationSection(const UiWindow& thiz)
+void InformationSection(UiWindow* thiz)
 {
 	// Process ID
 	{
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
 		ui::SameLine();
 
@@ -316,6 +317,7 @@ void InformationSection(const UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
@@ -340,6 +342,7 @@ void InformationSection(const UiWindow& thiz)
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
 
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
 
 		if (style_pushed)
@@ -376,10 +379,10 @@ void InformationSection(const UiWindow& thiz)
 	}
 }
 
-void MemoryInterface()
+void MemoryInterface(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-	if (ui::BeginChild("test", { ui::GetWindowWidth() / 2.1f, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(UiMainWindow, sizeof(*UiMainWindow), reinterpret_cast<size_t>(UiMainWindow));
 		ui::EndChild();
@@ -387,7 +390,7 @@ void MemoryInterface()
 	ui::PopStyleColor();
 }
 
-void Finder(const UiWindow& thiz)
+void Finder(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Finder"))
 	{
@@ -403,12 +406,12 @@ void Finder(const UiWindow& thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - ui::GetCursorPosX() / 2) / 2 - 20.f;
+			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - (RightWidth / 2.3f)) / 2 - 5.f;
 			ui::SetCursorPosX(gobj_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GObjects ]~!");
 
 			// Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects", { TabControlWidth / 4.0f - 8.05f, 0.0f }), g_objects_find_disabled,
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects", { RightWidth / 5.4f, 0.0f }), g_objects_find_disabled,
 			{
 				if (IsReadyToGo())
 					ui::OpenPopup("Easy?");
@@ -416,8 +419,23 @@ void Finder(const UiWindow& thiz)
 					popup_not_valid_process = true;
 			});
 
+			ui::SameLine();
+			if (ui::Button("Use##Objects", { RightWidth / 5.4f, 0.0f }))
+			{
+				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
+					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+			}
+
+			ui::PushItemWidth(RightWidth / 2.5f);
+			ui::ListBox("##Obj_listbox",
+				&g_obj_listbox_item_current,
+				VectorGetter,
+				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
+				3);
+			ui::PopItemWidth();
+
 			// Popup
-			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 			{
 				ui::Text("First try EASY method. not work.?\nUse HARD method and wait some time.!\nUse Easy Method .?\n\n");
 				ui::Separator();
@@ -443,36 +461,23 @@ void Finder(const UiWindow& thiz)
 				ui::EndPopup();
 			}
 
-			ui::SameLine();
-
-			if (ui::Button("Use##Objects", { TabControlWidth / 4.0f - 8.05f, 0.0f }))
-			{
-				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
-					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
-			}
-
-			ui::PushItemWidth(TabControlWidth / 2.03f);
-			ui::ListBox("##Obj_listbox",
-				&g_obj_listbox_item_current,
-				VectorGetter,
-				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
-				3);
-			ui::PopItemWidth();
 			ui::EndGroup();
 		}
 
+		ui::SameLine();
+		ui::VerticalSeparator();
 		ui::SameLine();
 
 		// ## GNames
 		{
 			ui::BeginGroup();
 			ui::AlignTextToFramePadding();
-			static float gnames_label_pos = (TabControlWidth + TabControlWidth / 2) + (abs(ui::CalcTextSize("!~[ GNames ]~!").x - TabControlWidth) / 2) - 20.f;
+			static float gnames_label_pos = RightWidth / 2 + (abs(ui::CalcTextSize("!~[ GNames ]~!").x - RightWidth / 2.3f) / 2.f) - 15.f;
 			ui::SetCursorPosX(gnames_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GNames ]~!");
 
 			// Start Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { TabControlWidth / 4.0f - 8.05f, 0.0f }), g_names_find_disabled,
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { RightWidth / 5.4f, 0.0f }), g_names_find_disabled,
 			{
 				if (IsReadyToGo())
 					StartGNamesFinder();
@@ -483,13 +488,13 @@ void Finder(const UiWindow& thiz)
 			ui::SameLine();
 
 			// Set to input box
-			if (ui::Button("Use##Names", { TabControlWidth / 4.0f - 8.05f, 0.0f }))
+			if (ui::Button("Use##Names", { RightWidth / 5.4f, 0.0f }))
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
 					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
 			}
 
-			ui::PushItemWidth(TabControlWidth / 2.03f);
+			ui::PushItemWidth(RightWidth / 2.5f);
 			ui::ListBox("##Names_listbox",
 				&g_names_listbox_item_current,
 				VectorGetter,
@@ -508,7 +513,7 @@ void Finder(const UiWindow& thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			static float class_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ Classes ]~!").x - (ui::GetWindowWidth() - ui::GetCursorPosX())) / 2;
+			static float class_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ Classes ]~!").x - RightWidth) / 2.f - 20.f;
 			ui::SetCursorPosX(class_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ Classes ]~!");
 
@@ -516,9 +521,9 @@ void Finder(const UiWindow& thiz)
 			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
 			ui::SameLine();
 
-			ui::PushItemWidth(TabControlWidth / 1.47f);
+			// Class Input
+			ui::SetNextItemWidth(RightWidth / 1.75f);
 			ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
-			ui::PopItemWidth();
 			ui::SameLine();
 			HelpMarker("What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
 
@@ -544,14 +549,13 @@ void Finder(const UiWindow& thiz)
 					ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
 			}
 
-			ui::PushItemWidth(TabControlWidth + 8.05f);
+			ui::SetNextItemWidth(RightWidth - 45.f);
 			ui::ListBox("##Class_listbox",
 				&class_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&class_listbox_items),
 				static_cast<int>(class_listbox_items.size()),
 				5);
-			ui::PopItemWidth();
 			ui::EndGroup();
 		}
 
@@ -559,7 +563,7 @@ void Finder(const UiWindow& thiz)
 	}
 }
 
-void InstanceLogger(const UiWindow& thiz)
+void InstanceLogger(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Instance Logger"))
 	{
@@ -585,7 +589,7 @@ void InstanceLogger(const UiWindow& thiz)
 		ui::Text("%s", il_state.c_str());
 
 		// Start Logger
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { TabControlWidth + 8.05f, 0.0f }), il_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { RightWidth - 45.f, 0.0f }), il_start_disabled,
 		{
 			if (IsReadyToGo())
 				StartInstanceLogger();
@@ -597,7 +601,7 @@ void InstanceLogger(const UiWindow& thiz)
 	}
 }
 
-void SdkGenerator(const UiWindow& thiz)
+void SdkGenerator(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Sdk Generator"))
 	{
@@ -620,20 +624,21 @@ void SdkGenerator(const UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : ");
 		ui::SameLine();
-		ui::PushItemWidth(100);
+		ui::SetNextItemWidth(100);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
-		ui::PopItemWidth();
 		ui::SameLine();
 		HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
 
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
 
 		ui::AlignTextToFramePadding();
@@ -642,16 +647,15 @@ void SdkGenerator(const UiWindow& thiz)
 		ui::Text("%s", sg_state.c_str());
 
 		// Packages Box
-		ui::PushItemWidth(TabControlWidth + 8.05f);
+		ui::SetNextItemWidth(RightWidth - 45.f);
 		ui::ListBox("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
 			static_cast<int>(sg_packages_items.size()), 5);
-		ui::PopItemWidth();
 
 		// Start Generator
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { TabControlWidth + 8.05f, 0.0f }), sg_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
 		{
 			if (IsReadyToGo())
 				StartSdkGenerator();
@@ -663,34 +667,69 @@ void SdkGenerator(const UiWindow& thiz)
 	}
 }
 
-void MainUi(const UiWindow& thiz)
+void MainUi(UiWindow* thiz)
 {
-	TabControlWidth = ui::GetWindowWidth() / 2.23f;
 	TitleBar(thiz);
-
-	ui::BeginGroup();
-
-	InformationSection(thiz);
-	MemoryInterface();
-
-	ui::EndGroup();
-
-	ui::SameLine();
-	ui::VerticalSeparator();
-	ui::SameLine();
-
-	ui::BeginGroup();
-
-	// Tabs
+	// left-group
 	{
-		if (ui::BeginTabBar("ToolsTabBar", ImGuiTabBarFlags_NoTooltip))
+		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+		if (ui::BeginChild("##left-group", { 320.f - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
-			Finder(thiz);
-			InstanceLogger(thiz);
-			SdkGenerator(thiz);
+			LeftWidth = ui::GetWindowWidth();
 
-			ui::EndTabBar();
+			InformationSection(thiz);
+			ui::Separator();
+
+			// Tabs
+			{
+				if (ui::BeginTabBar("ToolsTabBar", ImGuiTabBarFlags_NoTooltip))
+				{
+					if (ui::BeginTabItem("Address Viewer"))
+					{
+						MemoryInterface(thiz);
+						ui::EndTabItem();
+					}
+					if (ui::BeginTabItem("Logger"))
+					{
+
+						ui::EndTabItem();
+					}
+
+					ui::EndTabBar();
+				}
+			}
+
+			ui::EndChild();
 		}
+		ui::PopStyleColor();
+
+		ui::SameLine();
+		ui::VerticalSeparator();
+		ui::SameLine();
+	}
+	
+	// right-group
+	{
+		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+		if (ui::BeginChild("##right-group", { UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
+		{
+			RightWidth = ui::GetWindowWidth();
+
+			// Tabs
+			{
+				if (ui::BeginTabBar("Debug", ImGuiTabBarFlags_NoTooltip))
+				{
+					Finder(thiz);
+					InstanceLogger(thiz);
+					SdkGenerator(thiz);
+
+					ui::EndTabBar();
+				}
+			}
+
+			ui::EndChild();
+		}
+		ui::PopStyleColor();
 	}
 
 	// Popups
@@ -701,7 +740,6 @@ void MainUi(const UiWindow& thiz)
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
 
-	ui::EndGroup();
 }
 #pragma endregion
 
@@ -728,6 +766,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.OptShowHexIi = false;
 	mem_edit.OptShowOptions = false;
 	mem_edit.OptShowDataPreview = true;
+	mem_edit.OptShowDataPreviewAs = false;
 	mem_edit.OptShowDataPreviewDec = false;
 	mem_edit.OptShowDataPreviewBin = false;
 	mem_edit.OptShowDataPreviewHex = true;
@@ -738,7 +777,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d->EnterDebugMode();
 
 	// Launch the main window
-	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 740, 490);
+	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
 	UiMainWindow->Show(MainUi);
 
 	while (!UiMainWindow->Closed())

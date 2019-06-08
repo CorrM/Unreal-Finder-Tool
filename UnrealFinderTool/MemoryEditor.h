@@ -89,9 +89,10 @@ struct MemoryEditor
 	int             Cols;										// = 16     // number of columns to display.
 	bool            OptShowOptions;								// = true   // display options button/context menu. when disabled, options will be locked unless you provide your own UI for them.
 	bool            OptShowDataPreview;							// = false  // display a footer previewing the decimal/binary/hex/float representation of the currently selected bytes.
-	bool            OptShowDataPreviewDec;						// = true   // display a footer previewing the decimal/binary/hex/float representation of the currently selected bytes.
-	bool            OptShowDataPreviewHex;						// = true   // display a footer previewing the decimal/binary/hex/float representation of the currently selected bytes.
-	bool            OptShowDataPreviewBin;						// = true   // display a footer previewing the decimal/binary/hex/float representation of the currently selected bytes.
+	bool            OptShowDataPreviewAs;						// = true   // 
+	bool            OptShowDataPreviewDec;						// = true   // 
+	bool            OptShowDataPreviewHex;						// = true   // 
+	bool            OptShowDataPreviewBin;						// = true   // 
 	bool            OptShowHexIi;								// = false  // display values in HexII representation instead of regular hexadecimal: hide null/zero bytes, ascii values as ".X".
 	bool            OptShowAscii;								// = true   // display ASCII representation on the right side.
 	bool            OptGreyOutZeroes;							// = true   // display null/zero bytes using the TextDisabled color.
@@ -123,6 +124,7 @@ struct MemoryEditor
 		Cols = 16;
 		OptShowOptions = true;
 		OptShowDataPreview = false;
+		OptShowDataPreviewAs = true;
 		OptShowDataPreviewDec = true;
 		OptShowDataPreviewHex = true;
 		OptShowDataPreviewBin = true;
@@ -133,9 +135,9 @@ struct MemoryEditor
 		OptMidColsCount = 8;
 		OptAddrDigitsCount = 0;
 		HighlightColor = IM_COL32(255, 255, 255, 50);
-		ReadFn = NULL;
-		WriteFn = NULL;
-		HighlightFn = NULL;
+		ReadFn = nullptr;
+		WriteFn = nullptr;
+		HighlightFn = nullptr;
 
 		// State/Internals
 		ContentsWidthChanged = false;
@@ -233,13 +235,15 @@ struct MemoryEditor
 
 		if (OptShowDataPreview)
 		{
-			footer_height += 6.f;
 			float items_count = 0;
 			if (OptShowDataPreviewBin) ++items_count;
 			if (OptShowDataPreviewHex) ++items_count;
 			if (OptShowDataPreviewDec) ++items_count;
 			footer_height += height_separator + ImGui::GetFrameHeightWithSpacing() * 1 + ImGui::GetTextLineHeightWithSpacing() * items_count;
 		}
+
+		if (!OptShowDataPreviewAs)
+			footer_height -= ImGui::GetItemsLineHeightWithSpacing();
 
 		ImGui::BeginChild("##scrolling", ImVec2(0, -footer_height), false, ImGuiWindowFlags_NoMove);
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -510,22 +514,25 @@ struct MemoryEditor
 		if (OptShowDataPreview)
 		{
 			ImGui::Separator();
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Preview as:");
-			ImGui::SameLine();
-			ImGui::PushItemWidth((s.GlyphWidth * 10.0f) + style.FramePadding.x * 2.0f + style.ItemInnerSpacing.x);
-			if (ImGui::BeginCombo("##combo_type", DataTypeGetDesc(PreviewDataType), ImGuiComboFlags_HeightLargest))
+			if (OptShowDataPreviewAs)
 			{
-				for (int n = 0; n < DataType_COUNT; n++)
-					if (ImGui::Selectable(DataTypeGetDesc((DataType)n), PreviewDataType == n))
-						PreviewDataType = (DataType)n;
-				ImGui::EndCombo();
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Preview as:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth((s.GlyphWidth * 10.0f) + style.FramePadding.x * 2.0f + style.ItemInnerSpacing.x);
+				if (ImGui::BeginCombo("##combo_type", DataTypeGetDesc(PreviewDataType), ImGuiComboFlags_HeightLargest))
+				{
+					for (int n = 0; n < DataType_COUNT; n++)
+						if (ImGui::Selectable(DataTypeGetDesc((DataType)n), PreviewDataType == n))
+							PreviewDataType = (DataType)n;
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth((s.GlyphWidth * 6.0f) + style.FramePadding.x * 2.0f + style.ItemInnerSpacing.x);
+				ImGui::Combo("##combo_endianess", &PreviewEndianess, "LE\0BE\0\0");
+				ImGui::PopItemWidth();
 			}
-			ImGui::PopItemWidth();
-			ImGui::SameLine();
-			ImGui::PushItemWidth((s.GlyphWidth * 6.0f) + style.FramePadding.x * 2.0f + style.ItemInnerSpacing.x);
-			ImGui::Combo("##combo_endianess", &PreviewEndianess, "LE\0BE\0\0");
-			ImGui::PopItemWidth();
 
 			char buf[128];
 			float x = s.GlyphWidth * 6.0f;
