@@ -70,7 +70,8 @@ uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fname_address)
 	uintptr_t ret = fname_address;
 
 	// Get GName array address
-	auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, fname_address, HyperscanAllignment8Bytes, HyperscanTypeExact);
+	auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, fname_address,
+		Utils::MemoryObj->Is64Bit ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 
 	// Nothing returned quit
 	if (!address_holder.empty())
@@ -82,7 +83,8 @@ uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fname_address)
 				continue;
 
 			// Scan for Gnames chunks address
-			auto gname_array_address = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, i, HyperscanAllignment8Bytes, HyperscanTypeExact);
+			auto gname_array_address = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, i,
+				Utils::MemoryObj->Is64Bit ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 			for (uintptr_t chunk_address : gname_array_address)
 			{
 				if (Utils::IsValidGNamesAddress(chunk_address))

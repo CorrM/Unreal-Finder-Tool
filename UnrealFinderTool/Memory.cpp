@@ -125,6 +125,11 @@ bool Memory::IsValidProcess(const int p_id)
 	return IsValidProcess(p_id, nullptr);
 }
 
+bool Memory::IsStaticAddress(const uintptr_t address)
+{
+	return address > uintptr_t(0x7ff00000000);
+}
+
 bool Memory::SuspendProcess()
 {
 	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);

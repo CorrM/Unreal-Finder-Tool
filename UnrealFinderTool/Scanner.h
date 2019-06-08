@@ -56,6 +56,6 @@ namespace Hyperscan
 	private: static std::vector<UINT_PTR> ScanWholeMemoryWithDelimiters(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan,
 		ScanType TypeOfScan, uintptr_t BeginAddress = 0x000000000, uintptr_t EndAddress = 0x7fffffffffff);
 
-	public: static std::vector<UINT_PTR> Scan(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment AllignmentOfScan, ScanType TypeOfScan);
+	public: static std::vector<UINT_PTR> Scan(DWORD ProcessID, uintptr_t ScanValue, ScanAllignment allignmentOfScan, ScanType TypeOfScan);
 	} *PHYPERSCAN_SCANNER;
 }

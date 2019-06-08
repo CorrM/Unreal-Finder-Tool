@@ -25,7 +25,7 @@ UiWindow* UiMainWindow = nullptr;
 // => Address Viewer
 PBYTE PCurrentAddressData = nullptr;
 int BufSize = 0x200;
-uintptr_t CurrentViewerAddress;
+uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
 // => Address Viewer
 
 bool memory_init = false;
@@ -77,6 +77,7 @@ MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t 
 void StartGObjFinder(const bool easyMethod)
 {
 	g_obj_listbox_items.clear();
+	g_obj_listbox_items.emplace_back("Searching...");
 	std::thread t([=]()
 	{
 		DisabledAll();
@@ -112,8 +113,8 @@ void StartGObjFinder(const bool easyMethod)
 
 void StartGNamesFinder()
 {
-	std::string s = "Searching...";
-	g_names_listbox_items.push_back(s);
+	g_names_listbox_items.clear();
+	g_names_listbox_items.emplace_back("Searching...");
 
 	DisabledAll();
 	g_names_find_disabled = true;
@@ -141,7 +142,7 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
-		//g_names_find_disabled = false;
+		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -798,7 +799,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Autodetect in case game already open
 	process_id = Utils::DetectUnrealGameId();
 
-	// Setup memory editor
+	// Setup Address Viewer
 	mem_edit.Cols = 8;
 	mem_edit.OptMidColsCount = 4;
 	mem_edit.OptShowAscii = false;
@@ -826,7 +827,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Cleanup
 	if (Utils::MemoryObj != nullptr)
 	{
-		///////////////////////////////////////// Utils::MemoryObj->ResumeProcess();
+		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 		delete d;

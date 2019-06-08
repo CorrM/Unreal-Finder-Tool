@@ -21,6 +21,7 @@ public:
 	static std::string GetProcessNameById(DWORD pId);
 	static bool IsValidProcess(int p_id, HANDLE* pHandle);
 	static bool IsValidProcess(int p_id);
+	static bool IsStaticAddress(uintptr_t address);
 
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
