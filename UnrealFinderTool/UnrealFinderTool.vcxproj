@@ -193,6 +193,7 @@
     <ClInclude Include="KProcessHacker.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="MemoryEditor.h" />
     <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
     <ClInclude Include="Logger.h" />

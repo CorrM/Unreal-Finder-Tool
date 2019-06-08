@@ -13,12 +13,13 @@
 
 #include <sstream>
 #include "IconsFontAwesome.h"
+#include "MemoryEditor.h"
 
-// ToDo: Change UI.
 // Add imgui_memory_editor [https://github.com/ocornut/imgui_club/blob/master/imgui_memory_editor/imgui_memory_editor.h]
 // When u move on any address that's show in memory editor.
 // Automatic get game version for sdk generator.
 
+static MemoryEditor mem_edit;
 UiWindow* UiMainWindow = nullptr;
 bool memory_init = false;
 float TabControlWidth;
@@ -37,6 +38,10 @@ void SetupMemoryStuff(const HANDLE pHandle)
 
 		// Override UE4 Engine Structs
 		Utils::OverrideLoadedEngineCore(ue_version);
+
+		// Setup memory editor
+		mem_edit.OptMidColsCount = Utils::PointerSize();
+		mem_edit.PreviewDataType = Utils::MemoryObj->Is64Bit ? MemoryEditor::DataType_S64 : MemoryEditor::DataType_S32;
 	}
 }
 
@@ -240,6 +245,8 @@ void StartSdkGenerator()
 #pragma region User Interface
 void TitleBar(const UiWindow& thiz)
 {
+	// ui::ShowDemoWindow();
+
 	// Settings Button
 	{
 		if (ui::Button(ICON_FA_COG))
@@ -282,8 +289,6 @@ void TitleBar(const UiWindow& thiz)
 
 void InformationSection(const UiWindow& thiz)
 {
-	// ui::ShowDemoWindow();
-
 	// Process ID
 	{
 		ui::AlignTextToFramePadding();
@@ -371,6 +376,17 @@ void InformationSection(const UiWindow& thiz)
 	}
 }
 
+void MemoryInterface()
+{
+	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+	if (ui::BeginChild("test", { ui::GetWindowWidth() / 2.1f, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	{
+		mem_edit.DrawContents(UiMainWindow, sizeof(*UiMainWindow), reinterpret_cast<size_t>(UiMainWindow));
+		ui::EndChild();
+	}
+	ui::PopStyleColor();
+}
+
 void Finder(const UiWindow& thiz)
 {
 	if (ui::BeginTabItem("Finder"))
@@ -387,7 +403,7 @@ void Finder(const UiWindow& thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			static float gobj_label_pos = TabControlWidth + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - TabControlWidth) / 2 - 20.f;
+			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - ui::GetCursorPosX() / 2) / 2 - 20.f;
 			ui::SetCursorPosX(gobj_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GObjects ]~!");
 
@@ -653,7 +669,10 @@ void MainUi(const UiWindow& thiz)
 	TitleBar(thiz);
 
 	ui::BeginGroup();
+
 	InformationSection(thiz);
+	MemoryInterface();
+
 	ui::EndGroup();
 
 	ui::SameLine();
@@ -702,6 +721,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Autodetect in case game already open
 	process_id = Utils::DetectUnrealGameId();
 
+	// Setup memory editor
+	mem_edit.Cols = 8;
+	mem_edit.OptMidColsCount = 4;
+	mem_edit.OptShowAscii = false;
+	mem_edit.OptShowHexIi = false;
+	mem_edit.OptShowOptions = false;
+	mem_edit.OptShowDataPreview = true;
+	mem_edit.OptShowDataPreviewDec = false;
+	mem_edit.OptShowDataPreviewBin = false;
+	mem_edit.OptShowDataPreviewHex = true;
+	mem_edit.ReadOnly = true;
+
 	// Run the new debugging tools
 	auto d = new Debugging();
 	d->EnterDebugMode();
@@ -716,7 +747,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Cleanup
 	if (Utils::MemoryObj != nullptr)
 	{
-		Utils::MemoryObj->ResumeProcess();
+		///////////////////////////////////////// Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 		delete d;
