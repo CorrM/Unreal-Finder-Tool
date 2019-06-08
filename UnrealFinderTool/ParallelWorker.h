@@ -5,12 +5,17 @@
 #include <utility>
 #include <vector>
 
+struct ParallelOptions
+{
+	std::mutex Locker;
+	bool ForceStop;
+};
 
 template <typename VecType>
 class ParallelWorker
 {
 	using Lock = std::lock_guard<std::mutex>;
-	using ParallelFunction = std::function<void(VecType&, std::mutex&)>;
+	using ParallelFunction = std::function<void(VecType&, ParallelOptions&)>;
 
 	ParallelFunction func;
 	std::vector<std::thread> threads;
@@ -19,7 +24,7 @@ class ParallelWorker
 	size_t curIndex;
 
 public:
-	std::mutex GMutex;
+	ParallelOptions Options;
 
 	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, ParallelFunction func);
 	void Start();
@@ -34,13 +39,15 @@ ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const in
 	func(std::move(func)),
 	queue(vecQueue),
 	threadsCount(threadNum),
-	curIndex(vecStartIndex)
+	curIndex(vecStartIndex),
+	Options()
 {
 }
 
 template <typename VecType>
 void ParallelWorker<VecType>::Start()
 {
+	Options.ForceStop = false;
 	// Create and run threads
 	for (int i = 0; i < threadsCount; ++i)
 		threads.push_back(std::thread(&ParallelWorker::Worker, this));
@@ -68,15 +75,18 @@ void ParallelWorker<VecType>::Worker()
 	{
 		// Lock Scope (DeQueue item)
 		{
-			Lock lock(GMutex);
+			Lock lock(Options.Locker);
 
-			if (curIndex >= queue.size())
+			if (curIndex >= queue.size() || Options.ForceStop)
+			{
+				Options.ForceStop = true;
 				break;
+			}
 
 			curItem = &queue[curIndex];
 			++curIndex;
 		}
 
-		func(*curItem, GMutex);
+		func(*curItem, Options);
 	}
 }

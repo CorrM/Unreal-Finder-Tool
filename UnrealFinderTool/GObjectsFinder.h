@@ -11,9 +11,7 @@ class GObjectsFinder
 	int ptrSize = 0x0;
 	uintptr_t dwStart, dwEnd;
 
-	bool IsValidPointer(uintptr_t address, uintptr_t& pointer, bool checkIsAllocationBase);
-	DWORD IsValidGObjects(uintptr_t address);
 public:
-	GObjectsFinder(bool easyMethod);
+	explicit GObjectsFinder(bool easyMethod);
 	std::vector<uintptr_t> Find();
 };

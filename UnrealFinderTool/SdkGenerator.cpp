@@ -186,20 +186,20 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
-	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, std::mutex& gMutex)
+	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, ParallelOptions& gMutex)
 	{
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
-
+		
 		{
-			std::lock_guard lock(gMutex);
+			std::lock_guard lock(gMutex.Locker);
 			++*pPackagesDone;
 		}
 
 		if (package->Save(sdkPath))
 		{
 			{
-				std::lock_guard lock(gMutex);
+				std::lock_guard lock(gMutex.Locker);
 				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
 					"C: " + std::to_string(package->Classes.size()) + ", " +
 					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +

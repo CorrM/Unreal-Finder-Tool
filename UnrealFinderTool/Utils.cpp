@@ -137,6 +137,13 @@ uintptr_t Utils::CharArrayToUintptr(const std::string& str)
 
 	return retVal;
 }
+
+std::string Utils::AddressToHex(const uintptr_t address)
+{
+	std::stringstream ss;
+	ss << std::hex << address;
+	return ss.str();
+}
 #pragma endregion
 
 #pragma region Address stuff
@@ -226,12 +233,12 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
-	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, {pattern}, true);
+	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
 	auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
 }
 
-bool Utils::IsValidGObjectsAddress(uintptr_t address)
+bool Utils::IsValidGObjectsAddress(uintptr_t address, bool* isChunks)
 {
 	bool firstCheck = true;
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
@@ -297,6 +304,9 @@ CheckAgian:
 		address = MemoryObj->ReadAddress(address);
 		goto CheckAgian;
 	}
+
+	if (isChunks != nullptr)
+		*isChunks = !firstCheck;
 
 	return false;
 }

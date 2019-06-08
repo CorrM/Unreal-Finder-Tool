@@ -66,6 +66,8 @@ public:
 	static int64_t BufToInteger64(void* buffer);
 	// Convert string to uintptr_t
 	static uintptr_t CharArrayToUintptr(const std::string& str);
+	// Convert uintptr_t to Hex string
+	static std::string AddressToHex(uintptr_t address);
 	// Determine if string is number
 	static bool IsNumber(const std::string& s);
 	// Determine if string is HEX number
@@ -81,7 +83,7 @@ public:
 	// Check if Address is point GNames Array
 	static bool IsValidGNamesAddress(uintptr_t address);
 	// Check if Address is point GObjects Array
-	static bool IsValidGObjectsAddress(uintptr_t address);
+	static bool IsValidGObjectsAddress(uintptr_t address, bool* isChunks = nullptr);
 	// Sleep when counter hit each selected ms
 	static void SleepEvery(int ms, int& counter, int every);
 

@@ -4,13 +4,12 @@
 #include <functional>
 
 #include "ImGUI/imgui.h"
-#include "IconsFontAwesome.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 
 class UiWindow;
 namespace ui = ImGui;
-using UiFunc = std::function<void(UiWindow&)>;
+using UiFunc = std::function<void(UiWindow*)>;
 
 struct WindowSettings
 {
@@ -33,6 +32,7 @@ class UiWindow
 	UiFunc uiFunc;
 	std::thread loopThread;
 	WindowSettings settings;
+	ImGuiStyle* uiStyle;
 
 	static ID3D11Device* gPd3dDevice;
 	static ID3D11DeviceContext* gPd3dDeviceContext;
@@ -49,6 +49,7 @@ class UiWindow
 	void RenderFrame();
 	void SetStyle();
 
+
 	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 public:
 	UiWindow(const char* title, const char* className, int width, int height);
@@ -57,6 +58,8 @@ public:
 	bool Closed();
 	void CenterPos();
 	void SetSize(int newWidth, int newHeight);
+	ImVec2 GetSize();
+	ImGuiStyle& GetUiStyle();
 
 	HWND GetWindowHandle();
 	void FlashWindow();

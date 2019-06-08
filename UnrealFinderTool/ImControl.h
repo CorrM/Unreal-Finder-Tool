@@ -2,8 +2,8 @@
 #include "ImGUI/imgui.h"
 #include <vector>
 
-#define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) if (disabledBool) { ui::PushItemFlag(ImGuiItemFlags_Disabled, true);ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disabledBool) { ImGui::PopItemFlag();ImGui::PopStyleVar(); }
-#define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) if (disabledBool) { ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } if(uiCode)body if (disabledBool) { ImGui::PopItemFlag();ImGui::PopStyleVar(); }
+#define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
+#define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);} if(uiCode) body if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 
 // => Main Options Section
 inline bool process_id_disabled = false;
@@ -12,6 +12,7 @@ inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
 inline std::string ue_version = "0.0.0";
+inline std::string window_title(30, ' ');
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;

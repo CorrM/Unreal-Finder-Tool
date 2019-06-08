@@ -106,18 +106,34 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	return miInfos;
 }
 
-bool Memory::IsValidProcess(const int p_id, HANDLE& pHandle)
+bool Memory::IsValidProcess(const int p_id, _Out_ const PHANDLE pHandle)
 {
 	DWORD exitCode;
-	pHandle = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
-	return p_id != 0 && GetExitCodeProcess(pHandle, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
+	HANDLE p = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
+	bool valid = p_id != 0 && GetExitCodeProcess(p, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
+
+	if (pHandle && valid)
+		*pHandle = p;
+	else if (valid)
+		CloseHandle(p);
+
+	return valid;
+}
+
+bool Memory::IsValidProcess(const int p_id)
+{
+	return IsValidProcess(p_id, nullptr);
+}
+
+bool Memory::IsStaticAddress(const uintptr_t address)
+{
+	return address > uintptr_t(0x7ff00000000);
 }
 
 bool Memory::SuspendProcess()
 {
 	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(
-		GetModuleHandle("ntdll"), "NtSuspendProcess"));
+	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtSuspendProcess"));
 
 	return NT_SUCCESS(pfnNtSuspendProcess(ProcessHandle));
 }
@@ -125,8 +141,7 @@ bool Memory::SuspendProcess()
 bool Memory::ResumeProcess()
 {
 	typedef LONG (NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
-	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(
-		GetModuleHandle("ntdll"), "NtResumeProcess"));
+	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
 
 	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
 }

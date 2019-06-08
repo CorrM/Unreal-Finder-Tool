@@ -12,14 +12,24 @@
 #include "Scanner.h"
 
 #include <sstream>
+#include "IconsFontAwesome.h"
+#include "MemoryEditor.h"
 
-// ToDo: Change UI.
 // Add imgui_memory_editor [https://github.com/ocornut/imgui_club/blob/master/imgui_memory_editor/imgui_memory_editor.h]
 // When u move on any address that's show in memory editor.
 // Automatic get game version for sdk generator.
 
+static MemoryEditor mem_edit;
 UiWindow* UiMainWindow = nullptr;
+
+// => Address Viewer
+PBYTE PCurrentAddressData = nullptr;
+int BufSize = 0x200;
+uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
+// => Address Viewer
+
 bool memory_init = false;
+float LeftWidth, RightWidth;
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -35,13 +45,17 @@ void SetupMemoryStuff(const HANDLE pHandle)
 
 		// Override UE4 Engine Structs
 		Utils::OverrideLoadedEngineCore(ue_version);
+
+		// Setup memory editor
+		mem_edit.OptMidColsCount = Utils::PointerSize();
+		mem_edit.PreviewDataType = Utils::MemoryObj->Is64Bit ? MemoryEditor::DataType_S64 : MemoryEditor::DataType_S32;
 	}
 }
 
 bool IsReadyToGo()
 {
 	HANDLE pHandle;
-	if (Memory::IsValidProcess(process_id, pHandle))
+	if (Memory::IsValidProcess(process_id, &pHandle))
 	{
 		SetupMemoryStuff(pHandle);
 		return true;
@@ -49,9 +63,21 @@ bool IsReadyToGo()
 	return false;
 }
 
+#pragma region Address Viewer
+MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
+{
+	if (!PCurrentAddressData)
+		return 0;
+
+	return PCurrentAddressData[off];
+}
+#pragma endregion
+
+#pragma region Work Functions
 void StartGObjFinder(const bool easyMethod)
 {
 	g_obj_listbox_items.clear();
+	g_obj_listbox_items.emplace_back("Searching...");
 	std::thread t([=]()
 	{
 		DisabledAll();
@@ -85,21 +111,13 @@ void StartGObjFinder(const bool easyMethod)
 	t.detach();
 }
 
-/*
-*	TODO: BUG
-*
-*	Definitely some thread safety issues happening here
-*	will need to look into more.
-*
-*	Turns on g_names_find_disabled causes imgui to crash.
-*/
 void StartGNamesFinder()
 {
-	std::string s = "Searching...";
-	g_names_listbox_items.push_back(s);
+	g_names_listbox_items.clear();
+	g_names_listbox_items.emplace_back("Searching...");
 
 	DisabledAll();
-	//	g_names_find_disabled = true;
+	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
 
@@ -124,6 +142,7 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
+		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -239,9 +258,10 @@ void StartSdkGenerator()
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
+#pragma endregion
 
-#pragma region UI
-void InputSection(UiWindow& thiz)
+#pragma region User Interface
+void TitleBar(UiWindow* thiz)
 {
 	// ui::ShowDemoWindow();
 
@@ -278,51 +298,28 @@ void InputSection(UiWindow& thiz)
 	// Title
 	{
 		ui::SameLine();
-		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowSize().x) / 2);
-		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
 
 	ui::Separator();
+}
 
+void InformationSection(UiWindow* thiz)
+{
 	// Process ID
 	{
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
 		ui::SameLine();
-
-		if (ui::IsItemHovered())
-		{
-			if (process_id != NULL)
-			{
-				ui::BeginTooltip();
-				ui::AlignTextToFramePadding();
-				ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Window Title : ");
-				ui::SameLine();
-
-				// Get Window Title
-				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-				char windowTitle[30] = { 0 };
-				GetWindowText(window, windowTitle, 30);
-
-				ui::TextUnformatted(windowTitle);
-				ui::EndTooltip();
-			}
-		}
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
 		{
 			process_id = Utils::DetectUnrealGameId();
 		});
-	}
-
-	// Unreal version
-	{
-		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : ");
-		ui::SameLine();
-		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
 	}
 
 	// Use Kernel
@@ -338,6 +335,7 @@ void InputSection(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
@@ -362,6 +360,7 @@ void InputSection(UiWindow& thiz)
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
 
+		ui::SetNextItemWidth(LeftWidth / 2.f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
 
 		if (style_pushed)
@@ -370,15 +369,52 @@ void InputSection(UiWindow& thiz)
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's the address you get from this tool.");
 	}
+
+	// Unreal version
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : ");
+		ui::SameLine();
+		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
+	}
+
+	// Window Title
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Win Title  : ");
+		ui::SameLine();
+
+		if (process_id != NULL && Memory::IsValidProcess(process_id))
+		{
+			// Get Window Title
+			if (!window_title.empty())
+			{
+				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+				GetWindowText(window, window_title.data(), 30);
+			}
+			ui::Text("%s", window_title.c_str());
+		}
+	}
 }
 
-void Finder(UiWindow& thiz)
+void MemoryInterface(UiWindow* thiz)
+{
+	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	{
+		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
+		ui::EndChild();
+	}
+	ui::PopStyleColor();
+}
+
+void Finder(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Finder"))
 	{
 		if (cur_tap_id != 1)
 		{
-			thiz.SetSize(380, 620);
+			//thiz.SetSize(380, 620);
 			cur_tap_id = 1;
 		}
 
@@ -388,11 +424,12 @@ void Finder(UiWindow& thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects :");
-			ui::SameLine();
+			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - (RightWidth / 2.3f)) / 2 - 5.f;
+			ui::SetCursorPosX(gobj_label_pos);
+			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GObjects ]~!");
 
-			// Open Popup / Start Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects"), g_objects_find_disabled,
+			// Finder
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects", { RightWidth / 5.4f, 0.0f }), g_objects_find_disabled,
 			{
 				if (IsReadyToGo())
 					ui::OpenPopup("Easy?");
@@ -400,8 +437,37 @@ void Finder(UiWindow& thiz)
 					popup_not_valid_process = true;
 			});
 
+			ui::SameLine();
+			if (ui::Button("Use##Objects", { RightWidth / 5.4f, 0.0f }))
+			{
+				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
+				{
+					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+
+					if (Utils::MemoryObj)
+					{
+						g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
+
+						// Only alloc once
+						if (!PCurrentAddressData)
+							PCurrentAddressData = new BYTE[BufSize];
+
+						Utils::MemoryObj->ReadBytes(g_objects_address, PCurrentAddressData, BufSize);
+						CurrentViewerAddress = g_objects_address;
+						
+					}
+				}
+			}
+
+			ui::SetNextItemWidth(RightWidth / 2.5f);
+			ui::ListBox("##Obj_listbox",
+				&g_obj_listbox_item_current,
+				VectorGetter,
+				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
+				3);
+
 			// Popup
-			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 			{
 				ui::Text("First try EASY method. not work.?\nUse HARD method and wait some time.!\nUse Easy Method .?\n\n");
 				ui::Separator();
@@ -427,35 +493,23 @@ void Finder(UiWindow& thiz)
 				ui::EndPopup();
 			}
 
-			ui::SameLine();
-
-			if (ui::Button("Use##Objects", { 38.0f, 0.0f }))
-			{
-				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
-					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
-			}
-
-			ui::PushItemWidth(ui::GetWindowSize().x / 2 - 10);
-			ui::ListBox("##Obj_listbox",
-				&g_obj_listbox_item_current,
-				VectorGetter,
-				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
-				3);
-			ui::PopItemWidth();
 			ui::EndGroup();
 		}
 
+		ui::SameLine();
+		ui::VerticalSeparator();
 		ui::SameLine();
 
 		// ## GNames
 		{
 			ui::BeginGroup();
 			ui::AlignTextToFramePadding();
-			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames :");
-			ui::SameLine();
+			static float gnames_label_pos = RightWidth / 2 + (abs(ui::CalcTextSize("!~[ GNames ]~!").x - RightWidth / 2.3f) / 2.f) - 15.f;
+			ui::SetCursorPosX(gnames_label_pos);
+			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GNames ]~!");
 
 			// Start Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames"), g_names_find_disabled,
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { RightWidth / 5.4f, 0.0f }), g_names_find_disabled,
 			{
 				if (IsReadyToGo())
 					StartGNamesFinder();
@@ -466,37 +520,55 @@ void Finder(UiWindow& thiz)
 			ui::SameLine();
 
 			// Set to input box
-			if (ui::Button("Use##Names", { 47.0f, 0.0f }))
+			if (ui::Button("Use##Names", { RightWidth / 5.4f, 0.0f }))
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
+				{
 					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
+
+					if (Utils::MemoryObj)
+					{
+						g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+
+						// Only alloc once
+						if (!PCurrentAddressData)
+							PCurrentAddressData = new BYTE[BufSize];
+
+						Utils::MemoryObj->ReadBytes(g_names_address, PCurrentAddressData, BufSize);
+						CurrentViewerAddress = g_names_address;
+					}
+				}
 			}
 
-			ui::PushItemWidth(ui::GetWindowSize().x / 2 - 15);
+			ui::SetNextItemWidth(RightWidth / 2.5f);
 			ui::ListBox("##Names_listbox",
 				&g_names_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&g_names_listbox_items),
 				static_cast<int>(g_names_listbox_items.size()),
 				3);
-			ui::PopItemWidth();
 			ui::EndGroup();
 		}
 
-		ui::Separator();
-		ui::SetCursorPosX(abs(ui::CalcTextSize("This section need GObjects and GNames").x - ui::GetWindowSize().x) / 2);
-		ui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "This section need GObjects and GNames");
 		ui::Separator();
 
 		// ## Class
 		{
 			ui::BeginGroup();
+
+			// Label
+			ui::AlignTextToFramePadding();
+			static float class_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ Classes ]~!").x - RightWidth) / 2.f - 20.f;
+			ui::SetCursorPosX(class_label_pos);
+			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ Classes ]~!");
+
 			ui::AlignTextToFramePadding();
 			ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Class   :");
 			ui::SameLine();
-			ui::PushItemWidth(ui::GetWindowWidth() / 1.52f);
+
+			// Class Input
+			ui::SetNextItemWidth(RightWidth / 1.75f);
 			ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
-			ui::PopItemWidth();
 			ui::SameLine();
 			HelpMarker("What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
 
@@ -522,14 +594,13 @@ void Finder(UiWindow& thiz)
 					ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
 			}
 
-			ui::PushItemWidth(ui::GetWindowSize().x - 15);
+			ui::SetNextItemWidth(RightWidth - 45.f);
 			ui::ListBox("##Class_listbox",
 				&class_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&class_listbox_items),
 				static_cast<int>(class_listbox_items.size()),
-				5);
-			ui::PopItemWidth();
+				7);
 			ui::EndGroup();
 		}
 
@@ -537,13 +608,13 @@ void Finder(UiWindow& thiz)
 	}
 }
 
-void InstanceLogger(UiWindow& thiz)
+void InstanceLogger(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Instance Logger"))
 	{
 		if (cur_tap_id != 2)
 		{
-			thiz.SetSize(380, 407);
+			//thiz.SetSize(380, 407);
 			cur_tap_id = 2;
 		}
 
@@ -563,25 +634,25 @@ void InstanceLogger(UiWindow& thiz)
 		ui::Text("%s", il_state.c_str());
 
 		// Start Logger
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { ui::GetWindowSize().x - 14.0f, 0.0f }), il_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { RightWidth - 45.f, 0.0f }), il_start_disabled,
 		{
 			if (IsReadyToGo())
-			StartInstanceLogger();
+				StartInstanceLogger();
 			else
-			popup_not_valid_process = true;
+				popup_not_valid_process = true;
 		});
 
 		ui::EndTabItem();
 	}
 }
 
-void SdkGenerator(UiWindow& thiz)
+void SdkGenerator(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Sdk Generator"))
 	{
 		if (cur_tap_id != 3)
 		{
-			thiz.SetSize(380, 622);
+			//thiz.SetSize(380, 622);
 			cur_tap_id = 3;
 		}
 
@@ -598,20 +669,21 @@ void SdkGenerator(UiWindow& thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : ");
 		ui::SameLine();
-		ui::PushItemWidth(100);
+		ui::SetNextItemWidth(100);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
-		ui::PopItemWidth();
 		ui::SameLine();
 		HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
 
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : ");
 		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
 
 		ui::AlignTextToFramePadding();
@@ -620,16 +692,15 @@ void SdkGenerator(UiWindow& thiz)
 		ui::Text("%s", sg_state.c_str());
 
 		// Packages Box
-		ui::PushItemWidth(ui::GetWindowSize().x - 14.0f);
+		ui::SetNextItemWidth(RightWidth - 45.f);
 		ui::ListBox("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 5);
-		ui::PopItemWidth();
+			static_cast<int>(sg_packages_items.size()), 8);
 
 		// Start Generator
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { ui::GetWindowSize().x - 14.0f, 0.0f }), sg_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
 		{
 			if (IsReadyToGo())
 				StartSdkGenerator();
@@ -641,21 +712,64 @@ void SdkGenerator(UiWindow& thiz)
 	}
 }
 
-void MainUi(UiWindow& thiz)
+void MainUi(UiWindow* thiz)
 {
-	InputSection(thiz);
-	ui::Separator();
-
-	// Tabs
+	TitleBar(thiz);
+	// left-group
 	{
-		if (ui::BeginTabBar("ToolsTabBar", ImGuiTabBarFlags_NoTooltip))
+		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+		if (ui::BeginChild("##left-group", { 320.f - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
-			Finder(thiz);
-			InstanceLogger(thiz);
-			SdkGenerator(thiz);
+			LeftWidth = ui::GetWindowWidth();
 
-			ui::EndTabBar();
+			InformationSection(thiz);
+			ui::Separator();
+
+			// Tabs
+			{
+				if (ui::BeginTabBar("ToolsTabBar", ImGuiTabBarFlags_NoTooltip))
+				{
+					if (ui::BeginTabItem("Address Viewer"))
+					{
+						MemoryInterface(thiz);
+						ui::EndTabItem();
+					}
+
+					ui::EndTabBar();
+				}
+			}
+
+			ui::EndChild();
 		}
+		ui::PopStyleColor();
+
+		ui::SameLine();
+		ui::VerticalSeparator();
+		ui::SameLine();
+	}
+	
+	// right-group
+	{
+		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+		if (ui::BeginChild("##right-group", { UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
+		{
+			RightWidth = ui::GetWindowWidth();
+
+			// Tabs
+			{
+				if (ui::BeginTabBar("Debug", ImGuiTabBarFlags_NoTooltip))
+				{
+					Finder(thiz);
+					InstanceLogger(thiz);
+					SdkGenerator(thiz);
+
+					ui::EndTabBar();
+				}
+			}
+
+			ui::EndChild();
+		}
+		ui::PopStyleColor();
 	}
 
 	// Popups
@@ -665,6 +779,7 @@ void MainUi(UiWindow& thiz)
 		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
+
 }
 #pragma endregion
 
@@ -684,12 +799,26 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Autodetect in case game already open
 	process_id = Utils::DetectUnrealGameId();
 
+	// Setup Address Viewer
+	mem_edit.Cols = 8;
+	mem_edit.OptMidColsCount = 4;
+	mem_edit.OptShowAscii = false;
+	mem_edit.OptShowHexIi = false;
+	mem_edit.OptShowOptions = false;
+	mem_edit.OptShowDataPreview = true;
+	mem_edit.OptShowDataPreviewAs = false;
+	mem_edit.OptShowDataPreviewDec = false;
+	mem_edit.OptShowDataPreviewBin = false;
+	mem_edit.OptShowDataPreviewHex = true;
+	mem_edit.ReadOnly = true;
+	mem_edit.ReadFn = &AddressViewerReadFn;
+
 	// Run the new debugging tools
 	auto d = new Debugging();
 	d->EnterDebugMode();
 
 	// Launch the main window
-	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 380, 578);
+	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
 	UiMainWindow->Show(MainUi);
 
 	while (!UiMainWindow->Closed())
