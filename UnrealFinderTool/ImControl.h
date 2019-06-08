@@ -12,7 +12,7 @@ inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
 inline std::string ue_version = "0.0.0";
-inline std::string window_title(30, ' ');
+inline std::string window_title = "NONE";
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;

@@ -391,9 +391,11 @@ void InformationSection(UiWindow* thiz)
 			{
 				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
 				GetWindowText(window, window_title.data(), 30);
+				if (window_title.empty())
+					window_title = "NONE";
 			}
-			ui::Text("%s", window_title.c_str());
 		}
+		ui::Text("%s", window_title.c_str());
 	}
 }
 
