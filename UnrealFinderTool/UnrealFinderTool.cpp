@@ -733,11 +733,6 @@ void MainUi(UiWindow* thiz)
 						MemoryInterface(thiz);
 						ui::EndTabItem();
 					}
-					if (ui::BeginTabItem("Logger"))
-					{
-
-						ui::EndTabItem();
-					}
 
 					ui::EndTabBar();
 				}

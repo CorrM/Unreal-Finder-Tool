@@ -28,5 +28,7 @@ class PatternScan
 	static Pattern Parse(const std::string& name, int offset, std::string hexStr, uchar_t wildcard, const std::string& delimiter);
 public:
 	static Pattern Parse(const std::string& name, int offset, const std::string& patternStr, uchar_t wildcard);
-	static std::map<std::string, std::vector<uintptr_t>> FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns, bool firstOnly = false);
+	static std::map<std::string, std::vector<uintptr_t>> FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd,
+	                                                          std::vector<Pattern> patterns, bool firstOnly = false,
+	                                                          bool useThreads = false);
 };

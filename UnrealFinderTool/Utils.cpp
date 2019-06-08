@@ -226,7 +226,7 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
-	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, {pattern}, true);
+	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
 	auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
 }

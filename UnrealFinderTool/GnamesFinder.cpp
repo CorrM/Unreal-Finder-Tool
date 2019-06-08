@@ -19,7 +19,7 @@ std::vector<uintptr_t> GNamesFinder::Find()
 
 	// Scan
 	std::vector<Pattern> inputs = { noneSig, byteSig, intSig, multicastSig };
-	const auto searcher = PatternScan::FindPattern(Utils::MemoryObj, dwStart, dwEnd, inputs);
+	const auto searcher = PatternScan::FindPattern(Utils::MemoryObj, dwStart, dwEnd, inputs, false, true);
 
 	if (searcher.find(noneSig.Name) == searcher.end())
 		return ret;
