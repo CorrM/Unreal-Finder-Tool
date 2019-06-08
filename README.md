@@ -1,3 +1,5 @@
+![ui_1](/images/ui_1.GIF)
+
 # Unreal Finder Tool
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
@@ -21,12 +23,6 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 
 # Download
 Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
-
-# ScreenShots
-![ui_1](/images/ui_1.png)
-![ui_2](/images/ui_2.png)
-![ui_3](/images/ui_3.png)
-![ui_3](/images/cfg_1.png)
 
 # Change Log
 ##### 04-07-2019
