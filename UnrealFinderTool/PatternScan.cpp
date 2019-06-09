@@ -76,9 +76,9 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 	for (uintptr_t i = dwStart; (VirtualQueryEx(mem->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += info.RegionSize)
 	{
 		// Bad Memory
-		if (info.State != MEM_COMMIT) continue;
-		if (info.Type != MEM_PRIVATE) continue;
-		if (info.Protect != PAGE_READWRITE) continue;
+		if (!(info.State & MEM_COMMIT)) continue;
+		if (!(info.Type & MEM_PRIVATE)) continue;
+		if (!(info.Protect & PAGE_READWRITE)) continue;
 
 		mem_regions.push_back(i);
 	}
