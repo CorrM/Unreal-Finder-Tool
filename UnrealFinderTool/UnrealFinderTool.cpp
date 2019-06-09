@@ -60,6 +60,15 @@ bool IsReadyToGo()
 	return false;
 }
 
+#pragma region Address Viewer
+MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
+{
+	if (!PCurrentAddressData)
+		return 0;
+
+	return PCurrentAddressData[off];
+}
+
 void GoToAddress(const uintptr_t address)
 {
 	if (Utils::MemoryObj)
@@ -71,15 +80,6 @@ void GoToAddress(const uintptr_t address)
 		Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
 		CurrentViewerAddress = address;
 	}
-}
-
-#pragma region Address Viewer
-MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
-{
-	if (!PCurrentAddressData)
-		return 0;
-
-	return PCurrentAddressData[off];
 }
 #pragma endregion
 

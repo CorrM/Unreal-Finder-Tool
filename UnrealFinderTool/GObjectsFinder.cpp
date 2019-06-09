@@ -67,6 +67,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 	// Check if there a GObjects Chunks
 	{
 		using namespace Hyperscan;
+		std::vector<uintptr_t> search_result;
 		for (size_t index = 0; index < ret.size(); ++index)
 		{
 			auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, ret[index],
@@ -81,10 +82,12 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 			for (uintptr_t address_ptr : address_holder)
 			{
 				if (!Memory::IsStaticAddress(address_ptr))
-					ret.push_back(address_ptr);
+					search_result.push_back(address_ptr);
 			}
 		}
+		ret.insert(ret.end(), search_result.begin(), search_result.end());
 	}
+
 
 	return ret;
 }
