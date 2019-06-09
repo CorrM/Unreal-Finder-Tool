@@ -4,6 +4,7 @@
 #include <DbgHelp.h>
 #include <tchar.h>
 
+#pragma warning(disable: 4996)
 #pragma comment(lib, "dbghelp")
 
 void Debugging::EnterDebugMode(const bool bConsole)

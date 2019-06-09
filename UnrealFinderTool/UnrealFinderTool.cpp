@@ -4,20 +4,17 @@
 #include "ClassFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
+
 #include "UiWindow.h"
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
+#include "IconsFontAwesome.h"
+#include "MemoryEditor.h"
 
 #include "Debug.h"
 #include "Scanner.h"
 
 #include <sstream>
-#include "IconsFontAwesome.h"
-#include "MemoryEditor.h"
-
-// Add imgui_memory_editor [https://github.com/ocornut/imgui_club/blob/master/imgui_memory_editor/imgui_memory_editor.h]
-// When u move on any address that's show in memory editor.
-// Automatic get game version for sdk generator.
 
 static MemoryEditor mem_edit;
 UiWindow* UiMainWindow = nullptr;
@@ -314,8 +311,6 @@ void TitleBar(UiWindow* thiz)
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
-
-	ui::Separator();
 }
 
 void InformationSection(UiWindow* thiz)
@@ -736,6 +731,9 @@ void SdkGenerator(UiWindow* thiz)
 void MainUi(UiWindow* thiz)
 {
 	TitleBar(thiz);
+
+	ui::Separator();
+
 	// left-group
 	{
 		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));

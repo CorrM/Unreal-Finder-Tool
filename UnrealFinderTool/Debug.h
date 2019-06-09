@@ -1,5 +1,5 @@
 #pragma once
-#pragma warning(disable: 4996)
+
 class Debugging
 {
 	bool bConsoleEnabled = false;
