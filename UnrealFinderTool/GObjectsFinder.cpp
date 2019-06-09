@@ -31,17 +31,37 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	MEMORY_BASIC_INFORMATION info;
+	MEMORY_BASIC_INFORMATION info = { 0 };
 
 	// Cycle through memory based on RegionSize
-	for (uintptr_t i = dwStart; (VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += easyMethod ? info.RegionSize : si.dwPageSize)
 	{
-		// Bad Memory
-		if (info.State != MEM_COMMIT) continue;
-		if (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_READWRITE) continue;
+		uintptr_t currentAddress = dwStart;
+		bool exitLoop = false;
 
-		if (Utils::IsValidGObjectsAddress(i))
-			ret.push_back(i);
+		do
+		{
+			// Get Region information
+			exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+
+			// Size will used to alloc and read memory
+			const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
+
+			// Bad Memory
+			if (!(info.State & MEM_COMMIT) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+			{
+				// Get next address
+				currentAddress += allocSize;
+				continue;
+			}
+
+			// Insert region information on Regions Holder
+			if (Utils::IsValidGObjectsAddress(currentAddress))
+				ret.push_back(currentAddress);
+
+			// Get next address
+			currentAddress += allocSize;
+
+		} while (!exitLoop);
 	}
 
 	// Check if there a GObjects Chunks
