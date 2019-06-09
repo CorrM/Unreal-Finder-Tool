@@ -63,6 +63,19 @@ bool IsReadyToGo()
 	return false;
 }
 
+void GoToAddress(const uintptr_t address)
+{
+	if (Utils::MemoryObj)
+	{
+		// Only alloc once
+		if (!PCurrentAddressData)
+			PCurrentAddressData = new BYTE[BufSize];
+
+		Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+		CurrentViewerAddress = address;
+	}
+}
+
 #pragma region Address Viewer
 MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
 {
@@ -335,11 +348,14 @@ void InformationSection(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(LeftWidth / 2.f);
+		ui::SetNextItemWidth(LeftWidth / 2.4f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
+		ui::SameLine();
+		if (ui::Button(ICON_FA_EYE"##view address gobjects") && g_objects_address != NULL)
+			GoToAddress(g_objects_address);
 	}
 
 	// GNames Address
@@ -348,7 +364,6 @@ void InformationSection(UiWindow* thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GNames     : ");
 		ui::SameLine();
 
-		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 
 		bool style_pushed = false;
 		if (!g_names_disabled)
@@ -360,14 +375,18 @@ void InformationSection(UiWindow* thiz)
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 		}
 
-		ui::SetNextItemWidth(LeftWidth / 2.f);
+		ui::SetNextItemWidth(LeftWidth / 2.4f);
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GNames", g_names_buf, IM_ARRAYSIZE(g_names_buf), ImGuiInputTextFlags_CharsHexadecimal), g_names_disabled);
+		g_names_address = Utils::CharArrayToUintptr(g_names_buf);
 
 		if (style_pushed)
 			ui::PopStyleColor();
 
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- GNames chunk array address.\n\n* Not GNames pointer.\n* It's the address you get from this tool.");
+		ui::SameLine();
+		if (ui::Button(ICON_FA_EYE"##view address gnames") && g_names_address != NULL)
+			GoToAddress(g_names_address);
 	}
 
 	// Unreal version
@@ -455,7 +474,7 @@ void Finder(UiWindow* thiz)
 							PCurrentAddressData = new BYTE[BufSize];
 
 						Utils::MemoryObj->ReadBytes(g_objects_address, PCurrentAddressData, BufSize);
-						CurrentViewerAddress = g_objects_address;
+						GoToAddress(g_objects_address);
 						
 					}
 				}
@@ -537,7 +556,7 @@ void Finder(UiWindow* thiz)
 							PCurrentAddressData = new BYTE[BufSize];
 
 						Utils::MemoryObj->ReadBytes(g_names_address, PCurrentAddressData, BufSize);
-						CurrentViewerAddress = g_names_address;
+						GoToAddress(g_names_address);
 					}
 				}
 			}
