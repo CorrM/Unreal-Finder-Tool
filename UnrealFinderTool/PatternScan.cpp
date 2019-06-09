@@ -40,10 +40,11 @@ Pattern PatternScan::Parse(const std::string& name, const int offset, const std:
 	return Parse(name, offset, patternStr, wildcard, " ");
 }
 
-std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns,
+PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns,
 	const bool firstOnly, const bool useThreads)
 {
-	std::map<std::string, std::vector<uintptr_t>> ret;
+	std::vector<RegionHolder> mem_regions;
+	PatternScanResult ret;
 	std::vector<uintptr_t> result;
 
 	// Init map
@@ -59,32 +60,49 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress) || dwEnd == 0)
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	MEMORY_BASIC_INFORMATION info;
-	std::vector<uintptr_t> mem_regions;
+	MEMORY_BASIC_INFORMATION info = { 0 };
 
 	// Cycle through memory based on RegionSize
-	for (uintptr_t i = dwStart; (VirtualQueryEx(mem->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += info.RegionSize)
 	{
-		// Bad Memory
-		if (!(info.State & MEM_COMMIT)) continue;
-		if (!(info.Type & MEM_PRIVATE)) continue;
-		if (!(info.Protect & PAGE_READWRITE)) continue;
+		uintptr_t currentAddress = dwStart;
+		bool exitLoop = false;
 
-		mem_regions.push_back(i);
+		do
+		{
+			// Get Region information
+			exitLoop = !(VirtualQueryEx(mem->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+
+			// Size will used to alloc and read memory
+			const size_t allocSize = dwEnd - dwStart >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
+
+			// Bad Memory
+			if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY)))
+			{
+				// Get next address
+				currentAddress += allocSize;
+				continue;
+			}
+
+			// Insert region information on Regions Holder
+			mem_regions.emplace_back(currentAddress, allocSize);
+
+			// Get next address
+			currentAddress += allocSize;
+
+		} while (!exitLoop);
 	}
-	const size_t allocCount = (dwEnd - dwStart) >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
-
+	
 	if (useThreads)
 	{
-		ParallelWorker<uintptr_t> worker(mem_regions, 0, Utils::Settings.SdkGen.Threads, [&](uintptr_t& address, ParallelOptions& options)
+		ParallelWorker<RegionHolder> worker(mem_regions, 0, Utils::Settings.SdkGen.Threads, [&](RegionHolder& memRegion, ParallelOptions& options)
 		{
-			const auto pBuf = static_cast<PBYTE>(malloc(allocCount));
+			const auto pBuf = new BYTE[memRegion.second];
 
 			// Read one page or skip if failed
-			const size_t dwOut = mem->ReadBytes(address, pBuf, allocCount);
+			const size_t dwOut = mem->ReadBytes(memRegion.first, pBuf, memRegion.second);
 			if (dwOut == 0)
 			{
-				free(pBuf);
+				delete[] pBuf;
 			}
 			else
 			{
@@ -106,7 +124,7 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 								// Our match function places us at the begin of the pattern
 								// To locate the pointer we need to subtract nOffset bytes
 								std::lock_guard lock(options.Locker);
-								ret.find(pattern.Name)->second.push_back(address + j - (nLen - 1) + pattern.Offset);
+								ret.find(pattern.Name)->second.push_back(memRegion.first + j - (nLen - 1) + pattern.Offset);
 								if (firstOnly)
 								{
 									options.ForceStop = true;
@@ -121,7 +139,7 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 					}
 				}
 
-				free(pBuf);
+				delete[] pBuf;
 			}
 		});
 		worker.Start();
@@ -129,13 +147,13 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 	}
 	else
 	{
-		for (uintptr_t i : mem_regions)
+		for (RegionHolder memRegion : mem_regions)
 		{
 			SIZE_T allocCount = (dwEnd - dwStart) > info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 			const auto pBuf = static_cast<PBYTE>(malloc(allocCount));
 
 			// Read one page or skip if failed
-			const SIZE_T dwOut = mem->ReadBytes(i, pBuf, allocCount);
+			const SIZE_T dwOut = mem->ReadBytes(memRegion.first, pBuf, allocCount);
 			if (dwOut == 0)
 			{
 				free(pBuf);
@@ -159,7 +177,7 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 						{
 							// Our match function places us at the begin of the pattern
 							// To locate the pointer we need to subtract nOffset bytes
-							ret.find(pattern.Name)->second.push_back(i + j - (nLen - 1) + pattern.Offset);
+							ret.find(pattern.Name)->second.push_back(memRegion.first + j - (nLen - 1) + pattern.Offset);
 
 							if (firstOnly)
 								break;
