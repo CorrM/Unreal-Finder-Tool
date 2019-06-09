@@ -19,7 +19,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 {
 	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
-	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
+	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : uintptr_t(0x7fffffffffff);
 
 	// Start scan for TArrays
 	SYSTEM_INFO si = { 0 };
