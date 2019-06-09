@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "JsonReflector.h"
 #include "PatternScan.h"
+#include "Memory.h"
+#include "UiWindow.h"
 #include "Utils.h"
 
 #include <vector>
@@ -10,7 +12,9 @@
 #include <tchar.h>
 
 Memory* Utils::MemoryObj = nullptr;
+UiWindow* Utils::UiMainWindow = nullptr;
 MySettings Utils::Settings;
+
 
 #pragma region Json
 bool Utils::LoadEngineCore()

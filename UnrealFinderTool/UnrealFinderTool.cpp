@@ -11,13 +11,13 @@
 #include "IconsFontAwesome.h"
 #include "MemoryEditor.h"
 
+#include "Memory.h"
 #include "Debug.h"
 #include "Scanner.h"
 
 #include <sstream>
 
 static MemoryEditor mem_edit;
-UiWindow* UiMainWindow = nullptr;
 
 // => Address Viewer
 PBYTE PCurrentAddressData = nullptr;
@@ -253,7 +253,7 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
-			UiMainWindow->FlashWindow();
+			Utils::UiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
@@ -770,7 +770,7 @@ void MainUi(UiWindow* thiz)
 	// right-group
 	{
 		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-		if (ui::BeginChild("##right-group", { UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
+		if (ui::BeginChild("##right-group", {Utils::UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
 			RightWidth = ui::GetWindowWidth();
 
@@ -833,14 +833,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.ReadFn = &AddressViewerReadFn;
 
 	// Run the new debugging tools
-	auto d = new Debugging();
-	d->EnterDebugMode();
+	Debugging d;
+	d.EnterDebugMode();
 
 	// Launch the main window
-	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
-	UiMainWindow->Show(MainUi);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
+	Utils::UiMainWindow->Show(MainUi);
 
-	while (!UiMainWindow->Closed())
+	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);
 
 	// Cleanup
@@ -849,7 +849,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
-		delete d;
 	}
 
 	return ERROR_SUCCESS;

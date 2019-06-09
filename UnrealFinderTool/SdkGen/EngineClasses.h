@@ -5,6 +5,7 @@
 #include <string>
 #include <windows.h>
 #include "../Utils.h"
+#include "Memory.h"
 #include "../JsonReflector.h"
 
 // #define OFFSET(s, m) ((size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
