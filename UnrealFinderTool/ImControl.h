@@ -104,8 +104,8 @@ static void DisabledAll()
 
 static void EnabledAll()
 {
-	g_objects_disabled = false;
-	g_names_disabled = false;
+	g_objects_find_disabled = false;
+	g_names_find_disabled = false;
 	class_find_disabled = false;
 	class_find_input_disabled = false;
 

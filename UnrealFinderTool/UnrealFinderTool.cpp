@@ -230,7 +230,7 @@ void StartSdkGenerator()
 {
 	DisabledAll();
 	g_objects_find_disabled = true;
-	//		g_names_find_disabled = true;
+	g_names_find_disabled = true;
 
 	sg_objects_count = 0;
 	sg_names_count = 0;
@@ -260,8 +260,6 @@ void StartSdkGenerator()
 		else if (ret == GeneratorState::BadGName)
 			sg_state = "Wrong (GNames) Address.!!";
 
-//		g_objects_find_disabled = false;
-//		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -458,18 +456,19 @@ void Finder(UiWindow* thiz)
 			{
 				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
 				{
-					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+					if (!g_objects_disabled)
+						strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
 
 					if (Utils::MemoryObj)
 					{
-						g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
+						uintptr_t address = Utils::CharArrayToUintptr(g_obj_listbox_items[g_obj_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
 							PCurrentAddressData = new BYTE[BufSize];
 
-						Utils::MemoryObj->ReadBytes(g_objects_address, PCurrentAddressData, BufSize);
-						GoToAddress(g_objects_address);
+						Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+						GoToAddress(address);
 						
 					}
 				}
@@ -540,18 +539,19 @@ void Finder(UiWindow* thiz)
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
 				{
-					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
+					if (!g_names_disabled)
+						strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
 
 					if (Utils::MemoryObj)
 					{
-						g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+						uintptr_t address = Utils::CharArrayToUintptr(g_names_listbox_items[g_names_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
 							PCurrentAddressData = new BYTE[BufSize];
 
-						Utils::MemoryObj->ReadBytes(g_names_address, PCurrentAddressData, BufSize);
-						GoToAddress(g_names_address);
+						Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+						GoToAddress(address);
 					}
 				}
 			}

@@ -88,6 +88,5 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 		ret.insert(ret.end(), search_result.begin(), search_result.end());
 	}
 
-
 	return ret;
 }
