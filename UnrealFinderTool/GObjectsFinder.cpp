@@ -47,7 +47,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 			const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
 
 			// Bad Memory
-			if (!(info.State & MEM_COMMIT) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+			if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
 			{
 				// Get next address
 				currentAddress += allocSize;
