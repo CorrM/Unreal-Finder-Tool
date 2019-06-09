@@ -106,7 +106,7 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	return miInfos;
 }
 
-bool Memory::IsValidProcess(const int p_id, _Out_ const PHANDLE pHandle)
+bool Memory::IsValidProcess(const int p_id, const PHANDLE pHandle)
 {
 	DWORD exitCode;
 	HANDLE p = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);

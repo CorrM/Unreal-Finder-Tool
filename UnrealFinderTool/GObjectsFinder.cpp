@@ -64,7 +64,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 					ret.push_back(address_ptr);
 			}
 		}
-
 	}
+
 	return ret;
 }

@@ -57,7 +57,7 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-UiWindow::UiWindow(const char* title, const char* className, const int width, const int height): hWindow(nullptr), wc(), closed(false)
+UiWindow::UiWindow(const char* title, const char* className, const int width, const int height) : hWindow(nullptr), wc(), closed(false), uiStyle(nullptr)
 {
 	settings.Title = title;
 	settings.ClassName = className;
