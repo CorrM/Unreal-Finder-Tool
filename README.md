@@ -36,7 +36,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
   - Easy to add and improve feature In the future.
 - `Tool Debugging`, it's to help fetching why tool crashed and generate file that's help to solve the problem. thx [@WheresMyRide](https://github.com/WheresMyRide)
 - New UI that give me some space to add new `Features`.
-- `Address Veiwer` is a hex viwer to dump memory next to address pulled form the tool.
+- `Address Veiwer` is a hex viwer to dump memory arround to address pulled form the tool.
   - That's give you ability to check if your address is valid to use or not.
 - Add some UI labels.
   - Unreal Version: That's fetch which UE that game development with. thx [@WheresMyRide](https://github.com/WheresMyRide)
