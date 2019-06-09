@@ -40,16 +40,6 @@ Pattern PatternScan::Parse(const std::string& name, const int offset, const std:
 	return Parse(name, offset, patternStr, wildcard, " ");
 }
 
-/**
- * \brief Scan pattern of memory in process memory
- * \param mem Handle to process
- * \param dwStart Starting memory address
- * \param dwEnd How many bytes to read
- * \param patterns Attempt to match this pattern
- * \param firstOnly Get first address only
- * \param useThreads if u want to be fast use threads
- * \return uintptr_t
- */
 std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintptr_t dwEnd, std::vector<Pattern> patterns,
 	const bool firstOnly, const bool useThreads)
 {
@@ -82,16 +72,16 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 
 		mem_regions.push_back(i);
 	}
+	const size_t allocCount = (dwEnd - dwStart) >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 
 	if (useThreads)
 	{
 		ParallelWorker<uintptr_t> worker(mem_regions, 0, Utils::Settings.SdkGen.Threads, [&](uintptr_t& address, ParallelOptions& options)
 		{
-			SIZE_T allocCount = (dwEnd - dwStart) > info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 			const auto pBuf = static_cast<PBYTE>(malloc(allocCount));
 
 			// Read one page or skip if failed
-			const SIZE_T dwOut = mem->ReadBytes(address, pBuf, allocCount);
+			const size_t dwOut = mem->ReadBytes(address, pBuf, allocCount);
 			if (dwOut == 0)
 			{
 				free(pBuf);
