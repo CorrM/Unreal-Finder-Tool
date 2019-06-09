@@ -217,18 +217,19 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	if (MemoryObj == nullptr || !IsValidAddress(MemoryObj, address))
 		return false;
 
-	bool last_is_null = false;
+	int null_count = 0;
 
 	// Chunks array must have null pointers, if not then it's not valid
-	for (int read_address = 0; read_address <= 10; ++read_address)
+	for (int read_address = 0; read_address <= 50; ++read_address)
 	{
 		// Read Chunk Address
-		size_t offset = read_address * PointerSize();
+		auto offset = size_t(read_address * PointerSize());
 		uintptr_t chunk_address = MemoryObj->ReadAddress(address + offset);
-		last_is_null = chunk_address == NULL;
+		if (chunk_address == NULL)
+			++null_count;
 	}
 
-	if (!last_is_null)
+	if (null_count <= 3)
 		return false;
 
 	// Read First FName Address
