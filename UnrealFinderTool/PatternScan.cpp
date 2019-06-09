@@ -52,14 +52,14 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 
 	SYSTEM_INFO si = { 0 };
 	GetSystemInfo(&si);
-
+	
 	if (dwStart < reinterpret_cast<uintptr_t>(si.lpMinimumApplicationAddress) || dwStart == 0)
 		dwStart = reinterpret_cast<uintptr_t>(si.lpMinimumApplicationAddress);
 
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress) || dwEnd == 0)
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	MEMORY_BASIC_INFORMATION info;
+	MEMORY_BASIC_INFORMATION info = { 0 };
 	std::vector<uintptr_t> mem_regions;
 
 	// Cycle through memory based on RegionSize
@@ -72,7 +72,11 @@ std::map<std::string, std::vector<uintptr_t>> PatternScan::FindPattern(Memory* m
 
 		mem_regions.push_back(i);
 	}
-	const size_t allocCount = (dwEnd - dwStart) >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
+	size_t allocCount = (dwEnd - dwStart) >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
+	// Fixes a seemingly random bug if region size returns something crazy.
+	// On my system anyway.
+	if (allocCount > si.dwPageSize)
+		allocCount = si.dwPageSize;
 
 	if (useThreads)
 	{
