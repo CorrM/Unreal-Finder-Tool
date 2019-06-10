@@ -17,14 +17,7 @@
 
 #include <sstream>
 
-static MemoryEditor mem_edit;
-
-// => Address Viewer
-PBYTE PCurrentAddressData = nullptr;
-int BufSize = 0x200;
-uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
-// => Address Viewer
-
+MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
 
@@ -61,6 +54,10 @@ bool IsReadyToGo()
 }
 
 #pragma region Address Viewer
+PBYTE PCurrentAddressData = nullptr;
+int BufSize = 0x200;
+uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
+
 MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
 {
 	if (!PCurrentAddressData)
@@ -402,7 +399,10 @@ void InformationSection(UiWindow* thiz)
 			if (!window_title.empty())
 			{
 				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-				GetWindowText(window, window_title.data(), 30);
+
+				if (window != INVALID_HANDLE_VALUE)
+					GetWindowText(window, window_title.data(), 27);
+
 				if (window_title.empty())
 					window_title = "NONE";
 			}
@@ -525,9 +525,9 @@ void Finder(UiWindow* thiz)
 
 			// Start Finder
 			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { RightWidth / 5.4f, 0.0f }), g_names_find_disabled,
-			{
-				if (IsReadyToGo())
-					StartGNamesFinder();
+				{
+					if (IsReadyToGo())
+						StartGNamesFinder();
 				else
 					popup_not_valid_process = true;
 			});
@@ -844,7 +844,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		Sleep(1);
 
 	// Cleanup
-	if (Utils::MemoryObj != nullptr)
+	if (Utils::MemoryObj)
 	{
 		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
