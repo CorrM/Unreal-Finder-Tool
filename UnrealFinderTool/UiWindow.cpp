@@ -57,7 +57,11 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-UiWindow::UiWindow(const char* title, const char* className, const int width, const int height) : hWindow(nullptr), wc(), closed(false), uiStyle(nullptr)
+UiWindow::UiWindow(const char* title, const char* className, const int width, const int height) : 
+	hWindow(nullptr),
+	wc(), closed(false),
+	loopThreadHandle(nullptr),
+	uiStyle(nullptr)
 {
 	settings.Title = title;
 	settings.ClassName = className;
@@ -67,7 +71,7 @@ UiWindow::UiWindow(const char* title, const char* className, const int width, co
 
 UiWindow::~UiWindow()
 {
-	loopThread.join();
+	WaitForSingleObject(loopThreadHandle, 0);
 }
 
 void UiWindow::Show(UiFunc uiForm)
@@ -79,6 +83,7 @@ void UiWindow::Show(UiFunc uiForm)
 		loopThread = std::thread(&UiWindow::WinLoop, this);
 		auto ht = static_cast<HANDLE>(loopThread.native_handle());
 		SetThreadPriority(ht, THREAD_PRIORITY_ABOVE_NORMAL);
+		loopThreadHandle = ht;
 		loopThread.detach();
 	}
 }
