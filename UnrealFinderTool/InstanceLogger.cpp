@@ -24,7 +24,7 @@ bool InstanceLogger::ObjectDump()
 		return false;
 	}
 
-	for (int i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
 		if (ObjectsStore().GetByIndex(i).GetAddress() != NULL)
 		{
@@ -48,7 +48,7 @@ bool InstanceLogger::NameDump()
 		return false;
 	}
 
-	for (int i = 0; i < NamesStore().GetNamesNum(); i++)
+	for (size_t i = 0; i < NamesStore().GetNamesNum(); i++)
 	{
 		std::string str = NamesStore().GetByIndex(i);
 		if (!str.empty())

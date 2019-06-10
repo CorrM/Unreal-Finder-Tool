@@ -10,12 +10,13 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - **Kenrnal to read process memory**. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
 
 # Compatibility
-- Windows 64bit, (32/64bit) games.
-- Windows 32bit, (32bit) games Only.
-- All UE4 Games, (32/64bit).
+- Windows 64bit => x32/x64 games.
+- Windows 32bit => x32 games.
 
 # How to use
 This video tell you how to use the tool and dump sdk for ue4 game.
+- Some changes before watch the video.
+  - Now you don't need to do any thing about GNames address since now you just need to click `use` button.
 [![Youtube Video](/images/youtube_thumbnail.png)](https://www.youtube.com/watch?v=3CjsrnvKtGs)
 
 # Screen Shots
@@ -26,7 +27,42 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 # Download
 Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
 
+# Credits
+- [@CorrM](https://github.com/CorrM).
+- [@WheresMyRide](https://github.com/WheresMyRide).
+- @KN4CK3R.
+- @harakirinox.
+
 # Change Log
+##### 09-07-2019
+- `JsonEngine` is system that's use josn files as container for main ue4 structs.
+  - Since UE4 have different versions, some time `ue4 structs` changes.
+  - That's make fix specific games problems is easy, since the most of problems because of UE4 Version structs changes.
+  - So `JsonEngine` give me the ability to just create an other json file that's have the changed structs to override default structs to support any other UE4 version.
+- `SDK generator ReWork` is hard changes for `sdk generator`.
+  - That's make the tool now faster than before significantly.
+  - Easy to add and improve feature In the future.
+- `Tool Debugging`, it's to help fetching why tool crashed and generate file that's help to solve the problem.
+- New UI that give me some space to add new `Features`.
+- `Address Veiwer` is a hex viwer to dump memory arround to address pulled form the tool.
+  - That's give you ability to check if your address is valid to use or not.
+- Add some UI labels.
+  - Unreal Version: That's fetch which UE that game development with.
+  - Win Title: Get window title of target game.
+- `GObjects/GName Finder` Improved.
+  - Let `GNames address` that's pulled from the finder to be used directly without need to dereference it.
+  - `GObjects Finder` now get GObjects chunks address.
+- `SDK Generator` Improved.
+  - Fix some bugs that's case `some problem` or `missed offsets`.
+  - Fix some code form that's slow the generating progress.
+- Performance improves.
+  - `GObjects/GName Finder` now really faster and more stability.
+  - `Instance Logger` now really faster and more stability.
+  - `SDK Generator` now really faster and more stability.
+- `BUGS`.
+  - Fix some `UI` bugs.
+  - Fix some `Finder` bugs.
+
 ##### 04-07-2019
 - Add Settings button.
 - Start using [Font Awesome](https://fontawesome.com/)

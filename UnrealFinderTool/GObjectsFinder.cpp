@@ -19,7 +19,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 {
 	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
-	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
+	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : uintptr_t(0x7fffffffffff);
 
 	// Start scan for TArrays
 	SYSTEM_INFO si = { 0 };
@@ -31,22 +31,43 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	MEMORY_BASIC_INFORMATION info;
+	MEMORY_BASIC_INFORMATION info = { 0 };
 
 	// Cycle through memory based on RegionSize
-	for (uintptr_t i = dwStart; (VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(i), &info, sizeof info) == sizeof info && i < dwEnd); i += easyMethod ? info.RegionSize : si.dwPageSize)
 	{
-		// Bad Memory
-		if (info.State != MEM_COMMIT) continue;
-		if (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_READWRITE) continue;
+		uintptr_t currentAddress = dwStart;
+		bool exitLoop = false;
 
-		if (Utils::IsValidGObjectsAddress(i))
-			ret.push_back(i);
+		do
+		{
+			// Get Region information
+			exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+
+			// Size will used to alloc and read memory
+			const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
+
+			// Bad Memory
+			if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+			{
+				// Get next address
+				currentAddress += allocSize;
+				continue;
+			}
+
+			// Insert region information on Regions Holder
+			if (Utils::IsValidGObjectsAddress(currentAddress))
+				ret.push_back(currentAddress);
+
+			// Get next address
+			currentAddress += allocSize;
+
+		} while (!exitLoop);
 	}
 
 	// Check if there a GObjects Chunks
 	{
 		using namespace Hyperscan;
+		std::vector<uintptr_t> search_result;
 		for (size_t index = 0; index < ret.size(); ++index)
 		{
 			auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, ret[index],
@@ -61,9 +82,10 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 			for (uintptr_t address_ptr : address_holder)
 			{
 				if (!Memory::IsStaticAddress(address_ptr))
-					ret.push_back(address_ptr);
+					search_result.push_back(address_ptr);
 			}
 		}
+		ret.insert(ret.end(), search_result.begin(), search_result.end());
 	}
 
 	return ret;

@@ -1,11 +1,13 @@
 #pragma once
+#include "Memory.h"
+
 #include <string>
 #include <vector>
 #include <filesystem>
-#include "Memory.h"
 
 namespace fs = std::filesystem;
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
+class UiWindow;
 
 struct MySettings
 {
@@ -39,6 +41,8 @@ struct MySettings
 class Utils
 {
 public:
+	// Main Window
+	static UiWindow* UiMainWindow;
 	// Tool settings container
 	static MySettings Settings;
 	// Main Memory reader for read game memory props

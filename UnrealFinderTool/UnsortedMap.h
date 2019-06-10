@@ -34,7 +34,8 @@ public:
 		success = it != this->end();
 		if (success)
 			return it->second;
-		return V{}; // if code hit this point then maybe there a problem need to solve :D
+		V tmp = {};
+		return tmp; // if code hit this point then maybe there a problem need to solve :D
 	}
 
 	V& Find(const K& ref)

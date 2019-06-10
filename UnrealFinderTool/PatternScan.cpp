@@ -193,5 +193,6 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 			free(pBuf);
 		}
 	}
+
 	return ret;
 }

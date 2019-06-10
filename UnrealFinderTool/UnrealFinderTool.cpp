@@ -4,30 +4,20 @@
 #include "ClassFinder.h"
 #include "InstanceLogger.h"
 #include "SdkGenerator.h"
+
 #include "UiWindow.h"
 #include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
+#include "IconsFontAwesome.h"
+#include "MemoryEditor.h"
 
+#include "Memory.h"
 #include "Debug.h"
 #include "Scanner.h"
 
 #include <sstream>
-#include "IconsFontAwesome.h"
-#include "MemoryEditor.h"
 
-// Add imgui_memory_editor [https://github.com/ocornut/imgui_club/blob/master/imgui_memory_editor/imgui_memory_editor.h]
-// When u move on any address that's show in memory editor.
-// Automatic get game version for sdk generator.
-
-static MemoryEditor mem_edit;
-UiWindow* UiMainWindow = nullptr;
-
-// => Address Viewer
-PBYTE PCurrentAddressData = nullptr;
-int BufSize = 0x200;
-uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
-// => Address Viewer
-
+MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
 
@@ -63,6 +53,19 @@ bool IsReadyToGo()
 	return false;
 }
 
+#pragma region Address Viewer
+PBYTE PCurrentAddressData = nullptr;
+int BufSize = 0x200;
+uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
+
+MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
+{
+	if (!PCurrentAddressData)
+		return 0;
+
+	return PCurrentAddressData[off];
+}
+
 void GoToAddress(const uintptr_t address)
 {
 	if (Utils::MemoryObj)
@@ -74,15 +77,6 @@ void GoToAddress(const uintptr_t address)
 		Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
 		CurrentViewerAddress = address;
 	}
-}
-
-#pragma region Address Viewer
-MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
-{
-	if (!PCurrentAddressData)
-		return 0;
-
-	return PCurrentAddressData[off];
 }
 #pragma endregion
 
@@ -233,7 +227,7 @@ void StartSdkGenerator()
 {
 	DisabledAll();
 	g_objects_find_disabled = true;
-	//		g_names_find_disabled = true;
+	g_names_find_disabled = true;
 
 	sg_objects_count = 0;
 	sg_names_count = 0;
@@ -256,15 +250,13 @@ void StartSdkGenerator()
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
-			UiMainWindow->FlashWindow();
+			Utils::UiMainWindow->FlashWindow();
 		}
 		else if (ret == GeneratorState::BadGObject)
 			sg_state = "Wrong (GObjects) Address.!!";
 		else if (ret == GeneratorState::BadGName)
 			sg_state = "Wrong (GNames) Address.!!";
 
-//		g_objects_find_disabled = false;
-//		g_names_find_disabled = false;
 		EnabledAll();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
@@ -314,8 +306,6 @@ void TitleBar(UiWindow* thiz)
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 	}
-
-	ui::Separator();
 }
 
 void InformationSection(UiWindow* thiz)
@@ -409,7 +399,10 @@ void InformationSection(UiWindow* thiz)
 			if (!window_title.empty())
 			{
 				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-				GetWindowText(window, window_title.data(), 30);
+
+				if (window != INVALID_HANDLE_VALUE)
+					GetWindowText(window, window_title.data(), 27);
+
 				if (window_title.empty())
 					window_title = "NONE";
 			}
@@ -463,18 +456,19 @@ void Finder(UiWindow* thiz)
 			{
 				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
 				{
-					strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
+					if (!g_objects_disabled)
+						strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[g_obj_listbox_item_current].data());
 
 					if (Utils::MemoryObj)
 					{
-						g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
+						uintptr_t address = Utils::CharArrayToUintptr(g_obj_listbox_items[g_obj_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
 							PCurrentAddressData = new BYTE[BufSize];
 
-						Utils::MemoryObj->ReadBytes(g_objects_address, PCurrentAddressData, BufSize);
-						GoToAddress(g_objects_address);
+						Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+						GoToAddress(address);
 						
 					}
 				}
@@ -531,9 +525,9 @@ void Finder(UiWindow* thiz)
 
 			// Start Finder
 			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { RightWidth / 5.4f, 0.0f }), g_names_find_disabled,
-			{
-				if (IsReadyToGo())
-					StartGNamesFinder();
+				{
+					if (IsReadyToGo())
+						StartGNamesFinder();
 				else
 					popup_not_valid_process = true;
 			});
@@ -545,18 +539,19 @@ void Finder(UiWindow* thiz)
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
 				{
-					strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
+					if (!g_names_disabled)
+						strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[g_names_listbox_item_current].data());
 
 					if (Utils::MemoryObj)
 					{
-						g_names_address = Utils::CharArrayToUintptr(g_names_buf);
+						uintptr_t address = Utils::CharArrayToUintptr(g_names_listbox_items[g_names_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
 							PCurrentAddressData = new BYTE[BufSize];
 
-						Utils::MemoryObj->ReadBytes(g_names_address, PCurrentAddressData, BufSize);
-						GoToAddress(g_names_address);
+						Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+						GoToAddress(address);
 					}
 				}
 			}
@@ -736,6 +731,9 @@ void SdkGenerator(UiWindow* thiz)
 void MainUi(UiWindow* thiz)
 {
 	TitleBar(thiz);
+
+	ui::Separator();
+
 	// left-group
 	{
 		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
@@ -772,7 +770,7 @@ void MainUi(UiWindow* thiz)
 	// right-group
 	{
 		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-		if (ui::BeginChild("##right-group", { UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
+		if (ui::BeginChild("##right-group", {Utils::UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
 			RightWidth = ui::GetWindowWidth();
 
@@ -835,23 +833,22 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.ReadFn = &AddressViewerReadFn;
 
 	// Run the new debugging tools
-	auto d = new Debugging();
-	d->EnterDebugMode();
+	Debugging d;
+	d.EnterDebugMode();
 
 	// Launch the main window
-	UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
-	UiMainWindow->Show(MainUi);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
+	Utils::UiMainWindow->Show(MainUi);
 
-	while (!UiMainWindow->Closed())
+	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);
 
 	// Cleanup
-	if (Utils::MemoryObj != nullptr)
+	if (Utils::MemoryObj)
 	{
 		Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
-		delete d;
 	}
 
 	return ERROR_SUCCESS;

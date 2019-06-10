@@ -45,8 +45,9 @@
 // - Using InputText() is awkward and maybe overkill here, consider implementing something custom.
 
 #pragma once
+#pragma warning(disable: 4996)
 #include <cstdio>      // sprintf, scanf
-#include <stdint.h>     // uint8_t, etc.
+#include <cstdint>     // uint8_t, etc.
 
 #ifdef _MSC_VER
 #define _PRISizeT   "I"

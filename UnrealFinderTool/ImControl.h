@@ -12,7 +12,7 @@ inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
 inline std::string ue_version = "0.0.0";
-inline std::string window_title = "NONE";
+inline std::string window_title(27, '\0');
 
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;
@@ -104,8 +104,8 @@ static void DisabledAll()
 
 static void EnabledAll()
 {
-	g_objects_disabled = false;
-	g_names_disabled = false;
+	g_objects_find_disabled = false;
+	g_names_find_disabled = false;
 	class_find_disabled = false;
 	class_find_input_disabled = false;
 
