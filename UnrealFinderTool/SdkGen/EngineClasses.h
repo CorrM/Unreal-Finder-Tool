@@ -288,10 +288,8 @@ public:
 		static int jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
-			jStruct["Object"].Offset,
-			jStruct["Flags"].Offset,
-			jStruct["ClusterIndex"].Offset,
-			jStruct["SerialNumber"].Offset
+			// Just use what u want to support diffrent version of EngineJson
+			jStruct["Object"].Offset
 		};
 
 		// Read Remote Memory
