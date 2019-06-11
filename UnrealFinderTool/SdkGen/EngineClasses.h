@@ -288,10 +288,8 @@ public:
 		static int jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
-			jStruct["Object"].Offset,
-			jStruct["Flags"].Offset,
-			jStruct["ClusterIndex"].Offset,
-			jStruct["SerialNumber"].Offset
+			// Just use what u want to support diffrent version of EngineJson
+			jStruct["Object"].Offset
 		};
 
 		// Read Remote Memory
@@ -308,11 +306,8 @@ public:
 			FixPointers(jSize);
 		}
 
-		// Read this struct
+		// Read this struct, support EngineJson
 		FILL_DATA(pData, Object, offsets[0]);
-		FILL_DATA(pData, Flags, offsets[1]);
-		FILL_DATA(pData, ClusterIndex, offsets[2]);
-		FILL_DATA(pData, SerialNumber, offsets[3]);
 
 		// It's Initialized
 		init = true;
