@@ -168,7 +168,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["ObjectPointer"].Offset,
@@ -265,9 +265,6 @@ public:
 	uintptr_t ObjAddress = NULL;
 
 	uintptr_t Object = NULL;
-	int32_t Flags = 0;
-	int32_t ClusterIndex = 0;
-	int32_t SerialNumber = 0;
 
 	std::string TypeName() { return "FUObjectItem"; }
 
@@ -285,10 +282,9 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
-			// Just use what u want to support diffrent version of EngineJson
 			jStruct["Object"].Offset
 		};
 
@@ -352,7 +348,7 @@ public:
 	std::string AnsiName;
 
 	FNameEntity() = default;
-	explicit FNameEntity(const size_t index, const std::string ansiName) : Index(index), AnsiName(ansiName) { }
+	explicit FNameEntity(const size_t index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
 
 	std::string TypeName() { return "FNameEntity"; }
 
@@ -370,7 +366,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["Index"].Offset };
 
 		// Read Remote Memory
@@ -447,7 +443,7 @@ public:
 			return false;
 
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["VfTable"].Offset,
@@ -549,7 +545,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["Next"].Offset };
 
 		// Read Remote Memory
@@ -592,7 +588,6 @@ public:
 	}
 };
 
-// TODO: Check here
 class UEnum : public UField
 {
 public:
@@ -618,7 +613,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["CppType"].Offset,
@@ -694,7 +689,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["SuperField"].Offset,
@@ -763,7 +758,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -802,7 +797,6 @@ public:
 	}
 };
 
-// ToDo: Check what UFunction really need!!, then don't read anything u don't need
 class UFunction : public UStruct
 {
 public:
@@ -830,7 +824,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["FunctionFlags"].Offset,
@@ -900,7 +894,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -971,7 +965,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["ArrayDim"].Offset,
@@ -1048,7 +1042,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1107,7 +1101,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["Enum"].Offset };
 
 		// Read Remote Memory
@@ -1167,7 +1161,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1223,7 +1217,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1279,7 +1273,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1335,7 +1329,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1391,7 +1385,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1447,7 +1441,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1504,7 +1498,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1560,7 +1554,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1616,7 +1610,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1677,7 +1671,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["FieldSize"].Offset,
@@ -1749,7 +1743,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["PropertyClass"].Offset };
 
 		// Read Remote Memory
@@ -1809,7 +1803,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -1868,7 +1862,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["MetaClass"].Offset };
 
 		// Read Remote Memory
@@ -1931,7 +1925,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["InterfaceClass"].Offset };
 
 		// Read Remote Memory
@@ -1991,7 +1985,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2047,7 +2041,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2103,7 +2097,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2162,7 +2156,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["MetaClass"].Offset };
 
 		// Read Remote Memory
@@ -2222,7 +2216,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2281,7 +2275,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["Struct"].Offset };
 
 		// Read Remote Memory
@@ -2341,7 +2335,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2397,7 +2391,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 
 		// Read Remote Memory
 		bool dataAllocer = false;
@@ -2456,7 +2450,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["Inner"].Offset };
 
 		// Read Remote Memory
@@ -2523,7 +2517,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["KeyProp"].Offset,
@@ -2591,7 +2585,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["SignatureFunction"].Offset };
 
 		// Read Remote Memory
@@ -2654,7 +2648,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] = { jStruct["SignatureFunction"].Offset };
 
 		// Read Remote Memory
@@ -2721,7 +2715,7 @@ public:
 
 		// Read this struct
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
-		static int jSize = jStruct.GetSize();
+		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
 		{
 			jStruct["UnderlyingProp"].Offset,

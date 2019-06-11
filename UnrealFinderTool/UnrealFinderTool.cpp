@@ -808,8 +808,10 @@ void MainUi(UiWindow* thiz)
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
+	UNREFERENCED_PARAMETER(hInstance);
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(nShowCmd);
 
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
@@ -837,7 +839,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: 3.0.0", "CorrMFinder", 680, 530);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION, "CorrMFinder", 680, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
 	while (!Utils::UiMainWindow->Closed())
