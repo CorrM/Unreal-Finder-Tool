@@ -25,7 +25,9 @@
       "vars": [
         { "Object": "UObject*" },
         { "Flags": "int" },
-        { "Shit": "int" }
+        { "ClusterIndex": "int" },
+        { "SerialNumber": "int" },
+        { "Unknown_00": "4" }
       ],
       "note": ""
     },
