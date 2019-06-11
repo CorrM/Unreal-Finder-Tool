@@ -31,7 +31,7 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - [@CorrM](https://github.com/CorrM).
 - [@WheresMyRide](https://github.com/WheresMyRide).
 - @KN4CK3R.
-- @harakirinox.
+- [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html).
 
 # Change Log
 ##### 09-07-2019
