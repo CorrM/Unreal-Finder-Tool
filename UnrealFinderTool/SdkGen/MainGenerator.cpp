@@ -749,11 +749,6 @@ template<typename ObjectType>
 class TLazyObjectPtr : FLazyObjectPtr
 {
 
-};
-
-class CorrmInit
-{
-	static TArray<UObject*>* InitGObjects(const uintptr_t address);
 };)";
 	}
 
@@ -795,12 +790,6 @@ UObject* FWeakObjectPtr::Get() const
 		}
 	}
 	return nullptr;
-}
-//---------------------------------------------------------------------------
-TArray<UObject*>* CorrmInit::InitGObjects(const uintptr_t address)
-{
-	UObject::GObjects = reinterpret_cast<FUObjectArray*>(address);
-	return reinterpret_cast<TArray<UObject*>*>(UObject::GObjects);
 }
 //---------------------------------------------------------------------------)";
 	}
