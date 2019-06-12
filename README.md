@@ -26,7 +26,7 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 ![ui_3](/images/ui_3.png)
 
 # Download
-Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
+[![Last Version](/images/download.gif)](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest)
 
 # Credits
 - [@CorrM](https://github.com/CorrM).
