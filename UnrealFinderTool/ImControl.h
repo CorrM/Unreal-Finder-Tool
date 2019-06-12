@@ -2,9 +2,10 @@
 #include "ImGUI/imgui.h"
 #include <vector>
 
+#define TOOL_VERSION "3.0.1"
+
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 #define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);} if(uiCode) body if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
-#define TOOL_VERSION "3.0.1"
 
 // => Main Options Section
 inline bool process_id_disabled = false;
@@ -12,14 +13,17 @@ inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
-inline std::string ue_version = "0.0.0";
-inline std::string window_title(27, '\0');
-
 inline bool use_kernal_disabled = false;
 inline bool use_kernal;
 
 inline bool g_objects_disabled = false;
 inline bool g_names_disabled = false;
+
+inline bool game_ue_disabled = false;
+inline std::string game_ue_version = "0.0.0";
+inline size_t ue_selected_version;
+inline std::vector<std::string> unreal_versions;
+inline std::string window_title(27, '\0');
 // => Main Options Section
 
 // => Popup
@@ -90,6 +94,7 @@ static void DisabledAll()
 	process_id_disabled = true;
 	process_detector_disabled = true;
 	use_kernal_disabled = true;
+	game_ue_disabled = true;
 
 	g_objects_disabled = true;
 	g_names_disabled = true;

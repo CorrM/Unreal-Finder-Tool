@@ -241,7 +241,7 @@ public:
 	std::string GetBasicDeclarations() const override
 	{
 		return R"(template<typename Fn>
-inline Fn GetVFunction(const void *instance, std::size_t index)
+inline Fn GetVFunction(const void* instance, std::size_t index)
 {
 	auto vtable = *reinterpret_cast<const void***>(const_cast<void*>(instance));
 	return reinterpret_cast<Fn>(vtable[index]);
@@ -471,7 +471,7 @@ struct FName
 			}
 		}
 
-		for (auto i = 0; i < GetGlobalNames().Num(); ++i)
+		for (size_t i = 0; i < GetGlobalNames().Num(); ++i)
 		{
 			if (GetGlobalNames()[i] != nullptr)
 			{
@@ -749,6 +749,11 @@ template<typename ObjectType>
 class TLazyObjectPtr : FLazyObjectPtr
 {
 
+};
+
+class CorrmInit
+{
+	static TArray<UObject*>* InitGObjects(const uintptr_t address);
 };)";
 	}
 
@@ -790,6 +795,12 @@ UObject* FWeakObjectPtr::Get() const
 		}
 	}
 	return nullptr;
+}
+//---------------------------------------------------------------------------
+TArray<UObject*>* CorrmInit::InitGObjects(const uintptr_t address)
+{
+	UObject::GObjects = reinterpret_cast<FUObjectArray*>(address);
+	return reinterpret_cast<TArray<UObject*>*>(UObject::GObjects);
 }
 //---------------------------------------------------------------------------)";
 	}

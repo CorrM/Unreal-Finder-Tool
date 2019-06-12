@@ -6,15 +6,22 @@
 #include "IGenerator.h"
 #include "Package.h"
 
-void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, bool isHeaderFile)
+void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, const bool isHeaderFile)
 {
 	extern IGenerator* generator;
 
 	if (isHeaderFile)
-		os << "#pragma once\n\n";
+		os << "#pragma once";
+
+	if (!pragmas.empty())
+	{
+		for (auto&& i : pragmas) { os << "##pragma " << i << "\n"; }
+		os << "\n";
+	}
+	os << "\n\n";
 
 	os << tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
-	   << tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
+		<< tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
 
 	if (generator->GetSdkType() == SdkType::External)
 		os << "#include \"" << Utils::Settings.SdkGen.MemoryHeader << "\"\n";
@@ -29,11 +36,16 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes,
 		os << "namespace " << generator->GetNamespaceName() << "\n{\n";
 }
 
+void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, const bool isHeaderFile)
+{
+	PrintFileHeader(os, {}, includes, isHeaderFile);
+}
+
 void PrintFileHeader(std::ostream& os, bool isHeaderFile)
 {
 	extern IGenerator* generator;
 
-	PrintFileHeader(os, std::vector<std::string>(), isHeaderFile);
+	PrintFileHeader(os, {}, isHeaderFile);
 }
 
 void PrintFileFooter(std::ostream& os)

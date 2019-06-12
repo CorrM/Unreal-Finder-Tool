@@ -53,7 +53,7 @@ public:
 	// Check file Exists
 	bool FileExists(const std::string& filePath);
 	// Load engine structs from `EngineBase.json`
-	static bool LoadEngineCore();
+	static bool LoadEngineCore(std::vector<std::string>& ue_versions_container);
 	// Override engine structs that load form another engine structs, `engineVersion` must look like '4.0.0'
 	static void OverrideLoadedEngineCore(const std::string& engineVersion);
 	// Split string by other string

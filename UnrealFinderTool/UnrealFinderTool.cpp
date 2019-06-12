@@ -31,10 +31,7 @@ void SetupMemoryStuff(const HANDLE pHandle)
 		if (!use_kernal) Utils::MemoryObj->GetDebugPrivileges();
 
 		// Grab engine version information
-		Utils::UnrealEngineVersion(ue_version);
-
-		// Override UE4 Engine Structs
-		Utils::OverrideLoadedEngineCore(ue_version);
+		Utils::UnrealEngineVersion(game_ue_version);
 
 		// Setup memory editor
 		mem_edit.OptMidColsCount = Utils::PointerSize();
@@ -80,6 +77,19 @@ void GoToAddress(const uintptr_t address)
 }
 #pragma endregion
 
+void BeforeWork()
+{
+	// Override UE4 Engine Structs
+	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
+
+	DisabledAll();
+}
+
+void AfterWork()
+{
+	EnabledAll();
+}
+
 #pragma region Work Functions
 void StartGObjFinder(const bool easyMethod)
 {
@@ -87,7 +97,7 @@ void StartGObjFinder(const bool easyMethod)
 	g_obj_listbox_items.emplace_back("Searching...");
 	std::thread t([=]()
 	{
-		DisabledAll();
+		BeforeWork();
 		g_objects_find_disabled = true;
 		g_objects_disabled = false;
 		g_names_disabled = false;
@@ -111,7 +121,7 @@ void StartGObjFinder(const bool easyMethod)
 			strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[0].data());
 
 		g_objects_find_disabled = false;
-		EnabledAll();
+		AfterWork();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
@@ -123,7 +133,7 @@ void StartGNamesFinder()
 	g_names_listbox_items.clear();
 	g_names_listbox_items.emplace_back("Searching...");
 
-	DisabledAll();
+	BeforeWork();
 	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
@@ -150,7 +160,7 @@ void StartGNamesFinder()
 		}
 
 		g_names_find_disabled = false;
-		EnabledAll();
+		AfterWork();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
@@ -174,14 +184,14 @@ void StartClassFinder()
 	class_listbox_items.clear();
 	std::thread t([&]()
 	{
-		DisabledAll();
+		BeforeWork();
 		class_find_disabled = true;
 
 		ClassFinder cf;
 		class_listbox_items = cf.Find(g_objects_address, g_names_address, class_find_buf);
 
 		class_find_disabled = false;
-		EnabledAll();
+		AfterWork();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
@@ -190,12 +200,13 @@ void StartClassFinder()
 
 void StartInstanceLogger()
 {
+	BeforeWork();
+	il_objects_count = 0;
+	il_names_count = 0;
+	il_state = "Running . . .";
+
 	std::thread t([&]()
 	{
-		DisabledAll();
-		il_objects_count = 0;
-		il_names_count = 0;
-		il_state = "Running . . .";
 		InstanceLogger il(g_objects_address, g_names_address);
 		auto retState = il.Start();
 
@@ -216,7 +227,7 @@ void StartInstanceLogger()
 
 		il_objects_count = retState.GObjectsCount;
 		il_names_count = retState.GNamesCount;
-		EnabledAll();
+		AfterWork();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
@@ -225,7 +236,7 @@ void StartInstanceLogger()
 
 void StartSdkGenerator()
 {
-	DisabledAll();
+	BeforeWork();
 	g_objects_find_disabled = true;
 	g_names_find_disabled = true;
 
@@ -257,7 +268,7 @@ void StartSdkGenerator()
 		else if (ret == GeneratorState::BadGName)
 			sg_state = "Wrong (GNames) Address.!!";
 
-		EnabledAll();
+		AfterWork();
 	});
 	auto ht = static_cast<HANDLE>(t.native_handle());
 	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
@@ -383,8 +394,23 @@ void InformationSection(UiWindow* thiz)
 	{
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "UE Version : ");
+		if (ui::IsItemHovered())
+		{
+			ui::BeginTooltip();
+			ui::PushTextWrapPos(ui::GetFontSize() * 35.0f);
+			ui::Text("%s", game_ue_version.c_str());
+			ui::PopTextWrapPos();
+			ui::EndTooltip();
+		}
 		ui::SameLine();
-		ui::LabelText("##UnrealVer", "%s", ue_version.c_str());
+		ui::SetNextItemWidth(LeftWidth / 2.4f);
+		ENABLE_DISABLE_WIDGET_IF(ui::BeginCombo("##UnrealVersion", unreal_versions[ue_selected_version].c_str()), game_ue_disabled,
+		{
+			for (size_t i = 0; i < unreal_versions.size(); ++i)
+				if (ui::Selectable(unreal_versions[i].c_str())) ue_selected_version = i;
+
+			ui::EndCombo();
+		});
 	}
 
 	// Window Title
@@ -402,11 +428,12 @@ void InformationSection(UiWindow* thiz)
 
 				if (window != INVALID_HANDLE_VALUE)
 					GetWindowText(window, window_title.data(), 27);
-
-				if (window_title.empty())
-					window_title = "NONE";
 			}
 		}
+
+		if (window_title[0] == '\0')
+			window_title.replace(0, 4, "NONE");
+
 		ui::Text("%s", window_title.c_str());
 	}
 }
@@ -815,7 +842,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	// Load Settings / Json Core
 	if (!Utils::LoadSettings()) return 0;
-	if (!Utils::LoadEngineCore()) return 0;
+	if (!Utils::LoadEngineCore(unreal_versions)) return 0;
 
 	// Autodetect in case game already open
 	process_id = Utils::DetectUnrealGameId();

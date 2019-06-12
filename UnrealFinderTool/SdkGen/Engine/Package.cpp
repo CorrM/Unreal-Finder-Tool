@@ -484,14 +484,11 @@ void Package::GenerateClass(const UEClass& classObj)
 				uintptr_t vAddress;
 
 				// Dereference Pointer
-				if (!Utils::MemoryObj->Is64Bit)
-					vAddress = Utils::MemoryObj->ReadInt(vTableAddress + (methodCount * ptrSize));
-				else
-					vAddress = Utils::MemoryObj->ReadInt64(vTableAddress + (methodCount * ptrSize));
+				vAddress = Utils::MemoryObj->ReadAddress(vTableAddress + (methodCount * ptrSize));
 
 				// Check valid address
 				auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(vAddress), &info, sizeof info);
-				if (res == 0 || (info.Protect != PAGE_EXECUTE_READWRITE && info.Protect != PAGE_EXECUTE_READ))
+				if (res == 0 || !(info.Protect & PAGE_EXECUTE_READWRITE) && !(info.Protect & PAGE_EXECUTE_READ))
 					break;
 
 				vTable.push_back(vAddress);

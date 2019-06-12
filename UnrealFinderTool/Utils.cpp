@@ -17,13 +17,23 @@ MySettings Utils::Settings;
 
 
 #pragma region Json
-bool Utils::LoadEngineCore()
+bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)
 {
 	// Get all engine files and load it's structs
 	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\EngineBase.json"))
 	{
 		MessageBox(nullptr, "Can't read EngineBase file.", "Error", MB_OK);
 		return false;
+	}
+	ue_versions_container.emplace_back("EngineBase");
+
+	for (auto& file : fs::directory_iterator("Config\\EngineCore\\"))
+	{
+		std::string ue_ver = file.path().filename().string();
+		auto pos = ue_ver.rfind('.');
+		ue_ver = ue_ver.substr(0, pos);
+		if (ue_ver != "EngineBase")
+			ue_versions_container.push_back(ue_ver);
 	}
 
 	return true;
@@ -32,7 +42,7 @@ bool Utils::LoadEngineCore()
 void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 {
 	// Get engine files and Override it's structs on EngineBase, if return false then there is no override for target engine and use the EngineBase
-	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\Engine-" + engineVersion + ".json", true);
+	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\" + engineVersion + ".json", true);
 }
 
 bool Utils::LoadSettings()

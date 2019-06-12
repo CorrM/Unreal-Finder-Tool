@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, bool isHeaderFile);
+
 void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, bool isHeaderFile);
 
 void PrintFileHeader(std::ostream& os, bool isHeaderFile);
