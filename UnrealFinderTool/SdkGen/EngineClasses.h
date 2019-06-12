@@ -21,7 +21,7 @@ struct FPointer
 {
 	uintptr_t Dummy;
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Dummy) });
 	}
@@ -32,7 +32,7 @@ struct FQWord
 	int32_t A;
 	int32_t B;
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		// 
 	}
@@ -57,7 +57,7 @@ struct TArray
 		return i < Count;
 	}
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
 	}
@@ -73,7 +73,7 @@ struct FString : TArray // <wchar_t>
 		return str;
 	}*/
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		TArray::FixPointers(fullStructSize);
 	}
@@ -151,7 +151,7 @@ public:
 
 	std::string TypeName() { return "FScriptInterface"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(ObjectPointer),
@@ -229,7 +229,7 @@ public:
 	int32_t TagAtLastTest;
 	TObjectId ObjectId;
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		// FScriptInterface::FixPointers();
 		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
@@ -239,7 +239,7 @@ public:
 class FAssetPtr : public TPersistentObjectPtr<FStringAssetReference>
 {
 public:
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		TPersistentObjectPtr::FixPointers(fullStructSize);
 	}
@@ -248,7 +248,7 @@ public:
 class FLazyObjectPtr : public TPersistentObjectPtr<FUniqueObjectGuid>
 {
 public:
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		TPersistentObjectPtr::FixPointers(fullStructSize);
 	}
@@ -268,7 +268,7 @@ public:
 
 	std::string TypeName() { return "FUObjectItem"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Object) });
 	}
@@ -352,7 +352,7 @@ public:
 
 	std::string TypeName() { return "FNameEntity"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		// 
 	}
@@ -425,7 +425,7 @@ public:
 
 	std::string TypeName() { return "UObject"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		Utils::FixPointers(this, fullStructSize, {
 			OFFSET(VfTable),
@@ -532,7 +532,7 @@ public:
 
 	std::string TypeName() { return "UField"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObject::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Next) });
@@ -597,7 +597,7 @@ public:
 
 	std::string TypeName() { return "UEnum"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UField::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {
@@ -673,7 +673,7 @@ public:
 
 	std::string TypeName() { return "UStruct"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UField::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {
@@ -746,7 +746,7 @@ class UScriptStruct : public UStruct
 public:
 	std::string TypeName() { return "UScriptStruct"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UStruct::FixPointers(fullStructSize);
 	}
@@ -807,7 +807,7 @@ public:
 
 	std::string TypeName() { return "UFunction"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UStruct::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {
@@ -882,7 +882,7 @@ class UClass : public UStruct
 public:
 	std::string TypeName() { return "UClass"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UStruct::FixPointers(fullStructSize);
 	}
@@ -947,7 +947,7 @@ public:
 
 	std::string TypeName() { return "UProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UField::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {
@@ -1030,7 +1030,7 @@ class UNumericProperty : public UProperty
 public:
 	std::string TypeName() { return "UNumericProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 	}
@@ -1088,7 +1088,7 @@ public:
 
 	std::string TypeName() { return "UByteProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Enum) });
@@ -1149,7 +1149,7 @@ class UUInt16Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt16Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1205,7 +1205,7 @@ class UUInt32Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt32Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1261,7 +1261,7 @@ class UUInt64Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt64Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1317,7 +1317,7 @@ class UInt8Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt8Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1373,7 +1373,7 @@ class UInt16Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt16Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1429,7 +1429,7 @@ class UIntProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UIntProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1486,7 +1486,7 @@ class UInt64Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt64Property"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1542,7 +1542,7 @@ class UFloatProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UFloatProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1598,7 +1598,7 @@ class UDoubleProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UDoubleProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UNumericProperty::FixPointers(fullStructSize);
 	}
@@ -1659,7 +1659,7 @@ public:
 
 	std::string TypeName() { return "UBoolProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 	}
@@ -1730,7 +1730,7 @@ public:
 
 	std::string TypeName() { return "UObjectPropertyBase"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(PropertyClass) });
@@ -1791,7 +1791,7 @@ class UObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UObjectProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
@@ -1849,7 +1849,7 @@ public:
 
 	std::string TypeName() { return "UClassProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObjectProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
@@ -1912,7 +1912,7 @@ public:
 
 	std::string TypeName() { return "UInterfaceProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(InterfaceClass) });
@@ -1973,7 +1973,7 @@ class UWeakObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UWeakObjectProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
@@ -2029,7 +2029,7 @@ class ULazyObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "ULazyObjectProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
@@ -2085,7 +2085,7 @@ class UAssetObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UAssetObjectProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UObjectPropertyBase::FixPointers(fullStructSize);
 	}
@@ -2143,7 +2143,7 @@ public:
 
 	std::string TypeName() { return "UAssetClassProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UAssetObjectProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
@@ -2204,7 +2204,7 @@ class UNameProperty : public UProperty
 public:
 	std::string TypeName() { return "UNameProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 	}
@@ -2262,7 +2262,7 @@ public:
 
 	std::string TypeName() { return "UStructProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Struct) });
@@ -2323,7 +2323,7 @@ class UStrProperty : public UProperty
 public:
 	std::string TypeName() { return "UStrProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 	}
@@ -2379,7 +2379,7 @@ class UTextProperty : public UProperty
 public:
 	std::string TypeName() { return "UTextProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 	}
@@ -2437,7 +2437,7 @@ public:
 
 	std::string TypeName() { return "UArrayProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(Inner) });
@@ -2501,7 +2501,7 @@ public:
 
 	std::string TypeName() { return "UMapProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {
@@ -2572,7 +2572,7 @@ public:
 
 	std::string TypeName() { return "UDelegateProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
@@ -2635,7 +2635,7 @@ public:
 
 	std::string TypeName() { return "UMulticastDelegateProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
@@ -2699,7 +2699,7 @@ public:
 
 	std::string TypeName() { return "UEnumProperty"; }
 
-	void FixPointers(const int fullStructSize)
+	void FixPointers(const size_t fullStructSize)
 	{
 		UProperty::FixPointers(fullStructSize);
 		Utils::FixPointers(this, fullStructSize, {

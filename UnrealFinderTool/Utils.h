@@ -103,7 +103,7 @@ public:
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
 	/// <param name="fullStructSize">Full size of struct => (Base Structs + Target struct)</param>
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
-	template <typename ElementType> static void FixPointers(ElementType* structBase, int fullStructSize, std::vector<int> varsOffsets);
+	template <typename ElementType> static void FixPointers(ElementType* structBase, size_t fullStructSize, std::vector<int> varsOffsets);
 
 	static int DetectUnrealGameId(HWND* windowHandle);
 	static int DetectUnrealGameId();
@@ -117,7 +117,7 @@ private:
 	/// <param name="structBase">Pointer to instance of struct</param>
 	/// <param name="varOffset">Offset to variable based on `structBase`</param>
 	/// <param name="structSize">Size of struct</param>
-	static void FixStructPointer(void* structBase, int varOffset, int structSize);
+	static void FixStructPointer(void* structBase, int varOffset, size_t structSize);
 };
 
 template <typename ElementType>
@@ -129,7 +129,7 @@ void Utils::FixPointer(ElementType* structBase, const int varOffset)
 }
 
 template <typename ElementType>
-void Utils::FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
+void Utils::FixPointers(ElementType* structBase, const size_t fullStructSize, std::vector<int> varsOffsets)
 {
 	if (ProgramIs64() && MemoryObj->Is64Bit)
 		return;

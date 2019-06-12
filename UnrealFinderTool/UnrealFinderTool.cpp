@@ -831,6 +831,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.OptShowDataPreviewDec = false;
 	mem_edit.OptShowDataPreviewBin = false;
 	mem_edit.OptShowDataPreviewHex = true;
+	mem_edit.HighlightColor = IM_COL32(0, 0, 200, 200);
 	mem_edit.ReadOnly = true;
 	mem_edit.ReadFn = &AddressViewerReadFn;
 

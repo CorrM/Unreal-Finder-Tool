@@ -316,7 +316,7 @@ CheckAgian:
 	return false;
 }
 
-void Utils::FixStructPointer(void* structBase, const int varOffset, const int structSize)
+void Utils::FixStructPointer(void* structBase, const int varOffset, const size_t structSize)
 {
 	{
 		// Check next 4byte of pointer equal 0 in local tool memory
@@ -332,8 +332,8 @@ void Utils::FixStructPointer(void* structBase, const int varOffset, const int st
 	if (ProgramIs64() && MemoryObj->Is64Bit)
 		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
 
-	const int destSize = abs(varOffset - structSize);
-	const int srcSize = abs(varOffset - structSize) - 0x4;
+	const size_t destSize = abs(varOffset - static_cast<long long>(structSize));
+	const size_t srcSize = abs(varOffset - static_cast<long long>(structSize)) - 0x4;
 
 	char* src = static_cast<char*>(structBase) + varOffset;
 	char* dest = src + 0x4;
