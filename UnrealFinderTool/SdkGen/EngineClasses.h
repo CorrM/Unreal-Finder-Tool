@@ -184,9 +184,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, ObjectPointer, offsets[0]);
@@ -197,6 +194,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -297,9 +297,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Read this struct, support EngineJson
@@ -310,6 +307,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -378,9 +378,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, Index, offsets[0]);
@@ -388,6 +385,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -420,7 +420,7 @@ public:
 	int Flags = 0;
 	int InternalIndex = 0;
 	uintptr_t Class = 0;
-	FName Name;
+	FName Name{};
 	uintptr_t Outer = 0;
 
 	std::string TypeName() { return "UObject"; }
@@ -462,9 +462,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, VfTable, offsets[0]);
@@ -479,6 +476,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -557,9 +557,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -570,6 +567,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -630,9 +630,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -645,6 +642,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -707,9 +707,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -723,6 +720,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -769,9 +769,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -779,6 +776,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -843,9 +843,6 @@ public:
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
 			FILL_DATA(pData, Func, jStruct["Func"].Offset);
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -859,6 +856,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -905,9 +905,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -915,6 +912,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -987,9 +987,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1007,6 +1004,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1053,9 +1053,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1063,6 +1060,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1113,9 +1113,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1126,6 +1123,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1172,9 +1172,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1182,6 +1179,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1228,9 +1228,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1238,6 +1235,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1284,9 +1284,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1294,6 +1291,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1340,9 +1340,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1350,6 +1347,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1396,9 +1396,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1406,6 +1403,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1452,10 +1452,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
-		// Read Remote Memory
 		}
 
 		// Init super variables first
@@ -1463,6 +1459,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1509,9 +1508,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1519,6 +1515,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1565,9 +1564,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1575,6 +1571,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1621,9 +1620,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1631,6 +1627,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1689,9 +1688,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1705,6 +1701,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1755,9 +1754,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1768,6 +1764,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1814,9 +1813,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1824,6 +1820,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1874,9 +1873,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1887,6 +1883,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1937,9 +1936,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1950,6 +1946,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1996,9 +1995,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2006,6 +2002,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2052,9 +2051,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2062,6 +2058,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2108,9 +2107,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2118,6 +2114,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2168,9 +2167,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2181,6 +2177,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2227,9 +2226,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2237,6 +2233,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2287,9 +2286,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2300,6 +2296,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2346,9 +2345,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2356,6 +2352,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2402,9 +2401,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2412,6 +2408,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2462,9 +2461,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2475,6 +2471,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2533,9 +2532,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2547,6 +2543,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2597,9 +2596,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2610,6 +2606,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2660,9 +2659,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2673,6 +2669,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2731,9 +2730,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2745,6 +2741,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(jSize);
+
 			delete pData;
 			pData = nullptr;
 		}

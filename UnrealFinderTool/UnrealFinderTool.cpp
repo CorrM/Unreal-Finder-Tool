@@ -845,7 +845,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadEngineCore(unreal_versions)) return 0;
 
 	// Autodetect in case game already open
-	process_id = Utils::DetectUnrealGameId();
+	///////////////////////////////////////////////////////////process_id = Utils::DetectUnrealGameId();
 
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
