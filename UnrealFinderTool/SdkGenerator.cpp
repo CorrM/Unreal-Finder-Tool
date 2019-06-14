@@ -196,17 +196,17 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 			++*pPackagesDone;
 		}
 
+		{
+			std::lock_guard lock(gMutex.Locker);
+			packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+				"C: " + std::to_string(package->Classes.size()) + ", " +
+				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+				"E: " + std::to_string(package->Enums.size()) + " ]"
+			);
+		}
+
 		if (package->Save(sdkPath))
 		{
-			{
-				std::lock_guard lock(gMutex.Locker);
-				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
-					"C: " + std::to_string(package->Classes.size()) + ", " +
-					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-					"E: " + std::to_string(package->Enums.size()) + " ]"
-				);
-			}
-
 			Package::PackageMap[obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
