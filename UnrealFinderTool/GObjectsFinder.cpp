@@ -2,6 +2,7 @@
 #include "Memory.h"
 #include "GObjectsFinder.h"
 #include "Scanner.h"
+#include "ParallelWorker.h"
 
 /*
  * #NOTES
@@ -32,36 +33,55 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
 	MEMORY_BASIC_INFORMATION info = { 0 };
+	std::vector<uintptr_t> mem_block;
 
 	// Cycle through memory based on RegionSize
 	{
 		uintptr_t currentAddress = dwStart;
 		bool exitLoop = false;
 
-		do
+		ParallelWorker<uintptr_t> worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
 		{
-			// Get Region information
-			exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
-
-			// Size will used to alloc and read memory
-			const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
-
-			// Bad Memory
-			if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+			do
 			{
+				// Get Region information
+				exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+
+				// Size will used to alloc and read memory
+				const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
+
+				// Bad Memory
+				if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+				{
+					// Get next address
+					std::lock_guard lock(options.Locker);
+					currentAddress += allocSize;
+					continue;
+				}
+
+				
+
 				// Get next address
+				std::lock_guard lock(options.Locker);
 				currentAddress += allocSize;
-				continue;
-			}
+				mem_block.push_back(currentAddress);
 
+			} while (!exitLoop);
+		});
+		worker.Start();
+		worker.WaitAll();
+
+		ParallelWorker<uintptr_t> worker2(mem_block, 0, Utils::Settings.SdkGen.Threads, [&ret](uintptr_t& address, ParallelOptions& options)
+		{
 			// Insert region information on Regions Holder
-			if (Utils::IsValidGObjectsAddress(currentAddress))
-				ret.push_back(currentAddress);
-
-			// Get next address
-			currentAddress += allocSize;
-
-		} while (!exitLoop);
+			if (Utils::IsValidGObjectsAddress(address))
+			{
+				std::lock_guard lock(options.Locker);
+				ret.push_back(address);
+			}
+		});
+		worker2.Start();
+		worker2.WaitAll();
 	}
 
 	// Check if there a GObjects Chunks

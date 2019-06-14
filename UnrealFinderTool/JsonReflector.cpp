@@ -285,7 +285,7 @@ int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overr
 		{
 			auto s = StructsList.find(typeName);
 			if (s != StructsList.end())
-				return s->second.GetSize();
+				return s->second.GetSize(false);
 		}
 		throw std::exception(("Cant find struct `" + typeName + "`.").c_str());
 	}
@@ -319,25 +319,32 @@ bool JsonReflector::IsStructType(const std::string& typeName)
 #pragma endregion
 
 #pragma region JsonStruct
-int JsonStruct::GetSize()
+int JsonStruct::GetSize(const bool subUnneeded)
 {
-	if (Utils::MemoryObj == nullptr)
+	if (!Utils::MemoryObj || !subUnneeded)
 		return structSize;
 
+	return structSize - GetUnneededSize();
+}
+
+int JsonStruct::GetUnneededSize()
+{
 	int sSub = 0;
+
 	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
 	{
 		// if it's 32bit game (4byte pointer) sub 4byte for every pointer
-		for (auto& var : Vars)
+		for (auto& varContainer : Vars)
 		{
-			if (Utils::EndsWith(var.second.Type, "*"))
+			auto& var = varContainer.second;
+			if (Utils::EndsWith(var.Type, "*"))
 				sSub += 0x4;
-			else if (var.second.IsStruct)
-				sSub += var.second.Struct.GetSize();
+			else if (var.IsStruct)
+				sSub += var.Struct.GetUnneededSize();
 		}
 	}
 
-	return structSize - sSub;
+	return sSub;
 }
 
 void JsonStruct::SetSize(const int newSize)

@@ -11,7 +11,7 @@
 // #define OFFSET(s, m) ((size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
 #define OFFSET(m) ((int)&reinterpret_cast<char const volatile&>((((decltype(this))0)->m)))
 #define FILL_DATA(pData, var, offset) var = *reinterpret_cast<decltype(var)*>(&pData[offset])
-#define SIZE_OF_ME sizeof(decltype(this))
+#define SIZE_OF_ME sizeof(decltype(*this))
 
 class UClass;
 class UObject;
@@ -21,9 +21,9 @@ struct FPointer
 {
 	uintptr_t Dummy;
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Dummy) });
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Dummy) });
 	}
 };
 
@@ -31,11 +31,6 @@ struct FQWord
 {
 	int32_t A;
 	int32_t B;
-
-	void FixPointers(const size_t fullStructSize)
-	{
-		// 
-	}
 };
 
 struct FName
@@ -57,9 +52,9 @@ struct TArray
 		return i < Count;
 	}
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Data) });
 	}
 };
 
@@ -73,9 +68,9 @@ struct FString : TArray // <wchar_t>
 		return str;
 	}*/
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		TArray::FixPointers(fullStructSize);
+		TArray::FixPointers(fullCppStructSize);
 	}
 };
 
@@ -151,9 +146,9 @@ public:
 
 	std::string TypeName() { return "FScriptInterface"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, {
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(ObjectPointer),
 			OFFSET(InterfacePointer)
 		});
@@ -184,9 +179,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, ObjectPointer, offsets[0]);
@@ -197,6 +189,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -229,28 +224,28 @@ public:
 	int32_t TagAtLastTest;
 	TObjectId ObjectId;
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
 		// FScriptInterface::FixPointers();
-		// Utils::FixPointers(this, fullStructSize, { OFFSET(Data) });
+		// Utils::FixPointers(this, fullCppStructSize, { OFFSET(Data) });
 	}
 };
 
 class FAssetPtr : public TPersistentObjectPtr<FStringAssetReference>
 {
 public:
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		TPersistentObjectPtr::FixPointers(fullStructSize);
+		TPersistentObjectPtr::FixPointers(fullCppStructSize);
 	}
 };
 
 class FLazyObjectPtr : public TPersistentObjectPtr<FUniqueObjectGuid>
 {
 public:
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		TPersistentObjectPtr::FixPointers(fullStructSize);
+		TPersistentObjectPtr::FixPointers(fullCppStructSize);
 	}
 };
 
@@ -268,9 +263,9 @@ public:
 
 	std::string TypeName() { return "FUObjectItem"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Object) });
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Object) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -297,9 +292,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Read this struct, support EngineJson
@@ -310,6 +302,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -352,7 +347,7 @@ public:
 
 	std::string TypeName() { return "FNameEntity"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
 		// 
 	}
@@ -378,9 +373,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, Index, offsets[0]);
@@ -388,6 +380,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -408,6 +403,7 @@ public:
 class UObject
 {
 	bool init = false;
+
 protected:
 	Memory* m = Utils::MemoryObj;
 	PBYTE pData = nullptr;
@@ -420,14 +416,14 @@ public:
 	int Flags = 0;
 	int InternalIndex = 0;
 	uintptr_t Class = 0;
-	FName Name;
+	FName Name{};
 	uintptr_t Outer = 0;
 
 	std::string TypeName() { return "UObject"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		Utils::FixPointers(this, fullStructSize, {
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(VfTable),
 			OFFSET(Class),
 			OFFSET(Outer),
@@ -462,9 +458,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		FILL_DATA(pData, VfTable, offsets[0]);
@@ -479,6 +472,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -532,10 +528,10 @@ public:
 
 	std::string TypeName() { return "UField"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObject::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Next) });
+		UObject::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Next) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -557,9 +553,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -570,6 +563,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -597,10 +593,10 @@ public:
 
 	std::string TypeName() { return "UEnum"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UField::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UField::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(CppType.Data),
 			OFFSET(Names.Data)
 		});
@@ -630,9 +626,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -645,6 +638,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -673,10 +669,10 @@ public:
 
 	std::string TypeName() { return "UStruct"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UField::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UField::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(SuperField),
 			OFFSET(Children)
 		});
@@ -707,9 +703,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -723,6 +716,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -746,9 +742,9 @@ class UScriptStruct : public UStruct
 public:
 	std::string TypeName() { return "UScriptStruct"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UStruct::FixPointers(fullStructSize);
+		UStruct::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -769,9 +765,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -779,6 +772,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -807,10 +803,10 @@ public:
 
 	std::string TypeName() { return "UFunction"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UStruct::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UStruct::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(FirstPropertyToInit),
 			OFFSET(EventGraphFunction),
 			OFFSET(Func)
@@ -843,9 +839,6 @@ public:
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
 			FILL_DATA(pData, Func, jStruct["Func"].Offset);
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -859,6 +852,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -882,9 +878,9 @@ class UClass : public UStruct
 public:
 	std::string TypeName() { return "UClass"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UStruct::FixPointers(fullStructSize);
+		UStruct::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -905,9 +901,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -915,6 +908,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -947,10 +943,10 @@ public:
 
 	std::string TypeName() { return "UProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UField::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UField::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(PropertyLinkNext),
 			OFFSET(NextRef),
 			OFFSET(DestructorLinkNext),
@@ -987,9 +983,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1007,6 +1000,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1030,9 +1026,9 @@ class UNumericProperty : public UProperty
 public:
 	std::string TypeName() { return "UNumericProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
+		UProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1053,9 +1049,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1063,6 +1056,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1088,10 +1084,10 @@ public:
 
 	std::string TypeName() { return "UByteProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Enum) });
+		UNumericProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Enum) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1113,9 +1109,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1126,6 +1119,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1149,9 +1145,9 @@ class UUInt16Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt16Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1172,9 +1168,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1182,6 +1175,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1205,9 +1201,9 @@ class UUInt32Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt32Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1228,9 +1224,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1238,6 +1231,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1261,9 +1257,9 @@ class UUInt64Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UUInt64Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1284,9 +1280,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1294,6 +1287,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1317,9 +1313,9 @@ class UInt8Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt8Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1340,9 +1336,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1350,6 +1343,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1373,9 +1369,9 @@ class UInt16Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt16Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1396,9 +1392,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1406,6 +1399,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1429,9 +1425,9 @@ class UIntProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UIntProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1452,10 +1448,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
-		// Read Remote Memory
 		}
 
 		// Init super variables first
@@ -1463,6 +1455,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1486,9 +1481,9 @@ class UInt64Property : public UNumericProperty
 public:
 	std::string TypeName() { return "UInt64Property"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1509,9 +1504,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1519,6 +1511,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1542,9 +1537,9 @@ class UFloatProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UFloatProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1565,9 +1560,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1575,6 +1567,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1598,9 +1593,9 @@ class UDoubleProperty : public UNumericProperty
 public:
 	std::string TypeName() { return "UDoubleProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UNumericProperty::FixPointers(fullStructSize);
+		UNumericProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1621,9 +1616,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1631,6 +1623,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1659,9 +1654,9 @@ public:
 
 	std::string TypeName() { return "UBoolProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
+		UProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1689,9 +1684,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1705,6 +1697,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1730,10 +1725,10 @@ public:
 
 	std::string TypeName() { return "UObjectPropertyBase"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(PropertyClass) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(PropertyClass) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1755,9 +1750,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1768,6 +1760,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1791,9 +1786,9 @@ class UObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UObjectProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObjectPropertyBase::FixPointers(fullStructSize);
+		UObjectPropertyBase::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1814,9 +1809,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1824,6 +1816,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1849,10 +1844,10 @@ public:
 
 	std::string TypeName() { return "UClassProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObjectProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
+		UObjectProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(MetaClass) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1874,9 +1869,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1887,6 +1879,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1912,10 +1907,10 @@ public:
 
 	std::string TypeName() { return "UInterfaceProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(InterfaceClass) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(InterfaceClass) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1937,9 +1932,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -1950,6 +1942,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -1973,9 +1968,9 @@ class UWeakObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UWeakObjectProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObjectPropertyBase::FixPointers(fullStructSize);
+		UObjectPropertyBase::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -1996,9 +1991,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2006,6 +1998,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2029,9 +2024,9 @@ class ULazyObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "ULazyObjectProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObjectPropertyBase::FixPointers(fullStructSize);
+		UObjectPropertyBase::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2052,9 +2047,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2062,6 +2054,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2085,9 +2080,9 @@ class UAssetObjectProperty : public UObjectPropertyBase
 public:
 	std::string TypeName() { return "UAssetObjectProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UObjectPropertyBase::FixPointers(fullStructSize);
+		UObjectPropertyBase::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2108,9 +2103,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2118,6 +2110,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2143,10 +2138,10 @@ public:
 
 	std::string TypeName() { return "UAssetClassProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UAssetObjectProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(MetaClass) });
+		UAssetObjectProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(MetaClass) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2168,9 +2163,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2181,6 +2173,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2204,9 +2199,9 @@ class UNameProperty : public UProperty
 public:
 	std::string TypeName() { return "UNameProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
+		UProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2227,9 +2222,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2237,6 +2229,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2262,10 +2257,10 @@ public:
 
 	std::string TypeName() { return "UStructProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Struct) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Struct) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2287,9 +2282,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2300,6 +2292,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2323,9 +2318,9 @@ class UStrProperty : public UProperty
 public:
 	std::string TypeName() { return "UStrProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
+		UProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2346,9 +2341,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2356,6 +2348,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2379,9 +2374,9 @@ class UTextProperty : public UProperty
 public:
 	std::string TypeName() { return "UTextProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
+		UProperty::FixPointers(fullCppStructSize);
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2402,9 +2397,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2412,6 +2404,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2437,10 +2432,10 @@ public:
 
 	std::string TypeName() { return "UArrayProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(Inner) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(Inner) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2462,9 +2457,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2475,6 +2467,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2501,10 +2496,10 @@ public:
 
 	std::string TypeName() { return "UMapProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(KeyProp),
 			OFFSET(ValueProp)
 		});
@@ -2533,9 +2528,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2547,6 +2539,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2572,10 +2567,10 @@ public:
 
 	std::string TypeName() { return "UDelegateProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(SignatureFunction) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2597,9 +2592,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2610,6 +2602,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2635,10 +2630,10 @@ public:
 
 	std::string TypeName() { return "UMulticastDelegateProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, { OFFSET(SignatureFunction) });
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, { OFFSET(SignatureFunction) });
 	}
 
 	bool ReadData(const uintptr_t objAddress)
@@ -2660,9 +2655,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2673,6 +2665,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}
@@ -2699,10 +2694,10 @@ public:
 
 	std::string TypeName() { return "UEnumProperty"; }
 
-	void FixPointers(const size_t fullStructSize)
+	void FixPointers(const size_t fullCppStructSize)
 	{
-		UProperty::FixPointers(fullStructSize);
-		Utils::FixPointers(this, fullStructSize, {
+		UProperty::FixPointers(fullCppStructSize);
+		Utils::FixPointers(this, fullCppStructSize, {
 			OFFSET(UnderlyingProp),
 			OFFSET(Enum)
 		});
@@ -2731,9 +2726,6 @@ public:
 
 			// Read this struct
 			if (m->ReadBytes(ObjAddress, pData, jSize) != jSize) return false;
-
-			// Fix pointers for x32 games
-			FixPointers(jSize);
 		}
 
 		// Init super variables first
@@ -2745,6 +2737,9 @@ public:
 
 		if (dataAllocer)
 		{
+			// Fix pointers for x32 games
+			FixPointers(SIZE_OF_ME);
+
 			delete pData;
 			pData = nullptr;
 		}

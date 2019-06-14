@@ -101,9 +101,9 @@ public:
 	/// Fix pointers size in struct or class. used for convert 64bit to 32bit pointer.
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
-	/// <param name="fullStructSize">Full size of struct => (Base Structs + Target struct)</param>
+	/// <param name="fullCppStructSize">Full size of struct => (Base Structs + Target struct)</param>
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
-	template <typename ElementType> static void FixPointers(ElementType* structBase, size_t fullStructSize, std::vector<int> varsOffsets);
+	template <typename ElementType> static void FixPointers(ElementType* structBase, size_t fullCppStructSize, std::vector<int> varsOffsets);
 
 	static int DetectUnrealGameId(HWND* windowHandle);
 	static int DetectUnrealGameId();
@@ -129,11 +129,11 @@ void Utils::FixPointer(ElementType* structBase, const int varOffset)
 }
 
 template <typename ElementType>
-void Utils::FixPointers(ElementType* structBase, const size_t fullStructSize, std::vector<int> varsOffsets)
+void Utils::FixPointers(ElementType* structBase, const size_t fullCppStructSize, std::vector<int> varsOffsets)
 {
 	if (ProgramIs64() && MemoryObj->Is64Bit)
 		return;
 
 	for (int varOff : varsOffsets)
-		FixStructPointer(structBase, varOff, fullStructSize);
+		FixStructPointer(structBase, varOff, fullCppStructSize);
 }
