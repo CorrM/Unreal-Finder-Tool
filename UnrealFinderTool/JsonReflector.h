@@ -42,6 +42,8 @@ class JsonStruct
 {
 	// Size of this struct
 	int structSize = 0;
+	// Get unneeded size to sub from the struct size
+	int GetUnneededSize();
 
 public:
 	// Struct Name
@@ -52,7 +54,7 @@ public:
 	JsonVariables Vars;
 
 	// Size of this struct, useful for 32bit games in 64bit version of this tool
-	int GetSize();
+	int GetSize(bool subUnneeded = true);
 	// Don't use it outside `JsonReflector Load Functions`
 	void SetSize(int newSize);
 	// Access to variable inside this struct

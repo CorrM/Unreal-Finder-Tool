@@ -442,6 +442,7 @@ public:
 		if (ObjAddress == NULL)
 			return false;
 
+		auto& gg = JsonReflector::StructsList;
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		static size_t jSize = jStruct.GetSize();
 		static int offsets[] =
