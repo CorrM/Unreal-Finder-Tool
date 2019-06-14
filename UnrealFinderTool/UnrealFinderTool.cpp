@@ -242,6 +242,8 @@ void StartSdkGenerator()
 
 	sg_objects_count = 0;
 	sg_names_count = 0;
+	sg_packages_count = 0;
+	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
 
 	std::thread t([&]()
