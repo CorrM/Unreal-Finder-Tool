@@ -71,7 +71,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, const bool overrid
 							offset += jVar.Size;
 						}
 
-						structSize += s->second.GetSize();
+						structSize += s->second.GetSize(false);
 					}
 				}
 				else
@@ -174,7 +174,7 @@ bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
 						offset += jVar.Size;
 					}
 
-					structSize += s->second.GetSize();
+					structSize += s->second.GetSize(false);
 				}
 			}
 			else
