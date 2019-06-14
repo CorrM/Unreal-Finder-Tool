@@ -69,6 +69,8 @@ public:
 	/// <returns>The version of the game.</returns>
 	virtual void SetSdkType(SdkType sdkType) const = 0;
 
+	virtual void SetIsGObjectsChunks(bool isChunks) const = 0;
+
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.
 	/// </summary>

@@ -58,6 +58,7 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	generator->SetGameName(gameName);
 	generator->SetGameVersion(gameVersion);
 	generator->SetSdkType(sdkType);
+	generator->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
 
 	// Get Current Dir
 	char buffer[2048];

@@ -6,7 +6,9 @@ class Generator final : public IGenerator
 {
 	mutable std::string gameName;
 	mutable std::string gameVersion;
+	mutable bool isGObjectsChunks = false;
 	mutable SdkType sdkType = SdkType::Internal;
+
 public:
 	bool Initialize() override
 	{
@@ -240,7 +242,7 @@ public:
 
 	std::string GetBasicDeclarations() const override
 	{
-		return R"(template<typename Fn>
+		std::string basic_str = R"(template<typename Fn>
 inline Fn GetVFunction(const void* instance, std::size_t index)
 {
 	auto vtable = *reinterpret_cast<const void***>(const_cast<void*>(instance));
@@ -276,8 +278,10 @@ public:
 	{
 		return !!(Flags & static_cast<std::underlying_type_t<ObjectFlags>>(ObjectFlags::PendingKill));
 	}
-};
-
+};)";
+		if (!isGObjectsChunks)
+		{
+			basic_str += R"(
 class TUObjectArray
 {
 public:
@@ -304,8 +308,70 @@ private:
 	FUObjectItem* Objects;
 	int32_t MaxElements;
 	int32_t NumElements;
-};
+};)";
+		}
+		else
+		{
+			basic_str += R"(
+class TUObjectArray
+{
+	enum
+	{
+		NumElementsPerChunk = 64 * 1024,
+	};
+public:
+	inline int32_t Num() const
+	{
+		return NumElements;
+	}
 
+	inline int32_t Max() const
+	{
+		return MaxElements;
+	}
+
+	inline bool IsValidIndex(int32_t Index) const
+	{
+		return Index < Num() && Index >= 0;
+	}
+
+	inline FUObjectItem* GetObjectPtr(int32_t Index) const
+	{
+		const int32_t ChunkIndex = Index / NumElementsPerChunk;
+		const int32_t WithinChunkIndex = Index % NumElementsPerChunk;
+		if (!IsValidIndex(Index)) return nullptr;
+		if (ChunkIndex > NumChunks) return nullptr;
+		if (Index > MaxElements) return nullptr;
+		FUObjectItem* Chunk = Objects[ChunkIndex];
+		if (!Chunk) return nullptr;
+		return Chunk + WithinChunkIndex;
+	}
+
+	inline UObject* GetByIndex(int32_t index) const
+	{
+		FUObjectItem* ItemPtr = GetObjectPtr(index);
+		if (!ItemPtr) return nullptr;
+
+		return (*ItemPtr).Object;
+	}
+
+	inline FUObjectItem* GetItemByIndex(int32_t index) const
+	{
+		FUObjectItem* ItemPtr = GetObjectPtr(index);
+		if (!ItemPtr) return nullptr;
+		return ItemPtr;
+	}
+
+private:
+	FUObjectItem** Objects;
+	FUObjectItem* PreAllocatedObjects;
+	int32_t MaxElements;
+	int32_t NumElements;
+	int32_t MaxChunks;
+	int32_t NumChunks;
+};)";
+		}
+		basic_str += R"(
 class FUObjectArray
 {
 public:
@@ -750,6 +816,7 @@ class TLazyObjectPtr : FLazyObjectPtr
 {
 
 };)";
+		return basic_str;
 	}
 
 	std::string GetBasicDefinitions() const override
@@ -797,6 +864,11 @@ UObject* FWeakObjectPtr::Get() const
 	bool ShouldGenerateFunctionParametersFile() const override
 	{
 		return sdkType == SdkType::Internal;
+	}
+
+	void SetIsGObjectsChunks(const bool isChunks) const override
+	{
+		isGObjectsChunks = isChunks;
 	}
 };
 
