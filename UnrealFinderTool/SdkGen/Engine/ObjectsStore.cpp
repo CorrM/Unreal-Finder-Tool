@@ -83,8 +83,9 @@ bool ObjectsStore::ReadUObjectArray()
 		int skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
+		uintptr_t lastObject = NULL;
 
-		for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
+		for (size_t uIndex = 0; uIndex <= numElementsPerChunk; ++uIndex)
 		{
 			uintptr_t dwUObject = NULL;
 
@@ -113,13 +114,14 @@ bool ObjectsStore::ReadUObjectArray()
 			auto curObject = std::make_unique<UEObject>();
 
 			// Skip bad object in GObjects array
-			if (!ReadUObject(dwUObject, *curObject) || !IsValidUObject(curObject->Object))
+			if (!ReadUObject(dwUObject, *curObject))
 			{
 				++skipCount;
 				continue;
 			}
 			skipCount = 0;
 
+			lastObject = dwUObject;
 			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
 			++GInfo.Count;
 		}

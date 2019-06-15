@@ -16,6 +16,7 @@ struct GObjectInfo
 
 class ObjectsStore
 {
+	size_t numElementsPerChunk = 0x103FF;
 	int maxZeroAddress = 150;
 
 	bool FetchData();

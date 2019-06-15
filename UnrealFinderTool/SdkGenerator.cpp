@@ -76,6 +76,7 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	Logger::SetStream(&log);
 
 	fs::create_directories(outputDirectory);
+	state = "Dumping (GNames/GObjects).";
 
 	// Dump To Files
 	if (generator->ShouldDumpArrays())
@@ -84,8 +85,6 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 		state = "Dump (GNames/GObjects) Done.";
 		Sleep(3 * 1000);
 	}
-
-	state = "Getting Packages Done.";
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
@@ -155,12 +154,16 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
 
+	state = "Start Collecting Packages.";
+
 	auto packageObjects =
 		from(ObjectsStore())
 		>> select([](UEObject&& o) { return o.GetPackageObject(); })
 		>> where([](UEObject&& o) { return o.IsValid(); })
 		>> distinct()
 		>> to_vector();
+
+	state = "Getting Packages Done.";
 
 	*pPackagesCount = packageObjects.size();
 
@@ -193,7 +196,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	}
 
 	++*pPackagesDone;
-	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
+	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
 	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, ParallelOptions& gMutex)
