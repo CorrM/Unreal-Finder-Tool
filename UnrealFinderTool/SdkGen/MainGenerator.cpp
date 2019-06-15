@@ -256,7 +256,9 @@ class FUObjectItem
 public:
 	UObject* Object;
 	int32_t Flags;
+	int32_t ClusterIndex;
 	int32_t SerialNumber;
+	int32_t Unknown_00;
 
 	enum class ObjectFlags : int32_t
 	{
@@ -308,7 +310,8 @@ private:
 	FUObjectItem* Objects;
 	int32_t MaxElements;
 	int32_t NumElements;
-};)";
+};
+)";
 		}
 		else
 		{
@@ -369,7 +372,8 @@ private:
 	int32_t NumElements;
 	int32_t MaxChunks;
 	int32_t NumChunks;
-};)";
+};
+)";
 		}
 		basic_str += R"(
 class FUObjectArray
@@ -470,18 +474,23 @@ public:
 		return index < Num() && index >= 0;
 	}
 
-	inline ElementType const* const& operator[](int32_t index) const
+	inline ElementType* operator[](int32_t index) const
 	{
-		return *GetItemPtr(index);
+		ElementType* ItemPtr = GetItemPtr(index);
+		return ItemPtr;
 	}
 
 private:
-	inline ElementType const* const* GetItemPtr(int32_t Index) const
+	inline ElementType* GetItemPtr(int32_t Index) const
 	{
 		int32_t ChunkIndex = Index / ElementsPerChunk;
 		int32_t WithinChunkIndex = Index % ElementsPerChunk;
-		ElementType** Chunk = Chunks[ChunkIndex];
-		return Chunk + WithinChunkIndex;
+		ElementType* Chunk = (*Chunks)[ChunkIndex];
+		int offset = WithinChunkIndex * )";
+		basic_str += std::to_string(Utils::MemoryObj->Is64Bit ? 0x8 : 0x4) + R"(;
+		uintptr_t ptrAddress = *reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(Chunk) + offset);
+		ElementType* ItemPtr = reinterpret_cast<ElementType*>(ptrAddress);
+		return ItemPtr;
 	}
 
 	enum
@@ -494,7 +503,7 @@ private:
 	int32_t NumChunks;
 };
 
-using TNameEntryArray = TStaticIndirectArrayThreadSafeRead<FNameEntry, 2 * 1024 * 1024, 16384>;
+using TNameEntryArray = TStaticIndirectArrayThreadSafeRead<FNameEntry, 4 * 1024 * 1024, 16384>;
 
 struct FName
 {
