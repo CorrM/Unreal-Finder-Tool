@@ -166,6 +166,46 @@ public:
 		}
 		return nullptr;
 	})"),
+			PredefinedMethod::Inline(R"(	template<typename T>
+	static T* FindObject()
+	{
+		auto v = T::StaticClass();
+		for (int i = 0; i < SDK::UObject::GetGlobalObjects().Num(); ++i)
+		{
+			auto object = SDK::UObject::GetGlobalObjects().GetByIndex(i);
+
+			if (object == nullptr)
+			{
+				continue;
+			}
+
+			if (object->IsA(v))
+			{
+				return static_cast<T*>(object);
+			}
+		}
+		return nullptr;
+	})"),
+			PredefinedMethod::Inline(R"(	template<typename T>
+	static std::vector<T*> FindObjects(const std::string& name)
+	{
+		std::vector<T*> ret;
+		for (int i = 0; i < GetGlobalObjects().Num(); ++i)
+		{
+			auto object = GetGlobalObjects().GetByIndex(i);
+
+			if (object == nullptr)
+			{
+				continue;
+			}
+
+			if (object->GetFullName() == name)
+			{
+				ret.push_back(static_cast<T*>(object));
+			}
+		}
+		return ret;
+	})"),
 			PredefinedMethod::Inline(R"(	static UClass* FindClass(const std::string& name)
 	{
 		return FindObject<UClass>(name);

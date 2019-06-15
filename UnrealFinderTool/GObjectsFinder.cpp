@@ -45,21 +45,22 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 			do
 			{
 				// Get Region information
-				exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+				{
+					std::lock_guard lock(options.Locker);
+					exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+				}
 
 				// Size will used to alloc and read memory
 				const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
 
 				// Bad Memory
-				if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_EXECUTE_READWRITE | PAGE_READWRITE)))
+				if (!(info.State & MEM_COMMIT))
 				{
 					// Get next address
 					std::lock_guard lock(options.Locker);
 					currentAddress += allocSize;
 					continue;
 				}
-
-				
 
 				// Get next address
 				std::lock_guard lock(options.Locker);
