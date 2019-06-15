@@ -17,11 +17,12 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, 
 	{
 		for (auto&& i : pragmas) { os << "#pragma " << i << "\n"; }
 	}
+	os << "\n";
 
 	if (generator->GetSdkType() == SdkType::External)
 		os << "#include \"" << Utils::Settings.SdkGen.MemoryHeader << "\"\n";
 
-	os << "#include \n";
+	os << "#include <vector>\n";
 
 	if (!includes.empty())
 	{

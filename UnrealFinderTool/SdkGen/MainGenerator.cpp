@@ -282,7 +282,10 @@ public:
 
 	std::string GetBasicDeclarations() const override
 	{
-		std::string basic_str = R"(template<typename Fn>
+		std::string basic_str = R"(
+void InitSdk(const std::string& moduleName, size_t gObjectsOffset, size_t gNamesOffset);
+
+template<typename Fn>
 inline Fn GetVFunction(const void* instance, std::size_t index)
 {
 	auto vtable = *reinterpret_cast<const void***>(const_cast<void*>(instance));
@@ -870,8 +873,18 @@ class TLazyObjectPtr : FLazyObjectPtr
 
 	std::string GetBasicDefinitions() const override
 	{
-		return R"(TNameEntryArray* FName::GNames = nullptr;
+		return R"(
+TNameEntryArray* FName::GNames = nullptr;
 FUObjectArray* UObject::GObjects = nullptr;
+
+//---------------------------------------------------------------------------
+void InitSdk(const std::string& moduleName, const size_t gObjectsOffset, const size_t gNamesOffset)
+{
+	auto mBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandleA("Dauntless-Win64-Shipping.exe"));
+
+	UObject::GObjects = reinterpret_cast<SDK::FUObjectArray*>(mBaseAddress + gObjectsOffset);
+	FName::GNames = reinterpret_cast<SDK::TNameEntryArray*>(mBaseAddress + gNamesOffset);
+}
 //---------------------------------------------------------------------------
 bool FWeakObjectPtr::IsValid() const
 {

@@ -275,7 +275,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 		{
 			std::ofstream os2(path / "SDK" / tfm::format("Basic.cpp"));
 
-			PrintFileHeader(os2, { "\"../SDK.h\"" }, false);
+			PrintFileHeader(os2, { "\"../SDK.h\"" }, { "<Windows.h>" }, false);
 
 			os2 << generator->GetBasicDefinitions() << "\n";
 
