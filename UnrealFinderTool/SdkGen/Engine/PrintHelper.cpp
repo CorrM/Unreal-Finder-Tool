@@ -22,8 +22,6 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, 
 	if (generator->GetSdkType() == SdkType::External)
 		os << "#include \"" << Utils::Settings.SdkGen.MemoryHeader << "\"\n";
 
-	os << "#include <vector>\n";
-
 	if (!includes.empty())
 	{
 		for (auto&& i : includes) { os << "#include " << i << "\n"; }

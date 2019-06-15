@@ -48,7 +48,7 @@ bool InstanceLogger::NameDump()
 		return false;
 	}
 
-	for (size_t i = 0; i < NamesStore().GetNamesNum(); i++)
+	for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
 	{
 		std::string str = NamesStore().GetByIndex(i);
 		if (!str.empty())
@@ -80,11 +80,11 @@ LoggerState InstanceLogger::FetchData()
 		return LoggerState::BadGObjectAddress;
 
 	// GNames
-	if (!NamesStore::Initialize(gNamesAddress, false))
+	if (!NamesStore::Initialize(gNamesAddress))
 		return LoggerState::BadGName;
 
 	// GObjects
-	if (!ObjectsStore::Initialize(gObjectsAddress, false))
+	if (!ObjectsStore::Initialize(gObjectsAddress))
 		return LoggerState::BadGObject;
 
 	return LoggerState::Good;

@@ -106,23 +106,32 @@ void SdkGenerator::Dump(const fs::path& path)
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
 		std::ofstream o(path / "NamesDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
 
 		for (const auto& name : NamesStore())
 		{
-			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
+		}
+
+		for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
+		{
+			std::string str = NamesStore().GetByIndex(i);
+			if (!str.empty())
+				tfm::format(o, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
 		}
 	}
 
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
 		std::ofstream o(path / "ObjectsDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GInfo.GObjAddress);
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
 
-		for (const auto& obj : ObjectsStore())
+		for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 		{
-			if (obj.IsValid())
+			if (ObjectsStore().GetByIndex(i).IsValid())
+			{
+				const UEObject& obj = ObjectsStore().GetByIndex(i);
 				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+			}
 		}
 	}
 }
@@ -265,7 +274,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	{
 		{
 			std::ofstream os2(path / "SDK" / tfm::format("Basic.h"));
-			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<locale>" }, true);
+			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<vector>", "<locale>" }, true);
 			os2 << generator->GetBasicDeclarations() << "\n";
 			PrintFileFooter(os2);
 
