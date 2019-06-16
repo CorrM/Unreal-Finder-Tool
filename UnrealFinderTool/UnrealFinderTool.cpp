@@ -16,6 +16,7 @@
 #include "Scanner.h"
 
 #include <sstream>
+#include <shellapi.h>
 
 MemoryEditor mem_edit;
 bool memory_init = false;
@@ -300,6 +301,22 @@ void TitleBar(UiWindow* thiz)
 				}
 				ui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("SDK##menu"))
+			{
+				if (ui::MenuItem("SDK Folder"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						(Utils::GetWorkingDirectory() + "\\Results").c_str(), 
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
+				ui::EndMenu();
+			}
+
 			ui::EndPopup();
 		}
 	}
@@ -646,7 +663,7 @@ void Finder(UiWindow* thiz)
 
 void InstanceLogger(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Instance Logger"))
+	if (ui::BeginTabItem("Instance"))
 	{
 		if (cur_tap_id != 2)
 		{
@@ -684,7 +701,7 @@ void InstanceLogger(UiWindow* thiz)
 
 void SdkGenerator(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Sdk Generator"))
+	if (ui::BeginTabItem("S-D-K"))
 	{
 		if (cur_tap_id != 3)
 		{

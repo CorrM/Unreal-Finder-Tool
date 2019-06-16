@@ -55,7 +55,7 @@ public:
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
 
-	static std::string TypeName(); // Change To Enum, cmp str is slow nahhh
+	static std::string TypeName();
 	static UEObject& GetObjByAddress(uintptr_t address);
 	static UEClass StaticClass();
 };
@@ -640,6 +640,7 @@ bool UEObject::IsA() const
 {
 	if (!IsValid()) return false;
 
+	// Change typename cmp with FName id, cmp str is slow nahhh
 	std::string cmpTypeName = T::TypeName();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{

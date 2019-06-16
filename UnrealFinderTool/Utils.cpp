@@ -82,6 +82,21 @@ bool Utils::FileExists(const std::string& filePath)
 	return fs::exists(path);
 }
 
+std::string Utils::GetWorkingDirectory()
+{
+	// Returned cached copy of path
+	static std::string curDir(260, '\0');
+	if (curDir[0] != '\0')
+		return curDir;
+
+	// Get working directory path
+	GetModuleFileName(nullptr, curDir.data(), curDir.length());
+
+	fs::path curPath(curDir);
+	curDir = curPath.parent_path().string();
+
+	return curDir;
+}
 #pragma endregion
 
 #pragma region String
