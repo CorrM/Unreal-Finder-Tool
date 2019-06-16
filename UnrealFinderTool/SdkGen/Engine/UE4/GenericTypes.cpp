@@ -37,23 +37,29 @@ size_t UEObject::GetIndex() const
 
 std::string UEObject::GetName() const
 {
-	if (!objName.empty())
-		return objName;
+	// Get Original Object, if not have a value update it
+	auto& obj = GetObjByAddress(GetAddress());
+	if (!obj.objName.empty())
+		return obj.objName;
 
 	auto name = NamesStore().GetByIndex(Object->Name.ComparisonIndex);
 	if (!name.empty() && Object->Name.Number > 0)
-	{
 		name += '_' + std::to_string(Object->Name.Number);
-	}
 
 	auto pos = name.rfind('/');
 	if (pos == std::string::npos)
 	{
-		objName = name;
+		// Update original and local
+		obj.objName = name;
+		this->objName = obj.objName;
+
 		return name;
 	}
 
-	objName = name.substr(pos + 1);
+	// Update original and local
+	obj.objName = name.substr(pos + 1);
+	this->objName = obj.objName;
+
 	return objName;
 }
 
@@ -69,8 +75,10 @@ std::string UEObject::GetInstanceClassName() const
 
 std::string UEObject::GetFullName() const
 {
-	if (!fullName.empty())
-		return fullName;
+	// Get Original Object, if not have a value update it
+	auto& obj = GetObjByAddress(GetAddress());
+	if (!obj.fullName.empty())
+		return obj.fullName;
 
 	auto cClass = GetClass();
 	if (cClass.IsValid())
@@ -78,16 +86,17 @@ std::string UEObject::GetFullName() const
 		std::string temp;
 
 		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
-		{
 			temp.insert(0, outer.GetName() + ".");
-		}
 
 		std::string name = cClass.GetName();
 		name += " ";
 		name += temp;
 		name += GetName();
 
-		fullName = name;
+		// Update original and local
+		obj.fullName = name;
+		this->fullName = name;
+
 		return fullName;
 	}
 
@@ -96,8 +105,10 @@ std::string UEObject::GetFullName() const
 
 std::string UEObject::GetNameCpp() const
 {
-	if (!nameCpp.empty())
-		return nameCpp;
+	// Get Original Object, if not have a value update it
+	auto& obj = GetObjByAddress(GetAddress());
+	if (!obj.nameCpp.empty())
+		return obj.nameCpp;
 
 	std::string name;
 	if (IsA<UEClass>())
@@ -126,7 +137,10 @@ std::string UEObject::GetNameCpp() const
 	}
 
 	name += GetName();
-	nameCpp = name;
+
+	// Update original and local
+	obj.nameCpp = name;
+	this->nameCpp = name;
 
 	return name;
 }

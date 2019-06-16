@@ -646,8 +646,8 @@ bool UEObject::IsA() const
 		if (super.GetName() == cmpTypeName)
 			return true;
 
-		//UEObject& gg = GetObjByAddress(super.GetAddress());
-		//std::string ggg = gg.objName;
+		UEObject& gg = GetObjByAddress(super.GetAddress());
+		std::string ggg = gg.objName;
 	}
 	return false;
 }
