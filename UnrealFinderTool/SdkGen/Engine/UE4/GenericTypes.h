@@ -79,7 +79,6 @@ inline bool operator!=(const UEObject& lhs, const UEObject& rhs) { return !(lhs.
 class UEField : public UEObject
 {
 	mutable UField objField;
-	mutable UField next;
 
 public:
 	using UEObject::UEObject;
@@ -120,8 +119,6 @@ public:
 class UEStruct : public UEField
 {
 	mutable UStruct objStruct;
-	mutable UStruct superField;
-	mutable UField children;
 
 public:
 	using UEField::UEField;
@@ -234,7 +231,6 @@ public:
 class UEByteProperty : public UENumericProperty
 {
 	mutable UByteProperty objByteProperty;
-	mutable UEnum enumProperty;
 
 public:
 	using UENumericProperty::UENumericProperty;
@@ -398,7 +394,6 @@ inline bool operator<(const UEBoolProperty& lhs, const UEBoolProperty& rhs)
 class UEObjectPropertyBase : public UEProperty
 {
 	mutable UObjectPropertyBase objObjectPropertyBase;
-	mutable UObjectPropertyBase propertyClass;
 
 public:
 	using UEProperty::UEProperty;
@@ -425,7 +420,6 @@ public:
 class UEClassProperty : public UEObjectProperty
 {
 	mutable UClassProperty objClassProperty;
-	mutable UClassProperty metaClass;
 
 public:
 	using UEObjectProperty::UEObjectProperty;
@@ -442,7 +436,6 @@ public:
 class UEInterfaceProperty : public UEProperty
 {
 	mutable UInterfaceProperty objInterfaceProperty;
-	mutable UInterfaceProperty interfaceClass;
 
 public:
 	using UEProperty::UEProperty;
@@ -495,7 +488,6 @@ public:
 class UEAssetClassProperty : public UEAssetObjectProperty
 {
 	mutable UAssetClassProperty objAssetClassProperty;
-	mutable UClass metaClass;
 
 public:
 	using UEAssetObjectProperty::UEAssetObjectProperty;
@@ -524,7 +516,6 @@ public:
 class UEStructProperty : public UEProperty
 {
 	mutable UStructProperty objStructProperty;
-	mutable UStructProperty objStruct;
 
 public:
 	using UEProperty::UEProperty;
@@ -565,7 +556,6 @@ public:
 class UEArrayProperty : public UEProperty
 {
 	mutable UArrayProperty objArrayProperty;
-	mutable UArrayProperty inner;
 
 public:
 	using UEProperty::UEProperty;
@@ -582,7 +572,6 @@ public:
 class UEMapProperty : public UEProperty
 {
 	mutable UMapProperty objMapProperty;
-	mutable UMapProperty keyProp, valueProp;
 
 public:
 	using UEProperty::UEProperty;
@@ -600,7 +589,6 @@ public:
 class UEDelegateProperty : public UEProperty
 {
 	mutable UDelegateProperty objDelegateProperty;
-	mutable UDelegateProperty signatureFunction;
 
 public:
 	using UEProperty::UEProperty;
@@ -617,7 +605,6 @@ public:
 class UEMulticastDelegateProperty : public UEProperty
 {
 	mutable UDelegateProperty objDelegateProperty;
-	mutable UDelegateProperty signatureFunction;
 
 public:
 	using UEProperty::UEProperty;
@@ -634,8 +621,6 @@ public:
 class UEEnumProperty : public UEProperty
 {
 	mutable UEnumProperty objEnumProperty;
-	mutable UEnumProperty underlyingProp;
-	mutable UEnumProperty Enum;
 
 public:
 	using UEProperty::UEProperty;
@@ -661,8 +646,8 @@ bool UEObject::IsA() const
 		if (super.GetName() == cmpTypeName)
 			return true;
 
-		UEObject& gg = GetObjByAddress(super.GetAddress());
-		std::string ggg = gg.objName;
+		//UEObject& gg = GetObjByAddress(super.GetAddress());
+		//std::string ggg = gg.objName;
 	}
 	return false;
 }

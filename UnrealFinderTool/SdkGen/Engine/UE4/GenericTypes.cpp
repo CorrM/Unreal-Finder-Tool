@@ -134,13 +134,8 @@ std::string UEObject::GetNameCpp() const
 UEClass UEObject::GetClass() const
 {
 	// Must have a class
-	/*if (objClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(Object->Class))
-			return UEClass();
-
-		// objClass.ReadData(Object->Class);
-	}*/
+	/*if (INVALID_POINTER_VALUE(Object->Class))
+		return UEClass();*/
 
 	return GetObjByAddress(Object->Class).Cast<UEClass>();
 	// return UEClass(objClass);
@@ -160,7 +155,7 @@ UEObject& UEObject::GetOuter() const
 UEObject& UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	if (packageAddress == 0)
+	if (packageAddress == NULL)
 	{
 		UObject* package = nullptr;
 		for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
@@ -197,13 +192,8 @@ UEField UEField::GetNext() const
 	if (objField.Empty())
 		objField = Object->Cast<UField>();
 
-	if (next.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objField.Next))
-			return UEField();
-
-		// next.ReadData(objField.Next);
-	}
+	if (INVALID_POINTER_VALUE(objField.Next))
+		return UEField();
 
 	return GetObjByAddress(objField.Next).Cast<UEField>();
 	// return UEField(next);
@@ -286,13 +276,8 @@ UEStruct UEStruct::GetSuper() const
 	if (objStruct.Empty())
 		objStruct = Object->Cast<UStruct>();
 
-	if (superField.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objStruct.SuperField))
-			return UEStruct();
-
-		// superField.ReadData(objStruct.SuperField);
-	}
+	if (INVALID_POINTER_VALUE(objStruct.SuperField))
+		return UEStruct();
 
 	return GetObjByAddress(objStruct.SuperField).Cast<UEStruct>();
 	// return UEStruct(superField);
@@ -303,13 +288,8 @@ UEField UEStruct::GetChildren() const
 	if (objStruct.Empty())
 		objStruct = Object->Cast<UStruct>();
 
-	if (children.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objStruct.Children))
-			return UEField();
-
-		// children.ReadData(objStruct.Children);
-	}
+	if (INVALID_POINTER_VALUE(objStruct.Children))
+		return UEField();
 
 	return GetObjByAddress(objStruct.Children).Cast<UEField>();
 	// return UEField(children);
@@ -730,7 +710,6 @@ UEClass UEInt64Property::StaticClass()
 #pragma endregion
 
 #pragma region UEFloatProperty
-
 UEProperty::Info UEFloatProperty::GetInfo() const
 {
 	return Info::Create(PropertyType::Primitive, sizeof(float), false, "float");
@@ -774,13 +753,8 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 	if (objObjectPropertyBase.Empty())
 		objObjectPropertyBase = Object->Cast<UObjectPropertyBase>();
 
-	if (propertyClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objObjectPropertyBase.PropertyClass))
-			return UEClass();
-
-		// propertyClass.ReadData(objObjectPropertyBase.PropertyClass);
-	}
+	if (INVALID_POINTER_VALUE(objObjectPropertyBase.PropertyClass))
+		return UEClass();
 
 	return GetObjByAddress(objObjectPropertyBase.PropertyClass).Cast<UEClass>();
 	// return UEClass(propertyClass);
@@ -824,13 +798,8 @@ UEClass UEClassProperty::GetMetaClass() const
 	if (objClassProperty.Empty())
 		objClassProperty = Object->Cast<UClassProperty>();
 
-	if (metaClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objClassProperty.MetaClass))
-			return UEClass();
-
-		// metaClass.ReadData(objClassProperty.MetaClass);
-	}
+	if (INVALID_POINTER_VALUE(objClassProperty.MetaClass))
+		return UEClass();
 
 	return GetObjByAddress(objClassProperty.MetaClass).Cast<UEClass>();
 	// return UEClass(metaClass);
@@ -860,13 +829,8 @@ UEClass UEInterfaceProperty::GetInterfaceClass() const
 	if (objInterfaceProperty.Empty())
 		objInterfaceProperty = Object->Cast<UInterfaceProperty>();
 
-	if (interfaceClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objInterfaceProperty.InterfaceClass))
-			return UEClass();
-
-		// interfaceClass.ReadData(objInterfaceProperty.InterfaceClass);
-	}
+	if (INVALID_POINTER_VALUE(objInterfaceProperty.InterfaceClass))
+		return UEClass();
 
 	return GetObjByAddress(objInterfaceProperty.InterfaceClass).Cast<UEClass>();
 	// return UEClass(interfaceClass);
@@ -953,13 +917,8 @@ UEClass UEAssetClassProperty::GetMetaClass() const
 	if (objAssetClassProperty.Empty())
 		objAssetClassProperty = Object->Cast<UAssetClassProperty>();
 
-	if (metaClass.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objAssetClassProperty.MetaClass))
-			return UEClass();
-
-		// metaClass.ReadData(objAssetClassProperty.MetaClass);
-	}
+	if (INVALID_POINTER_VALUE(objAssetClassProperty.MetaClass))
+		return UEClass();
 
 	return GetObjByAddress(objAssetClassProperty.MetaClass).Cast<UEClass>();
 	// return UEClass(metaClass);
@@ -1008,13 +967,8 @@ UEScriptStruct UEStructProperty::GetStruct() const
 	if (objStructProperty.Empty())
 		objStructProperty = Object->Cast<UStructProperty>();
 
-	if (objStruct.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objStructProperty.Struct))
-			return UEScriptStruct();
-
-		// objStruct.ReadData(objStructProperty.Struct);
-	}
+	if (INVALID_POINTER_VALUE(objStructProperty.Struct))
+		return UEScriptStruct();
 
 	return GetObjByAddress(objStructProperty.Struct).Cast<UEScriptStruct>();
 	// return UEScriptStruct(objStruct);
@@ -1082,13 +1036,8 @@ UEProperty UEArrayProperty::GetInner() const
 	if (objArrayProperty.Empty())
 		objArrayProperty = Object->Cast<UArrayProperty>();
 
-	if (inner.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objArrayProperty.Inner))
-			return UEProperty();
-
-		// inner.ReadData(objArrayProperty.Inner);
-	}
+	if (INVALID_POINTER_VALUE(objArrayProperty.Inner))
+		return UEProperty();
 
 	return GetObjByAddress(objArrayProperty.Inner).Cast<UEProperty>();
 	// return UEProperty(inner);
@@ -1126,13 +1075,8 @@ UEProperty UEMapProperty::GetKeyProperty() const
 	if (objMapProperty.Empty())
 		objMapProperty = Object->Cast<UMapProperty>();
 
-	if (keyProp.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objMapProperty.KeyProp))
-			return UEProperty();
-
-		// keyProp.ReadData(objMapProperty.KeyProp);
-	}
+	if (INVALID_POINTER_VALUE(objMapProperty.KeyProp))
+		return UEProperty();
 
 	return GetObjByAddress(objMapProperty.KeyProp).Cast<UEProperty>();
 	// return UEProperty(keyProp);
@@ -1143,13 +1087,8 @@ UEProperty UEMapProperty::GetValueProperty() const
 	if (objMapProperty.Empty())
 		objMapProperty = Object->Cast<UMapProperty>();
 
-	if (valueProp.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objMapProperty.ValueProp))
-			return UEProperty();
-
-		// valueProp.ReadData(objMapProperty.ValueProp);
-	}
+	if (INVALID_POINTER_VALUE(objMapProperty.ValueProp))
+		return UEProperty();
 
 	return GetObjByAddress(objMapProperty.ValueProp).Cast<UEProperty>();
 	// return UEProperty(valueProp);
@@ -1188,13 +1127,8 @@ UEFunction UEDelegateProperty::GetSignatureFunction() const
 	if (objDelegateProperty.Empty())
 		objDelegateProperty = Object->Cast<UDelegateProperty>();
 
-	if (signatureFunction.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
-			return UEFunction();
-
-		// signatureFunction.ReadData(objDelegateProperty.SignatureFunction);
-	}
+	if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
+		return UEFunction();
 
 	return GetObjByAddress(objDelegateProperty.SignatureFunction).Cast<UEFunction>();
 	// return UEFunction(signatureFunction);
@@ -1224,13 +1158,8 @@ UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 	if (objDelegateProperty.Empty())
 		objDelegateProperty = Object->Cast<UDelegateProperty>();
 
-	if (signatureFunction.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
-			return UEFunction();
-
-		// signatureFunction.ReadData(objDelegateProperty.SignatureFunction);
-	}
+	if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
+		return UEFunction();
 
 	return GetObjByAddress(objDelegateProperty.SignatureFunction).Cast<UEFunction>();
 	// return UEFunction(signatureFunction);
@@ -1260,13 +1189,8 @@ UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 	if (objEnumProperty.Empty())
 		objEnumProperty = Object->Cast<UEnumProperty>();
 
-	if (underlyingProp.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objEnumProperty.UnderlyingProp))
-			return UENumericProperty();
-
-		// underlyingProp.ReadData(objEnumProperty.UnderlyingProp);
-	}
+	if (INVALID_POINTER_VALUE(objEnumProperty.UnderlyingProp))
+		return UENumericProperty();
 
 	return GetObjByAddress(objEnumProperty.UnderlyingProp).Cast<UENumericProperty>();
 	// return UENumericProperty(underlyingProp);
@@ -1277,13 +1201,8 @@ UEEnum UEEnumProperty::GetEnum() const
 	if (objEnumProperty.Empty())
 		objEnumProperty = Object->Cast<UEnumProperty>();
 
-	if (Enum.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objEnumProperty.Enum))
-			return UEEnum();
-
-		// Enum.ReadData(objEnumProperty.Enum);
-	}
+	if (INVALID_POINTER_VALUE(objEnumProperty.Enum))
+		return UEEnum();
 
 	return GetObjByAddress(objEnumProperty.Enum).Cast<UEEnum>();
 	// return UEEnum(Enum);
@@ -1318,13 +1237,8 @@ UEEnum UEByteProperty::GetEnum() const
 	if (objByteProperty.Empty())
 		objByteProperty = Object->Cast<UByteProperty>();
 
-	if (enumProperty.Empty())
-	{
-		if (INVALID_POINTER_VALUE(objByteProperty.Enum))
-			return UEEnum();
-
-		// enumProperty.ReadData(objByteProperty.Enum);
-	}
+	if (INVALID_POINTER_VALUE(objByteProperty.Enum))
+		return UEEnum();
 
 	return GetObjByAddress(objByteProperty.Enum).Cast<UEEnum>();
 	// return UEEnum(enumProperty);
