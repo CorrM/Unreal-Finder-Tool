@@ -245,7 +245,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
 	}
 
-	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
+	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCpp());
 	ss.NameCppFull = "struct ";
 
 	//some classes need special alignment
@@ -294,12 +294,12 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 		%s ret;
 		%s(address, ret);
 		return ret;
-	})", scriptStructObj.GetNameCPP(), scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+	})", scriptStructObj.GetNameCpp(), scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
 
 		ss.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
-	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
+	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
@@ -369,7 +369,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
 	}
 
-	c.NameCpp = MakeValidName(classObj.GetNameCPP());
+	c.NameCpp = MakeValidName(classObj.GetNameCpp());
 	c.NameCppFull = "class " + c.NameCpp;
 
 	c.Size = classObj.GetPropertySize();
@@ -381,7 +381,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	if (super.IsValid() && super != classObj)
 	{
 		c.InheritedSize = offset = super.GetPropertySize();
-		c.NameCppFull += " : public " + MakeValidName(super.GetNameCPP());
+		c.NameCppFull += " : public " + MakeValidName(super.GetNameCpp());
 	}
 
 	std::vector<IGenerator::PredefinedMember> predefinedStaticMembers;
@@ -442,11 +442,11 @@ void Package::GenerateClass(const UEClass& classObj)
 		%s ret;
 		%s(address, ret);
 		return ret;
-	})", classObj.GetNameCPP(), classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+	})", classObj.GetNameCpp(), classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
 		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
-	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
+	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 	else
 	{
@@ -474,7 +474,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 		{
 			int ptrSize = Utils::PointerSize();
-			uintptr_t vTableAddress = classObj.Object.VfTable;
+			uintptr_t vTableAddress = classObj.Object->VfTable;
 			std::vector<uintptr_t> vTable;
 
 			size_t methodCount = 0;

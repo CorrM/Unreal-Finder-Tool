@@ -9,19 +9,20 @@
 #include "EngineClasses.h"
 
 class UEClass;
+inline UObject UObjectEmpty; // IsValid Will Return False for it
 
 class UEObject
 {
 protected:
-	mutable UClass objClass{};
+	mutable UClass objClass;
 	mutable uintptr_t packageAddress = NULL;
 	mutable std::string objName, fullName, nameCpp;
 
 public:
-	UObject Object;
+	UObject* Object;
 
-	UEObject() = default;
-	explicit UEObject(const UObject object) : Object(object) { }
+	UEObject() : Object(&UObjectEmpty) {}
+	explicit UEObject(UObject* object) : Object(object) {}
 
 	uintptr_t GetAddress() const;
 	bool IsValid() const;
@@ -30,7 +31,7 @@ public:
 	std::string GetName() const;
 	std::string GetInstanceClassName() const;
 	std::string GetFullName() const;
-	std::string GetNameCPP() const;
+	std::string GetNameCpp() const;
 
 	UEClass GetClass() const;
 	UEObject& GetOuter() const;
@@ -39,7 +40,13 @@ public:
 	template<typename Base>
 	Base Cast() const
 	{
-		return Base(Object);
+		Base tmp;
+		// Make Compiler think tmp is `UEObject`
+		// Then call copy assignment
+		// That's to keep copy size as `UEObject`. (either that's will case a memory problem)
+		static_cast<std::decay<decltype(*this)>::type&>(tmp) = *this;
+		return tmp;
+		// return Base(Object);
 	}
 
 	template<typename T>
@@ -48,8 +55,8 @@ public:
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
 
-	static std::string TypeName();
-
+	static std::string TypeName(); // Change To Enum, cmp str is slow nahhh
+	static UEObject& GetObjByAddress(uintptr_t address);
 	static UEClass StaticClass();
 };
 
@@ -653,6 +660,9 @@ bool UEObject::IsA() const
 	{
 		if (super.GetName() == cmpTypeName)
 			return true;
+
+		UEObject& gg = GetObjByAddress(super.GetAddress());
+		std::string ggg = gg.objName;
 	}
 	return false;
 }

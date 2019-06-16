@@ -83,7 +83,7 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	{
 		Dump(outputDirectory);
 		state = "Dump (GNames/GObjects) Done.";
-		Sleep(3 * 1000);
+		Sleep(2 * 1000);
 	}
 
 	// Dump Packages
@@ -310,7 +310,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 			os2 << "// " << s.GetFullName() << "\n// ";
 			os2 << tfm::format("0x%04X\n", s.GetPropertySize());
 
-			os2 << "struct " << MakeValidName(s.GetNameCPP()) << "\n{\n";
+			os2 << "struct " << MakeValidName(s.GetNameCpp()) << "\n{\n";
 			os2 << "\tunsigned char UnknownData[0x" << tfm::format("%X", s.GetPropertySize()) << "];\n};\n\n";
 		}
 

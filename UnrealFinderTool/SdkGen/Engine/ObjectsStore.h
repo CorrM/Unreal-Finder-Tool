@@ -1,6 +1,6 @@
 #pragma once
-#include "GenericTypes.h"
 #include <unordered_map>
+#include "GenericTypes.h"
 
 class ObjectsIterator;
 class Memory;
@@ -23,8 +23,6 @@ class ObjectsStore
 	bool GetGObjectInfo();
 	bool ReadUObjectArray();
 	bool ReadUObject(uintptr_t uObjectAddress, UEObject& retUObj);
-
-	bool IsValidUObject(const UObject& uObject, bool outerCheck = false) const;
 
 public:
 	static GObjectInfo GInfo;

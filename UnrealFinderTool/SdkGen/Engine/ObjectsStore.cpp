@@ -15,9 +15,18 @@ bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReIni
 	if (!forceReInit && GInfo.GObjAddress != NULL)
 		return true;
 
+	// Destroy old object's from heap
+	for (size_t i = 0; i < GObjObjects.size(); i++)
+	{
+		delete GObjObjects[i].second->Object;
+		GObjObjects[i].second->Object = nullptr;
+	}
+
+	// Clear
 	GObjObjects.clear();
 	GInfo.Count = 0;
 	GInfo.GObjAddress = gObjAddress;
+
 	return tmp.FetchData();
 }
 
@@ -132,45 +141,10 @@ bool ObjectsStore::ReadUObjectArray()
 
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, UEObject& retUObj)
 {
-	UObject tmp;
-	if (!tmp.ReadData(uObjectAddress)) return false;
+	auto tmp = new UObject();
+	if (!tmp->ReadData(uObjectAddress)) return false;
 
 	retUObj.Object = tmp;
-	return true;
-}
-
-bool ObjectsStore::IsValidUObject(const UObject& uObject, const bool outerCheck) const
-{
-	if (NamesStore().GetNamesNum() == 0)
-		throw std::exception("Init NamesStore first.");
-
-	// Check if FName Index is bigger than current names count
-	if (size_t(uObject.Name.ComparisonIndex) >= NamesStore().GetNamesNum()) return false;
-
-	// Check internal index, it's must be bigger than the last one [ By one ]
-	if (!outerCheck && !GObjObjects.empty())
-	{
-		UEObject& lastObj = *GObjObjects.back().second;
-		if (uObject.InternalIndex < lastObj.Object.InternalIndex ||
-			uObject.InternalIndex > lastObj.Object.InternalIndex + 5)
-			return false;
-	}
-
-	// Check Outer is == NULL or Valid
-	if (uObject.Outer != NULL)
-	{
-		bool found;
-		UEObject& outer2 = GetByAddress(uObject.Outer, found);
-
-		// if not found
-		if (!found) return false;
-
-		// if found, check is valid or not
-		if (!IsValidUObject(outer2.Object, true)) return false;
-	}
-
-	// Check class
-
 	return true;
 }
 
