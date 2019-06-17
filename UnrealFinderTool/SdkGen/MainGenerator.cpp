@@ -14,7 +14,14 @@ public:
 	{
 		keywordsName =
 		{
-			{"return", "returnValue"}
+			{"return", "returnValue"},
+			{"int", "intValue"}
+		};
+
+		badChars =
+		{
+			{",", ""},
+			{"!", ""}
 		};
 
 		alignasClasses =

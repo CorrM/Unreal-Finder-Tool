@@ -211,12 +211,20 @@ public:
 	/// <returns>If no override is found the original name is returned.</returns>
 	virtual std::string GetSafeKeywordsName(const std::string& name) const
 	{
-		auto it = keywordsName.find(name);
+		std::string ret = name;
+		auto it = keywordsName.find(ret);
 		if (it == std::end(keywordsName))
 		{
-			return name;
+			for (const auto& badChar : badChars)
+				ret = Utils::ReplaceString(ret, badChar.second, "");
+			return ret;
 		}
-		return it->second;
+
+		ret = it->second;
+		for (const auto& badChar : badChars)
+			ret = Utils::ReplaceString(ret, badChar.second, "");
+
+		return ret;
 	}
 
 	struct PredefinedMember
@@ -334,6 +342,7 @@ public:
 
 protected:
 	std::unordered_map<std::string, size_t> alignasClasses;
+	std::unordered_map<std::string, std::string> badChars;
 	std::unordered_map<std::string, std::string> keywordsName;
 	std::unordered_map<std::string, std::string> overrideTypes;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedMembers;
