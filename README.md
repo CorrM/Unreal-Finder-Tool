@@ -17,6 +17,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 This video tell you how to use the tool and dump sdk for ue4 game.
 - Some changes before watch the video.
   - Now you don't need to do any thing about GNames address since now you just need to click `use` button.
+
 [![Youtube Video](/images/youtube_thumbnail.png)](https://www.youtube.com/watch?v=3CjsrnvKtGs)
 
 # Screen Shots
@@ -25,13 +26,13 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 ![ui_3](/images/ui_3.png)
 
 # Download
-Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest).
+[![Last Version](/images/download.gif)](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest)
 
 # Credits
 - [@CorrM](https://github.com/CorrM).
 - [@WheresMyRide](https://github.com/WheresMyRide).
 - @KN4CK3R.
-- @harakirinox.
+- [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html).
 
 # Change Log
 ##### 09-07-2019

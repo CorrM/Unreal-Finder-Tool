@@ -53,7 +53,7 @@ public:
 	// Check file Exists
 	bool FileExists(const std::string& filePath);
 	// Load engine structs from `EngineBase.json`
-	static bool LoadEngineCore();
+	static bool LoadEngineCore(std::vector<std::string>& ue_versions_container);
 	// Override engine structs that load form another engine structs, `engineVersion` must look like '4.0.0'
 	static void OverrideLoadedEngineCore(const std::string& engineVersion);
 	// Split string by other string
@@ -101,9 +101,9 @@ public:
 	/// Fix pointers size in struct or class. used for convert 64bit to 32bit pointer.
 	/// </summary>
 	/// <param name="structBase">Pointer to instance of `ElementType`</param>
-	/// <param name="fullStructSize">Full size of struct => (Base Structs + Target struct)</param>
+	/// <param name="fullCppStructSize">Full size of struct => (Base Structs + Target struct)</param>
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
-	template <typename ElementType> static void FixPointers(ElementType* structBase, int fullStructSize, std::vector<int> varsOffsets);
+	template <typename ElementType> static void FixPointers(ElementType* structBase, size_t fullCppStructSize, std::vector<int> varsOffsets);
 
 	static int DetectUnrealGameId(HWND* windowHandle);
 	static int DetectUnrealGameId();
@@ -117,7 +117,7 @@ private:
 	/// <param name="structBase">Pointer to instance of struct</param>
 	/// <param name="varOffset">Offset to variable based on `structBase`</param>
 	/// <param name="structSize">Size of struct</param>
-	static void FixStructPointer(void* structBase, int varOffset, int structSize);
+	static void FixStructPointer(void* structBase, int varOffset, size_t structSize);
 };
 
 template <typename ElementType>
@@ -129,11 +129,11 @@ void Utils::FixPointer(ElementType* structBase, const int varOffset)
 }
 
 template <typename ElementType>
-void Utils::FixPointers(ElementType* structBase, const int fullStructSize, std::vector<int> varsOffsets)
+void Utils::FixPointers(ElementType* structBase, const size_t fullCppStructSize, std::vector<int> varsOffsets)
 {
 	if (ProgramIs64() && MemoryObj->Is64Bit)
 		return;
 
 	for (int varOff : varsOffsets)
-		FixStructPointer(structBase, varOff, fullStructSize);
+		FixStructPointer(structBase, varOff, fullCppStructSize);
 }

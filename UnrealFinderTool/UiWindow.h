@@ -30,6 +30,7 @@ class UiWindow
 	WNDCLASSEX wc;
 	bool closed;
 	UiFunc uiFunc;
+	HANDLE loopThreadHandle;
 	std::thread loopThread;
 	WindowSettings settings;
 	ImGuiStyle* uiStyle;

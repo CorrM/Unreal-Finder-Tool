@@ -5,6 +5,12 @@
 #include <utility>
 #include <vector>
 
+enum class ParallelType
+{
+	Queue,
+	SingleShot
+};
+
 struct ParallelOptions
 {
 	std::mutex Locker;
@@ -15,18 +21,25 @@ template <typename VecType>
 class ParallelWorker
 {
 	using Lock = std::lock_guard<std::mutex>;
-	using ParallelFunction = std::function<void(VecType&, ParallelOptions&)>;
+	using QueueFunc = std::function<void(VecType&, ParallelOptions&)>;
+	using SingleShotFunc = std::function<void(ParallelOptions&)>;
 
-	ParallelFunction func;
+	QueueFunc funcQueue;
+	SingleShotFunc funcSingleShot;
+
 	std::vector<std::thread> threads;
-	std::vector<VecType>& queue;
 	int threadsCount;
+
+	ParallelType type;
+
 	size_t curIndex;
+	std::vector<VecType>& queue;
 
 public:
-	ParallelOptions Options;
+	ParallelOptions Options{};
 
-	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, ParallelFunction func);
+	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, QueueFunc func);
+	ParallelWorker(int threadNum, SingleShotFunc func);
 	void Start();
 	void WaitAll();
 	static uint32_t GetCpuCores();
@@ -35,12 +48,23 @@ private:
 };
 
 template <typename VecType>
-ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const int vecStartIndex, const int threadNum, ParallelFunction func):
-	func(std::move(func)),
-	queue(vecQueue),
+ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const int vecStartIndex, const int threadNum, QueueFunc func) :
+	funcQueue(std::move(func)),
 	threadsCount(threadNum),
+	type(ParallelType::Queue),
 	curIndex(vecStartIndex),
-	Options()
+	queue(vecQueue)
+{
+}
+
+// Go to use while(true) or something like that
+template <typename VecType>
+ParallelWorker<VecType>::ParallelWorker(const int threadNum, SingleShotFunc func) :
+	funcSingleShot(std::move(func)),
+	threadsCount(threadNum),
+	type(ParallelType::SingleShot),
+	curIndex(0),
+	queue(std::vector<VecType>{})
 {
 }
 
@@ -70,23 +94,30 @@ uint32_t ParallelWorker<VecType>::GetCpuCores()
 template <typename VecType>
 void ParallelWorker<VecType>::Worker()
 {
-	VecType* curItem;
-	while (curIndex < queue.size())
+	if (type == ParallelType::Queue)
 	{
-		// Lock Scope (DeQueue item)
+		VecType* curItem;
+		while (curIndex < queue.size())
 		{
-			Lock lock(Options.Locker);
-
-			if (curIndex >= queue.size() || Options.ForceStop)
+			// Lock Scope (DeQueue item)
 			{
-				Options.ForceStop = true;
-				break;
+				Lock lock(Options.Locker);
+
+				if (curIndex >= queue.size() || Options.ForceStop)
+				{
+					Options.ForceStop = true;
+					break;
+				}
+
+				curItem = &queue[curIndex];
+				++curIndex;
 			}
 
-			curItem = &queue[curIndex];
-			++curIndex;
+			funcQueue(*curItem, Options);
 		}
-
-		func(*curItem, Options);
+	}
+	else if (type == ParallelType::SingleShot)
+	{
+		funcSingleShot(Options);
 	}
 }

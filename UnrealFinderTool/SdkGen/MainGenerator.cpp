@@ -241,7 +241,7 @@ public:
 	std::string GetBasicDeclarations() const override
 	{
 		return R"(template<typename Fn>
-inline Fn GetVFunction(const void *instance, std::size_t index)
+inline Fn GetVFunction(const void* instance, std::size_t index)
 {
 	auto vtable = *reinterpret_cast<const void***>(const_cast<void*>(instance));
 	return reinterpret_cast<Fn>(vtable[index]);
@@ -471,7 +471,7 @@ struct FName
 			}
 		}
 
-		for (auto i = 0; i < GetGlobalNames().Num(); ++i)
+		for (size_t i = 0; i < GetGlobalNames().Num(); ++i)
 		{
 			if (GetGlobalNames()[i] != nullptr)
 			{
