@@ -18,13 +18,13 @@ public:
 
 	UnsortedMapIt find(const K& ref)
 	{
-		return std::find_if(this->begin(), this->end(), [ref](const std::pair<K, V>& vecItem)
+		return std::find_if(this->begin(), this->end(), [&ref](const std::pair<K, V>& vecItem)
 		{
 			return vecItem.first == ref;
 		});
 	}
 
-	V& Find(const K& ref, bool& success)
+	V* Find(const K& ref, bool& success)
 	{
 		auto it = std::find_if(this->begin(), this->end(), [&](const std::pair<K, V>& vecItem) -> bool
 		{
@@ -33,12 +33,11 @@ public:
 
 		success = it != this->end();
 		if (success)
-			return it->second;
-		V tmp = {};
-		return tmp; // if code hit this point then maybe there a problem need to solve :D
+			return &it->second;
+		return nullptr; // if code hit this point then maybe there a problem need to solve :D
 	}
 
-	V& Find(const K& ref)
+	V* Find(const K& ref)
 	{
 		bool tmp;
 		return Find(ref, tmp);

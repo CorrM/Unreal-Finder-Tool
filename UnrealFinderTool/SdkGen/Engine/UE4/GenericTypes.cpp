@@ -38,9 +38,9 @@ size_t UEObject::GetIndex() const
 std::string UEObject::GetName() const
 {
 	// Get Original Object, if not have a value update it
-	auto& obj = GetObjByAddress(GetAddress());
-	if (!obj.objName.empty())
-		return obj.objName;
+	UEObject* obj = GetObjByAddress(GetAddress());
+	if (!obj->objName.empty())
+		return obj->objName;
 
 	auto name = NamesStore().GetByIndex(Object->Name.ComparisonIndex);
 	if (!name.empty() && Object->Name.Number > 0)
@@ -50,15 +50,15 @@ std::string UEObject::GetName() const
 	if (pos == std::string::npos)
 	{
 		// Update original and local
-		obj.objName = name;
-		this->objName = obj.objName;
+		obj->objName = name;
+		this->objName = obj->objName;
 
 		return name;
 	}
 
 	// Update original and local
-	obj.objName = name.substr(pos + 1);
-	this->objName = obj.objName;
+	obj->objName = name.substr(pos + 1);
+	this->objName = obj->objName;
 
 	return objName;
 }
@@ -68,25 +68,25 @@ std::string UEObject::GetInstanceClassName() const
 	if (!IsValid()) return "";
 
 	bool find;
-	auto& obj = ObjectsStore().GetByAddress(GetAddress(), find);
+	UEObject* obj = ObjectsStore().GetByAddress(GetAddress(), find);
 
-	return find ? obj.GetClass().GetNameCpp() : "";
+	return find ? obj->GetClass().GetNameCpp() : "";
 }
 
 std::string UEObject::GetFullName() const
 {
 	// Get Original Object, if not have a value update it
-	auto& obj = GetObjByAddress(GetAddress());
-	if (!obj.fullName.empty())
-		return obj.fullName;
+	UEObject* obj = GetObjByAddress(GetAddress());
+	if (!obj->fullName.empty())
+		return obj->fullName;
 
 	auto cClass = GetClass();
 	if (cClass.IsValid())
 	{
 		std::string temp;
 
-		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
-			temp.insert(0, outer.GetName() + ".");
+		for (auto outer = GetOuter(); outer->IsValid(); outer = outer->GetOuter())
+			temp.insert(0, outer->GetName() + ".");
 
 		std::string name = cClass.GetName();
 		name += " ";
@@ -94,7 +94,7 @@ std::string UEObject::GetFullName() const
 		name += GetName();
 
 		// Update original and local
-		obj.fullName = name;
+		obj->fullName = name;
 		this->fullName = name;
 
 		return fullName;
@@ -106,9 +106,9 @@ std::string UEObject::GetFullName() const
 std::string UEObject::GetNameCpp() const
 {
 	// Get Original Object, if not have a value update it
-	auto& obj = GetObjByAddress(GetAddress());
-	if (!obj.nameCpp.empty())
-		return obj.nameCpp;
+	UEObject* obj = GetObjByAddress(GetAddress());
+	if (!obj->nameCpp.empty())
+		return obj->nameCpp;
 
 	std::string name;
 	if (IsA<UEClass>())
@@ -139,7 +139,7 @@ std::string UEObject::GetNameCpp() const
 	name += GetName();
 
 	// Update original and local
-	obj.nameCpp = name;
+	obj->nameCpp = name;
 	this->nameCpp = name;
 
 	return name;
@@ -151,35 +151,31 @@ UEClass UEObject::GetClass() const
 	/*if (INVALID_POINTER_VALUE(Object->Class))
 		return UEClass();*/
 
-	return GetObjByAddress(Object->Class).Cast<UEClass>();
+	return GetObjByAddress(Object->Class)->Cast<UEClass>();
 	// return UEClass(objClass);
 }
 
-UEObject& UEObject::GetOuter() const
+UEObject* UEObject::GetOuter() const
 {
 	if (INVALID_POINTER_VALUE(Object->Outer))
-		return UEObjectEmpty;
+		return &UEObjectEmpty;
 
 	bool found;
-	UEObject& outer = ObjectsStore().GetByAddress(Object->Outer, found);
+	UEObject* outer = ObjectsStore().GetByAddress(Object->Outer, found);
 
-	return found ? outer : UEObjectEmpty;
+	return found ? outer : &UEObjectEmpty;
 }
 
-UEObject& UEObject::GetPackageObject() const
+UEObject* UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	if (packageAddress == NULL)
+	if (!package)
 	{
-		UObject* package = nullptr;
-		for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
-			package = outer.Object;
-
-		// If outer == null then this object is Package
-		packageAddress = !package || package->ObjAddress == NULL ? Object->ObjAddress : package->ObjAddress;
+		for (UEObject* outer = GetOuter(); outer->IsValid(); outer = outer->GetOuter())
+			package = outer;
 	}
 
-	return ObjectsStore().GetByAddress(packageAddress);
+	return package;
 }
 
 int UEObject::TypeId()
@@ -188,7 +184,7 @@ int UEObject::TypeId()
 	return ret;
 }
 
-UEObject& UEObject::GetObjByAddress(const uintptr_t address)
+UEObject* UEObject::GetObjByAddress(const uintptr_t address)
 {
 	return ObjectsStore().GetByAddress(address);
 }
@@ -209,7 +205,7 @@ UEField UEField::GetNext() const
 	if (INVALID_POINTER_VALUE(objField.Next))
 		return UEField();
 
-	return GetObjByAddress(objField.Next).Cast<UEField>();
+	return GetObjByAddress(objField.Next)->Cast<UEField>();
 	// return UEField(next);
 }
 
@@ -293,7 +289,7 @@ UEStruct UEStruct::GetSuper() const
 	if (INVALID_POINTER_VALUE(objStruct.SuperField))
 		return UEStruct();
 
-	return GetObjByAddress(objStruct.SuperField).Cast<UEStruct>();
+	return GetObjByAddress(objStruct.SuperField)->Cast<UEStruct>();
 	// return UEStruct(superField);
 }
 
@@ -305,7 +301,7 @@ UEField UEStruct::GetChildren() const
 	if (INVALID_POINTER_VALUE(objStruct.Children))
 		return UEField();
 
-	return GetObjByAddress(objStruct.Children).Cast<UEField>();
+	return GetObjByAddress(objStruct.Children)->Cast<UEField>();
 	// return UEField(children);
 }
 
@@ -770,7 +766,7 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 	if (INVALID_POINTER_VALUE(objObjectPropertyBase.PropertyClass))
 		return UEClass();
 
-	return GetObjByAddress(objObjectPropertyBase.PropertyClass).Cast<UEClass>();
+	return GetObjByAddress(objObjectPropertyBase.PropertyClass)->Cast<UEClass>();
 	// return UEClass(propertyClass);
 }
 
@@ -815,7 +811,7 @@ UEClass UEClassProperty::GetMetaClass() const
 	if (INVALID_POINTER_VALUE(objClassProperty.MetaClass))
 		return UEClass();
 
-	return GetObjByAddress(objClassProperty.MetaClass).Cast<UEClass>();
+	return GetObjByAddress(objClassProperty.MetaClass)->Cast<UEClass>();
 	// return UEClass(metaClass);
 }
 
@@ -846,7 +842,7 @@ UEClass UEInterfaceProperty::GetInterfaceClass() const
 	if (INVALID_POINTER_VALUE(objInterfaceProperty.InterfaceClass))
 		return UEClass();
 
-	return GetObjByAddress(objInterfaceProperty.InterfaceClass).Cast<UEClass>();
+	return GetObjByAddress(objInterfaceProperty.InterfaceClass)->Cast<UEClass>();
 	// return UEClass(interfaceClass);
 }
 
@@ -934,7 +930,7 @@ UEClass UEAssetClassProperty::GetMetaClass() const
 	if (INVALID_POINTER_VALUE(objAssetClassProperty.MetaClass))
 		return UEClass();
 
-	return GetObjByAddress(objAssetClassProperty.MetaClass).Cast<UEClass>();
+	return GetObjByAddress(objAssetClassProperty.MetaClass)->Cast<UEClass>();
 	// return UEClass(metaClass);
 }
 
@@ -984,7 +980,7 @@ UEScriptStruct UEStructProperty::GetStruct() const
 	if (INVALID_POINTER_VALUE(objStructProperty.Struct))
 		return UEScriptStruct();
 
-	return GetObjByAddress(objStructProperty.Struct).Cast<UEScriptStruct>();
+	return GetObjByAddress(objStructProperty.Struct)->Cast<UEScriptStruct>();
 	// return UEScriptStruct(objStruct);
 }
 
@@ -1053,7 +1049,7 @@ UEProperty UEArrayProperty::GetInner() const
 	if (INVALID_POINTER_VALUE(objArrayProperty.Inner))
 		return UEProperty();
 
-	return GetObjByAddress(objArrayProperty.Inner).Cast<UEProperty>();
+	return GetObjByAddress(objArrayProperty.Inner)->Cast<UEProperty>();
 	// return UEProperty(inner);
 }
 
@@ -1092,7 +1088,7 @@ UEProperty UEMapProperty::GetKeyProperty() const
 	if (INVALID_POINTER_VALUE(objMapProperty.KeyProp))
 		return UEProperty();
 
-	return GetObjByAddress(objMapProperty.KeyProp).Cast<UEProperty>();
+	return GetObjByAddress(objMapProperty.KeyProp)->Cast<UEProperty>();
 	// return UEProperty(keyProp);
 }
 
@@ -1104,7 +1100,7 @@ UEProperty UEMapProperty::GetValueProperty() const
 	if (INVALID_POINTER_VALUE(objMapProperty.ValueProp))
 		return UEProperty();
 
-	return GetObjByAddress(objMapProperty.ValueProp).Cast<UEProperty>();
+	return GetObjByAddress(objMapProperty.ValueProp)->Cast<UEProperty>();
 	// return UEProperty(valueProp);
 }
 
@@ -1144,7 +1140,7 @@ UEFunction UEDelegateProperty::GetSignatureFunction() const
 	if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
 		return UEFunction();
 
-	return GetObjByAddress(objDelegateProperty.SignatureFunction).Cast<UEFunction>();
+	return GetObjByAddress(objDelegateProperty.SignatureFunction)->Cast<UEFunction>();
 	// return UEFunction(signatureFunction);
 }
 
@@ -1175,7 +1171,7 @@ UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 	if (INVALID_POINTER_VALUE(objDelegateProperty.SignatureFunction))
 		return UEFunction();
 
-	return GetObjByAddress(objDelegateProperty.SignatureFunction).Cast<UEFunction>();
+	return GetObjByAddress(objDelegateProperty.SignatureFunction)->Cast<UEFunction>();
 	// return UEFunction(signatureFunction);
 }
 
@@ -1206,7 +1202,7 @@ UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 	if (INVALID_POINTER_VALUE(objEnumProperty.UnderlyingProp))
 		return UENumericProperty();
 
-	return GetObjByAddress(objEnumProperty.UnderlyingProp).Cast<UENumericProperty>();
+	return GetObjByAddress(objEnumProperty.UnderlyingProp)->Cast<UENumericProperty>();
 	// return UENumericProperty(underlyingProp);
 }
 
@@ -1218,7 +1214,7 @@ UEEnum UEEnumProperty::GetEnum() const
 	if (INVALID_POINTER_VALUE(objEnumProperty.Enum))
 		return UEEnum();
 
-	return GetObjByAddress(objEnumProperty.Enum).Cast<UEEnum>();
+	return GetObjByAddress(objEnumProperty.Enum)->Cast<UEEnum>();
 	// return UEEnum(Enum);
 }
 
@@ -1254,7 +1250,7 @@ UEEnum UEByteProperty::GetEnum() const
 	if (INVALID_POINTER_VALUE(objByteProperty.Enum))
 		return UEEnum();
 
-	return GetObjByAddress(objByteProperty.Enum).Cast<UEEnum>();
+	return GetObjByAddress(objByteProperty.Enum)->Cast<UEEnum>();
 	// return UEEnum(enumProperty);
 }
 

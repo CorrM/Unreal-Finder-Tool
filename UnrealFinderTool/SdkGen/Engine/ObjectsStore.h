@@ -51,15 +51,15 @@ public:
 	/// </summary>
 	/// <param name="index">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject& GetByIndex(size_t index) const;
+	UEObject* GetByIndex(size_t index) const;
 
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="objAddress">The address of object.</param>
 	/// <returns>The object.</returns>
-	UEObject& GetByAddress(uintptr_t objAddress) const;
-	UEObject& GetByAddress(uintptr_t objAddress, bool& success) const;
+	UEObject* GetByAddress(uintptr_t objAddress) const;
+	UEObject* GetByAddress(uintptr_t objAddress, bool& success) const;
 
 	/// <summary>
 	/// Searches for the first class with the given name.
@@ -94,7 +94,7 @@ size_t ObjectsStore::CountObjects(const std::string& name) const
 	size_t count = 0;
 	ParallelWorker<UEObject> worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
 	{
-		while (GObjObjects.size() > index)
+		while (index > GObjObjects.size())
 		{
 			UEObject* curObj;
 
@@ -125,7 +125,7 @@ class ObjectsIterator : public std::iterator<std::forward_iterator_tag, UEObject
 {
 	const ObjectsStore& store;
 	size_t index;
-	UEObject current{};
+	UEObject* current;
 
 public:
 	/// <summary>Constructor.</summary>

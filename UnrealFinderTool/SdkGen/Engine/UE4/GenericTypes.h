@@ -15,7 +15,8 @@ class UEObject
 {
 protected:
 	mutable UClass objClass;
-	mutable uintptr_t packageAddress = NULL;
+	mutable UEObject* outer = nullptr;
+	mutable UEObject* package = nullptr;
 	mutable std::string objName, fullName, nameCpp;
 
 public:
@@ -34,8 +35,8 @@ public:
 	std::string GetNameCpp() const;
 
 	UEClass GetClass() const;
-	UEObject& GetOuter() const;
-	UEObject& GetPackageObject() const;
+	UEObject* GetOuter() const;
+	UEObject* GetPackageObject() const;
 
 	template<typename Base>
 	Base Cast() const
@@ -56,7 +57,7 @@ public:
 	bool IsA(const std::string& typeName) const;
 
 	static int TypeId();
-	static UEObject& GetObjByAddress(uintptr_t address);
+	static UEObject* GetObjByAddress(uintptr_t address);
 	static UEClass StaticClass();
 };
 
@@ -640,15 +641,11 @@ bool UEObject::IsA() const
 {
 	if (!IsValid()) return false;
 
-	// Change typename cmp with FName id, cmp str is slow nahhh
 	int cmpTypeId = T::TypeId();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
 		if (super.Object->Name.ComparisonIndex == cmpTypeId)
 			return true;
-
-		UEObject& gg = GetObjByAddress(super.GetAddress());
-		std::string ggg = gg.objName;
 	}
 	return false;
 }

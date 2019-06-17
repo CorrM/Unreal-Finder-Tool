@@ -92,7 +92,6 @@ bool ObjectsStore::ReadUObjectArray()
 		int skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
-		uintptr_t lastObject = NULL;
 
 		for (size_t uIndex = 0; uIndex <= numElementsPerChunk; ++uIndex)
 		{
@@ -130,7 +129,6 @@ bool ObjectsStore::ReadUObjectArray()
 			}
 			skipCount = 0;
 
-			lastObject = dwUObject;
 			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
 			++GInfo.Count;
 		}
@@ -158,20 +156,20 @@ size_t ObjectsStore::GetObjectsNum() const
 	return GInfo.Count;
 }
 
-UEObject& ObjectsStore::GetByIndex(const size_t index) const
+UEObject* ObjectsStore::GetByIndex(const size_t index) const
 {
-	return *GObjObjects[index].second;
+	return GObjObjects[index].second.get();
 }
 
-UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress) const
 {
-	return *GObjObjects.Find(objAddress);
+	return GObjObjects.Find(objAddress)->get();
 }
 
-UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
 {
-	auto& uniquePtr = GObjObjects.Find(objAddress, success);
-	return success ? *uniquePtr : UEObjectEmpty;
+	auto uniquePtr = GObjObjects.Find(objAddress, success);
+	return success ? uniquePtr->get() : &UEObjectEmpty;
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -208,7 +206,8 @@ ObjectsIterator ObjectsStore::end() const
 
 ObjectsIterator::ObjectsIterator(const ObjectsStore& store)
 	: store(store),
-	  index(store.GetObjectsNum())
+	  index(store.GetObjectsNum()),
+	  current(nullptr)
 {
 }
 
@@ -251,7 +250,7 @@ ObjectsIterator& ObjectsIterator::operator++()
 	for (++index; index < ObjectsStore(store).GetObjectsNum(); ++index)
 	{
 		current = store.GetByIndex(index);
-		if (current.IsValid())
+		if (current->IsValid())
 		{
 			break;
 		}
@@ -278,8 +277,8 @@ bool ObjectsIterator::operator!=(const ObjectsIterator& rhs) const
 
 UEObject ObjectsIterator::operator*() const
 {
-	assert(current.IsValid() && "ObjectsIterator::current is not valid!");
-	return current;
+	assert(current->IsValid() && "ObjectsIterator::current is not valid!");
+	return *current;
 }
 
 UEObject ObjectsIterator::operator->() const

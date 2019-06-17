@@ -44,16 +44,18 @@ Package::Package(const UEObject& _packageObj)
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
+	// ToDo: add parallel here
+	// check if obj->GetPackageObject() is saved on the original `obj`
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const UEObject& obj = ObjectsStore().GetByIndex(i);
-		const UEObject& package = obj.GetPackageObject();
+		const UEObject* obj = ObjectsStore().GetByIndex(i);
+		const UEObject* package = obj->GetPackageObject();
 
-		if (packageObj == package)
+		if (packageObj == *package)
 		{
-			if (obj.IsA<UEEnum>())
+			if (obj->IsA<UEEnum>())
 			{
-				GenerateEnum(obj.Cast<UEEnum>());
+				GenerateEnum(obj->Cast<UEEnum>());
 			}
 			/* in UE4 there is no UEConst
 			else if (obj.IsA<UEConst>())
@@ -61,13 +63,13 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 				GenerateConst(obj.Cast<UEConst>());
 			}
 			*/
-			else if (obj.IsA<UEClass>())
+			else if (obj->IsA<UEClass>())
 			{
-				GeneratePrerequisites(obj, processedObjects);
+				GeneratePrerequisites(*obj, processedObjects);
 			}
-			else if (obj.IsA<UEScriptStruct>())
+			else if (obj->IsA<UEScriptStruct>())
 			{
-				GeneratePrerequisites(obj, processedObjects);
+				GeneratePrerequisites(*obj, processedObjects);
 			}
 
 			static int process_sleep_counter = 0;
@@ -136,21 +138,21 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 
 	processedObjects[obj] |= false;
 
-	auto& classPackage = obj.GetPackageObject();
-	if (!classPackage.IsValid())
+	auto classPackage = obj.GetPackageObject();
+	if (!classPackage->IsValid())
 		return;
 
-	if (AddDependency(classPackage))
+	if (AddDependency(*classPackage))
 		return;
 
 	if (!processedObjects[obj])
 	{
 		processedObjects[obj] = true;
 
-		auto& outer = obj.GetOuter();
-		if (outer.IsValid() && outer != obj)
+		auto outer = obj.GetOuter();
+		if (outer->IsValid() && *outer != obj)
 		{
-			GeneratePrerequisites(outer, processedObjects);
+			GeneratePrerequisites(*outer, processedObjects);
 		}
 
 		auto structObj = obj.Cast<UEStruct>();
@@ -187,13 +189,13 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 				auto byteProperty = prop.Cast<UEByteProperty>();
 				if (byteProperty.IsEnum())
 				{
-					AddDependency(byteProperty.GetEnum().GetPackageObject());
+					AddDependency(*byteProperty.GetEnum().GetPackageObject());
 				}
 			}
 			else if (prop.IsA<UEEnumProperty>())
 			{
 				auto enumProperty = prop.Cast<UEEnumProperty>();
-				AddDependency(enumProperty.GetEnum().GetPackageObject());
+				AddDependency(*enumProperty.GetEnum().GetPackageObject());
 			}
 		}
 		else if (info.Type == UEProperty::PropertyType::CustomStruct)

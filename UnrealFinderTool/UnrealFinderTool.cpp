@@ -451,7 +451,7 @@ void InformationSection(UiWindow* thiz)
 void MemoryInterface(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();

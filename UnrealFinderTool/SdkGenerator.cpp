@@ -122,10 +122,10 @@ void SdkGenerator::Dump(const fs::path& path)
 
 		for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 		{
-			if (ObjectsStore().GetByIndex(i).IsValid())
+			if (ObjectsStore().GetByIndex(i)->IsValid())
 			{
-				const UEObject& obj = ObjectsStore().GetByIndex(i);
-				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+				const UEObject* obj = ObjectsStore().GetByIndex(i);
+				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
 			}
 		}
 	}
@@ -164,7 +164,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 				++index;
 			}
 
-			UEObject* package = &curObj->GetPackageObject();
+			UEObject* package = curObj->GetPackageObject();
 			if (package->IsValid())
 			{
 				std::lock_guard lock(options.Locker);
@@ -216,6 +216,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		// Set Sleep Every
 		Utils::Settings.Parallel.SleepEvery = 30;
 	}
+
+	Sleep(100);
 
 	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";

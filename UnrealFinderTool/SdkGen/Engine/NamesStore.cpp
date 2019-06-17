@@ -63,7 +63,7 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 			if (!IsValidAddress(fNameAddress))
 			{
 				// Push Empty, if i just skip will case a problems, so just add empty item
-				tmp.Index = i;
+				tmp.Index = i + 1; // FNameEntity Index look like that 0 .. 2 .. 4 .. 6
 				tmp.AnsiName = "";
 
 				gNames.push_back(std::move(tmp));
@@ -126,15 +126,15 @@ std::string NamesStore::GetByIndex(const size_t id)
 
 int NamesStore::GetByName(const std::string& name)
 {
-	auto ret = std::find_if(gNames.begin(), gNames.end(), [&](FNameEntity& fName) -> bool
+	auto retIt = std::find_if(gNames.begin(), gNames.end(), [&](FNameEntity& fName) -> bool
 	{
 		return fName.AnsiName == name;
 	});
 
-	if (ret == gNames.end())
+	if (retIt == gNames.end())
 		return -1;
 
-	return ret->Index;
+	return std::distance(gNames.begin(), retIt);
 }
 #pragma endregion
 
