@@ -196,7 +196,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		UEObject* obj = packageObjects[0];
 
 		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects);
+		std::mutex tmp_lock;
+		package->Process(processedObjects, tmp_lock);
 		if (package->Save(sdkPath))
 		{
 			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
@@ -219,18 +220,18 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
-	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 1, threadCount, [&](UEObject* obj, ParallelOptions& gMutex)
+	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 1, threadCount, [&](UEObject* obj, ParallelOptions& options)
 	{
 		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects);
+		package->Process(processedObjects, options.Locker);
 		
 		{
-			std::lock_guard lock(gMutex.Locker);
+			std::lock_guard lock(options.Locker);
 			++*pPackagesDone;
 		}
 
 		{
-			std::lock_guard lock(gMutex.Locker);
+			std::lock_guard lock(options.Locker);
 			packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
 				"C: " + std::to_string(package->Classes.size()) + ", " +
 				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +

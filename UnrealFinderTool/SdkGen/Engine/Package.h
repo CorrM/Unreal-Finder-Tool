@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <filesystem>
+#include <mutex>
 
 namespace fs = std::filesystem;
 
@@ -28,7 +29,7 @@ public:
 	/// <summary>
 	/// Process the classes the package contains.
 	/// </summary>
-	void Process(std::unordered_map<UEObject, bool>& processedObjects);
+	void Process(std::unordered_map<UEObject, bool>& processedObjects, std::mutex& packageLocker);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.
