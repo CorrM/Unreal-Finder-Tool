@@ -746,11 +746,11 @@ void SdkGenerator(UiWindow* thiz)
 
 		// Packages Box
 		ui::SetNextItemWidth(RightWidth - 45.f);
-		ui::ListBox("##Packages_listbox",
+		ui::ListBoxA("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 8);
+			static_cast<int>(sg_packages_items.size()), 8, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,

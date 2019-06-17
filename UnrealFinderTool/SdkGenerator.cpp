@@ -225,19 +225,14 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects, options.Locker);
 		
-		{
-			std::lock_guard lock(options.Locker);
-			++*pPackagesDone;
-		}
+		std::lock_guard lock(options.Locker);
+		++*pPackagesDone;
 
-		{
-			std::lock_guard lock(options.Locker);
-			packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
-				"C: " + std::to_string(package->Classes.size()) + ", " +
-				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-				"E: " + std::to_string(package->Enums.size()) + " ]"
-			);
-		}
+		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+			"C: " + std::to_string(package->Classes.size()) + ", " +
+			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+			"E: " + std::to_string(package->Enums.size()) + " ]"
+		);
 
 		if (package->Save(sdkPath))
 		{
@@ -247,8 +242,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	});
 	packageProcess.Start();
 	packageProcess.WaitAll();
-
-	
 
 	if (!packages.empty())
 	{
