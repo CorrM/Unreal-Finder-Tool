@@ -768,9 +768,6 @@ void Package::SaveStructs(const fs::path & path) const
 {
 	extern IGenerator* generator;
 
-	if (constants.empty() && Enums.empty() && ScriptStructs.empty())
-		return;
-
 	std::ofstream os(path / GenerateFileName(FileContentType::Structs, *this));
 
 	PrintFileHeader(os, true);
@@ -804,15 +801,15 @@ void Package::SaveClasses(const fs::path& path) const
 {
 	extern IGenerator* generator;
 
-	if (Classes.empty())
-		return;
-
 	std::ofstream os(path / GenerateFileName(FileContentType::Classes, *this));
 
 	PrintFileHeader(os, true);
 
-	PrintSectionHeader(os, "Classes");
-	for (auto&& c : Classes) { PrintClass(os, c); os << "\n"; }
+	if (!Classes.empty())
+	{
+		PrintSectionHeader(os, "Classes");
+		for (auto&& c : Classes) { PrintClass(os, c); os << "\n"; }
+	}
 
 	PrintFileFooter(os);
 }
@@ -821,9 +818,6 @@ void Package::SaveFunctions(const fs::path & path) const
 {
 	extern IGenerator* generator;
 	using namespace cpplinq;
-
-	if (ScriptStructs.empty() && Classes.empty())
-		return;
 
 	// Skip Functions if it's external
 	if (generator->GetSdkType() == SdkType::External)
@@ -863,7 +857,7 @@ void Package::SaveFunctions(const fs::path & path) const
 		{
 			//Method Info
 			os << "// " << m.FullName << "\n"
-			   << "// (" << m.FlagsString << ")\n";
+				<< "// (" << m.FlagsString << ")\n";
 			if (!m.Parameters.empty())
 			{
 				os << "// Parameters:\n";
@@ -882,12 +876,9 @@ void Package::SaveFunctions(const fs::path & path) const
 	PrintFileFooter(os);
 }
 
-void Package::SaveFunctionParameters(const fs::path& path) const
+void Package::SaveFunctionParameters(const fs::path & path) const
 {
 	using namespace cpplinq;
-
-	if (Classes.empty())
-		return;
 
 	std::ofstream os(path / GenerateFileName(FileContentType::FunctionParameters, *this));
 
