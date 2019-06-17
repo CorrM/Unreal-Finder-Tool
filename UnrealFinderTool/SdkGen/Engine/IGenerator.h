@@ -204,6 +204,21 @@ public:
 		return it->second;
 	}
 
+	/// <summary>
+	/// Checks if a name is Cpp Keywords.
+	/// </summary>
+	/// <param name="name">The parameter name.</param>
+	/// <returns>If no override is found the original name is returned.</returns>
+	virtual std::string GetSafeKeywordsName(const std::string& name) const
+	{
+		auto it = keywordsName.find(name);
+		if (it == std::end(keywordsName))
+		{
+			return name;
+		}
+		return it->second;
+	}
+
 	struct PredefinedMember
 	{
 		std::string Type;
@@ -319,6 +334,7 @@ public:
 
 protected:
 	std::unordered_map<std::string, size_t> alignasClasses;
+	std::unordered_map<std::string, std::string> keywordsName;
 	std::unordered_map<std::string, std::string> overrideTypes;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedMembers;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedStaticMembers;

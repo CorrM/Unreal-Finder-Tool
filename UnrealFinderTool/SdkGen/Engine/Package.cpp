@@ -659,7 +659,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 	}
 }
 
-void Package::GenerateMethods(const UEClass& classObj, std::vector<Method> & methods) const
+void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const
 {
 	extern IGenerator* generator;
 
@@ -745,6 +745,8 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method> & met
 						}
 						break;
 					}
+
+					p.Name = generator->GetSafeKeywordsName(p.Name);
 
 					parameters.emplace_back(std::make_pair(prop, std::move(p)));
 				}

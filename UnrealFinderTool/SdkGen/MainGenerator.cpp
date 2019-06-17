@@ -12,6 +12,11 @@ class Generator final : public IGenerator
 public:
 	bool Initialize() override
 	{
+		keywordsName =
+		{
+			{"return", "returnValue"}
+		};
+
 		alignasClasses =
 		{
 			{ "ScriptStruct CoreUObject.Plane", 16 },
