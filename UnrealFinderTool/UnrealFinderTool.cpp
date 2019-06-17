@@ -886,7 +886,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Cleanup
 	if (Utils::MemoryObj)
 	{
-		Utils::MemoryObj->ResumeProcess();
+		/////////////////////////////////////////////Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 	}
