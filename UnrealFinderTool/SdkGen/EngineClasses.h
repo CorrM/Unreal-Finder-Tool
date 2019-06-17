@@ -339,11 +339,11 @@ public:
 	// Object remote address
 	uintptr_t ObjAddress = NULL;
 
-	size_t Index;
+	int Index;
 	std::string AnsiName;
 
 	FNameEntity() = default;
-	explicit FNameEntity(const size_t index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
+	explicit FNameEntity(const int index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
 
 	std::string TypeName() { return "FNameEntity"; }
 

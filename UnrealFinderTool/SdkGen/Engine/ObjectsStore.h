@@ -1,6 +1,7 @@
 #pragma once
-#include <unordered_map>
 #include "GenericTypes.h"
+#include "ParallelWorker.h"
+#include <unordered_map>
 
 class ObjectsIterator;
 class Memory;
@@ -66,35 +67,58 @@ public:
 	/// <param name="name">The name of the class.</param>
 	/// <returns>The found class which is not valid if no class could be found.</returns>
 	UEClass FindClass(const std::string& name) const;
+
 	/// <summary>Count objects which have the same name and type.</summary>
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
 	template<class T>
-	size_t CountObjects(const std::string& name) const
-	{
-		static std::unordered_map<std::string, size_t> cache;
-
-		auto it = cache.find(name);
-		if (it != std::end(cache))
-			return it->second;
-
-		size_t count = 0;
-		for (const UEObject& obj : *this)
-		{
-			if (obj.IsA<T>() && obj.GetName() == name)
-				++count;
-		}
-
-		cache[name] = count;
-		return count;
-	}
+	size_t CountObjects(const std::string& name) const;
 
 	ObjectsIterator begin();
 	ObjectsIterator begin() const;
 	ObjectsIterator end();
 	ObjectsIterator end() const;
 };
+
+template <class T>
+size_t ObjectsStore::CountObjects(const std::string& name) const
+{
+	static std::unordered_map<std::string, size_t> cache;
+
+	auto it = cache.find(name);
+	if (it != std::end(cache))
+		return it->second;
+
+	size_t index = 0;
+	size_t count = 0;
+	ParallelWorker<UEObject> worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
+	{
+		while (GObjObjects.size() > index)
+		{
+			UEObject* curObj;
+
+			// Get current object
+			{
+				std::lock_guard lock(options.Locker);
+				curObj = GObjObjects[index].second.get();
+				++index;
+			}
+
+			// Calc count of object
+			if (curObj->IsA<T>() && curObj->GetName() == name)
+			{
+				std::lock_guard lock(options.Locker);
+				++count;
+			}
+		}
+	});
+	worker.Start();
+	worker.WaitAll();
+
+	cache[name] = count;
+	return count;
+}
 
 /// <summary>An iterator for objects.</summary>
 class ObjectsIterator : public std::iterator<std::forward_iterator_tag, UEObject>

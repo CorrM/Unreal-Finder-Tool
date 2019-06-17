@@ -55,7 +55,7 @@ public:
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
 
-	static std::string TypeName();
+	static int TypeId();
 	static UEObject& GetObjByAddress(uintptr_t address);
 	static UEClass StaticClass();
 };
@@ -85,7 +85,7 @@ public:
 
 	UEField GetNext() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -99,7 +99,7 @@ public:
 
 	std::vector<std::string> GetNames() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -111,7 +111,7 @@ public:
 
 	std::string GetValue() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -129,7 +129,7 @@ public:
 
 	size_t GetPropertySize() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -139,7 +139,7 @@ class UEScriptStruct : public UEStruct
 public:
 	using UEStruct::UEStruct;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -153,7 +153,7 @@ public:
 
 	UEFunctionFlags GetFunctionFlags() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -163,7 +163,7 @@ class UEClass : public UEStruct
 public:
 	using UEStruct::UEStruct;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -213,7 +213,7 @@ public:
 
 	Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -223,7 +223,7 @@ class UENumericProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -241,7 +241,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -253,7 +253,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -265,7 +265,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -277,7 +277,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -289,7 +289,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -301,7 +301,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -313,7 +313,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -325,7 +325,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -335,7 +335,7 @@ class UEFloatProperty : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	UEProperty::Info GetInfo() const;
 
@@ -349,7 +349,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -377,7 +377,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -400,7 +400,7 @@ public:
 
 	UEClass GetPropertyClass() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -412,7 +412,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -428,7 +428,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -444,7 +444,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -456,7 +456,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -468,7 +468,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -480,7 +480,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -496,7 +496,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -508,7 +508,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -524,7 +524,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -536,7 +536,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -548,7 +548,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -564,7 +564,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -581,7 +581,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -597,7 +597,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -613,7 +613,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -630,7 +630,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static std::string TypeName();
+	static int TypeId();
 
 	static UEClass StaticClass();
 };
@@ -641,10 +641,10 @@ bool UEObject::IsA() const
 	if (!IsValid()) return false;
 
 	// Change typename cmp with FName id, cmp str is slow nahhh
-	std::string cmpTypeName = T::TypeName();
+	int cmpTypeId = T::TypeId();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
-		if (super.GetName() == cmpTypeName)
+		if (super.Object->Name.ComparisonIndex == cmpTypeId)
 			return true;
 
 		UEObject& gg = GetObjByAddress(super.GetAddress());

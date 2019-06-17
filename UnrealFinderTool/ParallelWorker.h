@@ -4,6 +4,7 @@
 #include <mutex>
 #include <utility>
 #include <vector>
+#include "UnsortedMap.h"
 
 enum class ParallelType
 {
@@ -58,13 +59,13 @@ ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const in
 }
 
 // Go to use while(true) or something like that
-template <typename VecType>
-ParallelWorker<VecType>::ParallelWorker(const int threadNum, SingleShotFunc func) :
+template <typename NullType>
+ParallelWorker<NullType>::ParallelWorker(const int threadNum, SingleShotFunc func) :
 	funcSingleShot(std::move(func)),
 	threadsCount(threadNum),
 	type(ParallelType::SingleShot),
 	curIndex(0),
-	queue(std::vector<VecType>{})
+	queue(std::vector<NullType>{})
 {
 }
 

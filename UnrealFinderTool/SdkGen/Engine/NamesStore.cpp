@@ -123,6 +123,19 @@ std::string NamesStore::GetByIndex(const size_t id)
 
 	return gNames[id].AnsiName;
 }
+
+int NamesStore::GetByName(const std::string& name)
+{
+	auto ret = std::find_if(gNames.begin(), gNames.end(), [&](FNameEntity& fName) -> bool
+	{
+		return fName.AnsiName == name;
+	});
+
+	if (ret == gNames.end())
+		return -1;
+
+	return ret->Index;
+}
 #pragma endregion
 
 #pragma region NamesIterator
