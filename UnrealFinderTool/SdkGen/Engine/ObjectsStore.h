@@ -6,6 +6,8 @@
 class ObjectsIterator;
 class Memory;
 
+using GObjects = UnsortedMap<uintptr_t, std::unique_ptr<UEObject>>;
+
 struct GObjectInfo
 {
 	uintptr_t GObjAddress;
@@ -18,7 +20,6 @@ struct GObjectInfo
 class ObjectsStore
 {
 	size_t numElementsPerChunk = 0x103FF;
-	int maxZeroAddress = 150;
 
 	bool FetchData();
 	bool GetGObjectInfo();
@@ -27,7 +28,7 @@ class ObjectsStore
 
 public:
 	static GObjectInfo GInfo;
-	static UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> GObjObjects;
+	static GObjects GObjObjects;
 
 	/// <summary>
 	/// Initializes this object.
@@ -92,7 +93,7 @@ size_t ObjectsStore::CountObjects(const std::string& name) const
 
 	size_t index = 0;
 	size_t count = 0;
-	ParallelWorker<UEObject> worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
+	ParallelSingleShot worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
 	{
 		while (index > GObjObjects.size())
 		{

@@ -37,44 +37,55 @@ bool ComparePropertyLess(const UEProperty& lhs, const UEProperty& rhs)
 	return lhs.GetOffset() < rhs.GetOffset();
 }
 
-Package::Package(const UEObject& _packageObj)
-	: packageObj(_packageObj)
+Package::Package(UEObject* packageObj)
+	: packageObj(packageObj)
 {
 }
 
 void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
-	// ToDo: add parallel here
-	// check if obj->GetPackageObject() is saved on the original `obj`
-	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
+	static int process_sleep_counter = 0;
+	std::vector<UEObject*> objsInPack;
+
+	// Get all objects in this package
+	ParallelQueue<GObjects, ObjectItem>
+	worker(ObjectsStore::GObjObjects, 0, Utils::Settings.SdkGen.Threads, [&](ObjectItem& curObj, ParallelOptions& options)
 	{
-		const UEObject* obj = ObjectsStore().GetByIndex(i);
-		const UEObject* package = obj->GetPackageObject();
+		UEObject* obj = curObj.second.get();
+		UEObject* package = obj->GetPackageObject();
 
-		if (packageObj == *package)
+		if (packageObj == package)
 		{
-			if (obj->IsA<UEEnum>())
-			{
-				GenerateEnum(obj->Cast<UEEnum>());
-			}
-			/* in UE4 there is no UEConst
-			else if (obj.IsA<UEConst>())
-			{
-				GenerateConst(obj.Cast<UEConst>());
-			}
-			*/
-			else if (obj->IsA<UEClass>())
-			{
-				GeneratePrerequisites(*obj, processedObjects);
-			}
-			else if (obj->IsA<UEScriptStruct>())
-			{
-				GeneratePrerequisites(*obj, processedObjects);
-			}
-
-			static int process_sleep_counter = 0;
-			Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
+			std::lock_guard lock(options.Locker);
+			objsInPack.push_back(obj);
 		}
+	});
+	worker.Start();
+	worker.WaitAll();
+
+	for (auto& obj : objsInPack)
+	{
+		if (obj->IsA<UEEnum>())
+		{
+			GenerateEnum(obj->Cast<UEEnum>());
+		}
+		/* in UE4 there is no UEConst
+		else if (obj.IsA<UEConst>())
+		{
+			GenerateConst(obj.Cast<UEConst>());
+		}
+		*/
+		else if (obj->IsA<UEClass>())
+		{
+			GeneratePrerequisites(*obj, processedObjects);
+		}
+		else if (obj->IsA<UEScriptStruct>())
+		{
+			GeneratePrerequisites(*obj, processedObjects);
+		}
+
+		Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 }
 
@@ -101,17 +112,17 @@ bool Package::Save(const fs::path& path) const
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
 	{
-		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
+		Logger::Log("Skip Empty:    %s", packageObj->GetFullName());
 	}
 	
 	return false;
 }
 
-bool Package::AddDependency(const UEObject& package) const
+bool Package::AddDependency(UEObject* package) const
 {
 	if (package != packageObj)
 	{
-		dependencies.insert(package);
+		dependencies.insert(*package);
 
 		return true;
 	}
@@ -142,7 +153,7 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 	if (!classPackage->IsValid())
 		return;
 
-	if (AddDependency(*classPackage))
+	if (AddDependency(classPackage))
 		return;
 
 	if (!processedObjects[obj])
@@ -189,13 +200,13 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 				auto byteProperty = prop.Cast<UEByteProperty>();
 				if (byteProperty.IsEnum())
 				{
-					AddDependency(*byteProperty.GetEnum().GetPackageObject());
+					AddDependency(byteProperty.GetEnum().GetPackageObject());
 				}
 			}
 			else if (prop.IsA<UEEnumProperty>())
 			{
 				auto enumProperty = prop.Cast<UEEnumProperty>();
-				AddDependency(*enumProperty.GetEnum().GetPackageObject());
+				AddDependency(enumProperty.GetEnum().GetPackageObject());
 			}
 		}
 		else if (info.Type == UEProperty::PropertyType::CustomStruct)
@@ -218,7 +229,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 			}
 
 			for (const auto& innerProp : from(innerProperties)
-				>> where([](auto && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
+				>> where([](UEProperty && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
 				>> experimental::container())
 			{
 				GeneratePrerequisites(innerProp.Cast<UEStructProperty>().GetStruct(), processedObjects);

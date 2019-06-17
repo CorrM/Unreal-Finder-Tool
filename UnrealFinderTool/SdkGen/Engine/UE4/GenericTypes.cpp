@@ -173,6 +173,9 @@ UEObject* UEObject::GetPackageObject() const
 	{
 		for (UEObject* outer = GetOuter(); outer->IsValid(); outer = outer->GetOuter())
 			package = outer;
+
+		if (!package)
+			package = ObjectsStore().GetByAddress(Object->ObjAddress);
 	}
 
 	return package;

@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <vector>
 
+
 template <typename K, typename V>
 class UnsortedMap : public std::vector<std::pair<K, V>>
 {
+	using UnsortedMapItem = std::pair<K, V>;
 	using UnsortedMapIt = typename std::vector<std::pair<K, V>>::iterator;
 public:
 	UnsortedMap() = default;

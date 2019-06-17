@@ -151,40 +151,36 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Start Collecting Packages.";
 	std::vector<UEObject*> packageObjects;
 
-	size_t index = 0;
-	ParallelWorker<UEObject> worker(threadCount, [&](ParallelOptions& options)
+	// Collecting Packages
 	{
-		while (ObjectsStore::GObjObjects.size() > index)
+		size_t index = 0;
+		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
 		{
-			UEObject* curObj;
-			// Get current object
+			while (ObjectsStore::GObjObjects.size() > index)
 			{
-				std::lock_guard lock(options.Locker);
-				curObj = ObjectsStore::GObjObjects[index].second.get();
-				++index;
+				UEObject* curObj;
+				// Get current object
+				{
+					std::lock_guard lock(options.Locker);
+					curObj = ObjectsStore::GObjObjects[index].second.get();
+					++index;
+				}
+
+				UEObject* package = curObj->GetPackageObject();
+				if (package->IsValid())
+				{
+					std::lock_guard lock(options.Locker);
+					packageObjects.push_back(package);
+				}
 			}
+		});
+		worker.Start();
+		worker.WaitAll();
 
-			UEObject* package = curObj->GetPackageObject();
-			if (package->IsValid())
-			{
-				std::lock_guard lock(options.Locker);
-				packageObjects.push_back(package);
-			}
-		}
-	});
-	worker.Start();
-	worker.WaitAll();
-
-	// Make vector distinct
-	std::sort(packageObjects.begin(), packageObjects.end());
-	packageObjects.erase(std::unique(packageObjects.begin(), packageObjects.end()), packageObjects.end());
-
-	/*auto packageObjects =
-		from(ObjectsStore())
-		>> select([](UEObject&& o) { return o.GetPackageObject(); })
-		>> where([](UEObject&& o) { return o.IsValid(); })
-		>> distinct()
-		>> to_vector();*/
+		// Make vector distinct
+		std::sort(packageObjects.begin(), packageObjects.end());
+		packageObjects.erase(std::unique(packageObjects.begin(), packageObjects.end()), packageObjects.end());
+	}
 
 	state = "Getting Packages Done.";
 	*pPackagesCount = packageObjects.size();
@@ -197,7 +193,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	*/
 	{
 		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
-		const UEObject& obj = *packageObjects[0];
+		UEObject* obj = packageObjects[0];
 
 		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
@@ -209,7 +205,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 				"E: " + std::to_string(package->Enums.size()) + " ]"
 			);
 
-			Package::PackageMap[obj] = package.get();
+			Package::PackageMap[*obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
 
@@ -223,9 +219,9 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
-	ParallelWorker<UEObject*> packageProcess(packageObjects, 1, threadCount, [&](const UEObject* obj, ParallelOptions& gMutex)
+	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 1, threadCount, [&](UEObject* obj, ParallelOptions& gMutex)
 	{
-		auto package = std::make_unique<Package>(*obj);
+		auto package = std::make_unique<Package>(obj);
 		package->Process(processedObjects);
 		
 		{
@@ -354,26 +350,4 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 			os << R"(#include "SDK/)" << GenerateFileName(FileContentType::FunctionParameters, *package) << "\"\n";
 		}
 	}
-}
-
-uintptr_t SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut)
-{
-	MODULEENTRY32 lpModuleEntry = { 0 };
-	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
-	if (!hSnapShot)
-		return NULL;
-	lpModuleEntry.dwSize = sizeof(lpModuleEntry);
-	BOOL bModule = Module32First(hSnapShot, &lpModuleEntry);
-	while (bModule)
-	{
-		if (_stricmp(lpModuleEntry.szModule, lpModuleName) == 0)
-		{
-			CloseHandle(hSnapShot);
-			*sizeOut = lpModuleEntry.modBaseSize;
-			return reinterpret_cast<uintptr_t>(lpModuleEntry.modBaseAddr);
-		}
-		bModule = Module32Next(hSnapShot, &lpModuleEntry);
-	}
-	CloseHandle(hSnapShot);
-	return NULL;
 }

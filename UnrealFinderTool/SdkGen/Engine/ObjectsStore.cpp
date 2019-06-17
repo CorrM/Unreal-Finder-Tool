@@ -6,7 +6,7 @@
 #include <cassert>
 
 GObjectInfo ObjectsStore::GInfo;
-UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
+GObjects ObjectsStore::GObjObjects;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Scanner.h"
 #include <assert.h>
-#include <algorithm>
 #include <Tlhelp32.h>
 #include "ParallelWorker.h"
 
@@ -326,7 +325,7 @@ std::vector<uintptr_t> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD Pr
 		AddressForScan = reinterpret_cast<uintptr_t>(BasicInformation.BaseAddress) + BasicInformation.RegionSize;
 	}
 
-	ParallelWorker<std::pair<uintptr_t, _MEMORY_BASIC_INFORMATION>> 
+	ParallelQueue<std::vector<std::pair<uintptr_t, _MEMORY_BASIC_INFORMATION>>, std::pair<uintptr_t, _MEMORY_BASIC_INFORMATION>>
 	worker(mem_blocks, 0, Utils::Settings.SdkGen.Threads, [&](const std::pair<uintptr_t, _MEMORY_BASIC_INFORMATION>& block, ParallelOptions& options)
 	{
 		auto MemoryBlock = new UCHAR[block.second.RegionSize];
