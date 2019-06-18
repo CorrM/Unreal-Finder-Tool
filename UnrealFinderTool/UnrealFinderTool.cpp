@@ -51,6 +51,11 @@ bool IsReadyToGo()
 	return false;
 }
 
+std::string GetTookTime(const std::tm take_time)
+{
+	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
+}
+
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
 int BufSize = 0x200;
@@ -243,7 +248,7 @@ void StartSdkGenerator()
 	std::thread t([&]()
 	{
 		SdkGenerator sg(g_objects_address, g_names_address);
-		GeneratorState ret = sg.Start(&sg_objects_count,
+		SdkInfo ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
 		                              &sg_packages_done_count,
@@ -253,16 +258,21 @@ void StartSdkGenerator()
 		                              static_cast<SdkType>(sg_type_item_current),
 		                              sg_state, sg_packages_items);
 
-		if (ret == GeneratorState::Good)
+		if (ret.State == GeneratorState::Good)
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
+			sg_finished_time = ret.TookTime;
 			Utils::UiMainWindow->FlashWindow();
 		}
-		else if (ret == GeneratorState::BadGObject)
+		else if (ret.State == GeneratorState::BadGObject)
+		{
 			sg_state = "Wrong (GObjects) Address.!!";
-		else if (ret == GeneratorState::BadGName)
+		}
+		else if (ret.State == GeneratorState::BadGName)
+		{
 			sg_state = "Wrong (GNames) Address.!!";
+		}
 
 		AfterWork();
 	});
@@ -871,7 +881,7 @@ void MainUi(UiWindow* thiz)
 
 	// Popups
 	{
-		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Note", std::string("") + "SDK Generation complete. !!" + "\n" + "Took: " + GetTookTime(sg_finished_time), sg_finished);
 		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
 		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);

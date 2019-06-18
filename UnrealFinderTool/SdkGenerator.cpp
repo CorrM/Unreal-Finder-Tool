@@ -29,31 +29,31 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
-GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
+SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
 								   const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
 								   std::string& state, std::vector<std::string>& packagesDone)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
-		return GeneratorState::BadGName;
+		return { GeneratorState::BadGName };
 	if (!Utils::IsValidGObjectsAddress(gObjAddress))
-		return GeneratorState::BadGObject;
+		return { GeneratorState::BadGObject };
 
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
-		return GeneratorState::BadGName;
+		return { GeneratorState::BadGName };
 	*pNamesCount = NamesStore().GetNamesNum();
 
 	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
-		return GeneratorState::BadGObject;
+		return { GeneratorState::BadGObject };
 	*pObjCount = ObjectsStore().GetObjectsNum();
 
 	// Init Generator Settings
 	if (!generator->Initialize())
 	{
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
-		return GeneratorState::Bad;
+		return { GeneratorState::Bad };
 	}
 	generator->SetGameName(gameName);
 	generator->SetGameVersion(gameVersion);
@@ -61,13 +61,7 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	generator->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
 
 	// Get Current Dir
-	char buffer[2048];
-	if (GetModuleFileNameA(GetModuleHandle(nullptr), buffer, sizeof(buffer)) == 0)
-	{
-		MessageBoxA(nullptr, "GetModuleFileName failed", "Error", 0);
-		return GeneratorState::Bad;
-	}
-	fs::path outputDirectory = fs::path(buffer).remove_filename();
+	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectory());
 
 	outputDirectory /= "Results";
 	fs::create_directories(outputDirectory);
@@ -89,11 +83,15 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
 	ProcessPackages(outputDirectory, pPackagesCount, pPackagesDone, state, packagesDone);
-	
-	Logger::Log("Finished, took %d seconds.", std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
+
+	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
+	std::tm took_time;
+	gmtime_s(&took_time, &took_seconds);
+
+	Logger::Log("Finished, took %d seconds.", took_seconds);
 	Logger::SetStream(nullptr);
-	
-	return GeneratorState::Good;
+
+	return { GeneratorState::Good, took_time };
 }
 
 /// <summary>

@@ -66,6 +66,7 @@ inline std::string il_state = "Ready ..!!";
 // => Sdk Generator
 inline bool sg_start_disabled = false;
 inline bool sg_finished = false;
+inline std::tm sg_finished_time;
 
 inline size_t sg_objects_count = 0;
 inline size_t sg_names_count = 0;
