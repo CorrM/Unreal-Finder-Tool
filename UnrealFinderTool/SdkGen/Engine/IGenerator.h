@@ -216,13 +216,13 @@ public:
 		if (it == std::end(keywordsName))
 		{
 			for (const auto& badChar : badChars)
-				ret = Utils::ReplaceString(ret, badChar.second, "");
+				ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
 			return ret;
 		}
 
 		ret = it->second;
 		for (const auto& badChar : badChars)
-			ret = Utils::ReplaceString(ret, badChar.second, "");
+			ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
 
 		return ret;
 	}

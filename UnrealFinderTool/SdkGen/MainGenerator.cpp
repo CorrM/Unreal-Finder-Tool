@@ -330,12 +330,20 @@ class UObject;
 class FUObjectItem
 {
 public:
-	UObject* Object;
-	int32_t Flags;
-	int32_t ClusterIndex;
-	int32_t SerialNumber;
-	int32_t Unknown_00;
+)";
+		static JsonStruct jStruct = JsonReflector::GetStruct("FUObjectItem");
+		for (const auto& varContainer : jStruct.Vars)
+		{
+			auto var = varContainer.second;
+			std::string type = var.Type;
+			if (Utils::IsNumber(type))
+				basic_str += "\t" + std::string("unsigned char ") + var.Name + "[" + type + "]" + ";\n";
+			else
+				basic_str += "\t" + var.Type + " " + var.Name + ";\n";
+		}
+		basic_str += "\n";
 
+		basic_str += R"(
 	enum class ObjectFlags : int32_t
 	{
 		None = 0,

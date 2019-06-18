@@ -120,6 +120,9 @@ std::vector<std::string> Utils::SplitString(const std::string& str, const std::s
 
 std::string Utils::ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace)
 {
+	if (to_find.empty())
+		return str;
+
 	for (size_t position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
 		str.replace(position, to_find.length(), to_replace);
 	return str;
