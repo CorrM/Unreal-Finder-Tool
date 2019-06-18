@@ -13,15 +13,21 @@ enum class ParallelType
 
 struct ParallelOptions
 {
-	std::mutex Locker;
+	// Current index
+	size_t NextIndex;
+	// Make this variable true if u want to stop parallel worker
 	bool ForceStop;
+	// Lock to use with `std::lock_guard`
+	std::mutex Locker;
 };
 
-template <typename VecType>
+template <typename IndexType, typename ItemType>
 class ParallelWorker
 {
+protected:
+	IndexType defaultType;
 	using Lock = std::lock_guard<std::mutex>;
-	using QueueFunc = std::function<void(VecType&, ParallelOptions&)>;
+	using QueueFunc = std::function<void(ItemType&, ParallelOptions&)>;
 	using SingleShotFunc = std::function<void(ParallelOptions&)>;
 
 	QueueFunc funcQueue;
@@ -31,14 +37,12 @@ class ParallelWorker
 	int threadsCount;
 
 	ParallelType type;
-
-	size_t curIndex;
-	std::vector<VecType>& queue;
+	IndexType& queue;
 
 public:
-	ParallelOptions Options{};
+	ParallelOptions Options;
 
-	ParallelWorker(std::vector<VecType>& vecQueue, int vecStartIndex, int threadNum, QueueFunc func);
+	ParallelWorker(IndexType& indexQueue, size_t startIndex, int threadNum, QueueFunc func);
 	ParallelWorker(int threadNum, SingleShotFunc func);
 	void Start();
 	void WaitAll();
@@ -47,29 +51,33 @@ private:
 	void Worker();
 };
 
-template <typename VecType>
-ParallelWorker<VecType>::ParallelWorker(std::vector<VecType>& vecQueue, const int vecStartIndex, const int threadNum, QueueFunc func) :
+#pragma region ParallelWorker
+// Good for any type that's have Index Operator `[]`, map, vector, array, list, ..etc
+template <typename IndexType, typename ItemType>
+ParallelWorker<IndexType, ItemType>::ParallelWorker(IndexType& indexQueue, const size_t startIndex, const int threadNum, QueueFunc func) :
 	funcQueue(std::move(func)),
 	threadsCount(threadNum),
 	type(ParallelType::Queue),
-	curIndex(vecStartIndex),
-	queue(vecQueue)
+	queue(indexQueue)
 {
+	Options.NextIndex = startIndex;
+	Options.ForceStop = false;
 }
 
-// Go to use while(true) or something like that
-template <typename VecType>
-ParallelWorker<VecType>::ParallelWorker(const int threadNum, SingleShotFunc func) :
+// Good to use while(true) or something like that
+template <typename IndexType, typename ItemType>
+ParallelWorker<IndexType, ItemType>::ParallelWorker(const int threadNum, SingleShotFunc func) :
 	funcSingleShot(std::move(func)),
 	threadsCount(threadNum),
 	type(ParallelType::SingleShot),
-	curIndex(0),
-	queue(std::vector<VecType>{})
+	queue(defaultType)
 {
+	Options.NextIndex = 0;
+	Options.ForceStop = false;
 }
 
-template <typename VecType>
-void ParallelWorker<VecType>::Start()
+template <typename IndexType, typename ItemType>
+void ParallelWorker<IndexType, ItemType>::Start()
 {
 	Options.ForceStop = false;
 	// Create and run threads
@@ -77,40 +85,40 @@ void ParallelWorker<VecType>::Start()
 		threads.push_back(std::thread(&ParallelWorker::Worker, this));
 }
 
-template <typename VecType>
-void ParallelWorker<VecType>::WaitAll()
+template <typename IndexType, typename ItemType>
+void ParallelWorker<IndexType, ItemType>::WaitAll()
 {
 	// Create and run threads
 	for (int i = 0; i < threadsCount; ++i)
 		threads[i].join();
 }
 
-template <typename VecType>
-uint32_t ParallelWorker<VecType>::GetCpuCores()
+template <typename IndexType, typename ItemType>
+uint32_t ParallelWorker<IndexType, ItemType>::GetCpuCores()
 {
 	return std::thread::hardware_concurrency();
 }
 
-template <typename VecType>
-void ParallelWorker<VecType>::Worker()
+template <typename IndexType, typename ItemType>
+void ParallelWorker<IndexType, ItemType>::Worker()
 {
 	if (type == ParallelType::Queue)
 	{
-		VecType* curItem;
-		while (curIndex < queue.size())
+		ItemType* curItem;
+		while (Options.NextIndex < queue.size())
 		{
 			// Lock Scope (DeQueue item)
 			{
 				Lock lock(Options.Locker);
 
-				if (curIndex >= queue.size() || Options.ForceStop)
+				if (Options.NextIndex >= queue.size() || Options.ForceStop)
 				{
-					Options.ForceStop = true;
+					Options.ForceStop = false;
 					break;
 				}
 
-				curItem = &queue[curIndex];
-				++curIndex;
+				curItem = &queue[Options.NextIndex];
+				++Options.NextIndex;
 			}
 
 			funcQueue(*curItem, Options);
@@ -118,6 +126,36 @@ void ParallelWorker<VecType>::Worker()
 	}
 	else if (type == ParallelType::SingleShot)
 	{
+		{
+			Lock lock(Options.Locker);
+			++Options.NextIndex;
+		}
+
 		funcSingleShot(Options);
 	}
 }
+#pragma endregion
+
+#pragma region ParallelQueue
+template <typename IndexType, typename ItemType>
+class ParallelQueue : public ParallelWorker<IndexType, ItemType>
+{
+public:
+	ParallelQueue(IndexType& indexQueue, size_t startIndex, int threadNum, typename ParallelWorker<IndexType, ItemType>::QueueFunc func);
+};
+
+template <typename IndexType, typename ItemType>
+ParallelQueue<IndexType, ItemType>::ParallelQueue(IndexType& indexQueue, const size_t startIndex, const int threadNum, typename ParallelWorker<IndexType, ItemType>::QueueFunc func)
+	: ParallelWorker<IndexType, ItemType>(indexQueue, startIndex, threadNum, func) { }
+#pragma endregion
+
+#pragma region ParallelSingleShot
+class ParallelSingleShot : public ParallelWorker<std::vector<nullptr_t>, nullptr_t>
+{
+public:
+	ParallelSingleShot(int threadNum, SingleShotFunc func);
+};
+
+inline ParallelSingleShot::ParallelSingleShot(const int threadNum, SingleShotFunc func)
+	: ParallelWorker<std::vector<nullptr_t>, nullptr_t>(threadNum, func) { }
+#pragma endregion

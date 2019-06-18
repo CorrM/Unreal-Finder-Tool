@@ -94,7 +94,8 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 	
 	if (useThreads)
 	{
-		ParallelWorker<RegionHolder> worker(mem_regions, 0, Utils::Settings.SdkGen.Threads, [&](RegionHolder& memRegion, ParallelOptions& options)
+		ParallelQueue<std::vector<RegionHolder>, RegionHolder> 
+		worker(mem_regions, 0, Utils::Settings.SdkGen.Threads, [&](RegionHolder& memRegion, ParallelOptions& options)
 		{
 			const auto pBuf = new BYTE[memRegion.second];
 
@@ -142,6 +143,7 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 				delete[] pBuf;
 			}
 		});
+
 		worker.Start();
 		worker.WaitAll();
 	}

@@ -49,6 +49,13 @@ public:
 	/// <param name="id">The identifier.</param>
 	/// <returns>The name.</returns>
 	std::string GetByIndex(size_t id);
+
+	/// <summary>
+	/// Gets id by a name.
+	/// </summary>
+	/// <param name="name">Name of object.</param>
+	/// <returns>Id of name.</returns>
+	int GetByName(const std::string& name);
 };
 
 class NamesIterator : public std::iterator<std::forward_iterator_tag, FNameEntity>

@@ -11,17 +11,13 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, 
 	extern IGenerator* generator;
 
 	if (isHeaderFile)
-		os << "#pragma once";
+		os << "#pragma once\n";
 
 	if (!pragmas.empty())
 	{
-		for (auto&& i : pragmas) { os << "##pragma " << i << "\n"; }
-		os << "\n";
+		for (auto&& i : pragmas) { os << "#pragma " << i << "\n"; }
 	}
-	os << "\n\n";
-
-	os << tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
-		<< tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
+	os << "\n";
 
 	if (generator->GetSdkType() == SdkType::External)
 		os << "#include \"" << Utils::Settings.SdkGen.MemoryHeader << "\"\n";
@@ -32,6 +28,9 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, 
 		os << "\n";
 	}
 
+	os << tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
+	   << tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
+
 	if (!generator->GetNamespaceName().empty())
 		os << "namespace " << generator->GetNamespaceName() << "\n{\n";
 }
@@ -41,7 +40,7 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes,
 	PrintFileHeader(os, {}, includes, isHeaderFile);
 }
 
-void PrintFileHeader(std::ostream& os, bool isHeaderFile)
+void PrintFileHeader(std::ostream& os, const bool isHeaderFile)
 {
 	extern IGenerator* generator;
 
@@ -67,7 +66,7 @@ void PrintSectionHeader(std::ostream& os, const char* name)
 		<< "//---------------------------------------------------------------------------\n\n";
 }
 
-std::string GenerateFileName(FileContentType type, const Package& package)
+std::string GenerateFileName(const FileContentType type, const Package& package)
 {
 	extern IGenerator* generator;
 

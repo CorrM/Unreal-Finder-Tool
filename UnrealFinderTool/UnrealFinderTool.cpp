@@ -16,6 +16,7 @@
 #include "Scanner.h"
 
 #include <sstream>
+#include <shellapi.h>
 
 MemoryEditor mem_edit;
 bool memory_init = false;
@@ -48,6 +49,11 @@ bool IsReadyToGo()
 		return true;
 	}
 	return false;
+}
+
+std::string GetTookTime(const std::tm take_time)
+{
+	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
 }
 
 #pragma region Address Viewer
@@ -94,13 +100,14 @@ void AfterWork()
 void StartGObjFinder(const bool easyMethod)
 {
 	g_obj_listbox_items.clear();
-	g_obj_listbox_items.emplace_back("Searching...");
 	std::thread t([=]()
 	{
 		BeforeWork();
 		g_objects_find_disabled = true;
 		g_objects_disabled = false;
 		g_names_disabled = false;
+		g_obj_listbox_items.emplace_back("Searching...");
+		g_obj_listbox_item_current = 0;
 
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
@@ -123,8 +130,6 @@ void StartGObjFinder(const bool easyMethod)
 		g_objects_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -162,8 +167,6 @@ void StartGNamesFinder()
 		g_names_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -193,8 +196,6 @@ void StartClassFinder()
 		class_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -229,8 +230,6 @@ void StartInstanceLogger()
 		il_names_count = retState.GNamesCount;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -242,12 +241,14 @@ void StartSdkGenerator()
 
 	sg_objects_count = 0;
 	sg_names_count = 0;
+	sg_packages_count = 0;
+	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
 
 	std::thread t([&]()
 	{
 		SdkGenerator sg(g_objects_address, g_names_address);
-		GeneratorState ret = sg.Start(&sg_objects_count,
+		SdkInfo ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
 		                              &sg_packages_done_count,
@@ -257,21 +258,24 @@ void StartSdkGenerator()
 		                              static_cast<SdkType>(sg_type_item_current),
 		                              sg_state, sg_packages_items);
 
-		if (ret == GeneratorState::Good)
+		if (ret.State == GeneratorState::Good)
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
+			sg_finished_time = ret.TookTime;
 			Utils::UiMainWindow->FlashWindow();
 		}
-		else if (ret == GeneratorState::BadGObject)
+		else if (ret.State == GeneratorState::BadGObject)
+		{
 			sg_state = "Wrong (GObjects) Address.!!";
-		else if (ret == GeneratorState::BadGName)
+		}
+		else if (ret.State == GeneratorState::BadGName)
+		{
 			sg_state = "Wrong (GNames) Address.!!";
+		}
 
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 #pragma endregion
@@ -307,6 +311,22 @@ void TitleBar(UiWindow* thiz)
 				}
 				ui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("SDK##menu"))
+			{
+				if (ui::MenuItem("SDK Folder"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						(Utils::GetWorkingDirectory() + "\\Results").c_str(), 
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
+				ui::EndMenu();
+			}
+
 			ui::EndPopup();
 		}
 	}
@@ -441,7 +461,7 @@ void InformationSection(UiWindow* thiz)
 void MemoryInterface(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();
@@ -653,7 +673,7 @@ void Finder(UiWindow* thiz)
 
 void InstanceLogger(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Instance Logger"))
+	if (ui::BeginTabItem("Instance"))
 	{
 		if (cur_tap_id != 2)
 		{
@@ -691,7 +711,7 @@ void InstanceLogger(UiWindow* thiz)
 
 void SdkGenerator(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Sdk Generator"))
+	if (ui::BeginTabItem("S-D-K"))
 	{
 		if (cur_tap_id != 3)
 		{
@@ -736,20 +756,61 @@ void SdkGenerator(UiWindow* thiz)
 
 		// Packages Box
 		ui::SetNextItemWidth(RightWidth - 45.f);
-		ui::ListBox("##Packages_listbox",
+		ui::ListBoxA("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 8);
+			static_cast<int>(sg_packages_items.size()), 8, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
 		{
-			if (IsReadyToGo())
-				StartSdkGenerator();
+			if (Utils::FileExists(Utils::GetWorkingDirectory() + "\\Results"))
+			{
+				ui::OpenPopup("Delete Old SDK?");
+			}
 			else
-				popup_not_valid_process = true;
+			{
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
 		});
+
+		// Popup
+		if (ui::BeginPopupModal("Delete Old SDK?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ui::Text("There is an old sdk !, Delete it .?\n\n");
+			ui::Separator();
+
+			if (ui::Button("Yes", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				Utils::DirectoryDelete(Utils::GetWorkingDirectory() + "\\Results");
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SetItemDefaultFocus();
+			ui::SameLine();
+			if (ui::Button("No", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SameLine();
+			if (ui::Button("Cancel", ImVec2(75, 0)))
+				ui::CloseCurrentPopup();
+
+			ui::EndPopup();
+		}
 
 		ui::EndTabItem();
 	}
@@ -820,7 +881,7 @@ void MainUi(UiWindow* thiz)
 
 	// Popups
 	{
-		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Note", std::string("") + "SDK Generation complete. !!" + "\n" + "Took: " + GetTookTime(sg_finished_time), sg_finished);
 		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
 		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
@@ -876,7 +937,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Cleanup
 	if (Utils::MemoryObj)
 	{
-		Utils::MemoryObj->ResumeProcess();
+		/////////////////////////////////////////////Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 	}

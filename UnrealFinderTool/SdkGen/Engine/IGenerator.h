@@ -69,6 +69,8 @@ public:
 	/// <returns>The version of the game.</returns>
 	virtual void SetSdkType(SdkType sdkType) const = 0;
 
+	virtual void SetIsGObjectsChunks(bool isChunks) const = 0;
+
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.
 	/// </summary>
@@ -202,6 +204,29 @@ public:
 		return it->second;
 	}
 
+	/// <summary>
+	/// Checks if a name is Cpp Keywords.
+	/// </summary>
+	/// <param name="name">The parameter name.</param>
+	/// <returns>If no override is found the original name is returned.</returns>
+	virtual std::string GetSafeKeywordsName(const std::string& name) const
+	{
+		std::string ret = name;
+		auto it = keywordsName.find(ret);
+		if (it == std::end(keywordsName))
+		{
+			for (const auto& badChar : badChars)
+				ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
+			return ret;
+		}
+
+		ret = it->second;
+		for (const auto& badChar : badChars)
+			ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
+
+		return ret;
+	}
+
 	struct PredefinedMember
 	{
 		std::string Type;
@@ -317,6 +342,8 @@ public:
 
 protected:
 	std::unordered_map<std::string, size_t> alignasClasses;
+	std::unordered_map<std::string, std::string> badChars;
+	std::unordered_map<std::string, std::string> keywordsName;
 	std::unordered_map<std::string, std::string> overrideTypes;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedMembers;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedStaticMembers;

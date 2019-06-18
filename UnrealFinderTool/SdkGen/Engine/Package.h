@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <filesystem>
+#include <mutex>
 
 namespace fs = std::filesystem;
 
@@ -21,37 +22,39 @@ public:
 	/// Constructor.
 	/// </summary>
 	/// <param name="packageObj">The package object.</param>
-	Package(const UEObject& packageObj);
+	Package(UEObject* packageObj);
 
-	std::string GetName() const { return packageObj.GetName(); }
+	std::string GetName() const { return packageObj->GetName(); }
 
 	/// <summary>
 	/// Process the classes the package contains.
 	/// </summary>
-	void Process(std::unordered_map<UEObject, bool>& processedObjects);
+	void Process(std::unordered_map<UEObject, bool>& processedObjects, std::mutex& packageLocker);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.
-	/// Files are only generated if there is code present or the generator forces the genertion of empty files.
+	/// Files are only generated if there is code present or the generator forces the generation of empty files.
 	/// </summary>
 	/// <param name="path">The path to save to.</param>
 	/// <returns>true if files got saved, else false.</returns>
 	bool Save(const fs::path& path) const;
 
 private:
-	bool AddDependency(const UEObject& package) const;
+	bool AddDependency(UEObject* package) const;
 
 	/// <summary>
 	/// Checks and generates the prerequisites of the object.
 	/// Should be a UEClass or UEScriptStruct.
 	/// </summary>
 	/// <param name="obj">The object.</param>
+	/// <param name="processedObjects"></param>
 	void GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEObject, bool>& processedObjects);
 
 	/// <summary>
 	/// Checks and generates the prerequisites of the members.
 	/// </summary>
 	/// <param name="first">The first member in the chain.</param>
+	/// <param name="processedObjects"></param>
 	void GenerateMemberPrerequisites(const UEProperty& first, std::unordered_map<UEObject, bool>& processedObjects);
 
 	/// <summary>
@@ -102,7 +105,7 @@ private:
 	/// <param name="path">The path to save to.</param>
 	void SaveFunctionParameters(const fs::path& path) const;
 
-	UEObject packageObj;
+	UEObject* packageObj;
 	mutable std::unordered_set<UEObject> dependencies;
 
 	/// <summary>
@@ -255,14 +258,15 @@ private:
 	/// Builds the C++ method signature.
 	/// </summary>
 	/// <param name="m">The Method to process.</param>
-	/// <param name="className">Name of the class.</param>
-	/// <param name="inHeader">true if the signature is used as decleration.</param>
+	/// <param name="c">Name of the class.</param>
+	/// <param name="inHeader">true if the signature is used as deceleration.</param>
 	/// <returns>The method signature.</returns>
 	std::string BuildMethodSignature(const Method& m, const Class& c, bool inHeader) const;
 
 	/// <summary>
 	/// Builds the c++ method body.
 	/// </summary>
+	/// <param name="c"></param>
 	/// <param name="m">The Method to process.</param>
 	/// <returns>The method body.</returns>
 	std::string BuildMethodBody(const Class& c, const Method& m) const;
@@ -285,14 +289,14 @@ namespace std
 	template<>
 	struct hash<Package>
 	{
-		size_t operator()(const Package& package) const
+		size_t operator()(const Package& package) const noexcept
 		{
-			return std::hash<uintptr_t>()(package.packageObj.GetAddress());
+			return std::hash<uintptr_t>()(package.packageObj->GetAddress());
 		}
 	};
 }
 
-inline bool operator==(const Package& lhs, const Package& rhs) { return rhs.packageObj.GetAddress() == lhs.packageObj.GetAddress(); }
+inline bool operator==(const Package& lhs, const Package& rhs) { return rhs.packageObj->GetAddress() == lhs.packageObj->GetAddress(); }
 inline bool operator!=(const Package& lhs, const Package& rhs) { return !(lhs == rhs); }
 
 struct PackageDependencyComparer
@@ -314,12 +318,12 @@ struct PackageDependencyComparer
 			return false;
 		}
 
-		if (std::find(std::begin(rhs.dependencies), std::end(rhs.dependencies), lhs.packageObj) != std::end(rhs.dependencies))
+		if (std::find(rhs.dependencies.begin(), rhs.dependencies.end(), *lhs.packageObj) != std::end(rhs.dependencies))
 		{
 			return true;
 		}
 
-		for (const auto dep : rhs.dependencies)
+		for (const auto& dep : rhs.dependencies)
 		{
 			const auto package = Package::PackageMap[dep];
 			if (package == nullptr)

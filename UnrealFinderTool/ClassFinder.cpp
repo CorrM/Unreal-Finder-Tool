@@ -55,11 +55,11 @@ std::vector<UEObject> ClassFinder::FindThatObject(const std::string& typeName, c
 
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const auto& object = ObjectsStore().GetByIndex(i);
+		const UEObject* object = ObjectsStore().GetByIndex(i);
 
-		if (object.IsA(typeName))
+		if (object->IsA(typeName))
 		{
-			ret.push_back(object);
+			ret.push_back(*object);
 			if (firstOnly) break;
 		}
 	}
@@ -73,11 +73,11 @@ std::vector<UEObject> ClassFinder::FindThatObjectByAddress(const std::string& ty
 
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const auto& object = ObjectsStore().GetByIndex(i);
+		const UEObject* object = ObjectsStore().GetByIndex(i);
 
-		if (object.GetAddress() == instanceAddress)
+		if (object->GetAddress() == instanceAddress)
 		{
-			ret.push_back(object);
+			ret.push_back(*object);
 			if (firstOnly) break;
 		}
 	}

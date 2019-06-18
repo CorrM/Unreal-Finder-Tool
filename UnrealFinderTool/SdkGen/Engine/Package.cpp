@@ -37,42 +37,60 @@ bool ComparePropertyLess(const UEProperty& lhs, const UEProperty& rhs)
 	return lhs.GetOffset() < rhs.GetOffset();
 }
 
-Package::Package(const UEObject& _packageObj)
-	: packageObj(_packageObj)
+Package::Package(UEObject* packageObj)
+	: packageObj(packageObj)
 {
 }
 
-void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
+void Package::Process(std::unordered_map<UEObject, bool>& processedObjects, std::mutex& packageLocker)
 {
-	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
+	static int process_sleep_counter = 0;
+	std::vector<UEObject*> objsInPack;
+
+	// Get all objects in this package
 	{
-		const UEObject& obj = ObjectsStore().GetByIndex(i);
-		const UEObject& package = obj.GetPackageObject();
+		// Wait to get package object's, just to use 6 threads instead of 12 thread
+		std::lock_guard lock(packageLocker);
 
-		if (packageObj == package)
+		ParallelQueue<GObjects, ObjectItem>
+		worker(ObjectsStore::GObjObjects, 0, Utils::Settings.SdkGen.Threads, [&](ObjectItem& curObj, ParallelOptions& options)
 		{
-			if (obj.IsA<UEEnum>())
-			{
-				GenerateEnum(obj.Cast<UEEnum>());
-			}
-			/* in UE4 there is no UEConst
-			else if (obj.IsA<UEConst>())
-			{
-				GenerateConst(obj.Cast<UEConst>());
-			}
-			*/
-			else if (obj.IsA<UEClass>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
-			else if (obj.IsA<UEScriptStruct>())
-			{
-				GeneratePrerequisites(obj, processedObjects);
-			}
+			UEObject* obj = curObj.second.get();
+			UEObject* package = obj->GetPackageObject();
 
-			static int process_sleep_counter = 0;
-			Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
+			if (packageObj == package)
+			{
+				std::lock_guard push_lock(options.Locker);
+				objsInPack.push_back(obj);
+			}
+		});
+		worker.Start();
+		worker.WaitAll();
+	}
+
+	for (auto& obj : objsInPack)
+	{
+		if (obj->IsA<UEEnum>())
+		{
+			GenerateEnum(obj->Cast<UEEnum>());
 		}
+		/* in UE4 there is no UEConst
+		else if (obj.IsA<UEConst>())
+		{
+			GenerateConst(obj.Cast<UEConst>());
+		}
+		*/
+		else if (obj->IsA<UEClass>())
+		{
+			GeneratePrerequisites(*obj, processedObjects);
+		}
+		else if (obj->IsA<UEScriptStruct>())
+		{
+			GeneratePrerequisites(*obj, processedObjects);
+		}
+
+		Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 }
 
@@ -99,17 +117,17 @@ bool Package::Save(const fs::path& path) const
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
 	{
-		Logger::Log("Skip Empty:    %s", packageObj.GetFullName());
+		Logger::Log("Skip Empty:    %s", packageObj->GetFullName());
 	}
 	
 	return false;
 }
 
-bool Package::AddDependency(const UEObject& package) const
+bool Package::AddDependency(UEObject* package) const
 {
 	if (package != packageObj)
 	{
-		dependencies.insert(package);
+		dependencies.insert(*package);
 
 		return true;
 	}
@@ -136,8 +154,8 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 
 	processedObjects[obj] |= false;
 
-	auto& classPackage = obj.GetPackageObject();
-	if (!classPackage.IsValid())
+	auto classPackage = obj.GetPackageObject();
+	if (!classPackage->IsValid())
 		return;
 
 	if (AddDependency(classPackage))
@@ -147,10 +165,10 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 	{
 		processedObjects[obj] = true;
 
-		auto& outer = obj.GetOuter();
-		if (outer.IsValid() && outer != obj)
+		auto outer = obj.GetOuter();
+		if (outer->IsValid() && *outer != obj)
 		{
-			GeneratePrerequisites(outer, processedObjects);
+			GeneratePrerequisites(*outer, processedObjects);
 		}
 
 		auto structObj = obj.Cast<UEStruct>();
@@ -216,7 +234,7 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 			}
 
 			for (const auto& innerProp : from(innerProperties)
-				>> where([](auto && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
+				>> where([](UEProperty && p) { return p.GetInfo().Type == UEProperty::PropertyType::CustomStruct; })
 				>> experimental::container())
 			{
 				GeneratePrerequisites(innerProp.Cast<UEStructProperty>().GetStruct(), processedObjects);
@@ -245,7 +263,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 		Logger::Log(script_struct_format.c_str(), logStructName, scriptStructObj.GetAddress());
 	}
 
-	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCPP());
+	ss.NameCpp = MakeValidName(scriptStructObj.GetNameCpp());
 	ss.NameCppFull = "struct ";
 
 	//some classes need special alignment
@@ -294,12 +312,12 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 		%s ret;
 		%s(address, ret);
 		return ret;
-	})", scriptStructObj.GetNameCPP(), scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+	})", scriptStructObj.GetNameCpp(), scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
 
 		ss.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
-	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
+	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 
 	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
@@ -369,7 +387,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		Logger::Log(class_format.c_str(), logClassName, classObj.GetAddress());
 	}
 
-	c.NameCpp = MakeValidName(classObj.GetNameCPP());
+	c.NameCpp = MakeValidName(classObj.GetNameCpp());
 	c.NameCppFull = "class " + c.NameCpp;
 
 	c.Size = classObj.GetPropertySize();
@@ -381,7 +399,7 @@ void Package::GenerateClass(const UEClass& classObj)
 	if (super.IsValid() && super != classObj)
 	{
 		c.InheritedSize = offset = super.GetPropertySize();
-		c.NameCppFull += " : public " + MakeValidName(super.GetNameCPP());
+		c.NameCppFull += " : public " + MakeValidName(super.GetNameCpp());
 	}
 
 	std::vector<IGenerator::PredefinedMember> predefinedStaticMembers;
@@ -442,11 +460,11 @@ void Package::GenerateClass(const UEClass& classObj)
 		%s ret;
 		%s(address, ret);
 		return ret;
-	})", classObj.GetNameCPP(), classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryRead)));
+	})", classObj.GetNameCpp(), classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
 		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
-	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCPP(), Utils::Settings.SdkGen.MemoryWrite)));
+	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 	else
 	{
@@ -474,7 +492,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
 		{
 			int ptrSize = Utils::PointerSize();
-			uintptr_t vTableAddress = classObj.Object.VfTable;
+			uintptr_t vTableAddress = classObj.Object->VfTable;
 			std::vector<uintptr_t> vTable;
 
 			size_t methodCount = 0;
@@ -641,7 +659,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 	}
 }
 
-void Package::GenerateMethods(const UEClass& classObj, std::vector<Method> & methods) const
+void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const
 {
 	extern IGenerator* generator;
 
@@ -728,6 +746,8 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method> & met
 						break;
 					}
 
+					p.Name = generator->GetSafeKeywordsName(p.Name);
+
 					parameters.emplace_back(std::make_pair(prop, std::move(p)));
 				}
 			}
@@ -777,7 +797,7 @@ void Package::SaveStructs(const fs::path & path) const
 	PrintFileFooter(os);
 }
 
-void Package::SaveClasses(const fs::path & path) const
+void Package::SaveClasses(const fs::path& path) const
 {
 	extern IGenerator* generator;
 
