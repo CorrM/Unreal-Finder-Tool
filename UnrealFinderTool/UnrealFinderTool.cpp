@@ -26,7 +26,7 @@ bool memory_init = false;
 float LeftWidth, RightWidth;
 
 #ifdef MIDI_h
-static CMIDI* midiPlayer = nullptr;
+static CMIDI* MidiPlayer = nullptr;
 #endif
 
 void SetupMemoryStuff(const HANDLE pHandle)
@@ -126,7 +126,7 @@ void StartGObjFinder(const bool easyMethod)
 			ss << std::hex << v;
 
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			g_obj_listbox_items.push_back(tmpUpper);
 		}
@@ -164,7 +164,7 @@ void StartGNamesFinder()
 
 			// Make hex char is Upper
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			// Set value for UI
 			g_names_listbox_items.push_back(tmpUpper);
@@ -350,22 +350,22 @@ void TitleBar(UiWindow* thiz)
 		
 		if (ui::Button(ICON_FA_PLAY))
 		{
-			if (midiPlayer) {
-				midiPlayer->Rewind();
+			if (MidiPlayer) {
+				MidiPlayer->Rewind();
 			}
 			else {
-				midiPlayer = new CMIDI();
-				midiPlayer->Create((LPBYTE)(midi_track1), sizeof(midi_track1));
+				MidiPlayer = new CMIDI();
+				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof(midi_track1));
 			}
 			
 			//midiPlayer->SetInfinitePlay();
-			midiPlayer->Play(true);
+			MidiPlayer->Play(true);
 		}
 		ui::SameLine();
 		if (ui::Button(ICON_FA_STOP))
 		{
-			if (midiPlayer->IsPlaying())
-				midiPlayer->Stop();
+			if (MidiPlayer->IsPlaying())
+				MidiPlayer->Stop();
 		}
 #endif
 	}
