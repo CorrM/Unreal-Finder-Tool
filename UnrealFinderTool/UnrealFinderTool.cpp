@@ -348,7 +348,7 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
 		
-		if (ui::Button(!MidiPlayer || MidiPlayer->IsPaused() ? ICON_FA_PLAY : ICON_FA_PAUSE))
+		if (ui::Button(!MidiPlayer || (MidiPlayer->IsPaused() || !MidiPlayer->IsPlaying()) ? ICON_FA_PLAY : ICON_FA_PAUSE))
 		{
 			if (MidiPlayer)
 			{
