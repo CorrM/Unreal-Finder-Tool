@@ -45,7 +45,7 @@ public:
 		// Make Compiler think tmp is `UEObject`
 		// Then call copy assignment
 		// That's to keep copy size as `UEObject`. (either that's will case a memory problem)
-		static_cast<std::decay<decltype(*this)>::type&>(tmp) = *this;
+		static_cast<typename std::decay<decltype(*this)>::type&>(tmp) = *this;
 		return tmp;
 		// return Base(Object);
 	}
