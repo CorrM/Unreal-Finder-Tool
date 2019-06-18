@@ -28,7 +28,7 @@ class UiWindow
 {
 	HWND hWindow;
 	WNDCLASSEX wc;
-	bool closed;
+	bool closed, render;
 	UiFunc uiFunc;
 	HANDLE loopThreadHandle;
 	std::thread loopThread;
