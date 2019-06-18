@@ -82,6 +82,24 @@ bool Utils::FileExists(const std::string& filePath)
 	return fs::exists(path);
 }
 
+bool Utils::FileDelete(const std::string& filePath)
+{
+	if (!FileExists(filePath))
+		return false;
+	
+	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+	return fs::remove(path);
+}
+
+bool Utils::DirectoryDelete(const std::string& dirPath)
+{
+	if (!FileExists(dirPath))
+		return false;
+
+	fs::path path(std::wstring(dirPath.begin(), dirPath.end()));
+	return fs::remove_all(path) > 0;
+}
+
 std::string Utils::GetWorkingDirectory()
 {
 	// Returned cached copy of path

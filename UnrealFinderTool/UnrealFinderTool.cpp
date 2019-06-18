@@ -755,11 +755,52 @@ void SdkGenerator(UiWindow* thiz)
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
 		{
-			if (IsReadyToGo())
-				StartSdkGenerator();
+			if (Utils::FileExists(Utils::GetWorkingDirectory() + "\\Results"))
+			{
+				ui::OpenPopup("Delete Old SDK?");
+			}
 			else
-				popup_not_valid_process = true;
+			{
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
 		});
+
+		// Popup
+		if (ui::BeginPopupModal("Delete Old SDK?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ui::Text("There is an old sdk !, Delete it .?\n\n");
+			ui::Separator();
+
+			if (ui::Button("Yes", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				Utils::DirectoryDelete(Utils::GetWorkingDirectory() + "\\Results");
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SetItemDefaultFocus();
+			ui::SameLine();
+			if (ui::Button("No", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SameLine();
+			if (ui::Button("Cancel", ImVec2(75, 0)))
+				ui::CloseCurrentPopup();
+
+			ui::EndPopup();
+		}
 
 		ui::EndTabItem();
 	}

@@ -52,6 +52,10 @@ public:
 	static bool LoadSettings();
 	// Check file Exists
 	static bool FileExists(const std::string& filePath);
+	// Delete file
+	static bool FileDelete(const std::string& filePath);
+	// Delete Directory
+	static bool DirectoryDelete(const std::string& dirPath);
 	// Get Current Directory
 	static std::string GetWorkingDirectory();
 	// Load engine structs from `EngineBase.json`
