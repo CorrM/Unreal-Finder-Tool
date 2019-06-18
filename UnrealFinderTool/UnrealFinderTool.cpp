@@ -15,12 +15,19 @@
 #include "Debug.h"
 #include "Scanner.h"
 
+#include "Midi/MIDI.h"
+#include "Midi/MIDI_Resource.h"
+
 #include <sstream>
 #include <shellapi.h>
 
 MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
+
+#ifdef MIDI_h
+CMIDI* MidiPlayer = nullptr;
+#endif
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -119,7 +126,7 @@ void StartGObjFinder(const bool easyMethod)
 			ss << std::hex << v;
 
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			g_obj_listbox_items.push_back(tmpUpper);
 		}
@@ -157,7 +164,7 @@ void StartGNamesFinder()
 
 			// Make hex char is Upper
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			// Set value for UI
 			g_names_listbox_items.push_back(tmpUpper);
@@ -336,6 +343,31 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+
+#ifdef MIDI_h
+		ui::SameLine();
+		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
+		
+		if (ui::Button(ICON_FA_PLAY))
+		{
+			if (MidiPlayer) {
+				MidiPlayer->Rewind();
+			}
+			else {
+				MidiPlayer = new CMIDI();
+				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof(midi_track1));
+			}
+			
+			//midiPlayer->SetInfinitePlay();
+			MidiPlayer->Play(true);
+		}
+		ui::SameLine();
+		if (ui::Button(ICON_FA_STOP))
+		{
+			if (MidiPlayer->IsPlaying())
+				MidiPlayer->Stop();
+		}
+#endif
 	}
 }
 

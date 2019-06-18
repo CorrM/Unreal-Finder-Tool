@@ -43,6 +43,9 @@
     <Filter Include="ImGUI">
       <UniqueIdentifier>{fb173c5c-784b-4b34-b33b-8ef0bdee17d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Midi">
+      <UniqueIdentifier>{936adf0a-284f-46ed-95e9-d9524622ccbf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -192,6 +195,12 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Midi\MIDI_Resource.h">
+      <Filter>Midi</Filter>
+    </ClInclude>
+    <ClInclude Include="Midi\MIDI.h">
+      <Filter>Midi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -293,6 +302,9 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Midi\MIDI.cpp">
+      <Filter>Midi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UnrealFinderTool.rc">
@@ -300,16 +312,11 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\..\Downloads\win.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
+
     <Image Include="..\Resources\win.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\resources\icon2.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Downloads\e4ea6b628b.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
