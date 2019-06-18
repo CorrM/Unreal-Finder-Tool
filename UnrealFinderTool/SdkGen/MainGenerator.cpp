@@ -921,7 +921,7 @@ FUObjectArray* UObject::GObjects = nullptr;
 //---------------------------------------------------------------------------
 void InitSdk(const std::string& moduleName, const size_t gObjectsOffset, const size_t gNamesOffset)
 {
-	auto mBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandleA("Dauntless-Win64-Shipping.exe"));
+	auto mBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandleA(moduleName.c_str()));
 
 	UObject::GObjects = reinterpret_cast<SDK::FUObjectArray*>(mBaseAddress + gObjectsOffset);
 	FName::GNames = reinterpret_cast<SDK::TNameEntryArray*>(mBaseAddress + gNamesOffset);
