@@ -35,6 +35,21 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 - [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html).
 
 # Change Log
+##### 18-07-2019 - Atomic edition
+- Improves for `SDK-Generator`:
+  - Now it's `super super fast` And Generate a `Full Dump`.
+    - A lot of fixes.
+    - Some core changes.
+    - Fix bug that's case a `non-full SDK`.
+  - Fix bugs when your target is x32 and the tool is x64.
+- Improves for `Generated SDK`:
+  - Now it's ready to use direclty.
+    - Support for `Gobjects Chunks`.
+    - Add `InitSdk` Function.
+    - Add `FindObjects` Function.
+    - Solve bug, Some time `Generator` genrate a cpp keyword as param or bad char on variable names.
+    
+
 ##### 09-07-2019
 - `JsonEngine` is system that's use josn files as container for main ue4 structs.
   - Since UE4 have different versions, some time `ue4 structs` changes.
