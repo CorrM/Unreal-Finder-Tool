@@ -352,7 +352,7 @@ void TitleBar(UiWindow* thiz)
 			}
 			else {
 				midiPlayer = new CMIDI();
-				midiPlayer->Create((LPBYTE)(Midi_Track1), sizeof(Midi_Track1));
+				midiPlayer->Create((LPBYTE)(midi_track1), sizeof(midi_track1));
 			}
 			
 			//midiPlayer->SetInfinitePlay();

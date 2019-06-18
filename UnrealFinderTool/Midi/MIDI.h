@@ -55,22 +55,22 @@ using namespace std;
 
 // Description of a track
 //
-struct TRACK
+struct Track
 {
-	DWORD	fdwTrack;		// Track's flags
-	DWORD	dwTrackLength;	// Total bytes in track
-	LPBYTE	pTrackStart;	// -> start of track data buffer
-	LPBYTE	pTrackCurrent;	// -> next byte to read in buffer
-	DWORD	tkNextEventDue;	// Absolute time of next event in track
-	BYTE	byRunningStatus;// Running status from last channel msg
+	DWORD FdwTrack; // Track's flags
+	DWORD DwTrackLength; // Total bytes in track
+	LPBYTE PTrackStart; // -> start of track data buffer
+	LPBYTE PTrackCurrent; // -> next byte to read in buffer
+	DWORD TkNextEventDue; // Absolute time of next event in track
+	BYTE ByRunningStatus; // Running status from last channel msg
 
-	TRACK()
-		: fdwTrack(0)
-		, dwTrackLength(0)
-		, pTrackStart(0)
-		, pTrackCurrent(0)
-		, tkNextEventDue(0)
-		, byRunningStatus(0)
+	Track()
+		: FdwTrack(0)
+		  , DwTrackLength(0)
+		  , PTrackStart(nullptr)
+		  , PTrackCurrent(nullptr)
+		  , TkNextEventDue(0)
+		  , ByRunningStatus(0)
 	{
 	}
 };
@@ -82,195 +82,200 @@ struct TRACK
 // system and then internally by that function to send information about the
 // target stream buffer and current state of the conversion process to internal
 // lower level conversion routines.
-struct CONVERTINFO
+struct ConvertInfo
 {
-    MIDIHDR	mhBuffer;			// Standard Windows stream buffer header
-    DWORD	dwStartOffset;		// Start offset from mhStreamBuffer.lpStart
-    DWORD	dwMaxLength;		// Max length to convert on this pass
-    DWORD	dwBytesRecorded;
-    DWORD	tkStart;
-    BOOL	bTimesUp;
+	MIDIHDR MhBuffer; // Standard Windows stream buffer header
+	DWORD DwStartOffset; // Start offset from mhStreamBuffer.lpStart
+	DWORD DwMaxLength; // Max length to convert on this pass
+	DWORD DwBytesRecorded;
+	DWORD TkStart;
+	BOOL BTimesUp;
 
-	CONVERTINFO()
-		: dwStartOffset(0)
-		, dwMaxLength(0)
-		, dwBytesRecorded(0)
-		, tkStart(0)
-		, bTimesUp(FALSE)
+	ConvertInfo()
+		: DwStartOffset(0)
+		  , DwMaxLength(0)
+		  , DwBytesRecorded(0)
+		  , TkStart(0)
+		  , BTimesUp(FALSE)
 	{
-		memset(&mhBuffer, 0, sizeof(MIDIHDR));
+		memset(&MhBuffer, 0, sizeof(MIDIHDR));
 	}
 };
 
 // Temporary event structure which stores event data until we're ready to
 // dump it into a stream buffer
-struct TEMPEVENT
+struct TempEvent
 {
-	DWORD	tkEvent;		// Absolute time of event
-	BYTE	byShortData[4];	// Event type and parameters if channel msg
-	DWORD	dwEventLength;	// Length of data which follows if meta or sysex
-	LPBYTE	pLongData;		// -> Event data if applicable
+	DWORD tkEvent; // Absolute time of event
+	BYTE byShortData[4]; // Event type and parameters if channel msg
+	DWORD dwEventLength; // Length of data which follows if meta or sysex
+	LPBYTE pLongData; // -> Event data if applicable
 };
 
-class CMIDI  
+class CMIDI
 {
 protected:
-	typedef vector<TRACK>		TrackArray_t;
-	typedef vector<DWORD>		VolumeArray_t;
-	typedef vector<CONVERTINFO>	ConvertArray_t;
+	typedef vector<Track> TrackArray_t;
+	typedef vector<DWORD> VolumeArray_t;
+	typedef vector<ConvertInfo> ConvertArray_t;
 
-	enum {
-		NUM_CHANNELS = 16,		// 16 volume channels
-		VOLUME_INIT = 100,		// 100% volume by default
+	enum
+	{
+		NUM_CHANNELS = 16,
+		// 16 volume channels
+		VOLUME_INIT = 100,
+		// 100% volume by default
 		NUM_STREAM_BUFFERS = 2,
-		OUT_BUFFER_SIZE = 1024,	// Max stream buffer size in bytes
+		OUT_BUFFER_SIZE = 1024,
+		// Max stream buffer size in bytes
 		DEBUG_CALLBACK_TIMEOUT = 2000,
 		VOLUME_MIN = 0,
-		VOLUME_MAX = 127		// == 100%
+		VOLUME_MAX = 127 // == 100%
 	};
 
 public:
 	CMIDI();
 	virtual ~CMIDI();
 
-	BOOL	Create(LPBYTE pSoundData, DWORD dwSize, HWND  pParent = 0);
-	BOOL	Create(LPCTSTR pszResID, HWND  pParent = 0);
-	BOOL	Create(UINT uResID, HWND  pParent = 0);
+	BOOL Create(LPBYTE pSoundData, DWORD dwSize, HWND pParent = nullptr);
+	BOOL Create(LPCTSTR pszResId, HWND pWndParent = nullptr);
+	BOOL Create(UINT uResId, HWND pWndParent = nullptr);
 
-	BOOL	Play(BOOL bInfinite = FALSE);
-	BOOL	Stop(BOOL bReOpen = TRUE);
-	BOOL	IsPlaying() const { return m_bPlaying; }
+	BOOL Play(BOOL bInfinite = FALSE);
+	BOOL Stop(BOOL bReOpen = TRUE);
+	BOOL IsPlaying() const { return mBPlaying; }
 
-	BOOL	Pause();
-	BOOL	Continue();
-	BOOL	IsPaused() const { return m_bPaused; }
+	BOOL Pause();
+	BOOL Continue();
+	BOOL IsPaused() const { return mBPaused; }
 
-		// Set playback position back to the start
-	BOOL	Rewind();
+	// Set playback position back to the start
+	BOOL Rewind();
 
-		// Get the number of volume channels
-	DWORD	GetChannelCount() const;
+	// Get the number of volume channels
+	DWORD GetChannelCount() const;
 
-		// Set the volume of a channel in percent. Channels are from 0 to (GetChannelCount()-1)
-	void	SetChannelVolume(DWORD channel, DWORD percent);
+	// Set the volume of a channel in percent. Channels are from 0 to (GetChannelCount()-1)
+	void SetChannelVolume(DWORD channel, DWORD percent);
 
-		// Get the volume of a channel in percent
-	DWORD	GetChannelVolume(DWORD channel) const;
-	
-		// Set the volume for all channels in percent
-	void	SetVolume(DWORD percent);
+	// Get the volume of a channel in percent
+	DWORD GetChannelVolume(DWORD channel) const;
 
-		// Get the average volume for all channels
-	DWORD	GetVolume() const;
+	// Set the volume for all channels in percent
+	void SetVolume(DWORD percent);
 
-		// Set the tempo of the playback. Default: 100%
-	void	SetTempo(DWORD percent);
+	// Get the average volume for all channels
+	DWORD GetVolume() const;
 
-		// Get the current tempo in percent (usually 100)
-	DWORD	GetTempo() const;
+	// Set the tempo of the playback. Default: 100%
+	void SetTempo(DWORD percent);
 
-		// You can (un)set an infinite loop during playback.
-		// Note that "Play()" resets this setting!
-	void	SetInfinitePlay(BOOL bSet = TRUE);
+	// Get the current tempo in percent (usually 100)
+	DWORD GetTempo() const;
 
-protected:	// implementation
-		// This function converts MIDI data from the track buffers.
-	int		ConvertToBuffer(DWORD dwFlags, CONVERTINFO * lpciInfo);
+	// You can (un)set an infinite loop during playback.
+	// Note that "Play()" resets this setting!
+	void SetInfinitePlay(BOOL bSet = TRUE);
 
-		// Fills in the event struct with the next event from the track
-	BOOL	GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp);
+protected: // implementation
+	// This function converts MIDI data from the track buffers.
+	int ConvertToBuffer(DWORD dwFlags, ConvertInfo* lpciInfo);
 
-		// Retrieve the next byte from the track buffer, refilling the buffer from
-		// disk if necessary.
-	BOOL	GetTrackByte(TRACK * ptsTrack, LPBYTE lpbyByte) {
-				if( DWORD(ptsTrack->pTrackCurrent - ptsTrack->pTrackStart) == ptsTrack->dwTrackLength )
-					return FALSE;
-				*lpbyByte = *ptsTrack->pTrackCurrent++;
-				return TRUE;
-			}
+	// Fills in the event struct with the next event from the track
+	BOOL GetTrackEvent(Track* ptsTrack, TempEvent* pteTemp);
 
-		// Attempts to parse a variable length DWORD from the given track.
-	BOOL	GetTrackVDWord(TRACK * ptsTrack, LPDWORD lpdw);
+	// Retrieve the next byte from the track buffer, refilling the buffer from
+	// disk if necessary.
+	BOOL GetTrackByte(Track* ptsTrack, const LPBYTE lpbyByte)
+	{
+		if (DWORD(ptsTrack->PTrackCurrent - ptsTrack->PTrackStart) == ptsTrack->DwTrackLength)
+			return FALSE;
+		*lpbyByte = *ptsTrack->PTrackCurrent++;
+		return TRUE;
+	}
 
-		// Put the given event into the given stream buffer at the given location.
-	int		AddEventToStreamBuffer( TEMPEVENT * pteTemp, CONVERTINFO * lpciInfo );
+	// Attempts to parse a variable length DWORD from the given track.
+	BOOL GetTrackVdWord(Track* ptsTrack, LPDWORD lpdw);
 
-		// Opens a MIDI stream. Then it goes about converting the data into a midiStream buffer for playback.
-	BOOL	StreamBufferSetup();
+	// Put the given event into the given stream buffer at the given location.
+	int AddEventToStreamBuffer(TempEvent* pteTemp, ConvertInfo* lpciInfo);
 
-	void	FreeBuffers();
+	// Opens a MIDI stream. Then it goes about converting the data into a midiStream buffer for playback.
+	BOOL StreamBufferSetup();
 
-
-protected:	// error handling
-		// The default implementation writes the error message in the
-		// debuggers output window. Override if you want a different
-		// behavior.
-	virtual void	MidiError(MMRESULT Result);
-
-		// Failure in converting track into stream.
-		// The default implementation displays the offset and the total
-		// number of bytes of the failed track and the error message in
-		// the debuggers output window. 
-	virtual void	TrackError(TRACK *, LPSTR ErrMsg);
+	void FreeBuffers();
 
 
-protected:	// overridables
-		// NOTE THAT, IF YOU OVERRIDE ONE OF THESE METHODS, YOU MUST CALL
-		// THE BASE CLASS IMPLEMENTATION TOO!
+protected: // error handling
+	// The default implementation writes the error message in the
+	// debuggers output window. Override if you want a different
+	// behavior.
+	virtual void MidiError(MMRESULT result);
 
-		// called when a MIDI output device is opened
-	virtual void	OnMidiOutOpen();
-	
-		// called when the MIDI output device is closed
-	virtual void	OnMidiOutClose();
-
-		// called when the specified system-exclusive or stream buffer
-		// has been played and is being returned to the application
-	virtual void	OnMidiOutDone(MIDIHDR &);
-
-		// called when a MEVT_F_CALLBACK event is reached in the MIDI output stream
-	virtual void	OnMidiOutPositionCB(MIDIHDR &, MIDIEVENT &);
+	// Failure in converting track into stream.
+	// The default implementation displays the offset and the total
+	// number of bytes of the failed track and the error message in
+	// the debuggers output window. 
+	virtual void TrackError(Track*, LPSTR errMsg);
 
 
-private:	// callback procedure
-		// This procedure calls the overridables above.
-	static void	CALLBACK	MidiProc(HMIDIOUT, UINT, uintptr_t, uintptr_t, uintptr_t);
+protected: // overrideable
+	// NOTE THAT, IF YOU OVERRIDE ONE OF THESE METHODS, YOU MUST CALL
+	// THE BASE CLASS IMPLEMENTATION TOO!
+
+	// called when a MIDI output device is opened
+	virtual void OnMidiOutOpen();
+
+	// called when the MIDI output device is closed
+	virtual void OnMidiOutClose();
+
+	// called when the specified system-exclusive or stream buffer
+	// has been played and is being returned to the application
+	virtual void OnMidiOutDone(MIDIHDR&);
+
+	// called when a MEVT_F_CALLBACK event is reached in the MIDI output stream
+	virtual void OnMidiOutPositionCB(MIDIHDR&, MIDIEVENT&);
 
 
-protected:	// data members
-	DWORD			m_dwSoundSize;
-	LPVOID			m_pSoundData;
-	DWORD			m_dwFormat;
-	DWORD			m_dwTrackCount;
-	DWORD			m_dwTimeDivision;
-	BOOL			m_bPlaying;
-	HMIDISTRM		m_hStream;
-	DWORD			m_dwProgressBytes;
-	BOOL			m_bLooped;
-	DWORD			m_tkCurrentTime;
-	DWORD			m_dwBufferTickLength;
-	DWORD			m_dwCurrentTempo;
-	DWORD			m_dwTempoMultiplier;
-	BOOL			m_bInsertTempo;
-	BOOL			m_bBuffersPrepared;
-	int				m_nCurrentBuffer;
-	UINT			m_uMIDIDeviceID;
-	int				m_nEmptyBuffers;
-	BOOL			m_bPaused;
-	UINT			m_uCallbackStatus;
-	HANDLE			m_hBufferReturnEvent;
-	HWND *			m_pWndParent;
-	TrackArray_t	m_Tracks;
-	VolumeArray_t	m_Volumes;
-	ConvertArray_t	m_StreamBuffers;
+private: // callback procedure
+	// This procedure calls the overrideable above.
+	static void CALLBACK MidiProc(HMIDIOUT, UINT, uintptr_t, uintptr_t, uintptr_t);
+
+
+protected: // data members
+	DWORD mDwSoundSize;
+	LPVOID mPSoundData;
+	DWORD mDwFormat;
+	DWORD mDwTrackCount;
+	DWORD mDwTimeDivision;
+	BOOL mBPlaying;
+	HMIDISTRM mHStream;
+	DWORD mDwProgressBytes;
+	BOOL mBLooped;
+	DWORD mTkCurrentTime;
+	DWORD mDwBufferTickLength;
+	DWORD mDwCurrentTempo;
+	DWORD mDwTempoMultiplier;
+	BOOL mBInsertTempo;
+	BOOL mBBuffersPrepared;
+	int mNCurrentBuffer;
+	UINT mUMidiDeviceId;
+	int mNEmptyBuffers;
+	BOOL mBPaused;
+	UINT mUCallbackStatus;
+	HANDLE mHBufferReturnEvent;
+	HWND* mPWndParent;
+	TrackArray_t mTracks;
+	VolumeArray_t mVolumes;
+	ConvertArray_t mStreamBuffers;
 
 	// data members especially for ConvertToBuffer()
-    TRACK *			m_ptsTrack;
-	TRACK *			m_ptsFound;
-    DWORD			m_dwStatus;
-    DWORD			m_tkNext;
-	DWORD			m_dwMallocBlocks;
-    TEMPEVENT		m_teTemp;
+	Track* mPtsTrack;
+	Track* mPtsFound;
+	DWORD mDwStatus;
+	DWORD mTkNext;
+	DWORD mDwMallocBlocks;
+	TempEvent mTeTemp;
 };
 
 //{{AFX_INSERT_LOCATION}}

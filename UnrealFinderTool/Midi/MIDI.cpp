@@ -3,8 +3,8 @@
 
 #pragma comment(lib, "winmm")
 
-#define MThd		0x6468544D		// Start of file
-#define MTrk		0x6B72544D		// Start of track
+#define M_THD		0x6468544D		// Start of file
+#define M_TRK		0x6B72544D		// Start of track
 
 #define BUFFER_TIME_LENGTH		60   // Amount to fill in milliseconds
 
@@ -13,11 +13,11 @@
 #pragma pack(1)
 
 // Contents of MThd chunk.
-struct MIDIFILEHDR
+struct MidiFileHdr
 {
-    WORD	wFormat;			// Format (hi-lo)
-    WORD	wTrackCount;		// # tracks (hi-lo)
-    WORD	wTimeDivision;		// Time division (hi-lo)
+	WORD wFormat; // Format (hi-lo)
+	WORD wTrackCount; // # tracks (hi-lo)
+	WORD wTimeDivision; // Time division (hi-lo)
 };
 
 #pragma pack() // End of need for byte-aligned structures
@@ -34,15 +34,15 @@ struct MIDIFILEHDR
 						(((dw) << 24) & 0xFF000000))
 
 
-static char gteBadRunStat[] 	= "Reference to missing running status.";
-static char gteRunStatMsgTrunc[]= "Running status message truncated";
-static char gteChanMsgTrunc[]	= "Channel message truncated";
-static char gteSysExLenTrunc[]	= "SysEx event truncated (length)";
-static char gteSysExTrunc[]	= "SysEx event truncated";
-static char gteMetaNoClass[]	= "Meta event truncated (no class byte)";
-static char gteMetaLenTrunc[]	= "Meta event truncated (length)";
-static char gteMetaTrunc[]	= "Meta event truncated";
-static char gteNoMem[]		= "Out of memory during malloc call";
+static char GteBadRunStat[] = "Reference to missing running status.";
+//static char GteRunStatMsgTrunc[] = "Running status message truncated";
+//static char GteChanMsgTrunc[] = "Channel message truncated";
+static char GteSysExLenTrunc[] = "SysEx event truncated (length)";
+static char GteSysExTrunc[] = "SysEx event truncated";
+//static char GteMetaNoClass[] = "Meta event truncated (no class byte)";
+static char GteMetaLenTrunc[] = "Meta event truncated (length)";
+static char GteMetaTrunc[] = "Meta event truncated";
+static char GteNoMem[] = "Out of memory during malloc call";
 
 
 //////////////////////////////////////////////////////////////////////
@@ -50,35 +50,36 @@ static char gteNoMem[]		= "Out of memory during malloc call";
 //////////////////////////////////////////////////////////////////////
 
 CMIDI::CMIDI()
-	: m_dwSoundSize(0)
-	, m_pSoundData(0)
-	, m_dwFormat(0)
-	, m_dwTrackCount(0)
-	, m_dwTimeDivision(0)
-	, m_bPlaying(FALSE)
-	, m_hStream(0)
-	, m_dwProgressBytes(0)
-	, m_bLooped(FALSE)
-	, m_tkCurrentTime(0)
-	, m_dwBufferTickLength(0)
-	, m_dwCurrentTempo(0)
-	, m_dwTempoMultiplier(100)
-	, m_bInsertTempo(FALSE)
-	, m_bBuffersPrepared(FALSE)
-	, m_nCurrentBuffer(0)
-	, m_uMIDIDeviceID(MIDI_MAPPER)
-	, m_nEmptyBuffers(0)
-	, m_bPaused(FALSE)
-	, m_uCallbackStatus(0)
-	, m_hBufferReturnEvent(0)
+	: mDwSoundSize(0)
+	  , mPSoundData(nullptr)
+	  , mDwFormat(0)
+	  , mDwTrackCount(0)
+	  , mDwTimeDivision(0)
+	  , mBPlaying(FALSE)
+	  , mHStream(nullptr)
+	  , mDwProgressBytes(0)
+	  , mBLooped(FALSE)
+	  , mTkCurrentTime(0)
+	  , mDwBufferTickLength(0)
+	  , mDwCurrentTempo(0)
+	  , mDwTempoMultiplier(100)
+	  , mBInsertTempo(FALSE)
+	  , mBBuffersPrepared(FALSE)
+	  , mNCurrentBuffer(0)
+	  , mUMidiDeviceId(MIDI_MAPPER)
+	  , mNEmptyBuffers(0)
+	  , mBPaused(FALSE)
+	  , mUCallbackStatus(0)
+	  , mHBufferReturnEvent(nullptr)
 
-	, m_ptsTrack(0)
-	, m_ptsFound(0)
-	, m_dwStatus(0)
-	, m_tkNext(0)
-	, m_dwMallocBlocks(0)
+	  , mPWndParent(nullptr)
+	  , mPtsTrack(nullptr)
+	  , mPtsFound(nullptr)
+	  , mDwStatus(0)
+	  , mTkNext(0)
+	  , mDwMallocBlocks(0), mTeTemp()
 {
-	m_hBufferReturnEvent = ::CreateEvent(0, FALSE, FALSE, TEXT("Wait For Buffer Return"));
+	mHBufferReturnEvent = CreateEvent(nullptr, FALSE, FALSE, TEXT("Wait For Buffer Return"));
 	//ASSERT(m_hBufferReturnEvent != 0);
 }
 
@@ -86,45 +87,46 @@ CMIDI::~CMIDI()
 {
 	Stop(FALSE);
 
-	if(m_hBufferReturnEvent)
-		::CloseHandle(m_hBufferReturnEvent);
+	if (mHBufferReturnEvent)
+		::CloseHandle(mHBufferReturnEvent);
 }
 
 
-BOOL CMIDI::Create(UINT uResID, HWND pWndParent /* = NULL */)
+BOOL CMIDI::Create(const UINT uResId, const HWND pWndParent /* = NULL */)
 {
-	return	Create(MAKEINTRESOURCE(uResID), pWndParent);
+	return Create(MAKEINTRESOURCE(uResId), pWndParent);
 }
 
 
-BOOL CMIDI::Create(LPCTSTR pszResID, HWND pWndParent /* = NULL */)
+BOOL CMIDI::Create(const LPCTSTR pszResId, const HWND pWndParent /* = NULL */)
 {
 	//////////////////////////////////////////////////////////////////
 	// load resource
-	HINSTANCE hApp = ::GetModuleHandle(0);
+	HINSTANCE hApp = GetModuleHandle(nullptr);
 	//ASSERT(hApp);
 
-	HRSRC hResInfo = ::FindResource(hApp, pszResID, TEXT("MIDI"));
-	if(hResInfo == 0)
+	HRSRC hResInfo = FindResource(hApp, pszResId, TEXT("MIDI"));
+	if (hResInfo == nullptr)
 		return FALSE;
 
-	HGLOBAL hRes = ::LoadResource(hApp, hResInfo);
-	if(hRes == 0)
+	HGLOBAL hRes = LoadResource(hApp, hResInfo);
+	if (hRes == nullptr)
 		return FALSE;
 
-	LPVOID pTheSound = ::LockResource(hRes);
-	if(pTheSound == 0)
+	LPVOID pTheSound = LockResource(hRes);
+	if (pTheSound == nullptr)
 		return FALSE;
 
 	DWORD dwTheSound = ::SizeofResource(hApp, hResInfo);
 
-	return Create((LPBYTE)pTheSound, dwTheSound, pWndParent);
+	return Create(static_cast<LPBYTE>(pTheSound), dwTheSound, pWndParent);
 }
 
 
-BOOL CMIDI::Create(LPBYTE pSoundData, DWORD dwSize, HWND pWndParent /* = NULL */)
+BOOL CMIDI::Create(const LPBYTE pSoundData, const DWORD dwSize, HWND pParent /* = NULL */)
 {
-	if( m_pSoundData ) {
+	if (mPSoundData)
+	{
 		// already created
 		//ASSERT(FALSE);
 		return FALSE;
@@ -133,10 +135,11 @@ BOOL CMIDI::Create(LPBYTE pSoundData, DWORD dwSize, HWND pWndParent /* = NULL */
 	//ASSERT(pSoundData != 0);
 	//ASSERT(dwSize > 0);
 
-	register LPBYTE p = LPBYTE(pSoundData);
+	auto p = LPBYTE(pSoundData);
 
 	// check header of MIDI
-	if(*(DWORD*)p != MThd) {
+	if (*reinterpret_cast<DWORD*>(p) != M_THD)
+	{
 		//ASSERT(FALSE);
 		return FALSE;
 	}
@@ -144,45 +147,50 @@ BOOL CMIDI::Create(LPBYTE pSoundData, DWORD dwSize, HWND pWndParent /* = NULL */
 
 	// check header size
 	DWORD dwHeaderSize = DWORDSWAP(*(DWORD*)p);
-	if( dwHeaderSize != sizeof(MIDIFILEHDR) ) {
+	if (dwHeaderSize != sizeof(MidiFileHdr))
+	{
 		//ASSERT(FALSE);
 		return FALSE;
 	}
 	p += sizeof(DWORD);
 
 	// get header
-	MIDIFILEHDR hdr;
-	::CopyMemory(&hdr, p, dwHeaderSize);
-	m_dwFormat = DWORD(WORDSWAP(hdr.wFormat));
-	m_dwTrackCount = DWORD(WORDSWAP(hdr.wTrackCount));
-	m_dwTimeDivision = DWORD(WORDSWAP(hdr.wTimeDivision));
+	MidiFileHdr hdr;
+	CopyMemory(&hdr, p, dwHeaderSize);
+	mDwFormat = DWORD(WORDSWAP(hdr.wFormat));
+	mDwTrackCount = DWORD(WORDSWAP(hdr.wTrackCount));
+	mDwTimeDivision = DWORD(WORDSWAP(hdr.wTimeDivision));
 	p += dwHeaderSize;
 
 	// create the array of tracks
-	m_Tracks.resize(m_dwTrackCount);
-	for(register DWORD i = 0; i < m_dwTrackCount; ++i) {
+	mTracks.resize(mDwTrackCount);
+	for (DWORD i = 0; i < mDwTrackCount; ++i)
+	{
 		// check header of track
-		if(*(DWORD*)p != MTrk) {
+		if (*reinterpret_cast<DWORD*>(p) != M_TRK)
+		{
 			//ASSERT(FALSE);
 			return FALSE;
 		}
 		p += sizeof(DWORD);
 
-		m_Tracks[i].dwTrackLength = DWORDSWAP(*(DWORD*)p);
+		mTracks[i].DwTrackLength = DWORDSWAP(*(DWORD*)p);
 		p += sizeof(DWORD);
 
-		m_Tracks[i].pTrackStart = m_Tracks[i].pTrackCurrent = p;
-			p += m_Tracks[i].dwTrackLength;
+		mTracks[i].PTrackStart = mTracks[i].PTrackCurrent = p;
+		p += mTracks[i].DwTrackLength;
 
-        // Handle bozo MIDI files which contain empty track chunks
-		if( !m_Tracks[i].dwTrackLength ) {
-			m_Tracks[i].fdwTrack |= ITS_F_ENDOFTRK;
+		// Handle bozo MIDI files which contain empty track chunks
+		if (!mTracks[i].DwTrackLength)
+		{
+			mTracks[i].FdwTrack |= ITS_F_ENDOFTRK;
 			continue;
 		}
 
 		// We always preread the time from each track so the mixer code can
 		// determine which track has the next event with a minimum of work
-		if( !GetTrackVDWord( &m_Tracks[i], &m_Tracks[i].tkNextEventDue )) {
+		if (!GetTrackVdWord(&mTracks[i], &mTracks[i].TkNextEventDue))
+		{
 			//TRACE0("Error in MIDI data\n");
 			//ASSERT(FALSE);
 			return FALSE;
@@ -190,14 +198,15 @@ BOOL CMIDI::Create(LPBYTE pSoundData, DWORD dwSize, HWND pWndParent /* = NULL */
 	}
 
 
-	m_pSoundData = pSoundData;
-	m_dwSoundSize = dwSize;
-	m_pWndParent = &pWndParent;
+	mPSoundData = pSoundData;
+	mDwSoundSize = dwSize;
+	mPWndParent = &pParent;
 
 	// allocate volume channels and initialise them
-	m_Volumes.resize(NUM_CHANNELS, VOLUME_INIT);
+	mVolumes.resize(NUM_CHANNELS, VOLUME_INIT);
 
-	if( ! StreamBufferSetup() ) {
+	if (! StreamBufferSetup())
+	{
 		//ASSERT(FALSE);
 		return FALSE;
 	}
@@ -206,83 +215,97 @@ BOOL CMIDI::Create(LPBYTE pSoundData, DWORD dwSize, HWND pWndParent /* = NULL */
 }
 
 
-BOOL CMIDI :: Play(BOOL bInfinite /* = FALSE */) {
-	if( IsPaused() ) {
+BOOL CMIDI::Play(BOOL bInfinite /* = FALSE */)
+{
+	if (IsPaused())
+	{
 		Continue();
 		return TRUE;
 	}
 
 	// calling Play() while it is already playing will restart from scratch
-	if( IsPlaying() )
+	if (IsPlaying())
 		Stop();
 
 	// Clear the status of our callback so it will handle
 	// MOM_DONE callbacks once more
-	m_uCallbackStatus = 0;
+	mUCallbackStatus = 0;
 
-	if( !m_bLooped )
-		m_bInsertTempo = TRUE;
+	if (!mBLooped)
+		mBInsertTempo = TRUE;
 
 	MMRESULT mmResult;
-	if( (mmResult = midiStreamRestart(m_hStream)) != MMSYSERR_NOERROR ) {
+	if ((mmResult = midiStreamRestart(mHStream)) != MMSYSERR_NOERROR)
+	{
 		MidiError(mmResult);
 		return FALSE;
 	}
 
-	m_bPlaying = TRUE;
-	m_bLooped = bInfinite;
+	mBPlaying = TRUE;
+	mBLooped = bInfinite;
 
-	return m_bPlaying;
+	return mBPlaying;
 }
 
 
-BOOL CMIDI :: Stop(BOOL bReOpen /*=TRUE*/) {
+BOOL CMIDI::Stop(BOOL bReOpen /*=TRUE*/)
+{
 	MMRESULT mmrRetVal;
 
-	if( IsPlaying()	|| (m_uCallbackStatus != STATUS_CALLBACKDEAD) ) {
-		m_bPlaying = m_bPaused = FALSE;
-		if( m_uCallbackStatus != STATUS_CALLBACKDEAD && m_uCallbackStatus != STATUS_WAITINGFOREND )
-			m_uCallbackStatus = STATUS_KILLCALLBACK;
+	if (IsPlaying() || (mUCallbackStatus != STATUS_CALLBACKDEAD))
+	{
+		mBPlaying = mBPaused = FALSE;
+		if (mUCallbackStatus != STATUS_CALLBACKDEAD && mUCallbackStatus != STATUS_WAITINGFOREND)
+			mUCallbackStatus = STATUS_KILLCALLBACK;
 
-		if( (mmrRetVal = midiStreamStop(m_hStream) ) != MMSYSERR_NOERROR ) {
+		if ((mmrRetVal = midiStreamStop(mHStream)) != MMSYSERR_NOERROR)
+		{
 			MidiError(mmrRetVal);
 			return FALSE;
 		}
-		if( (mmrRetVal = midiOutReset((HMIDIOUT)m_hStream)) != MMSYSERR_NOERROR ) {
+		if ((mmrRetVal = midiOutReset(reinterpret_cast<HMIDIOUT>(mHStream))) != MMSYSERR_NOERROR)
+		{
 			MidiError(mmrRetVal);
 			return FALSE;
 		}
 		// Wait for the callback thread to release this thread, which it will do by
 		// calling SetEvent() once all buffers are returned to it
-		if( WaitForSingleObject( m_hBufferReturnEvent, DEBUG_CALLBACK_TIMEOUT ) == WAIT_TIMEOUT ) {
+		if (WaitForSingleObject(mHBufferReturnEvent, DEBUG_CALLBACK_TIMEOUT) == WAIT_TIMEOUT)
+		{
 			// Note, this is a risky move because the callback may be genuinely busy, but
 			// when we're debugging, it's safer and faster than freezing the application,
 			// which leaves the MIDI device locked up and forces a system reset...
 			//TRACE0("Timed out waiting for MIDI callback\n");
-			m_uCallbackStatus = STATUS_CALLBACKDEAD;
+			mUCallbackStatus = STATUS_CALLBACKDEAD;
 		}
 	}
 
-	if( m_uCallbackStatus == STATUS_CALLBACKDEAD ) {
-		m_uCallbackStatus = 0;
+	if (mUCallbackStatus == STATUS_CALLBACKDEAD)
+	{
+		mUCallbackStatus = 0;
 		FreeBuffers();
-		if( m_hStream ) {
-			if( (mmrRetVal = midiStreamClose(m_hStream) ) != MMSYSERR_NOERROR ) {
+		if (mHStream)
+		{
+			if ((mmrRetVal = midiStreamClose(mHStream)) != MMSYSERR_NOERROR)
+			{
 				MidiError(mmrRetVal);
 			}
-			m_hStream = 0;
+			mHStream = nullptr;
 		}
 
-		if( bReOpen ) {
-			if( !StreamBufferSetup() ) {
+		if (bReOpen)
+		{
+			if (!StreamBufferSetup())
+			{
 				// Error setting up for MIDI file
 				// Notification is already taken care of...
 				return FALSE;
 			}
-			if( ! m_bLooped ) {
+			if (! mBLooped)
+			{
 				Rewind();
-				m_dwProgressBytes = 0;
-				m_dwStatus = 0;
+				mDwProgressBytes = 0;
+				mDwStatus = 0;
 			}
 		}
 	}
@@ -290,43 +313,51 @@ BOOL CMIDI :: Stop(BOOL bReOpen /*=TRUE*/) {
 }
 
 
-BOOL CMIDI :: Pause() {
-	if( ! m_bPaused && m_bPlaying && m_pSoundData && m_hStream ) {
-		midiStreamPause(m_hStream);
-		m_bPaused = TRUE;
+BOOL CMIDI::Pause()
+{
+	if (! mBPaused && mBPlaying && mPSoundData && mHStream)
+	{
+		midiStreamPause(mHStream);
+		mBPaused = TRUE;
 	}
 	return FALSE;
 }
 
 
-BOOL CMIDI :: Continue() {
-	if( m_bPaused && m_bPlaying && m_pSoundData && m_hStream ) {
-		midiStreamRestart(m_hStream);
-		m_bPaused = FALSE;
+BOOL CMIDI::Continue()
+{
+	if (mBPaused && mBPlaying && mPSoundData && mHStream)
+	{
+		midiStreamRestart(mHStream);
+		mBPaused = FALSE;
 	}
 	return FALSE;
 }
 
 
-BOOL CMIDI :: Rewind() {
-	if( ! m_pSoundData )
+BOOL CMIDI::Rewind()
+{
+	if (! mPSoundData)
 		return FALSE;
 
-	for(register DWORD i = 0; i < m_dwTrackCount; ++i) {
-		m_Tracks[i].pTrackCurrent = m_Tracks[i].pTrackStart;
-		m_Tracks[i].byRunningStatus = 0;
-		m_Tracks[i].tkNextEventDue = 0;
-		m_Tracks[i].fdwTrack = 0;
+	for (DWORD i = 0; i < mDwTrackCount; ++i)
+	{
+		mTracks[i].PTrackCurrent = mTracks[i].PTrackStart;
+		mTracks[i].ByRunningStatus = 0;
+		mTracks[i].TkNextEventDue = 0;
+		mTracks[i].FdwTrack = 0;
 
-        // Handle bozo MIDI files which contain empty track chunks
-		if( !m_Tracks[i].dwTrackLength ) {
-			m_Tracks[i].fdwTrack |= ITS_F_ENDOFTRK;
+		// Handle bozo MIDI files which contain empty track chunks
+		if (!mTracks[i].DwTrackLength)
+		{
+			mTracks[i].FdwTrack |= ITS_F_ENDOFTRK;
 			continue;
 		}
 
 		// We always preread the time from each track so the mixer code can
 		// determine which track has the next event with a minimum of work
-		if( !GetTrackVDWord( &m_Tracks[i], &m_Tracks[i].tkNextEventDue )) {
+		if (!GetTrackVdWord(&mTracks[i], &mTracks[i].TkNextEventDue))
+		{
 			//TRACE0("Error in MIDI data\n");
 			//ASSERT(FALSE);
 			return FALSE;
@@ -337,63 +368,73 @@ BOOL CMIDI :: Rewind() {
 }
 
 
-DWORD CMIDI :: GetChannelCount() const {
-	return m_Volumes.size();
+DWORD CMIDI::GetChannelCount() const
+{
+	return mVolumes.size();
 }
 
 
-void CMIDI :: SetVolume(DWORD dwPercent) {
-	const DWORD dwSize = m_Volumes.size();
-	for( register DWORD i = 0; i < dwSize; ++i )
+void CMIDI::SetVolume(const DWORD dwPercent)
+{
+	const DWORD dwSize = mVolumes.size();
+	for (DWORD i = 0; i < dwSize; ++i)
 		SetChannelVolume(i, dwPercent);
 }
 
 
-DWORD CMIDI :: GetVolume() const {
+DWORD CMIDI::GetVolume() const
+{
 	DWORD dwVolume = 0;
-	const DWORD dwSize = m_Volumes.size();
-	for( register DWORD i = 0; i < dwSize; ++i )
+	const DWORD dwSize = mVolumes.size();
+	for (DWORD i = 0; i < dwSize; ++i)
 		dwVolume += GetChannelVolume(i);
 
 	return dwVolume / GetChannelCount();
 }
 
 
-void CMIDI :: SetChannelVolume(DWORD dwChannel, DWORD dwPercent) {
+void CMIDI::SetChannelVolume(DWORD dwChannel, DWORD dwPercent)
+{
 	//ASSERT(dwChannel < m_Volumes.size());
 
-	if( !m_bPlaying )
+	if (!mBPlaying)
 		return;
 
-	m_Volumes[dwChannel] = (dwPercent > 100) ? 100 : dwPercent;
-	DWORD dwEvent = MIDI_CTRLCHANGE | dwChannel | ((DWORD)MIDICTRL_VOLUME << 8) | ((DWORD)(m_Volumes[dwChannel]*VOLUME_MAX/100) << 16);
+	mVolumes[dwChannel] = (dwPercent > 100) ? 100 : dwPercent;
+	DWORD dwEvent = MIDI_CTRLCHANGE | dwChannel | (static_cast<DWORD>(MIDICTRL_VOLUME) << 8) | (static_cast<DWORD>(mVolumes[dwChannel] *
+		VOLUME_MAX / 100) << 16);
 	MMRESULT mmrRetVal;
-	if(( mmrRetVal = midiOutShortMsg((HMIDIOUT)m_hStream, dwEvent)) != MMSYSERR_NOERROR ) {
+	if ((mmrRetVal = midiOutShortMsg(reinterpret_cast<HMIDIOUT>(mHStream), dwEvent)) != MMSYSERR_NOERROR)
+	{
 		MidiError(mmrRetVal);
 		return;
 	}
 }
 
 
-DWORD CMIDI :: GetChannelVolume(DWORD dwChannel) const {
+DWORD CMIDI::GetChannelVolume(DWORD dwChannel) const
+{
 	//ASSERT(dwChannel < GetChannelCount());
-	return m_Volumes[dwChannel];
+	return mVolumes[dwChannel];
 }
 
 
-void CMIDI :: SetTempo(DWORD dwPercent) {
-	m_dwTempoMultiplier = dwPercent ? dwPercent : 1;
-	m_bInsertTempo = TRUE;
+void CMIDI::SetTempo(DWORD dwPercent)
+{
+	mDwTempoMultiplier = dwPercent ? dwPercent : 1;
+	mBInsertTempo = TRUE;
 }
 
 
-DWORD CMIDI :: GetTempo() const {
-	return m_dwTempoMultiplier;
+DWORD CMIDI::GetTempo() const
+{
+	return mDwTempoMultiplier;
 }
 
 
-void CMIDI :: SetInfinitePlay(BOOL bSet) {
-	m_bLooped = bSet;
+void CMIDI::SetInfinitePlay(BOOL bSet)
+{
+	mBLooped = bSet;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -407,117 +448,148 @@ void CMIDI :: SetInfinitePlay(BOOL bSet) {
 // bit flags, passed through dwFlags. Information about the success/failure
 // of this operation and the number of output bytes actually converted will
 // be returned in the CONVERTINFO structure pointed at by lpciInfo.
-int CMIDI :: ConvertToBuffer(DWORD dwFlags, CONVERTINFO * lpciInfo) {
-	int	    nChkErr;
+int CMIDI::ConvertToBuffer(const DWORD dwFlags, ConvertInfo* lpciInfo)
+{
+	int nChkErr;
 
-	lpciInfo->dwBytesRecorded = 0;
+	lpciInfo->DwBytesRecorded = 0;
 
-	if( dwFlags & CONVERTF_RESET ) {
-		m_dwProgressBytes = 0;
-		m_dwStatus = 0;
-		memset( &m_teTemp, 0, sizeof(TEMPEVENT));
-		m_ptsTrack = m_ptsFound = 0;
+	if (dwFlags & CONVERTF_RESET)
+	{
+		mDwProgressBytes = 0;
+		mDwStatus = 0;
+		memset(&mTeTemp, 0, sizeof(TempEvent));
+		mPtsTrack = mPtsFound = nullptr;
 	}
 
 	// If we were already done, then return with a warning...
-	if( m_dwStatus & CONVERTF_STATUS_DONE ) {
-		if( m_bLooped ) {
+	if (mDwStatus & CONVERTF_STATUS_DONE)
+	{
+		if (mBLooped)
+		{
 			Rewind();
-			m_dwProgressBytes = 0;
-			m_dwStatus = 0;
-		} else
+			mDwProgressBytes = 0;
+			mDwStatus = 0;
+		}
+		else
 			return CONVERTERR_DONE;
-	} else if( m_dwStatus & CONVERTF_STATUS_STUCK ) {
+	}
+	else if (mDwStatus & CONVERTF_STATUS_STUCK)
+	{
 		// The caller is asking us to continue, but we're already hosed because we
 		// previously identified something as corrupt, so complain louder this time.
-		return( CONVERTERR_STUCK );
-	} else if( m_dwStatus & CONVERTF_STATUS_GOTEVENT ) {
+		return (CONVERTERR_STUCK);
+	}
+	else if (mDwStatus & CONVERTF_STATUS_GOTEVENT)
+	{
 		// Turn off this bit flag
-		m_dwStatus ^= CONVERTF_STATUS_GOTEVENT;
+		mDwStatus ^= CONVERTF_STATUS_GOTEVENT;
 
 		// The following code for this case is duplicated from below, and is
 		// designed to handle a "straggler" event, should we have one left over
 		// from previous processing the last time this function was called.
 
 		// Don't add end of track event 'til we're done
-		if( m_teTemp.byShortData[0] == MIDI_META && m_teTemp.byShortData[1] == MIDI_META_EOT ) {
-			if( m_dwMallocBlocks ) {
-				delete [] m_teTemp.pLongData;
-				--m_dwMallocBlocks;
+		if (mTeTemp.byShortData[0] == MIDI_META && mTeTemp.byShortData[1] == MIDI_META_EOT)
+		{
+			if (mDwMallocBlocks)
+			{
+				delete [] mTeTemp.pLongData;
+				--mDwMallocBlocks;
 			}
-		} else if(( nChkErr = AddEventToStreamBuffer( &m_teTemp, lpciInfo )) != CONVERTERR_NOERROR ) {
-			if( nChkErr == CONVERTERR_BUFFERFULL ) {
+		}
+		else if ((nChkErr = AddEventToStreamBuffer(&mTeTemp, lpciInfo)) != CONVERTERR_NOERROR)
+		{
+			if (nChkErr == CONVERTERR_BUFFERFULL)
+			{
 				// Do some processing and tell caller that this buffer's full
-				m_dwStatus |= CONVERTF_STATUS_GOTEVENT;
+				mDwStatus |= CONVERTF_STATUS_GOTEVENT;
 				return CONVERTERR_NOERROR;
-			} else if( nChkErr == CONVERTERR_METASKIP ) {
+			}
+			else if (nChkErr == CONVERTERR_METASKIP)
+			{
 				// We skip by all meta events that aren't tempo changes...
-			} else {
+			}
+			else
+			{
 				//TRACE0("Unable to add event to stream buffer.\n");
-				if( m_dwMallocBlocks ) {
-					delete [] m_teTemp.pLongData;
-					m_dwMallocBlocks--;
+				if (mDwMallocBlocks)
+				{
+					delete [] mTeTemp.pLongData;
+					mDwMallocBlocks--;
 				}
-				return( TRUE );
+				return (TRUE);
 			}
 		}
 	}
 
-	for(;;) {
-		m_ptsFound = 0;
-		m_tkNext = 0xFFFFFFFFL;
+	for (;;)
+	{
+		mPtsFound = nullptr;
+		mTkNext = 0xFFFFFFFFL;
 		// Find nearest event due
-		for( register DWORD idx = 0; idx < m_Tracks.size(); ++idx ) {
-			m_ptsTrack = &m_Tracks[idx];
-			if( !(m_ptsTrack->fdwTrack & ITS_F_ENDOFTRK) && (m_ptsTrack->tkNextEventDue < m_tkNext) ) {
-				m_tkNext = m_ptsTrack->tkNextEventDue;
-				m_ptsFound = m_ptsTrack;
+		for (auto& m_track : mTracks)
+		{
+			mPtsTrack = &m_track;
+			if (!(mPtsTrack->FdwTrack & ITS_F_ENDOFTRK) && (mPtsTrack->TkNextEventDue < mTkNext))
+			{
+				mTkNext = mPtsTrack->TkNextEventDue;
+				mPtsFound = mPtsTrack;
 			}
 		}
 
 		// None found?  We must be done, so return to the caller with a smile.
-		if( !m_ptsFound ) {
-			m_dwStatus |= CONVERTF_STATUS_DONE;
+		if (!mPtsFound)
+		{
+			mDwStatus |= CONVERTF_STATUS_DONE;
 			// Need to set return buffer members properly
 			return CONVERTERR_NOERROR;
 		}
 
 		// Ok, get the event header from that track
-		if( !GetTrackEvent( m_ptsFound, &m_teTemp )) {
+		if (!GetTrackEvent(mPtsFound, &mTeTemp))
+		{
 			// Warn future calls that this converter is stuck at a corrupt spot
 			// and can't continue
-			m_dwStatus |= CONVERTF_STATUS_STUCK;
+			mDwStatus |= CONVERTF_STATUS_STUCK;
 			return CONVERTERR_CORRUPT;
 		}
 
 		// Don't add end of track event 'til we're done
-		if( m_teTemp.byShortData[0] == MIDI_META && m_teTemp.byShortData[1] == MIDI_META_EOT ) {
-			if( m_dwMallocBlocks ) {
-				delete [] m_teTemp.pLongData;
-				--m_dwMallocBlocks;
+		if (mTeTemp.byShortData[0] == MIDI_META && mTeTemp.byShortData[1] == MIDI_META_EOT)
+		{
+			if (mDwMallocBlocks)
+			{
+				delete [] mTeTemp.pLongData;
+				--mDwMallocBlocks;
 			}
 			continue;
 		}
 
-		if(( nChkErr = AddEventToStreamBuffer( &m_teTemp, lpciInfo )) != CONVERTERR_NOERROR ) {
-			if( nChkErr == CONVERTERR_BUFFERFULL ) {
+		if ((nChkErr = AddEventToStreamBuffer(&mTeTemp, lpciInfo)) != CONVERTERR_NOERROR)
+		{
+			if (nChkErr == CONVERTERR_BUFFERFULL)
+			{
 				// Do some processing and tell somebody this buffer is full...
-				m_dwStatus |= CONVERTF_STATUS_GOTEVENT;
+				mDwStatus |= CONVERTF_STATUS_GOTEVENT;
 				return CONVERTERR_NOERROR;
-			} else if( nChkErr == CONVERTERR_METASKIP ) {
+			}
+			else if (nChkErr == CONVERTERR_METASKIP)
+			{
 				// We skip by all meta events that aren't tempo changes...
-			} else {
+			}
+			else
+			{
 				//TRACE0("Unable to add event to stream buffer.\n");
-				if( m_dwMallocBlocks ) {
-					delete [] m_teTemp.pLongData;
-					m_dwMallocBlocks--;
+				if (mDwMallocBlocks)
+				{
+					delete [] mTeTemp.pLongData;
+					mDwMallocBlocks--;
 				}
 				return TRUE;
 			}
 		}
-	}	
-
-	return CONVERTERR_NOERROR;
+	}
 }
 
 // GetTrackEvent
@@ -535,10 +607,10 @@ int CMIDI :: ConvertToBuffer(DWORD dwFlags, CONVERTINFO * lpciInfo) {
 // pteTemp->dwEventLength will contain
 //  The total length of the channel message in pteTemp->byShortData if
 //   the event is a channel message
-//  The total length of the paramter data pointed to by
+//  The total length of the parameter data pointed to by
 //   pteTemp->pLongData otherwise
 //
-// pteTemp->pLongData will point at any additional paramters if the 
+// pteTemp->pLongData will point at any additional parameters if the 
 //  event is a SysEx or meta event with non-zero length; else
 //  it will contain NULL
 //
@@ -548,20 +620,20 @@ int CMIDI :: ConvertToBuffer(DWORD dwFlags, CONVERTINFO * lpciInfo) {
 // Maintains the state of the input track (i.e. 
 // ptsTrack->pTrackPointers, and ptsTrack->byRunningStatus).
 //
-BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
-	DWORD   idx;
-	UINT    dwEventLength;
+BOOL CMIDI::GetTrackEvent(Track* ptsTrack, TempEvent* pteTemp)
+{
+	DWORD idx;
 
 	// Clear out the temporary event structure to get rid of old data...
-	memset( pteTemp, 0, sizeof(TEMPEVENT));
+	memset(pteTemp, 0, sizeof(TempEvent));
 
 	// Already at end of track? There's nothing to read.
-    if( ptsTrack->fdwTrack & ITS_F_ENDOFTRK )
+	if (ptsTrack->FdwTrack & ITS_F_ENDOFTRK)
 		return FALSE;
 
 	// Get the first byte, which determines the type of event.
 	BYTE byByte;
-	if( !GetTrackByte(ptsTrack, &byByte) )
+	if (!GetTrackByte(ptsTrack, &byByte))
 		return FALSE;
 
 	// If the high bit is not set, then this is a channel message
@@ -569,14 +641,16 @@ BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
 	// we saw. NOTE: We do not clear running status across SysEx or
 	// meta events even though the spec says to because there are
 	// actually files out there which contain that sequence of data.
-	if( !(byByte & 0x80) ) {
+	if (!(byByte & 0x80))
+	{
 		// No previous status byte? We're hosed.
-		if( !ptsTrack->byRunningStatus ) {
-			TrackError(ptsTrack, gteBadRunStat);
+		if (!ptsTrack->ByRunningStatus)
+		{
+			TrackError(ptsTrack, GteBadRunStat);
 			return FALSE;
 		}
 
-		pteTemp->byShortData[0] = ptsTrack->byRunningStatus;
+		pteTemp->byShortData[0] = ptsTrack->ByRunningStatus;
 		pteTemp->byShortData[1] = byByte;
 
 		byByte = pteTemp->byShortData[0] & 0xF0;
@@ -584,29 +658,34 @@ BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
 
 		// Only program change and channel pressure events are 2 bytes long;
 		// the rest are 3 and need another byte
-		if(( byByte != MIDI_PRGMCHANGE ) && ( byByte != MIDI_CHANPRESS )) {
-			if( !GetTrackByte( ptsTrack, &pteTemp->byShortData[2] ))
+		if ((byByte != MIDI_PRGMCHANGE) && (byByte != MIDI_CHANPRESS))
+		{
+			if (!GetTrackByte(ptsTrack, &pteTemp->byShortData[2]))
 				return FALSE;
 			++pteTemp->dwEventLength;
 		}
-	} else if(( byByte & 0xF0 ) != MIDI_SYSEX ) {
+	}
+	else if ((byByte & 0xF0) != MIDI_SYSEX)
+	{
 		// Not running status, not in SysEx range - must be
 		// normal channel message (0x80-0xEF)
 		pteTemp->byShortData[0] = byByte;
-		ptsTrack->byRunningStatus = byByte;
+		ptsTrack->ByRunningStatus = byByte;
 
 		// Strip off channel and just keep message type
 		byByte &= 0xF0;
 
-		dwEventLength = ( byByte == MIDI_PRGMCHANGE || byByte == MIDI_CHANPRESS ) ? 1 : 2;
+		UINT dwEventLength = (byByte == MIDI_PRGMCHANGE || byByte == MIDI_CHANPRESS) ? 1 : 2;
 		pteTemp->dwEventLength = dwEventLength + 1;
 
-		if( !GetTrackByte( ptsTrack, &pteTemp->byShortData[1] ))
+		if (!GetTrackByte(ptsTrack, &pteTemp->byShortData[1]))
 			return FALSE;
-		if( dwEventLength == 2 )
-			if( !GetTrackByte( ptsTrack, &pteTemp->byShortData[2] ))
+		if (dwEventLength == 2)
+			if (!GetTrackByte(ptsTrack, &pteTemp->byShortData[2]))
 				return FALSE;
-	} else if(( byByte == MIDI_SYSEX ) || ( byByte == MIDI_SYSEXEND )) {
+	}
+	else if ((byByte == MIDI_SYSEX) || (byByte == MIDI_SYSEXEND))
+	{
 		// One of the SysEx types. (They are the same as far as we're concerned;
 		// there is only a semantic difference in how the data would actually
 		// get sent when the file is played. We must take care to put the proper
@@ -617,29 +696,34 @@ BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
 		//  VDWORD 	cbParms
 		//  BYTE   	abParms[cbParms]
 		pteTemp->byShortData[0] = byByte;
-		if( !GetTrackVDWord( ptsTrack, &pteTemp->dwEventLength )) {
-			TrackError( ptsTrack, gteSysExLenTrunc );
+		if (!GetTrackVdWord(ptsTrack, &pteTemp->dwEventLength))
+		{
+			TrackError(ptsTrack, GteSysExLenTrunc);
 			return FALSE;
 		}
 
 		// Malloc a temporary memory block to hold the parameter data
 		pteTemp->pLongData = new BYTE [pteTemp->dwEventLength];
-		if( pteTemp->pLongData == 0 ) {
-			TrackError( ptsTrack, gteNoMem );
+		if (pteTemp->pLongData == nullptr)
+		{
+			TrackError(ptsTrack, GteNoMem);
 			return FALSE;
 		}
 		// Increment our counter, which tells the program to look around for
 		// a malloc block to free, should it need to exit or reset before the
 		// block would normally be freed
-		++m_dwMallocBlocks;
+		++mDwMallocBlocks;
 
 		// Copy from the input buffer to the parameter data buffer
-		for( idx = 0; idx < pteTemp->dwEventLength; idx++ )
-			if( !GetTrackByte( ptsTrack, pteTemp->pLongData + idx )) {
-				TrackError( ptsTrack, gteSysExTrunc );
+		for (idx = 0; idx < pteTemp->dwEventLength; idx++)
+			if (!GetTrackByte(ptsTrack, pteTemp->pLongData + idx))
+			{
+				TrackError(ptsTrack, GteSysExTrunc);
 				return FALSE;
 			}
-	} else if( byByte == MIDI_META ) {
+	}
+	else if (byByte == MIDI_META)
+	{
 		// It's a meta event. Parse the general form:
 		//  BYTE	bEvent	(MIDI_META)
 		//  BYTE	bClass
@@ -647,59 +731,66 @@ BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
 		//  BYTE	abParms[cbParms]
 		pteTemp->byShortData[0] = byByte;
 
-		if( !GetTrackByte( ptsTrack, &pteTemp->byShortData[1] ))
+		if (!GetTrackByte(ptsTrack, &pteTemp->byShortData[1]))
 			return FALSE;
 
-		if( !GetTrackVDWord( ptsTrack, &pteTemp->dwEventLength )) {	
-			TrackError( ptsTrack, gteMetaLenTrunc );
+		if (!GetTrackVdWord(ptsTrack, &pteTemp->dwEventLength))
+		{
+			TrackError(ptsTrack, GteMetaLenTrunc);
 			return FALSE;
 		}
 
 		// NOTE: It's perfectly valid to have a meta with no data
 		// In this case, dwEventLength == 0 and pLongData == NULL
-		if( pteTemp->dwEventLength ) {		
+		if (pteTemp->dwEventLength)
+		{
 			// Malloc a temporary memory block to hold the parameter data
 			pteTemp->pLongData = new BYTE [pteTemp->dwEventLength];
-			if( pteTemp->pLongData == 0 ) {
-				TrackError( ptsTrack, gteNoMem );
+			if (pteTemp->pLongData == nullptr)
+			{
+				TrackError(ptsTrack, GteNoMem);
 				return FALSE;
 			}
 			// Increment our counter, which tells the program to look around for
 			// a malloc block to free, should it need to exit or reset before the
 			// block would normally be freed
-			++m_dwMallocBlocks;
+			++mDwMallocBlocks;
 
 			// Copy from the input buffer to the parameter data buffer
-			for( idx = 0; idx < pteTemp->dwEventLength; idx++ )
-				if( !GetTrackByte( ptsTrack, pteTemp->pLongData + idx )) {
-					TrackError( ptsTrack, gteMetaTrunc );
+			for (idx = 0; idx < pteTemp->dwEventLength; idx++)
+				if (!GetTrackByte(ptsTrack, pteTemp->pLongData + idx))
+				{
+					TrackError(ptsTrack, GteMetaTrunc);
 					return FALSE;
 				}
 		}
 
-		if( pteTemp->byShortData[1] == MIDI_META_EOT )
-			ptsTrack->fdwTrack |= ITS_F_ENDOFTRK;
-	} else {
+		if (pteTemp->byShortData[1] == MIDI_META_EOT)
+			ptsTrack->FdwTrack |= ITS_F_ENDOFTRK;
+	}
+	else
+	{
 		// Messages in this range are system messages and aren't supposed to
-		// be in a normal MIDI file. If they are, we've either misparsed or the
+		// be in a normal MIDI file. If they are, we've either disparaged or the
 		// authoring software is stupid.
 		return FALSE;
 	}
 
 	// Event time was already stored as the current track time
-	pteTemp->tkEvent = ptsTrack->tkNextEventDue;
+	pteTemp->tkEvent = ptsTrack->TkNextEventDue;
 
 	// Now update to the next event time. The code above MUST properly
 	// maintain the end of track flag in case the end of track meta is
 	// missing.  NOTE: This code is a continuation of the track event
 	// time pre-read which is done at the end of track initialization.
-	if( !( ptsTrack->fdwTrack & ITS_F_ENDOFTRK )) {
-		DWORD	tkDelta;
+	if (!(ptsTrack->FdwTrack & ITS_F_ENDOFTRK))
+	{
+		DWORD tkDelta;
 
-		if( !GetTrackVDWord( ptsTrack, &tkDelta ))
+		if (!GetTrackVdWord(ptsTrack, &tkDelta))
 			return FALSE;
 
-		ptsTrack->tkNextEventDue += tkDelta;
+		ptsTrack->TkNextEventDue += tkDelta;
 	}
 
 	return TRUE;
@@ -715,22 +806,25 @@ BOOL CMIDI :: GetTrackEvent(TRACK * ptsTrack, TEMPEVENT * pteTemp) {
 //
 // Returns the DWORD in *lpdw and TRUE on success; else
 // FALSE if we hit end of track first.
-BOOL CMIDI :: GetTrackVDWord(TRACK * ptsTrack, LPDWORD lpdw) {
+BOOL CMIDI::GetTrackVdWord(Track* ptsTrack, const LPDWORD lpdw)
+{
 	//ASSERT(ptsTrack != 0);
 	//ASSERT(lpdw != 0);
 
-	if( ptsTrack->fdwTrack & ITS_F_ENDOFTRK )
+	if (ptsTrack->FdwTrack & ITS_F_ENDOFTRK)
 		return FALSE;
 
-	BYTE	byByte;
-	DWORD	dw = 0;
+	BYTE byByte;
+	DWORD dw = 0;
 
-	do {
-		if( !GetTrackByte( ptsTrack, &byByte ))
+	do
+	{
+		if (!GetTrackByte(ptsTrack, &byByte))
 			return FALSE;
 
-		dw = ( dw << 7 ) | ( byByte & 0x7F );
-	} while( byByte & 0x80 );
+		dw = (dw << 7) | (byByte & 0x7F);
+	}
+	while (byByte & 0x80);
 
 	*lpdw = dw;
 
@@ -746,79 +840,95 @@ BOOL CMIDI :: GetTrackVDWord(TRACK * ptsTrack, LPDWORD lpdw) {
 //
 // Handles its own error notification by displaying to the appropriate
 // output device (either our debugging window, or the screen).
-int CMIDI :: AddEventToStreamBuffer( TEMPEVENT * pteTemp, CONVERTINFO *lpciInfo ) {
-	MIDIEVENT * pmeEvent = (MIDIEVENT *)( lpciInfo->mhBuffer.lpData
-							+ lpciInfo->dwStartOffset
-							+ lpciInfo->dwBytesRecorded );
+int CMIDI::AddEventToStreamBuffer(TempEvent* pteTemp, ConvertInfo* lpciInfo)
+{
+	auto* pmeEvent = reinterpret_cast<MIDIEVENT *>(lpciInfo->MhBuffer.lpData
+		+ lpciInfo->DwStartOffset
+		+ lpciInfo->DwBytesRecorded);
 
 	// When we see a new, empty buffer, set the start time on it...
-	if( !lpciInfo->dwBytesRecorded )
-		lpciInfo->tkStart = m_tkCurrentTime;
+	if (!lpciInfo->DwBytesRecorded)
+		lpciInfo->TkStart = mTkCurrentTime;
 
 	// Use the above set start time to figure out how much longer we should fill
 	// this buffer before officially declaring it as "full"
-	if( m_tkCurrentTime - lpciInfo->tkStart > m_dwBufferTickLength )
-		if( lpciInfo->bTimesUp ) {
-			lpciInfo->bTimesUp = FALSE;
+	if (mTkCurrentTime - lpciInfo->TkStart > mDwBufferTickLength)
+	{
+		if (lpciInfo->BTimesUp)
+		{
+			lpciInfo->BTimesUp = FALSE;
 			return CONVERTERR_BUFFERFULL;
-		} else
-			lpciInfo->bTimesUp = TRUE;
-
-	DWORD tkNow = m_tkCurrentTime;
+		}
+		else
+		{
+			lpciInfo->BTimesUp = TRUE;
+		}
+	}
 
 	// Delta time is absolute event time minus absolute time
 	// already gone by on this track
-	DWORD tkDelta = pteTemp->tkEvent - m_tkCurrentTime;
+	DWORD tkDelta = pteTemp->tkEvent - mTkCurrentTime;
 
 	// Event time is now current time on this track
-	m_tkCurrentTime = pteTemp->tkEvent;
+	mTkCurrentTime = pteTemp->tkEvent;
 
-	if( m_bInsertTempo ) {
-		m_bInsertTempo = FALSE;
+	if (mBInsertTempo)
+	{
+		mBInsertTempo = FALSE;
 
-		if( lpciInfo->dwMaxLength-lpciInfo->dwBytesRecorded < 3*sizeof(DWORD)) {
+		if (lpciInfo->DwMaxLength - lpciInfo->DwBytesRecorded < 3 * sizeof(DWORD))
+		{
 			// Cleanup from our write operation
 			return CONVERTERR_BUFFERFULL;
 		}
-		if( m_dwCurrentTempo ) {
+		if (mDwCurrentTempo)
+		{
 			pmeEvent->dwDeltaTime = 0;
 			pmeEvent->dwStreamID = 0;
-			pmeEvent->dwEvent = ( m_dwCurrentTempo * 100 ) / m_dwTempoMultiplier;
-			pmeEvent->dwEvent |= (((DWORD)MEVT_TEMPO ) << 24 ) | MEVT_F_SHORT;
+			pmeEvent->dwEvent = (mDwCurrentTempo * 100) / mDwTempoMultiplier;
+			pmeEvent->dwEvent |= (static_cast<DWORD>(MEVT_TEMPO) << 24) | MEVT_F_SHORT;
 
-			lpciInfo->dwBytesRecorded += 3 * sizeof(DWORD);
+			lpciInfo->DwBytesRecorded += 3 * sizeof(DWORD);
 			pmeEvent += 3 * sizeof(DWORD);
 		}
 	}
 
-	if( pteTemp->byShortData[0] < MIDI_SYSEX ) {
+	if (pteTemp->byShortData[0] < MIDI_SYSEX)
+	{
 		// Channel message. We know how long it is, just copy it.
 		// Need 3 DWORD's: delta-t, stream-ID, event
-		if( lpciInfo->dwMaxLength-lpciInfo->dwBytesRecorded < 3*sizeof(DWORD)) {
+		if (lpciInfo->DwMaxLength - lpciInfo->DwBytesRecorded < 3 * sizeof(DWORD))
+		{
 			// Cleanup from our write operation
 			return CONVERTERR_BUFFERFULL;
 		}
 
 		pmeEvent->dwDeltaTime = tkDelta;
 		pmeEvent->dwStreamID = 0;
-		pmeEvent->dwEvent = ( pteTemp->byShortData[0] )
-					| (((DWORD)pteTemp->byShortData[1] ) << 8 )
-					| (((DWORD)pteTemp->byShortData[2] ) << 16 )
-					| MEVT_F_SHORT;
+		pmeEvent->dwEvent = (pteTemp->byShortData[0])
+			| (static_cast<DWORD>(pteTemp->byShortData[1]) << 8)
+			| (static_cast<DWORD>(pteTemp->byShortData[2]) << 16)
+			| MEVT_F_SHORT;
 
-		if((( pteTemp->byShortData[0] & 0xF0) == MIDI_CTRLCHANGE ) && ( pteTemp->byShortData[1] == MIDICTRL_VOLUME )) {
+		if (((pteTemp->byShortData[0] & 0xF0) == MIDI_CTRLCHANGE) && (pteTemp->byShortData[1] == MIDICTRL_VOLUME))
+		{
 			// If this is a volume change, generate a callback so we can grab
 			// the new volume for our cache
 			pmeEvent->dwEvent |= MEVT_F_CALLBACK;
 		}
-		lpciInfo->dwBytesRecorded += 3 *sizeof(DWORD);
-	} else if(( pteTemp->byShortData[0] == MIDI_SYSEX ) || ( pteTemp->byShortData[0] == MIDI_SYSEXEND )) {
+		lpciInfo->DwBytesRecorded += 3 * sizeof(DWORD);
+	}
+	else if ((pteTemp->byShortData[0] == MIDI_SYSEX) || (pteTemp->byShortData[0] == MIDI_SYSEXEND))
+	{
 		//TRACE0("AddEventToStreamBuffer: Ignoring SysEx event.\n");
-		if( m_dwMallocBlocks ) {
+		if (mDwMallocBlocks)
+		{
 			delete [] pteTemp->pLongData;
-			--m_dwMallocBlocks;
+			--mDwMallocBlocks;
 		}
-	} else {
+	}
+	else
+	{
 		// Better be a meta event.
 		//  BYTE	byEvent
 		//  BYTE	byEventType
@@ -827,10 +937,12 @@ int CMIDI :: AddEventToStreamBuffer( TEMPEVENT * pteTemp, CONVERTINFO *lpciInfo 
 		//ASSERT( pteTemp->byShortData[0] == MIDI_META );
 
 		// The only meta-event we care about is change tempo
-		if( pteTemp->byShortData[1] != MIDI_META_TEMPO ) {
-			if( m_dwMallocBlocks ) {
+		if (pteTemp->byShortData[1] != MIDI_META_TEMPO)
+		{
+			if (mDwMallocBlocks)
+			{
 				delete [] pteTemp->pLongData;
-				--m_dwMallocBlocks;
+				--mDwMallocBlocks;
 			}
 			return CONVERTERR_METASKIP;
 		}
@@ -839,40 +951,43 @@ int CMIDI :: AddEventToStreamBuffer( TEMPEVENT * pteTemp, CONVERTINFO *lpciInfo 
 		//ASSERT(pteTemp->dwEventLength == 3);
 
 		// Need 3 DWORD's: delta-t, stream-ID, event data
-		if( lpciInfo->dwMaxLength - lpciInfo->dwBytesRecorded < 3 *sizeof(DWORD)) {
+		if (lpciInfo->DwMaxLength - lpciInfo->DwBytesRecorded < 3 * sizeof(DWORD))
+		{
 			// Cleanup the temporary event if necessary and return
-			if( m_dwMallocBlocks ) {
+			if (mDwMallocBlocks)
+			{
 				delete [] pteTemp->pLongData;
-				--m_dwMallocBlocks;
+				--mDwMallocBlocks;
 			}
 			return CONVERTERR_BUFFERFULL;
 		}
 
 		pmeEvent->dwDeltaTime = tkDelta;
 		pmeEvent->dwStreamID = 0;
-	// Note: this is backwards from above because we're converting a single
-	//		 data value from hi-lo to lo-hi format...
-		pmeEvent->dwEvent = ( pteTemp->pLongData[2] )
-				| (((DWORD)pteTemp->pLongData[1] ) << 8 )
-				| (((DWORD)pteTemp->pLongData[0] ) << 16 );
+		// Note: this is backwards from above because we're converting a single
+		//		 data value from hi-lo to lo-hi format...
+		pmeEvent->dwEvent = (pteTemp->pLongData[2])
+			| (static_cast<DWORD>(pteTemp->pLongData[1]) << 8)
+			| (static_cast<DWORD>(pteTemp->pLongData[0]) << 16);
 
 		// This next step has absolutely nothing to do with the conversion of a
 		// MIDI file to a stream, it's simply put here to add the functionality
 		// of the tempo slider. If you don't need this, be sure to remove the
 		// next two lines.
-		m_dwCurrentTempo = pmeEvent->dwEvent;
-		pmeEvent->dwEvent = (pmeEvent->dwEvent * 100 ) / m_dwTempoMultiplier;
+		mDwCurrentTempo = pmeEvent->dwEvent;
+		pmeEvent->dwEvent = (pmeEvent->dwEvent * 100) / mDwTempoMultiplier;
 
-		pmeEvent->dwEvent |= (((DWORD)MEVT_TEMPO ) << 24 ) | MEVT_F_SHORT;
+		pmeEvent->dwEvent |= (static_cast<DWORD>(MEVT_TEMPO) << 24) | MEVT_F_SHORT;
 
-		m_dwBufferTickLength = (m_dwTimeDivision * 1000 * BUFFER_TIME_LENGTH) / m_dwCurrentTempo;
+		mDwBufferTickLength = (mDwTimeDivision * 1000 * BUFFER_TIME_LENGTH) / mDwCurrentTempo;
 		//TRACE1("m_dwBufferTickLength = %lu\n", m_dwBufferTickLength);
 
-		if( m_dwMallocBlocks ) {
+		if (mDwMallocBlocks)
+		{
 			delete [] pteTemp->pLongData;
-			--m_dwMallocBlocks;
+			--mDwMallocBlocks;
 		}
-		lpciInfo->dwBytesRecorded += 3 *sizeof(DWORD);
+		lpciInfo->DwBytesRecorded += 3 * sizeof(DWORD);
 	}
 
 	return CONVERTERR_NOERROR;
@@ -882,262 +997,296 @@ int CMIDI :: AddEventToStreamBuffer( TEMPEVENT * pteTemp, CONVERTINFO *lpciInfo 
 // StreamBufferSetup()
 //
 // Opens a MIDI stream. Then it goes about converting the data into a midiStream buffer for playback.
-BOOL CMIDI :: StreamBufferSetup() {
-	int		nChkErr;
-	BOOL	bFoundEnd = FALSE;
+BOOL CMIDI::StreamBufferSetup()
+{
+	int nChkErr;
+	BOOL bFoundEnd = FALSE;
 
-	MMRESULT		mmrRetVal;
+	MMRESULT mmrRetVal;
 
-	if( !m_hStream )
-		if(( mmrRetVal = midiStreamOpen( &m_hStream,
-					&m_uMIDIDeviceID,
-					uintptr_t(1), uintptr_t(MidiProc),
-					uintptr_t(this),
-					CALLBACK_FUNCTION )) != MMSYSERR_NOERROR ) {
+	if (!mHStream)
+		if ((mmrRetVal = midiStreamOpen(&mHStream,
+		                                &mUMidiDeviceId,
+		                                uintptr_t(1), uintptr_t(MidiProc),
+		                                uintptr_t(this),
+		                                CALLBACK_FUNCTION)) != MMSYSERR_NOERROR)
+		{
+			MidiError(mmrRetVal);
+			return FALSE;
+		}
+
+	// allocate stream buffers and initialise them
+	mStreamBuffers.resize(NUM_STREAM_BUFFERS);
+
+	MIDIPROPTIMEDIV mptd;
+	mptd.cbStruct = sizeof(mptd);
+	mptd.dwTimeDiv = mDwTimeDivision;
+	if ((mmrRetVal = midiStreamProperty(mHStream, reinterpret_cast<LPBYTE>(&mptd),
+	                                    MIDIPROP_SET | MIDIPROP_TIMEDIV)) != MMSYSERR_NOERROR)
+	{
 		MidiError(mmrRetVal);
 		return FALSE;
 	}
 
-	// allocate stream buffers and initialise them
-	m_StreamBuffers.resize(NUM_STREAM_BUFFERS);
-
-	MIDIPROPTIMEDIV mptd;
-	mptd.cbStruct = sizeof(mptd);
-	mptd.dwTimeDiv = m_dwTimeDivision;
-	if(( mmrRetVal = midiStreamProperty( m_hStream, (LPBYTE)&mptd,
-					    MIDIPROP_SET | MIDIPROP_TIMEDIV )) != MMSYSERR_NOERROR ) {
-		MidiError( mmrRetVal );
-		return FALSE;
-	}
-
-	m_nEmptyBuffers = 0;
+	mNEmptyBuffers = 0;
 	DWORD dwConvertFlag = CONVERTF_RESET;
 
-	for( m_nCurrentBuffer = 0; m_nCurrentBuffer < NUM_STREAM_BUFFERS; m_nCurrentBuffer++ ) {
-		m_StreamBuffers[m_nCurrentBuffer].mhBuffer.dwBufferLength = OUT_BUFFER_SIZE;
-		m_StreamBuffers[m_nCurrentBuffer].mhBuffer.lpData = new char [OUT_BUFFER_SIZE];
-		if( m_StreamBuffers[m_nCurrentBuffer].mhBuffer.lpData == 0 )
+	for (mNCurrentBuffer = 0; mNCurrentBuffer < NUM_STREAM_BUFFERS; mNCurrentBuffer++)
+	{
+		mStreamBuffers[mNCurrentBuffer].MhBuffer.dwBufferLength = OUT_BUFFER_SIZE;
+		mStreamBuffers[mNCurrentBuffer].MhBuffer.lpData = new char [OUT_BUFFER_SIZE];
+		if (mStreamBuffers[mNCurrentBuffer].MhBuffer.lpData == nullptr)
 			return FALSE;
 
 		// Tell the converter to convert up to one entire buffer's length of output
 		// data. Also, set a flag so it knows to reset any saved state variables it
 		// may keep from call to call.
-		m_StreamBuffers[m_nCurrentBuffer].dwStartOffset = 0;
-		m_StreamBuffers[m_nCurrentBuffer].dwMaxLength = OUT_BUFFER_SIZE;
-		m_StreamBuffers[m_nCurrentBuffer].tkStart = 0;
-		m_StreamBuffers[m_nCurrentBuffer].bTimesUp = FALSE;
+		mStreamBuffers[mNCurrentBuffer].DwStartOffset = 0;
+		mStreamBuffers[mNCurrentBuffer].DwMaxLength = OUT_BUFFER_SIZE;
+		mStreamBuffers[mNCurrentBuffer].TkStart = 0;
+		mStreamBuffers[mNCurrentBuffer].BTimesUp = FALSE;
 
-		if(( nChkErr = ConvertToBuffer( dwConvertFlag, &m_StreamBuffers[m_nCurrentBuffer] )) != CONVERTERR_NOERROR ) {
-			if( nChkErr == CONVERTERR_DONE ) {
+		if ((nChkErr = ConvertToBuffer(dwConvertFlag, &mStreamBuffers[mNCurrentBuffer])) != CONVERTERR_NOERROR)
+		{
+			if (nChkErr == CONVERTERR_DONE)
+			{
 				bFoundEnd = TRUE;
-			} else {
+			}
+			else
+			{
 				//TRACE0("Initial conversion pass failed\n");
 				return FALSE;
 			}
 		}
-		m_StreamBuffers[m_nCurrentBuffer].mhBuffer.dwBytesRecorded = m_StreamBuffers[m_nCurrentBuffer].dwBytesRecorded;
+		mStreamBuffers[mNCurrentBuffer].MhBuffer.dwBytesRecorded = mStreamBuffers[mNCurrentBuffer].DwBytesRecorded;
 
-		if( !m_bBuffersPrepared )
-			if(( mmrRetVal = midiOutPrepareHeader( (HMIDIOUT)m_hStream,
-						&m_StreamBuffers[m_nCurrentBuffer].mhBuffer,
-						sizeof(MIDIHDR))) != MMSYSERR_NOERROR ) {
-				MidiError( mmrRetVal );
+		if (!mBBuffersPrepared)
+			if ((mmrRetVal = midiOutPrepareHeader(reinterpret_cast<HMIDIOUT>(mHStream),
+			                                      &mStreamBuffers[mNCurrentBuffer].MhBuffer,
+			                                      sizeof(MIDIHDR))) != MMSYSERR_NOERROR)
+			{
+				MidiError(mmrRetVal);
 				return FALSE;
 			}
 
-		if(( mmrRetVal = midiStreamOut( m_hStream,
-						&m_StreamBuffers[m_nCurrentBuffer].mhBuffer,
-						sizeof(MIDIHDR))) != MMSYSERR_NOERROR ) {
+		if ((mmrRetVal = midiStreamOut(mHStream,
+		                               &mStreamBuffers[mNCurrentBuffer].MhBuffer,
+		                               sizeof(MIDIHDR))) != MMSYSERR_NOERROR)
+		{
 			MidiError(mmrRetVal);
 			break;
 		}
 		dwConvertFlag = 0;
 
-		if( bFoundEnd )
+		if (bFoundEnd)
 			break;
 	}
 
-	m_bBuffersPrepared = TRUE;
-	m_nCurrentBuffer = 0;
+	mBBuffersPrepared = TRUE;
+	mNCurrentBuffer = 0;
 	return TRUE;
 }
 
-// This function unprepares and frees all our buffers -- something we must
+// This function unprepared and frees all our buffers -- something we must
 // do to work around a bug in MMYSYSTEM that prevents a device from playing
 // back properly unless it is closed and reopened after each stop.
-void CMIDI :: FreeBuffers() {
-	DWORD	idx;
-	MMRESULT	mmrRetVal;
+void CMIDI::FreeBuffers()
+{
+	DWORD idx;
+	MMRESULT mmrRetVal;
 
-	if( m_bBuffersPrepared ) {
-		for( idx = 0; idx < NUM_STREAM_BUFFERS; idx++ )
-			if(( mmrRetVal = midiOutUnprepareHeader( (HMIDIOUT)m_hStream,
-								&m_StreamBuffers[idx].mhBuffer,
-								sizeof(MIDIHDR))) != MMSYSERR_NOERROR ) {
+	if (mBBuffersPrepared)
+	{
+		for (idx = 0; idx < NUM_STREAM_BUFFERS; idx++)
+			if ((mmrRetVal = midiOutUnprepareHeader(reinterpret_cast<HMIDIOUT>(mHStream),
+			                                        &mStreamBuffers[idx].MhBuffer,
+			                                        sizeof(MIDIHDR))) != MMSYSERR_NOERROR)
+			{
 				MidiError(mmrRetVal);
 			}
-		m_bBuffersPrepared = FALSE;
+		mBBuffersPrepared = FALSE;
 	}
 	// Free our stream buffers...
-	for( idx = 0; idx < NUM_STREAM_BUFFERS; idx++ )
-	if( m_StreamBuffers[idx].mhBuffer.lpData ) {
-		delete [] m_StreamBuffers[idx].mhBuffer.lpData;
-		m_StreamBuffers[idx].mhBuffer.lpData = 0;
-	}
+	for (idx = 0; idx < NUM_STREAM_BUFFERS; idx++)
+		if (mStreamBuffers[idx].MhBuffer.lpData)
+		{
+			delete [] mStreamBuffers[idx].MhBuffer.lpData;
+			mStreamBuffers[idx].MhBuffer.lpData = nullptr;
+		}
 }
 
 //////////////////////////////////////////////////////////////////////
 // CMIDI -- error handling
 //////////////////////////////////////////////////////////////////////
 
-void CMIDI :: MidiError(MMRESULT mmResult) {
-	#ifdef _DEBUG
-		char chText[512];
-		midiOutGetErrorText(mmResult, chText, sizeof(chText));
-		//TRACE1("Midi error: %hs\n", chText);
-	#endif
+void CMIDI::MidiError(const MMRESULT mmResult)
+{
+#ifdef _DEBUG
+	char chText[512];
+	midiOutGetErrorText(mmResult, chText, sizeof(chText));
+	//TRACE1("Midi error: %hs\n", chText);
+#endif
 }
 
 
-void CMIDI :: TrackError(TRACK * ptsTrack, LPSTR lpszErr ) {
+void CMIDI::TrackError(Track* ptsTrack, LPSTR errMsg)
+{
 	//TRACE1("Track buffer offset %lu\n", (DWORD)(ptsTrack->pTrackCurrent - ptsTrack->pTrackStart));
-    //TRACE1("Track total length %lu\n", ptsTrack->dwTrackLength);
+	//TRACE1("Track total length %lu\n", ptsTrack->dwTrackLength);
 	//TRACE1("%hs\n", lpszErr);
 }
 
 //////////////////////////////////////////////////////////////////////
-// CMIDI -- overridables
+// CMIDI -- overridable
 //////////////////////////////////////////////////////////////////////
 
-void CMIDI :: OnMidiOutOpen() {
+void CMIDI::OnMidiOutOpen()
+{
 }
 
 
-void CMIDI :: OnMidiOutDone(MIDIHDR & rHdr) {
-	if( m_uCallbackStatus == STATUS_CALLBACKDEAD )
+void CMIDI::OnMidiOutDone(MIDIHDR& rHdr)
+{
+	if (mUCallbackStatus == STATUS_CALLBACKDEAD)
 		return;
 
-	++m_nEmptyBuffers;
+	++mNEmptyBuffers;
 
-	if( m_uCallbackStatus == STATUS_WAITINGFOREND ) {
-		if( m_nEmptyBuffers < NUM_STREAM_BUFFERS )
+	if (mUCallbackStatus == STATUS_WAITINGFOREND)
+	{
+		if (mNEmptyBuffers < NUM_STREAM_BUFFERS)
 			return;
-		else {
-			m_uCallbackStatus = STATUS_CALLBACKDEAD;
+		else
+		{
+			mUCallbackStatus = STATUS_CALLBACKDEAD;
 			Stop();
-			SetEvent(m_hBufferReturnEvent);
+			SetEvent(mHBufferReturnEvent);
 			return;
 		}
 	}
 
 	// This flag is set whenever the callback is waiting for all buffers to
 	// come back.
-	if( m_uCallbackStatus == STATUS_KILLCALLBACK ) {
+	if (mUCallbackStatus == STATUS_KILLCALLBACK)
+	{
 		// Count NUM_STREAM_BUFFERS-1 being returned for the last time
-		if( m_nEmptyBuffers < NUM_STREAM_BUFFERS )
+		if (mNEmptyBuffers < NUM_STREAM_BUFFERS)
 			return;
-		else {
+		else
+		{
 			// Change the status to callback dead
-			m_uCallbackStatus = STATUS_CALLBACKDEAD;
-			SetEvent(m_hBufferReturnEvent);
+			mUCallbackStatus = STATUS_CALLBACKDEAD;
+			SetEvent(mHBufferReturnEvent);
 			return;
 		}
 	}
 
-	m_dwProgressBytes += m_StreamBuffers[m_nCurrentBuffer].mhBuffer.dwBytesRecorded;
+	mDwProgressBytes += mStreamBuffers[mNCurrentBuffer].MhBuffer.dwBytesRecorded;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Fill an available buffer with audio data again...
 
-	if( m_bPlaying && m_nEmptyBuffers ) {
-		m_StreamBuffers[m_nCurrentBuffer].dwStartOffset = 0;
-		m_StreamBuffers[m_nCurrentBuffer].dwMaxLength = OUT_BUFFER_SIZE;
-		m_StreamBuffers[m_nCurrentBuffer].tkStart = 0;
-		m_StreamBuffers[m_nCurrentBuffer].dwBytesRecorded = 0;
-		m_StreamBuffers[m_nCurrentBuffer].bTimesUp = FALSE;
+	if (mBPlaying && mNEmptyBuffers)
+	{
+		mStreamBuffers[mNCurrentBuffer].DwStartOffset = 0;
+		mStreamBuffers[mNCurrentBuffer].DwMaxLength = OUT_BUFFER_SIZE;
+		mStreamBuffers[mNCurrentBuffer].TkStart = 0;
+		mStreamBuffers[mNCurrentBuffer].DwBytesRecorded = 0;
+		mStreamBuffers[mNCurrentBuffer].BTimesUp = FALSE;
 
 		int nChkErr;
 
-		if(( nChkErr = ConvertToBuffer( 0, &m_StreamBuffers[m_nCurrentBuffer] )) != CONVERTERR_NOERROR ) {
-			if( nChkErr == CONVERTERR_DONE ) {
-				m_uCallbackStatus = STATUS_WAITINGFOREND;
+		if ((nChkErr = ConvertToBuffer(0, &mStreamBuffers[mNCurrentBuffer])) != CONVERTERR_NOERROR)
+		{
+			if (nChkErr == CONVERTERR_DONE)
+			{
+				mUCallbackStatus = STATUS_WAITINGFOREND;
 				return;
-			} else {
+			}
+			else
+			{
 				//TRACE0("MidiProc() conversion pass failed!\n");
 				return;
 			}
 		}
 
-		m_StreamBuffers[m_nCurrentBuffer].mhBuffer.dwBytesRecorded = m_StreamBuffers[m_nCurrentBuffer].dwBytesRecorded;
+		mStreamBuffers[mNCurrentBuffer].MhBuffer.dwBytesRecorded = mStreamBuffers[mNCurrentBuffer].DwBytesRecorded;
 
 		MMRESULT mmrRetVal;
-		if( (mmrRetVal = midiStreamOut(m_hStream, &m_StreamBuffers[m_nCurrentBuffer].mhBuffer, sizeof(MIDIHDR))) != MMSYSERR_NOERROR ) {
+		if ((mmrRetVal = midiStreamOut(mHStream, &mStreamBuffers[mNCurrentBuffer].MhBuffer, sizeof(MIDIHDR))) !=
+			MMSYSERR_NOERROR)
+		{
 			MidiError(mmrRetVal);
 			return;
 		}
-		m_nCurrentBuffer = ( m_nCurrentBuffer + 1 ) % NUM_STREAM_BUFFERS;
-		m_nEmptyBuffers--;
+		mNCurrentBuffer = (mNCurrentBuffer + 1) % NUM_STREAM_BUFFERS;
+		mNEmptyBuffers--;
 	}
 }
 
 
-void CMIDI :: OnMidiOutPositionCB(MIDIHDR & rHdr, MIDIEVENT & rEvent) {
-	if( MIDIEVENT_TYPE(rEvent.dwEvent) == MIDI_CTRLCHANGE )
+void CMIDI::OnMidiOutPositionCB(MIDIHDR& rHdr, MIDIEVENT& rEvent)
+{
+	if (MIDIEVENT_TYPE(rEvent.dwEvent) == MIDI_CTRLCHANGE)
 	{
-		if( MIDIEVENT_DATA1(rEvent.dwEvent) == MIDICTRL_VOLUME ) {
+		if (MIDIEVENT_DATA1(rEvent.dwEvent) == MIDICTRL_VOLUME)
+		{
 			// Mask off the channel number and cache the volume data byte
-			m_Volumes[MIDIEVENT_CHANNEL(rEvent.dwEvent)] = DWORD(MIDIEVENT_VOLUME(rEvent.dwEvent)*100/VOLUME_MAX);
-			if( m_pWndParent/* && ::IsWindow(m_pWndParent->GetSafeHwnd())*/)
+			mVolumes[MIDIEVENT_CHANNEL(rEvent.dwEvent)] = DWORD(MIDIEVENT_VOLUME(rEvent.dwEvent) * 100 / VOLUME_MAX);
+			if (mPWndParent/* && ::IsWindow(m_pWndParent->GetSafeHwnd())*/)
 				// Do not use SendMessage(), because a change of the midi stream has no effect
 				// during callback handling, so if the owner wants to adjust the volume, as a
 				// result of the windows message, (s)he will not hear that change.
-				PostMessage(*m_pWndParent,
-					WM_MIDI_VOLUMECHANGED,
-					WPARAM(this),
-					LPARAM(
-						MAKELONG(
-							WORD(MIDIEVENT_CHANNEL(rEvent.dwEvent)),
-							WORD(MIDIEVENT_VOLUME(rEvent.dwEvent)*100/VOLUME_MAX)
-						)
-					)
+				PostMessage(*mPWndParent,
+				            WM_MIDI_VOLUMECHANGED,
+				            WPARAM(this),
+				            LPARAM(
+					            MAKELONG(
+						            WORD(MIDIEVENT_CHANNEL(rEvent.dwEvent)),
+						            WORD(MIDIEVENT_VOLUME(rEvent.dwEvent)*100/VOLUME_MAX)
+					            )
+				            )
 				);
 		}
 	}
 }
 
 
-void CMIDI :: OnMidiOutClose() {
+void CMIDI::OnMidiOutClose()
+{
 }
 
 //////////////////////////////////////////////////////////////////////
 // CMIDI -- static members
 //////////////////////////////////////////////////////////////////////
 
-void CMIDI :: MidiProc(HMIDIOUT hMidi, UINT uMsg, uintptr_t dwInstanceData, uintptr_t dwParam1, uintptr_t dwParam2) {
-	CMIDI * pMidi = (CMIDI *) dwInstanceData;
+void CMIDI::MidiProc(HMIDIOUT hMidi, const UINT uMsg, const uintptr_t dwInstanceData, const uintptr_t dwParam1, uintptr_t dwParam2)
+{
+	auto* pMidi = reinterpret_cast<CMIDI*>(dwInstanceData);
 	//ASSERT(pMidi != 0);
-	MIDIHDR * pHdr = (MIDIHDR*) dwParam1;
+	auto* pHdr = reinterpret_cast<MIDIHDR*>(dwParam1);
 
-	switch(uMsg) {
-		case MOM_OPEN:
-			pMidi->OnMidiOutOpen();
-			break;
+	switch (uMsg)
+	{
+	case MOM_OPEN:
+		pMidi->OnMidiOutOpen();
+		break;
 
-		case MOM_CLOSE:
-			pMidi->OnMidiOutClose();
-			break;
+	case MOM_CLOSE:
+		pMidi->OnMidiOutClose();
+		break;
 
-		case MOM_DONE:
-			//ASSERT(pHdr != 0);
-			pMidi->OnMidiOutDone(*pHdr);
-			break;
+	case MOM_DONE:
+		//ASSERT(pHdr != 0);
+		pMidi->OnMidiOutDone(*pHdr);
+		break;
 
-		case MOM_POSITIONCB:
-			//ASSERT(pHdr != 0);
-			pMidi->OnMidiOutPositionCB(*pHdr, *((MIDIEVENT*)(pHdr->lpData + pHdr->dwOffset)));
-			break;
+	case MOM_POSITIONCB:
+		//ASSERT(pHdr != 0);
+		pMidi->OnMidiOutPositionCB(*pHdr, *reinterpret_cast<MIDIEVENT*>(pHdr->lpData + pHdr->dwOffset));
+		break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 }
