@@ -26,7 +26,7 @@ bool memory_init = false;
 float LeftWidth, RightWidth;
 
 #ifdef MIDI_h
-static CMIDI* MidiPlayer = nullptr;
+CMIDI* MidiPlayer = nullptr;
 #endif
 
 void SetupMemoryStuff(const HANDLE pHandle)
