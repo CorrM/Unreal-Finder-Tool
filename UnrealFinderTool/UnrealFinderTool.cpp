@@ -15,12 +15,17 @@
 #include "Debug.h"
 #include "Scanner.h"
 
+#include "Midi/MIDI.h"
+#include "Midi/MIDI_Resource.h"
+
 #include <sstream>
 #include <shellapi.h>
 
 MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
+
+static CMIDI* midiPlayer = nullptr;
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -336,6 +341,29 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+
+		ui::SameLine();
+		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
+		
+		if (ui::Button(ICON_FA_PLAY))
+		{
+			if (midiPlayer) {
+				midiPlayer->Rewind();
+			}
+			else {
+				midiPlayer = new CMIDI();
+				midiPlayer->Create((LPBYTE)(Midi_Track1), sizeof(Midi_Track1));
+			}
+			
+			midiPlayer->SetInfinitePlay(true);
+			midiPlayer->Play();
+		}
+		ui::SameLine();
+		if (ui::Button(ICON_FA_STOP))
+		{
+			if (midiPlayer->IsPlaying())
+				midiPlayer->Stop();
+		}
 	}
 }
 
