@@ -348,18 +348,24 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
 		
-		if (ui::Button(ICON_FA_PLAY))
+		if (ui::Button(!MidiPlayer || MidiPlayer->IsPaused() ? ICON_FA_PLAY : ICON_FA_PAUSE))
 		{
-			if (MidiPlayer) {
+			if (MidiPlayer)
+			{
 				MidiPlayer->Rewind();
 			}
-			else {
+			else
+			{
 				MidiPlayer = new CMIDI();
 				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof(midi_track1));
 			}
-			
-			//midiPlayer->SetInfinitePlay();
-			MidiPlayer->Play(true);
+
+			if (MidiPlayer->IsPaused())
+				MidiPlayer->Continue();
+			else if (MidiPlayer->IsPlaying())
+				MidiPlayer->Pause();
+			else
+				MidiPlayer->Play(true);
 		}
 		ui::SameLine();
 		if (ui::Button(ICON_FA_STOP))

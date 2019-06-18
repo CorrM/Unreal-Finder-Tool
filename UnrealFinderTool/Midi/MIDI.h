@@ -115,9 +115,9 @@ struct TempEvent
 class CMIDI
 {
 protected:
-	typedef vector<Track> TrackArray_t;
-	typedef vector<DWORD> VolumeArray_t;
-	typedef vector<ConvertInfo> ConvertArray_t;
+	typedef vector<Track> TrackArray;
+	typedef vector<size_t> VolumeArray;
+	typedef vector<ConvertInfo> ConvertArray;
 
 	enum
 	{
@@ -153,19 +153,19 @@ public:
 	BOOL Rewind();
 
 	// Get the number of volume channels
-	DWORD GetChannelCount() const;
+	size_t GetChannelCount() const;
 
 	// Set the volume of a channel in percent. Channels are from 0 to (GetChannelCount()-1)
-	void SetChannelVolume(DWORD channel, DWORD percent);
+	void SetChannelVolume(size_t channel, size_t percent);
 
 	// Get the volume of a channel in percent
-	DWORD GetChannelVolume(DWORD channel) const;
+	size_t GetChannelVolume(size_t channel) const;
 
 	// Set the volume for all channels in percent
-	void SetVolume(DWORD percent);
+	void SetVolume(size_t percent);
 
 	// Get the average volume for all channels
-	DWORD GetVolume() const;
+	size_t GetVolume() const;
 
 	// Set the tempo of the playback. Default: 100%
 	void SetTempo(DWORD percent);
@@ -265,9 +265,9 @@ protected: // data members
 	UINT mUCallbackStatus;
 	HANDLE mHBufferReturnEvent;
 	HWND* mPWndParent;
-	TrackArray_t mTracks;
-	VolumeArray_t mVolumes;
-	ConvertArray_t mStreamBuffers;
+	TrackArray mTracks;
+	VolumeArray mVolumes;
+	ConvertArray mStreamBuffers;
 
 	// data members especially for ConvertToBuffer()
 	Track* mPtsTrack;

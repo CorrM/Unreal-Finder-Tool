@@ -368,32 +368,32 @@ BOOL CMIDI::Rewind()
 }
 
 
-DWORD CMIDI::GetChannelCount() const
+size_t CMIDI::GetChannelCount() const
 {
 	return mVolumes.size();
 }
 
 
-void CMIDI::SetVolume(const DWORD dwPercent)
+void CMIDI::SetVolume(const size_t percent)
 {
-	const DWORD dwSize = mVolumes.size();
-	for (DWORD i = 0; i < dwSize; ++i)
-		SetChannelVolume(i, dwPercent);
+	const size_t dwSize = mVolumes.size();
+	for (size_t i = 0; i < dwSize; ++i)
+		SetChannelVolume(i, percent);
 }
 
 
-DWORD CMIDI::GetVolume() const
+size_t CMIDI::GetVolume() const
 {
-	DWORD dwVolume = 0;
-	const DWORD dwSize = mVolumes.size();
-	for (DWORD i = 0; i < dwSize; ++i)
+	size_t dwVolume = 0;
+	const size_t dwSize = mVolumes.size();
+	for (size_t i = 0; i < dwSize; ++i)
 		dwVolume += GetChannelVolume(i);
 
 	return dwVolume / GetChannelCount();
 }
 
 
-void CMIDI::SetChannelVolume(DWORD dwChannel, DWORD dwPercent)
+void CMIDI::SetChannelVolume(const size_t dwChannel, const size_t dwPercent)
 {
 	//ASSERT(dwChannel < m_Volumes.size());
 
@@ -401,10 +401,9 @@ void CMIDI::SetChannelVolume(DWORD dwChannel, DWORD dwPercent)
 		return;
 
 	mVolumes[dwChannel] = (dwPercent > 100) ? 100 : dwPercent;
-	DWORD dwEvent = MIDI_CTRLCHANGE | dwChannel | (static_cast<DWORD>(MIDICTRL_VOLUME) << 8) | (static_cast<DWORD>(mVolumes[dwChannel] *
-		VOLUME_MAX / 100) << 16);
+	size_t dwEvent = MIDI_CTRLCHANGE | dwChannel | (static_cast<DWORD>(MIDICTRL_VOLUME) << 8) | (static_cast<DWORD>(mVolumes[dwChannel] * VOLUME_MAX / 100) << 16);
 	MMRESULT mmrRetVal;
-	if ((mmrRetVal = midiOutShortMsg(reinterpret_cast<HMIDIOUT>(mHStream), dwEvent)) != MMSYSERR_NOERROR)
+	if ((mmrRetVal = midiOutShortMsg(reinterpret_cast<HMIDIOUT>(mHStream), static_cast<DWORD>(dwEvent))) != MMSYSERR_NOERROR)
 	{
 		MidiError(mmrRetVal);
 		return;
@@ -412,7 +411,7 @@ void CMIDI::SetChannelVolume(DWORD dwChannel, DWORD dwPercent)
 }
 
 
-DWORD CMIDI::GetChannelVolume(DWORD dwChannel) const
+size_t CMIDI::GetChannelVolume(size_t dwChannel) const
 {
 	//ASSERT(dwChannel < GetChannelCount());
 	return mVolumes[dwChannel];
