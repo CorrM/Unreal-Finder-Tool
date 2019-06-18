@@ -56,6 +56,13 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+
+	case WM_CLOSE:
+		if (Utils::WorkingNow.AnyRunningTool())
+		{
+			MessageBox(nullptr, "Wait for current task finish first.", "", MB_OK | MB_ICONWARNING);
+			return 0;
+		}
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

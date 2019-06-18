@@ -38,6 +38,20 @@ struct MySettings
 	_Parallel Parallel;
 };
 
+struct WorkingTools
+{
+	bool GNamesFinder;
+	bool GObjectsFinder;
+	bool ClassesFinder;
+	bool InstanceLogger;
+	bool SdkGenerator;
+
+	bool AnyRunningTool() const
+	{
+		return GNamesFinder || GObjectsFinder || ClassesFinder || InstanceLogger || SdkGenerator;
+	}
+};
+
 class Utils
 {
 public:
@@ -47,6 +61,8 @@ public:
 	static MySettings Settings;
 	// Main Memory reader for read game memory props
 	static Memory* MemoryObj;
+	// Store information about which tools working
+	static WorkingTools WorkingNow;
 
 	// Load settings form the file
 	static bool LoadSettings();

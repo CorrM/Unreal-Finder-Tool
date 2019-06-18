@@ -14,6 +14,7 @@
 Memory* Utils::MemoryObj = nullptr;
 UiWindow* Utils::UiMainWindow = nullptr;
 MySettings Utils::Settings;
+WorkingTools Utils::WorkingNow;
 
 
 #pragma region Json
@@ -108,7 +109,7 @@ std::string Utils::GetWorkingDirectory()
 		return curDir;
 
 	// Get working directory path
-	GetModuleFileName(nullptr, curDir.data(), curDir.length());
+	GetModuleFileName(nullptr, curDir.data(), static_cast<DWORD>(curDir.length()));
 
 	fs::path curPath(curDir);
 	curDir = curPath.parent_path().string();

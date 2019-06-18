@@ -48,6 +48,7 @@
 #pragma warning(disable: 4996)
 #include <cstdio>      // sprintf, scanf
 #include <cstdint>     // uint8_t, etc.
+#include <cinttypes>
 
 #ifdef _MSC_VER
 #define _PRISizeT   "I"
@@ -293,16 +294,18 @@ struct MemoryEditor
 		const ImU32 color_text = ImGui::GetColorU32(ImGuiCol_Text);
 		const ImU32 color_disabled = OptGreyOutZeroes ? ImGui::GetColorU32(ImGuiCol_TextDisabled) : color_text;
 
-		const char* format_address = OptUpperCaseHex ? "%0*" _PRISizeT "X: " : "%0*" _PRISizeT "x: ";
+		const char* format_address = OptUpperCaseHex ? "%016" PRIX64 : "%016" PRIx64;
 		const char* format_data = OptUpperCaseHex ? "%0*" _PRISizeT "X" : "%0*" _PRISizeT "x";
 		const char* format_range = OptUpperCaseHex ? "Range %0*" _PRISizeT "X..%0*" _PRISizeT "X" : "Range %0*" _PRISizeT "x..%0*" _PRISizeT "x";
 		const char* format_byte = OptUpperCaseHex ? "%02X" : "%02x";
 		const char* format_byte_space = OptUpperCaseHex ? "%02X " : "%02x ";
 
+		s.PosHexStart += 25;
+
 		for (int line_i = clipper.DisplayStart; line_i < clipper.DisplayEnd; line_i++) // display only visible lines
 		{
 			size_t addr = (size_t)(line_i * Cols);
-			ImGui::Text(format_address, s.AddrDigitsCount, base_display_addr + addr);
+			ImGui::Text(format_address, base_display_addr + addr);
 
 			// Draw Hexadecimal
 			for (int n = 0; n < Cols && addr < mem_size; n++, addr++)

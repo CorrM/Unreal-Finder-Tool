@@ -113,6 +113,7 @@ void StartGObjFinder(const bool easyMethod)
 	g_names_disabled = false;
 	g_obj_listbox_items.emplace_back("Searching...");
 	g_obj_listbox_item_current = 0;
+	Utils::WorkingNow.GObjectsFinder = true;
 
 	std::thread t([=]()
 	{
@@ -134,6 +135,7 @@ void StartGObjFinder(const bool easyMethod)
 		if (ret.size() == 1)
 			strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[0].data());
 
+		Utils::WorkingNow.GObjectsFinder = false;
 		g_objects_find_disabled = false;
 		AfterWork();
 	});
@@ -149,6 +151,7 @@ void StartGNamesFinder()
 	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
+	Utils::WorkingNow.GNamesFinder = true;
 
 	std::thread t([&]()
 	{
@@ -171,6 +174,7 @@ void StartGNamesFinder()
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
+		Utils::WorkingNow.GNamesFinder = false;
 		g_names_find_disabled = false;
 		AfterWork();
 	});
@@ -191,6 +195,7 @@ void StartClassFinder()
 	if (!contin || std::string(class_find_buf).empty())
 		return;
 
+	Utils::WorkingNow.ClassesFinder = true;
 	class_listbox_items.clear();
 	std::thread t([&]()
 	{
@@ -200,6 +205,7 @@ void StartClassFinder()
 		ClassFinder cf;
 		class_listbox_items = cf.Find(g_objects_address, g_names_address, class_find_buf);
 
+		Utils::WorkingNow.ClassesFinder = false;
 		class_find_disabled = false;
 		AfterWork();
 	});
@@ -212,6 +218,7 @@ void StartInstanceLogger()
 	il_objects_count = 0;
 	il_names_count = 0;
 	il_state = "Running . . .";
+	Utils::WorkingNow.InstanceLogger = true;
 
 	std::thread t([&]()
 	{
@@ -233,6 +240,7 @@ void StartInstanceLogger()
 			break;
 		}
 
+		Utils::WorkingNow.InstanceLogger = false;
 		il_objects_count = retState.GObjectsCount;
 		il_names_count = retState.GNamesCount;
 		AfterWork();
@@ -251,6 +259,7 @@ void StartSdkGenerator()
 	sg_packages_count = 0;
 	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
+	Utils::WorkingNow.SdkGenerator = true;
 
 	std::thread t([&]()
 	{
@@ -281,6 +290,7 @@ void StartSdkGenerator()
 			sg_state = "Wrong (GNames) Address.!!";
 		}
 
+		Utils::WorkingNow.SdkGenerator = false;
 		AfterWork();
 	});
 	t.detach();
@@ -949,6 +959,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
 	mem_edit.OptMidColsCount = 4;
+	mem_edit.OptUpperCaseHex = true;
 	mem_edit.OptShowAscii = false;
 	mem_edit.OptShowHexIi = false;
 	mem_edit.OptShowOptions = false;
