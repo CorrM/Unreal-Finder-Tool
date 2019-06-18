@@ -891,8 +891,8 @@ BOOL CMIDI :: StreamBufferSetup() {
 	if( !m_hStream )
 		if(( mmrRetVal = midiStreamOpen( &m_hStream,
 					&m_uMIDIDeviceID,
-					DWORD_PTR(1), DWORD_PTR(MidiProc),
-					DWORD_PTR(this),
+					uintptr_t(1), uintptr_t(MidiProc),
+					uintptr_t(this),
 					CALLBACK_FUNCTION )) != MMSYSERR_NOERROR ) {
 		MidiError(mmrRetVal);
 		return FALSE;
@@ -1113,7 +1113,7 @@ void CMIDI :: OnMidiOutClose() {
 // CMIDI -- static members
 //////////////////////////////////////////////////////////////////////
 
-void CMIDI :: MidiProc(HMIDIOUT hMidi, UINT uMsg, DWORD dwInstanceData, DWORD dwParam1, DWORD dwParam2) {
+void CMIDI :: MidiProc(HMIDIOUT hMidi, UINT uMsg, uintptr_t dwInstanceData, uintptr_t dwParam1, uintptr_t dwParam2) {
 	CMIDI * pMidi = (CMIDI *) dwInstanceData;
 	//ASSERT(pMidi != 0);
 	MIDIHDR * pHdr = (MIDIHDR*) dwParam1;

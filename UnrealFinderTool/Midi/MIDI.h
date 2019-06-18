@@ -234,7 +234,7 @@ protected:	// overridables
 
 private:	// callback procedure
 		// This procedure calls the overridables above.
-	static void	CALLBACK	MidiProc(HMIDIOUT, UINT, DWORD, DWORD, DWORD);
+	static void	CALLBACK	MidiProc(HMIDIOUT, UINT, uintptr_t, uintptr_t, uintptr_t);
 
 
 protected:	// data members

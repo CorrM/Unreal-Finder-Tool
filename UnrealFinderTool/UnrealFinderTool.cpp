@@ -355,8 +355,8 @@ void TitleBar(UiWindow* thiz)
 				midiPlayer->Create((LPBYTE)(Midi_Track1), sizeof(Midi_Track1));
 			}
 			
-			midiPlayer->SetInfinitePlay(true);
-			midiPlayer->Play();
+			//midiPlayer->SetInfinitePlay();
+			midiPlayer->Play(true);
 		}
 		ui::SameLine();
 		if (ui::Button(ICON_FA_STOP))
