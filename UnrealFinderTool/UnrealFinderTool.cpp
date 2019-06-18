@@ -15,11 +15,19 @@
 #include "Debug.h"
 #include "Scanner.h"
 
+#include "Midi/MIDI.h"
+#include "Midi/MIDI_Resource.h"
+
 #include <sstream>
+#include <shellapi.h>
 
 MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
+
+#ifdef MIDI_h
+CMIDI* MidiPlayer = nullptr;
+#endif
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -50,10 +58,15 @@ bool IsReadyToGo()
 	return false;
 }
 
+std::string GetTookTime(const std::tm take_time)
+{
+	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
+}
+
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
 int BufSize = 0x200;
-uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
+uintptr_t CurrentViewerAddress = uintptr_t(0x0);
 
 MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
 {
@@ -94,14 +107,16 @@ void AfterWork()
 void StartGObjFinder(const bool easyMethod)
 {
 	g_obj_listbox_items.clear();
+	BeforeWork();
+	g_objects_find_disabled = true;
+	g_objects_disabled = false;
+	g_names_disabled = false;
 	g_obj_listbox_items.emplace_back("Searching...");
+	g_obj_listbox_item_current = 0;
+	Utils::WorkingNow.GObjectsFinder = true;
+
 	std::thread t([=]()
 	{
-		BeforeWork();
-		g_objects_find_disabled = true;
-		g_objects_disabled = false;
-		g_names_disabled = false;
-
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
 		g_obj_listbox_items.clear();
@@ -112,7 +127,7 @@ void StartGObjFinder(const bool easyMethod)
 			ss << std::hex << v;
 
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			g_obj_listbox_items.push_back(tmpUpper);
 		}
@@ -120,11 +135,10 @@ void StartGObjFinder(const bool easyMethod)
 		if (ret.size() == 1)
 			strcpy_s(g_objects_buf, sizeof g_objects_buf, g_obj_listbox_items[0].data());
 
+		Utils::WorkingNow.GObjectsFinder = false;
 		g_objects_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -137,6 +151,7 @@ void StartGNamesFinder()
 	g_names_find_disabled = true;
 	g_objects_disabled = false;
 	g_names_disabled = false;
+	Utils::WorkingNow.GNamesFinder = true;
 
 	std::thread t([&]()
 	{
@@ -152,18 +167,17 @@ void StartGNamesFinder()
 
 			// Make hex char is Upper
 			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), toupper);
+			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
 			// Set value for UI
 			g_names_listbox_items.push_back(tmpUpper);
 			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
 		}
 
+		Utils::WorkingNow.GNamesFinder = false;
 		g_names_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -181,6 +195,7 @@ void StartClassFinder()
 	if (!contin || std::string(class_find_buf).empty())
 		return;
 
+	Utils::WorkingNow.ClassesFinder = true;
 	class_listbox_items.clear();
 	std::thread t([&]()
 	{
@@ -190,11 +205,10 @@ void StartClassFinder()
 		ClassFinder cf;
 		class_listbox_items = cf.Find(g_objects_address, g_names_address, class_find_buf);
 
+		Utils::WorkingNow.ClassesFinder = false;
 		class_find_disabled = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -204,6 +218,7 @@ void StartInstanceLogger()
 	il_objects_count = 0;
 	il_names_count = 0;
 	il_state = "Running . . .";
+	Utils::WorkingNow.InstanceLogger = true;
 
 	std::thread t([&]()
 	{
@@ -225,12 +240,11 @@ void StartInstanceLogger()
 			break;
 		}
 
+		Utils::WorkingNow.InstanceLogger = false;
 		il_objects_count = retState.GObjectsCount;
 		il_names_count = retState.GNamesCount;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 
@@ -242,12 +256,15 @@ void StartSdkGenerator()
 
 	sg_objects_count = 0;
 	sg_names_count = 0;
+	sg_packages_count = 0;
+	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
+	Utils::WorkingNow.SdkGenerator = true;
 
 	std::thread t([&]()
 	{
 		SdkGenerator sg(g_objects_address, g_names_address);
-		GeneratorState ret = sg.Start(&sg_objects_count,
+		SdkInfo ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
 		                              &sg_packages_count,
 		                              &sg_packages_done_count,
@@ -257,21 +274,25 @@ void StartSdkGenerator()
 		                              static_cast<SdkType>(sg_type_item_current),
 		                              sg_state, sg_packages_items);
 
-		if (ret == GeneratorState::Good)
+		if (ret.State == GeneratorState::Good)
 		{
 			sg_finished = true;
 			sg_state = "Finished.!!";
+			sg_finished_time = ret.TookTime;
 			Utils::UiMainWindow->FlashWindow();
 		}
-		else if (ret == GeneratorState::BadGObject)
+		else if (ret.State == GeneratorState::BadGObject)
+		{
 			sg_state = "Wrong (GObjects) Address.!!";
-		else if (ret == GeneratorState::BadGName)
+		}
+		else if (ret.State == GeneratorState::BadGName)
+		{
 			sg_state = "Wrong (GNames) Address.!!";
+		}
 
+		Utils::WorkingNow.SdkGenerator = false;
 		AfterWork();
 	});
-	auto ht = static_cast<HANDLE>(t.native_handle());
-	SetThreadPriority(ht, THREAD_PRIORITY_IDLE);
 	t.detach();
 }
 #pragma endregion
@@ -307,6 +328,22 @@ void TitleBar(UiWindow* thiz)
 				}
 				ui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("SDK##menu"))
+			{
+				if (ui::MenuItem("SDK Folder"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						(Utils::GetWorkingDirectory() + "\\Results").c_str(), 
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
+				ui::EndMenu();
+			}
+
 			ui::EndPopup();
 		}
 	}
@@ -316,6 +353,37 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
+
+#ifdef MIDI_h
+		ui::SameLine();
+		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
+		
+		if (ui::Button(!MidiPlayer || (MidiPlayer->IsPaused() || !MidiPlayer->IsPlaying()) ? ICON_FA_PLAY : ICON_FA_PAUSE))
+		{
+			if (MidiPlayer)
+			{
+				MidiPlayer->Rewind();
+			}
+			else
+			{
+				MidiPlayer = new CMIDI();
+				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof(midi_track1));
+			}
+
+			if (MidiPlayer->IsPaused())
+				MidiPlayer->Continue();
+			else if (MidiPlayer->IsPlaying())
+				MidiPlayer->Pause();
+			else
+				MidiPlayer->Play(true);
+		}
+		ui::SameLine();
+		if (ui::Button(ICON_FA_STOP))
+		{
+			if (MidiPlayer->IsPlaying())
+				MidiPlayer->Stop();
+		}
+#endif
 	}
 }
 
@@ -441,7 +509,7 @@ void InformationSection(UiWindow* thiz)
 void MemoryInterface(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-	if (ui::BeginChild("test", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();
@@ -653,7 +721,7 @@ void Finder(UiWindow* thiz)
 
 void InstanceLogger(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Instance Logger"))
+	if (ui::BeginTabItem("Instance"))
 	{
 		if (cur_tap_id != 2)
 		{
@@ -691,7 +759,7 @@ void InstanceLogger(UiWindow* thiz)
 
 void SdkGenerator(UiWindow* thiz)
 {
-	if (ui::BeginTabItem("Sdk Generator"))
+	if (ui::BeginTabItem("S-D-K"))
 	{
 		if (cur_tap_id != 3)
 		{
@@ -736,20 +804,61 @@ void SdkGenerator(UiWindow* thiz)
 
 		// Packages Box
 		ui::SetNextItemWidth(RightWidth - 45.f);
-		ui::ListBox("##Packages_listbox",
+		ui::ListBoxA("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 8);
+			static_cast<int>(sg_packages_items.size()), 8, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
 		{
-			if (IsReadyToGo())
-				StartSdkGenerator();
+			if (Utils::FileExists(Utils::GetWorkingDirectory() + "\\Results"))
+			{
+				ui::OpenPopup("Delete Old SDK?");
+			}
 			else
-				popup_not_valid_process = true;
+			{
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
 		});
+
+		// Popup
+		if (ui::BeginPopupModal("Delete Old SDK?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ui::Text("There is an old sdk !, Delete it .?\n\n");
+			ui::Separator();
+
+			if (ui::Button("Yes", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				Utils::DirectoryDelete(Utils::GetWorkingDirectory() + "\\Results");
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SetItemDefaultFocus();
+			ui::SameLine();
+			if (ui::Button("No", ImVec2(75, 0)))
+			{
+				ui::CloseCurrentPopup();
+				if (IsReadyToGo())
+					StartSdkGenerator();
+				else
+					popup_not_valid_process = true;
+			}
+
+			ui::SameLine();
+			if (ui::Button("Cancel", ImVec2(75, 0)))
+				ui::CloseCurrentPopup();
+
+			ui::EndPopup();
+		}
 
 		ui::EndTabItem();
 	}
@@ -820,7 +929,7 @@ void MainUi(UiWindow* thiz)
 
 	// Popups
 	{
-		WarningPopup("Note", "Sdk Generator finished. !!", sg_finished);
+		WarningPopup("Note", std::string("") + "SDK Generation complete. !!" + "\n" + "Took: " + GetTookTime(sg_finished_time), sg_finished);
 		WarningPopup("Warning", "Not Valid Process ID. !!", popup_not_valid_process);
 		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
@@ -850,6 +959,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
 	mem_edit.OptMidColsCount = 4;
+	mem_edit.OptAddrDigitsCount = 12;
+	mem_edit.OptUpperCaseHex = true;
 	mem_edit.OptShowAscii = false;
 	mem_edit.OptShowHexIi = false;
 	mem_edit.OptShowOptions = false;
@@ -858,6 +969,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.OptShowDataPreviewDec = false;
 	mem_edit.OptShowDataPreviewBin = false;
 	mem_edit.OptShowDataPreviewHex = true;
+	mem_edit.OptGreyOutZeroes = true;
 	mem_edit.HighlightColor = IM_COL32(0, 0, 200, 200);
 	mem_edit.ReadOnly = true;
 	mem_edit.ReadFn = &AddressViewerReadFn;
@@ -867,7 +979,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION, "CorrMFinder", 680, 530);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 680, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
 	while (!Utils::UiMainWindow->Closed())
@@ -876,7 +988,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Cleanup
 	if (Utils::MemoryObj)
 	{
-		Utils::MemoryObj->ResumeProcess();
+		/////////////////////////////////////////////Utils::MemoryObj->ResumeProcess();
 		CloseHandle(Utils::MemoryObj->ProcessHandle);
 		delete Utils::MemoryObj;
 	}

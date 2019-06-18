@@ -194,6 +194,8 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="MemoryEditor.h" />
+    <ClInclude Include="Midi\MIDI.h" />
+    <ClInclude Include="Midi\MIDI_Resource.h" />
     <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
     <ClInclude Include="Logger.h" />
@@ -234,6 +236,7 @@
     <ClCompile Include="JsonReflector.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="Midi\MIDI.cpp" />
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -264,7 +267,6 @@
     <ResourceCompile Include="UnrealFinderTool.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\..\Downloads\win.ico" />
     <Image Include="..\Resources\win.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

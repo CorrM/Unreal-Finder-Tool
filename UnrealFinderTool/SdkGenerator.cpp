@@ -17,56 +17,45 @@
 
 extern IGenerator* generator;
 
-// TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
-// TODO: Change Parallel from package loop to another loop like IsA or GetSuperClass
-// TODO: Find a way to store all read address, like in `UEObject::IsA()` it's read a lot of address to get the right type.
-// TODO: So just check if it's read before, if true then just get it don't read the memory again for the same address
-// TODO: maybe vector of this address and data, but take care about memory size
-
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
 {
 }
 
-GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
+SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
 								   const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
 								   std::string& state, std::vector<std::string>& packagesDone)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
-		return GeneratorState::BadGName;
+		return { GeneratorState::BadGName };
 	if (!Utils::IsValidGObjectsAddress(gObjAddress))
-		return GeneratorState::BadGObject;
+		return { GeneratorState::BadGObject };
 
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
-		return GeneratorState::BadGName;
+		return { GeneratorState::BadGName };
 	*pNamesCount = NamesStore().GetNamesNum();
 
 	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
-		return GeneratorState::BadGObject;
+		return { GeneratorState::BadGObject };
 	*pObjCount = ObjectsStore().GetObjectsNum();
 
 	// Init Generator Settings
 	if (!generator->Initialize())
 	{
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
-		return GeneratorState::Bad;
+		return { GeneratorState::Bad };
 	}
 	generator->SetGameName(gameName);
 	generator->SetGameVersion(gameVersion);
 	generator->SetSdkType(sdkType);
+	generator->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
 
 	// Get Current Dir
-	char buffer[2048];
-	if (GetModuleFileNameA(GetModuleHandle(nullptr), buffer, sizeof(buffer)) == 0)
-	{
-		MessageBoxA(nullptr, "GetModuleFileName failed", "Error", 0);
-		return GeneratorState::Bad;
-	}
-	fs::path outputDirectory = fs::path(buffer).remove_filename();
+	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectory());
 
 	outputDirectory /= "Results";
 	fs::create_directories(outputDirectory);
@@ -75,25 +64,29 @@ GeneratorState SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_
 	Logger::SetStream(&log);
 
 	fs::create_directories(outputDirectory);
+	state = "Dumping (GNames/GObjects).";
 
 	// Dump To Files
 	if (generator->ShouldDumpArrays())
 	{
 		Dump(outputDirectory);
 		state = "Dump (GNames/GObjects) Done.";
-		Sleep(3 * 1000);
+		Sleep(2 * 1000);
 	}
-
-	state = "Getting Packages Done.";
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
 	ProcessPackages(outputDirectory, pPackagesCount, pPackagesDone, state, packagesDone);
-	
-	Logger::Log("Finished, took %d seconds.", std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
+
+	// Get Time
+	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
+	std::tm took_time;
+	gmtime_s(&took_time, &took_seconds);
+
+	Logger::Log("Finished, took %d seconds.", took_seconds);
 	Logger::SetStream(nullptr);
-	
-	return GeneratorState::Good;
+
+	return { GeneratorState::Good, took_time };
 }
 
 /// <summary>
@@ -105,23 +98,28 @@ void SdkGenerator::Dump(const fs::path& path)
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
 		std::ofstream o(path / "NamesDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
 
-		for (const auto& name : NamesStore())
+		for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
 		{
-			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
+			std::string str = NamesStore().GetByIndex(i);
+			if (!str.empty())
+				tfm::format(o, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
 		}
 	}
 
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
 		std::ofstream o(path / "ObjectsDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", ObjectsStore::GInfo.GObjAddress);
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
 
-		for (const auto& obj : ObjectsStore())
+		for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 		{
-			if (obj.IsValid())
-				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
+			if (ObjectsStore().GetByIndex(i)->IsValid())
+			{
+				const UEObject* obj = ObjectsStore().GetByIndex(i);
+				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
+			}
 		}
 	}
 }
@@ -136,8 +134,6 @@ void SdkGenerator::Dump(const fs::path& path)
 /// <param name="packagesDone"></param>
 void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount, size_t* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
-	using namespace cpplinq;
-
 	int threadCount = Utils::Settings.SdkGen.Threads;
 	const auto sdkPath = path / "SDK";
 	fs::create_directories(sdkPath);
@@ -145,13 +141,41 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<UEObject, bool> processedObjects;
 
-	auto packageObjects =
-		from(ObjectsStore())
-		>> select([](UEObject&& o) { return o.GetPackageObject(); })
-		>> where([](UEObject&& o) { return o.IsValid(); })
-		>> distinct()
-		>> to_vector();
+	state = "Start Collecting Packages.";
+	std::vector<UEObject*> packageObjects;
 
+	// Collecting Packages
+	{
+		size_t index = 0;
+		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
+		{
+			while (ObjectsStore::GObjObjects.size() > index)
+			{
+				UEObject* curObj;
+				// Get current object
+				{
+					std::lock_guard lock(options.Locker);
+					curObj = ObjectsStore::GObjObjects[index].second.get();
+					++index;
+				}
+
+				UEObject* package = curObj->GetPackageObject();
+				if (package->IsValid())
+				{
+					std::lock_guard lock(options.Locker);
+					packageObjects.push_back(package);
+				}
+			}
+		});
+		worker.Start();
+		worker.WaitAll();
+
+		// Make vector distinct
+		std::sort(packageObjects.begin(), packageObjects.end());
+		packageObjects.erase(std::unique(packageObjects.begin(), packageObjects.end()), packageObjects.end());
+	}
+
+	state = "Getting Packages Done.";
 	*pPackagesCount = packageObjects.size();
 
 	/*
@@ -162,10 +186,11 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	*/
 	{
 		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
-		const UEObject& obj = packageObjects[0];
+		UEObject* obj = packageObjects[0];
 
 		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects);
+		std::mutex tmp_lock;
+		package->Process(processedObjects, tmp_lock);
 		if (package->Save(sdkPath))
 		{
 			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
@@ -174,7 +199,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 				"E: " + std::to_string(package->Enums.size()) + " ]"
 			);
 
-			Package::PackageMap[obj] = package.get();
+			Package::PackageMap[*obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
 
@@ -182,39 +207,34 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		Utils::Settings.Parallel.SleepEvery = 30;
 	}
 
+	Sleep(100);
+
 	++*pPackagesDone;
-	state = "Dumping Packages with " + std::to_string(threadCount) + " Threads.";
+	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
-	ParallelWorker<UEObject> packageProcess(packageObjects, 1, threadCount, [&](const UEObject& obj, ParallelOptions& gMutex)
+	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 1, threadCount, [&](UEObject* obj, ParallelOptions& options)
 	{
 		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects);
+		package->Process(processedObjects, options.Locker);
 		
-		{
-			std::lock_guard lock(gMutex.Locker);
-			++*pPackagesDone;
-		}
+		std::lock_guard lock(options.Locker);
+		++*pPackagesDone;
+
+		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+			"C: " + std::to_string(package->Classes.size()) + ", " +
+			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+			"E: " + std::to_string(package->Enums.size()) + " ]"
+		);
 
 		if (package->Save(sdkPath))
 		{
-			{
-				std::lock_guard lock(gMutex.Locker);
-				packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
-					"C: " + std::to_string(package->Classes.size()) + ", " +
-					"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-					"E: " + std::to_string(package->Enums.size()) + " ]"
-				);
-			}
-
-			Package::PackageMap[obj] = package.get();
+			Package::PackageMap[*obj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
 	});
 	packageProcess.Start();
 	packageProcess.WaitAll();
-
-	
 
 	if (!packages.empty())
 	{
@@ -264,7 +284,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	{
 		{
 			std::ofstream os2(path / "SDK" / tfm::format("Basic.h"));
-			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<locale>" }, true);
+			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<vector>", "<locale>" }, true);
 			os2 << generator->GetBasicDeclarations() << "\n";
 			PrintFileFooter(os2);
 
@@ -274,7 +294,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 		{
 			std::ofstream os2(path / "SDK" / tfm::format("Basic.cpp"));
 
-			PrintFileHeader(os2, { "\"../SDK.h\"" }, false);
+			PrintFileHeader(os2, { "\"../SDK.h\"", "<Windows.h>" }, false);
 
 			os2 << generator->GetBasicDefinitions() << "\n";
 
@@ -297,7 +317,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 			os2 << "// " << s.GetFullName() << "\n// ";
 			os2 << tfm::format("0x%04X\n", s.GetPropertySize());
 
-			os2 << "struct " << MakeValidName(s.GetNameCPP()) << "\n{\n";
+			os2 << "struct " << MakeValidName(s.GetNameCpp()) << "\n{\n";
 			os2 << "\tunsigned char UnknownData[0x" << tfm::format("%X", s.GetPropertySize()) << "];\n};\n\n";
 		}
 
@@ -317,26 +337,4 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 			os << R"(#include "SDK/)" << GenerateFileName(FileContentType::FunctionParameters, *package) << "\"\n";
 		}
 	}
-}
-
-uintptr_t SdkGenerator::GetModuleBase(const DWORD processId, const LPSTR lpModuleName, int* sizeOut)
-{
-	MODULEENTRY32 lpModuleEntry = { 0 };
-	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
-	if (!hSnapShot)
-		return NULL;
-	lpModuleEntry.dwSize = sizeof(lpModuleEntry);
-	BOOL bModule = Module32First(hSnapShot, &lpModuleEntry);
-	while (bModule)
-	{
-		if (_stricmp(lpModuleEntry.szModule, lpModuleName) == 0)
-		{
-			CloseHandle(hSnapShot);
-			*sizeOut = lpModuleEntry.modBaseSize;
-			return reinterpret_cast<uintptr_t>(lpModuleEntry.modBaseAddr);
-		}
-		bModule = Module32Next(hSnapShot, &lpModuleEntry);
-	}
-	CloseHandle(hSnapShot);
-	return NULL;
 }

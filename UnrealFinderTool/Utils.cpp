@@ -14,6 +14,7 @@
 Memory* Utils::MemoryObj = nullptr;
 UiWindow* Utils::UiMainWindow = nullptr;
 MySettings Utils::Settings;
+WorkingTools Utils::WorkingNow;
 
 
 #pragma region Json
@@ -82,6 +83,39 @@ bool Utils::FileExists(const std::string& filePath)
 	return fs::exists(path);
 }
 
+bool Utils::FileDelete(const std::string& filePath)
+{
+	if (!FileExists(filePath))
+		return false;
+	
+	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+	return fs::remove(path);
+}
+
+bool Utils::DirectoryDelete(const std::string& dirPath)
+{
+	if (!FileExists(dirPath))
+		return false;
+
+	fs::path path(std::wstring(dirPath.begin(), dirPath.end()));
+	return fs::remove_all(path) > 0;
+}
+
+std::string Utils::GetWorkingDirectory()
+{
+	// Returned cached copy of path
+	static std::string curDir(260, '\0');
+	if (curDir[0] != '\0')
+		return curDir;
+
+	// Get working directory path
+	GetModuleFileName(nullptr, curDir.data(), static_cast<DWORD>(curDir.length()));
+
+	fs::path curPath(curDir);
+	curDir = curPath.parent_path().string();
+
+	return curDir;
+}
 #pragma endregion
 
 #pragma region String
@@ -105,6 +139,9 @@ std::vector<std::string> Utils::SplitString(const std::string& str, const std::s
 
 std::string Utils::ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace)
 {
+	if (to_find.empty())
+		return str;
+
 	for (size_t position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
 		str.replace(position, to_find.length(), to_replace);
 	return str;

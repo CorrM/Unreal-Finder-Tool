@@ -32,8 +32,11 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	switch (msg)
 	{
 	case WM_SIZE:
+		if (wParam == SIZE_MINIMIZED)
+			pUiWindow->render = false;
 		if (gPd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 		{
+			pUiWindow->render = true;
 			pUiWindow->CleanupRenderTarget();
 			gPSwapChain->ResizeBuffers(0, static_cast<UINT>(LOWORD(lParam)), static_cast<UINT>(HIWORD(lParam)), DXGI_FORMAT_UNKNOWN, 0);
 			pUiWindow->CreateRenderTarget();
@@ -53,13 +56,20 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+
+	case WM_CLOSE:
+		if (Utils::WorkingNow.AnyRunningTool())
+		{
+			MessageBox(nullptr, "Wait for current task finish first.", "", MB_OK | MB_ICONWARNING);
+			return 0;
+		}
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-UiWindow::UiWindow(const char* title, const char* className, const int width, const int height) : 
+UiWindow::UiWindow(const char* title, const char* className, const int width, const int height) :
 	hWindow(nullptr),
-	wc(), closed(false),
+	wc(), closed(false), render(true),
 	loopThreadHandle(nullptr),
 	uiStyle(nullptr)
 {
@@ -249,7 +259,8 @@ void UiWindow::WinLoop()
 			continue;
 		}
 
-		RenderFrame();
+		if (render)
+			RenderFrame();
 	}
 
 	ImGui_ImplDX11_Shutdown();

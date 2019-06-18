@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "PatternScan.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
 #include "EngineClasses.h"
@@ -26,10 +25,10 @@ bool InstanceLogger::ObjectDump()
 
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		if (ObjectsStore().GetByIndex(i).GetAddress() != NULL)
+		if (ObjectsStore().GetByIndex(i)->GetAddress() != NULL)
 		{
-			const UEObject& obj = ObjectsStore().GetByIndex(i);
-			fprintf(log, "[%06i] %-100s 0x%" PRIXPTR "\n", int(i), obj.GetName().c_str(), obj.GetAddress());
+			const UEObject* obj = ObjectsStore().GetByIndex(i);
+			fprintf(log, "[%06i] %-100s 0x%" PRIXPTR "\n", int(i), obj->GetName().c_str(), obj->GetAddress());
 		}
 	}
 
@@ -48,7 +47,7 @@ bool InstanceLogger::NameDump()
 		return false;
 	}
 
-	for (size_t i = 0; i < NamesStore().GetNamesNum(); i++)
+	for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
 	{
 		std::string str = NamesStore().GetByIndex(i);
 		if (!str.empty())
@@ -80,11 +79,11 @@ LoggerState InstanceLogger::FetchData()
 		return LoggerState::BadGObjectAddress;
 
 	// GNames
-	if (!NamesStore::Initialize(gNamesAddress, false))
+	if (!NamesStore::Initialize(gNamesAddress))
 		return LoggerState::BadGName;
 
 	// GObjects
-	if (!ObjectsStore::Initialize(gObjectsAddress, false))
+	if (!ObjectsStore::Initialize(gObjectsAddress))
 		return LoggerState::BadGObject;
 
 	return LoggerState::Good;

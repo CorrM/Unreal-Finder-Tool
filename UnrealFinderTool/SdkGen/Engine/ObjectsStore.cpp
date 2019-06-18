@@ -6,7 +6,7 @@
 #include <cassert>
 
 GObjectInfo ObjectsStore::GInfo;
-UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
+GObjects ObjectsStore::GObjObjects;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)
@@ -15,9 +15,18 @@ bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReIni
 	if (!forceReInit && GInfo.GObjAddress != NULL)
 		return true;
 
+	// Destroy old object's from heap
+	for (size_t i = 0; i < GObjObjects.size(); i++)
+	{
+		delete GObjObjects[i].second->Object;
+		GObjObjects[i].second->Object = nullptr;
+	}
+
+	// Clear
 	GObjObjects.clear();
 	GInfo.Count = 0;
 	GInfo.GObjAddress = gObjAddress;
+
 	return tmp.FetchData();
 }
 
@@ -84,7 +93,7 @@ bool ObjectsStore::ReadUObjectArray()
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
 
-		for (size_t uIndex = 0; skipCount <= maxZeroAddress; ++uIndex)
+		for (size_t uIndex = 0; uIndex <= numElementsPerChunk; ++uIndex)
 		{
 			uintptr_t dwUObject = NULL;
 
@@ -113,7 +122,7 @@ bool ObjectsStore::ReadUObjectArray()
 			auto curObject = std::make_unique<UEObject>();
 
 			// Skip bad object in GObjects array
-			if (!ReadUObject(dwUObject, *curObject) || !IsValidUObject(curObject->Object))
+			if (!ReadUObject(dwUObject, *curObject))
 			{
 				++skipCount;
 				continue;
@@ -130,45 +139,10 @@ bool ObjectsStore::ReadUObjectArray()
 
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, UEObject& retUObj)
 {
-	UObject tmp;
-	if (!tmp.ReadData(uObjectAddress)) return false;
+	auto tmp = new UObject();
+	if (!tmp->ReadData(uObjectAddress)) return false;
 
 	retUObj.Object = tmp;
-	return true;
-}
-
-bool ObjectsStore::IsValidUObject(const UObject& uObject, const bool outerCheck) const
-{
-	if (NamesStore().GetNamesNum() == 0)
-		throw std::exception("Init NamesStore first.");
-
-	// Check if FName Index is bigger than current names count
-	if (size_t(uObject.Name.ComparisonIndex) >= NamesStore().GetNamesNum()) return false;
-
-	// Check internal index, it's must be bigger than the last one [ By one ]
-	if (!outerCheck && !GObjObjects.empty())
-	{
-		UEObject& lastObj = *GObjObjects.back().second;
-		if (uObject.InternalIndex < lastObj.Object.InternalIndex ||
-			uObject.InternalIndex > lastObj.Object.InternalIndex + 5)
-			return false;
-	}
-
-	// Check Outer is == NULL or Valid
-	if (uObject.Outer != NULL)
-	{
-		bool found;
-		UEObject& outer2 = GetByAddress(uObject.Outer, found);
-
-		// if not found
-		if (!found) return false;
-
-		// if found, check is valid or not
-		if (!IsValidUObject(outer2.Object, true)) return false;
-	}
-
-	// Check class
-
 	return true;
 }
 
@@ -182,20 +156,20 @@ size_t ObjectsStore::GetObjectsNum() const
 	return GInfo.Count;
 }
 
-UEObject& ObjectsStore::GetByIndex(const size_t index) const
+UEObject* ObjectsStore::GetByIndex(const size_t index) const
 {
-	return *GObjObjects[index].second;
+	return GObjObjects[index].second.get();
 }
 
-UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress) const
 {
-	return *GObjObjects.Find(objAddress);
+	return GObjObjects.Find(objAddress)->get();
 }
 
-UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
 {
-	auto& uniquePtr = GObjObjects.Find(objAddress, success);
-	return success ? *uniquePtr : UEObjectEmpty;
+	auto uniquePtr = GObjObjects.Find(objAddress, success);
+	return success ? uniquePtr->get() : &UEObjectEmpty;
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -232,7 +206,8 @@ ObjectsIterator ObjectsStore::end() const
 
 ObjectsIterator::ObjectsIterator(const ObjectsStore& store)
 	: store(store),
-	  index(store.GetObjectsNum())
+	  index(store.GetObjectsNum()),
+	  current(nullptr)
 {
 }
 
@@ -275,7 +250,7 @@ ObjectsIterator& ObjectsIterator::operator++()
 	for (++index; index < ObjectsStore(store).GetObjectsNum(); ++index)
 	{
 		current = store.GetByIndex(index);
-		if (current.IsValid())
+		if (current->IsValid())
 		{
 			break;
 		}
@@ -302,8 +277,8 @@ bool ObjectsIterator::operator!=(const ObjectsIterator& rhs) const
 
 UEObject ObjectsIterator::operator*() const
 {
-	assert(current.IsValid() && "ObjectsIterator::current is not valid!");
-	return current;
+	assert(current->IsValid() && "ObjectsIterator::current is not valid!");
+	return *current;
 }
 
 UEObject ObjectsIterator::operator->() const

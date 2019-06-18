@@ -2,7 +2,8 @@
 #include "ImGUI/imgui.h"
 #include <vector>
 
-#define TOOL_VERSION "3.0.1"
+#define TOOL_VERSION "3.0.9"
+#define TOOL_VERSION_TITLE "Atomic edition"
 
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 #define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);} if(uiCode) body if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
@@ -10,7 +11,7 @@
 // => Main Options Section
 inline bool process_id_disabled = false;
 inline bool process_detector_disabled = false;
-inline int process_id = 0xaf60;
+inline int process_id = 14080;
 inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernal_disabled = false;
@@ -39,13 +40,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = "45eb4000"; //{ 0 };
+inline char g_objects_buf[18] = "1DE460B0000"; //{ 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "2700CC00"; // { 0 };
+inline char g_names_buf[18] = "1DE44F70080"; // { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
@@ -66,6 +67,7 @@ inline std::string il_state = "Ready ..!!";
 // => Sdk Generator
 inline bool sg_start_disabled = false;
 inline bool sg_finished = false;
+inline std::tm sg_finished_time;
 
 inline size_t sg_objects_count = 0;
 inline size_t sg_names_count = 0;
@@ -168,3 +170,48 @@ static void WarningPopup(const std::string& title, const std::string& message, b
 
 	}
 }
+
+#pragma region Custoum Controls
+namespace ImGui
+{
+	inline bool ListBoxA(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, const int items_count, const int height_in_items, const bool auto_scroll)
+	{
+		if (!ListBoxHeader(label, items_count, height_in_items))
+			return false;
+
+		if (auto_scroll)
+		{
+			SetScrollY(99999999.f);
+		}
+
+		// Assume all items have even height (= 1 line of text). If you need items of different or variable sizes you can create a custom version of ListBox() in your code without using the clipper.
+		ImGuiContext& g = *GImGui;
+		bool value_changed = false;
+		ImGuiListClipper clipper(items_count, GetTextLineHeightWithSpacing()); // We know exactly our line height here so we pass it as a minor optimization, but generally you don't need to.
+		while (clipper.Step())
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+			{
+				const bool item_selected = (i == *current_item);
+				const char* item_text;
+				if (!items_getter(data, i, &item_text))
+					item_text = "*Unknown item*";
+
+				PushID(i);
+				if (Selectable(item_text, item_selected))
+				{
+					*current_item = i;
+					value_changed = true;
+				}
+				if (item_selected)
+					SetItemDefaultFocus();
+				PopID();
+			}
+		ListBoxFooter();
+		if (value_changed)
+			MarkItemEdited(g.CurrentWindow->DC.LastItemId);
+
+		return value_changed;
+	}
+}
+
+#pragma endregion
