@@ -66,7 +66,7 @@ std::string GetTookTime(const std::tm take_time)
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
 int BufSize = 0x200;
-uintptr_t CurrentViewerAddress = uintptr_t(0x1000000000);
+uintptr_t CurrentViewerAddress = uintptr_t(0x0);
 
 MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
 {
@@ -959,6 +959,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
 	mem_edit.OptMidColsCount = 4;
+	mem_edit.OptAddrDigitsCount = 12;
 	mem_edit.OptUpperCaseHex = true;
 	mem_edit.OptShowAscii = false;
 	mem_edit.OptShowHexIi = false;
@@ -968,6 +969,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	mem_edit.OptShowDataPreviewDec = false;
 	mem_edit.OptShowDataPreviewBin = false;
 	mem_edit.OptShowDataPreviewHex = true;
+	mem_edit.OptGreyOutZeroes = true;
 	mem_edit.HighlightColor = IM_COL32(0, 0, 200, 200);
 	mem_edit.ReadOnly = true;
 	mem_edit.ReadFn = &AddressViewerReadFn;
