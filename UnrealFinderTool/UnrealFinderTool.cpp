@@ -107,15 +107,15 @@ void AfterWork()
 void StartGObjFinder(const bool easyMethod)
 {
 	g_obj_listbox_items.clear();
+	BeforeWork();
+	g_objects_find_disabled = true;
+	g_objects_disabled = false;
+	g_names_disabled = false;
+	g_obj_listbox_items.emplace_back("Searching...");
+	g_obj_listbox_item_current = 0;
+
 	std::thread t([=]()
 	{
-		BeforeWork();
-		g_objects_find_disabled = true;
-		g_objects_disabled = false;
-		g_names_disabled = false;
-		g_obj_listbox_items.emplace_back("Searching...");
-		g_obj_listbox_item_current = 0;
-
 		GObjectsFinder taf(easyMethod);
 		std::vector<uintptr_t> ret = taf.Find();
 		g_obj_listbox_items.clear();
