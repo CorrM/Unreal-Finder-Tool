@@ -25,7 +25,9 @@ MemoryEditor mem_edit;
 bool memory_init = false;
 float LeftWidth, RightWidth;
 
+#ifdef MIDI_h
 static CMIDI* midiPlayer = nullptr;
+#endif
 
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -342,6 +344,7 @@ void TitleBar(UiWindow* thiz)
 		ui::SetCursorPosX(abs(ui::CalcTextSize("Unreal Finder Tool By CorrM").x - ui::GetWindowWidth()) / 2);
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Unreal Finder Tool By CorrM");
 
+#ifdef MIDI_h
 		ui::SameLine();
 		ui::SetCursorPosX(abs(ui::GetWindowWidth() - 65));
 		
@@ -364,6 +367,7 @@ void TitleBar(UiWindow* thiz)
 			if (midiPlayer->IsPlaying())
 				midiPlayer->Stop();
 		}
+#endif
 	}
 }
 
@@ -956,7 +960,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION, "CorrMFinder", 680, 530);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 680, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
 	while (!Utils::UiMainWindow->Closed())
