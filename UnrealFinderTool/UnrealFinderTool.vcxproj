@@ -265,6 +265,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\Downloads\win.ico" />
+    <Image Include="..\..\..\..\Downloads\e4ea6b628b.ico" />
+    <Image Include="..\resources\icon2.ico" />
     <Image Include="..\Resources\win.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
