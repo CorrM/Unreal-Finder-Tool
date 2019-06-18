@@ -201,6 +201,9 @@
     <ClInclude Include="Midi\MIDI.h">
       <Filter>Midi</Filter>
     </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -312,11 +315,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-
     <Image Include="..\Resources\win.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\resources\icon2.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
