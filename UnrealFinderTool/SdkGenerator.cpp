@@ -17,12 +17,6 @@
 
 extern IGenerator* generator;
 
-// TODO: Optimize `UEObject::GetNameCPP` and `UEObject::IsA()` and `ObjectsStore().CountObjects` and `ObjectsStore::FindClass`
-// TODO: Change Parallel from package loop to another loop like IsA or GetSuperClass
-// TODO: Find a way to store all read address, like in `UEObject::IsA()` it's read a lot of address to get the right type.
-// TODO: So just check if it's read before, if true then just get it don't read the memory again for the same address
-// TODO: maybe vector of this address and data, but take care about memory size
-
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
@@ -84,6 +78,7 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	const auto begin = std::chrono::system_clock::now();
 	ProcessPackages(outputDirectory, pPackagesCount, pPackagesDone, state, packagesDone);
 
+	// Get Time
 	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());
 	std::tm took_time;
 	gmtime_s(&took_time, &took_seconds);

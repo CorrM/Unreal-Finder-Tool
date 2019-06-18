@@ -928,7 +928,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION, "CorrMFinder", 680, 530);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 680, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
 	while (!Utils::UiMainWindow->Closed())
