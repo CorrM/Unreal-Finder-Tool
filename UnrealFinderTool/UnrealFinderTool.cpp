@@ -698,7 +698,12 @@ void Finder(UiWindow* thiz)
 			if (ui::Button(" Copy Selected "))
 			{
 				if (size_t(class_listbox_item_current) < class_listbox_items.size())
-					ui::SetClipboardText(class_listbox_items[class_listbox_item_current].c_str());
+				{
+					std::string curStr = class_listbox_items[class_listbox_item_current];
+					size_t position;
+					if ((position = curStr.find(' ')) != std::string::npos)
+						ui::SetClipboardText(curStr.substr(0, position).c_str());
+				}
 			}
 
 			ui::SetNextItemWidth(RightWidth - 45.f);
