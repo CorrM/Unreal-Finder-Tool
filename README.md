@@ -1,6 +1,11 @@
 # Unreal Finder Tool
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
+# Support Me
+I already spent a good count of my time to make this tool and improve it, and will give it more time with your support.
+
+[![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
+
 # Features
 - **Nice and Easy UI**.
 - **Find GNames**.
