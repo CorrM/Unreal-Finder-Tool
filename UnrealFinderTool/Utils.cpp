@@ -426,29 +426,41 @@ void Utils::SleepEvery(const int ms, int& counter, const int every)
 #pragma endregion
 
 #pragma region UnrealEngine
-int Utils::DetectUnrealGameId(HWND* windowHandle)
+DWORD Utils::DetectUnrealGame(HWND* windowHandle, std::string& windowTitle)
 {
-	HWND childControl = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
+	HWND childControl = FindWindowEx(HWND_DESKTOP, nullptr, UNREAL_WINDOW_CLASS, nullptr);
+	retry:
 	if (childControl != nullptr)
 	{
 		DWORD pId;
 		GetWindowThreadProcessId(childControl, &pId);
 
 		if (Memory::GetProcessNameById(pId) == "EpicGamesLauncher.exe")
-			return 0;
+		{
+			childControl = FindWindowEx(HWND_DESKTOP, childControl, UNREAL_WINDOW_CLASS, nullptr);
+			goto retry;
+		}
 
 		if (windowHandle != nullptr)
-			* windowHandle = childControl;
+			*windowHandle = childControl;
 
+		windowTitle.resize(27);
+		GetWindowText(childControl, windowTitle.data(), 27);
 		return pId;
 	}
 
 	return 0;
 }
 
-int Utils::DetectUnrealGameId()
+DWORD Utils::DetectUnrealGame(std::string& windowTitle)
 {
-	return DetectUnrealGameId(nullptr);
+	return DetectUnrealGame(nullptr, windowTitle);
+}
+
+DWORD Utils::DetectUnrealGame()
+{
+	std::string tmp;
+	return DetectUnrealGame(nullptr, tmp);
 }
 
 bool Utils::UnrealEngineVersion(std::string& ver)

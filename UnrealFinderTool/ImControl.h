@@ -24,7 +24,7 @@ inline bool game_ue_disabled = false;
 inline std::string game_ue_version = "0.0.0";
 inline size_t ue_selected_version;
 inline std::vector<std::string> unreal_versions;
-inline std::string window_title(27, '\0');
+inline std::string window_title;
 // => Main Options Section
 
 // => Popup

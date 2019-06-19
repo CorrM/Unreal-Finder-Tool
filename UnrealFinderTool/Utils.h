@@ -127,8 +127,9 @@ public:
 	/// <param name="varsOffsets">Offsets to variables based on `ElementType`</param>
 	template <typename ElementType> static void FixPointers(ElementType* structBase, size_t fullCppStructSize, std::vector<int> varsOffsets);
 
-	static int DetectUnrealGameId(HWND* windowHandle);
-	static int DetectUnrealGameId();
+	static DWORD DetectUnrealGame(HWND* windowHandle, std::string& windowTitle);
+	static DWORD DetectUnrealGame(std::string& windowTitle);
+	static DWORD DetectUnrealGame();
 	static bool UnrealEngineVersion(std::string& ver);
 
 private:

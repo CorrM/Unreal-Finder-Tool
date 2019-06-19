@@ -380,7 +380,7 @@ void TitleBar(UiWindow* thiz)
 		ui::SameLine();
 		if (ui::Button(ICON_FA_STOP))
 		{
-			if (MidiPlayer->IsPlaying())
+			if (MidiPlayer && MidiPlayer->IsPlaying())
 				MidiPlayer->Stop();
 		}
 #endif
@@ -400,7 +400,7 @@ void InformationSection(UiWindow* thiz)
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
 		{
-			process_id = Utils::DetectUnrealGameId();
+			process_id = Utils::DetectUnrealGame();
 		});
 	}
 
@@ -489,20 +489,16 @@ void InformationSection(UiWindow* thiz)
 
 		if (process_id != NULL && Memory::IsValidProcess(process_id))
 		{
-			// Get Window Title
-			if (!window_title.empty())
+			if (window_title.empty())
 			{
-				HWND window = FindWindow(UNREAL_WINDOW_CLASS, nullptr);
-
-				if (window != INVALID_HANDLE_VALUE)
-					GetWindowText(window, window_title.data(), 27);
+				Utils::DetectUnrealGame(window_title);
 			}
 		}
 
-		if (window_title[0] == '\0')
-			window_title.replace(0, 4, "NONE");
+		if (window_title.empty())
+			window_title = "NONE";
 
-		ui::Text("%s", window_title.c_str());
+		ui::TextUnformatted(window_title.c_str());
 	}
 }
 
@@ -954,7 +950,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadEngineCore(unreal_versions)) return 0;
 
 	// Autodetect in case game already open
-	process_id = Utils::DetectUnrealGameId();
+	process_id = Utils::DetectUnrealGame();
 
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
