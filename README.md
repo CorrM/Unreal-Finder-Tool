@@ -1,7 +1,7 @@
 # Unreal Finder Tool
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
-# Support Me And Goals
+# Support And Goals
 - I already spent a good count of my time to make this tool and improve it, and will give it more time with your support.
 - There are some goals we would like to achieve on patreon.
 
