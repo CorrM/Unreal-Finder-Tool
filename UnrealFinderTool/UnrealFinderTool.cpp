@@ -418,7 +418,26 @@ void InformationSection(UiWindow* thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "GObjects   : ");
 		ui::SameLine();
 		ui::SetNextItemWidth(LeftWidth / 2.4f);
+
+		bool style_pushed = false;
+		bool isChunks;
+		if (!g_objects_disabled && g_objects_address != 0)
+		{
+			style_pushed = true;
+			bool isValid = Utils::IsValidGObjectsAddress(g_objects_address, &isChunks);
+			if (isValid && isChunks)
+				ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+			else if (isValid)
+				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+			else
+				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+		}
+
 		ENABLE_DISABLE_WIDGET(ui::InputText("##GObjects", g_objects_buf, IM_ARRAYSIZE(g_objects_buf), ImGuiInputTextFlags_CharsHexadecimal), g_objects_disabled);
+		
+		if (style_pushed)
+			ui::PopStyleColor();
+
 		ui::SameLine();
 		HelpMarker("What you can put here .?\n- First UObject address.\n- First GObjects chunk address.\n\n* Not GObjects pointer.\n* It's the address you get from this tool.");
 		g_objects_address = Utils::CharArrayToUintptr(g_objects_buf);
@@ -435,7 +454,7 @@ void InformationSection(UiWindow* thiz)
 
 
 		bool style_pushed = false;
-		if (!g_names_disabled)
+		if (!g_names_disabled && g_names_address != 0)
 		{
 			style_pushed = true;
 			if (Utils::IsValidGNamesAddress(g_names_address))

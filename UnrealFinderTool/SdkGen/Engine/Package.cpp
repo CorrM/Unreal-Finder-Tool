@@ -42,7 +42,7 @@ Package::Package(UEObject* packageObj)
 {
 }
 
-void Package::Process(std::unordered_map<UEObject, bool>& processedObjects, std::mutex& packageLocker)
+void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::mutex& packageLocker)
 {
 	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
 	static int process_sleep_counter = 0;
@@ -134,7 +134,7 @@ bool Package::AddDependency(UEObject* package) const
 	return false;
 }
 
-void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEObject, bool>& processedObjects)
+void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<uintptr_t, bool>& processedObjects)
 {
 	if (!obj.IsValid())
 		return;
@@ -152,7 +152,7 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 		return;
 	}
 
-	processedObjects[obj] |= false;
+	processedObjects[obj.GetAddress()] |= false;
 
 	auto classPackage = obj.GetPackageObject();
 	if (!classPackage->IsValid())
@@ -161,9 +161,9 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 	if (AddDependency(classPackage))
 		return;
 
-	if (!processedObjects[obj])
+	if (!processedObjects[obj.GetAddress()])
 	{
-		processedObjects[obj] = true;
+		processedObjects[obj.GetAddress()] = true;
 
 		auto outer = obj.GetOuter();
 		if (outer->IsValid() && *outer != obj)
@@ -191,7 +191,7 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 	}
 }
 
-void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordered_map<UEObject, bool>& processedObjects)
+void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordered_map<uintptr_t, bool>& processedObjects)
 {
 	using namespace cpplinq;
 

@@ -68,7 +68,7 @@ std::string UEObject::GetInstanceClassName() const
 	if (!IsValid()) return "";
 
 	bool find;
-	UEObject* obj = ObjectsStore().GetByAddress(GetAddress(), find);
+	UEObject* obj = ObjectsStore::GetByAddress(GetAddress(), find);
 
 	return find ? obj->GetClass().GetNameCpp() : "";
 }
@@ -161,7 +161,7 @@ UEObject* UEObject::GetOuter() const
 		return &UEObjectEmpty;
 
 	bool found;
-	UEObject* outer = ObjectsStore().GetByAddress(Object->Outer, found);
+	UEObject* outer = ObjectsStore::GetByAddress(Object->Outer, found);
 
 	return found ? outer : &UEObjectEmpty;
 }
@@ -175,7 +175,7 @@ UEObject* UEObject::GetPackageObject() const
 			package = outer;
 
 		if (!package)
-			package = ObjectsStore().GetByAddress(Object->ObjAddress);
+			package = GetObjByAddress(Object->ObjAddress);
 	}
 
 	return package;
@@ -189,7 +189,7 @@ int UEObject::TypeId()
 
 UEObject* UEObject::GetObjByAddress(const uintptr_t address)
 {
-	return ObjectsStore().GetByAddress(address);
+	return ObjectsStore::GetByAddress(address);
 }
 
 UEClass UEObject::StaticClass()

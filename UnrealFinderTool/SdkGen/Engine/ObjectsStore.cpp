@@ -161,12 +161,12 @@ UEObject* ObjectsStore::GetByIndex(const size_t index) const
 	return GObjObjects[index].second.get();
 }
 
-UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress)
 {
 	return GObjObjects.Find(objAddress)->get();
 }
 
-UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success) const
+UEObject* ObjectsStore::GetByAddress(const uintptr_t objAddress, bool& success)
 {
 	auto uniquePtr = GObjObjects.Find(objAddress, success);
 	return success ? uniquePtr->get() : &UEObjectEmpty;

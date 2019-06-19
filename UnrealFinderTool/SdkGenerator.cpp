@@ -17,6 +17,8 @@
 
 extern IGenerator* generator;
 
+// ToDo: Instated of crash just popup a msg that's tell the user to use another GObjects address
+
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
 	gNamesAddress(gNamesAddress)
@@ -139,7 +141,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	fs::create_directories(sdkPath);
 	
 	std::vector<std::unique_ptr<Package>> packages;
-	std::unordered_map<UEObject, bool> processedObjects;
+	std::unordered_map<uintptr_t, bool> processedObjects;
 
 	state = "Start Collecting Packages.";
 	std::vector<UEObject*> packageObjects;
@@ -262,7 +264,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 /// <param name="path">The path where to create the sdk header.</param>
 /// <param name="processedObjects">The list of processed objects.</param>
 /// <param name="packages">The package order info.</param>
-void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<UEObject, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages)
+void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages)
 {
 	std::ofstream os(path / "SDK.h");
 	os << "// ------------------------------------------------\n";
@@ -305,14 +307,14 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	using namespace cpplinq;
 
 	//check for missing structs
-	const auto missing = from(processedObjects) >> where([](auto && kv) { return kv.second == false; });
+	const auto missing = from(processedObjects) >> where([](std::pair<uintptr_t, bool>&& kv) { return !kv.second; });
 	if (missing >> any())
 	{
 		std::ofstream os2(path / "SDK" / tfm::format("MISSING.h"));
 
 		PrintFileHeader(os2, true);
 
-		for (auto&& s : missing >> select([](auto && kv) { return kv.first.Cast<UEStruct>(); }) >> experimental::container())
+		for (UEStruct&& s : missing >> select([](std::pair<uintptr_t, bool>&& kv) { return ObjectsStore::GetByAddress(kv.first)->Cast<UEStruct>(); }) >> experimental::container())
 		{
 			os2 << "// " << s.GetFullName() << "\n// ";
 			os2 << tfm::format("0x%04X\n", s.GetPropertySize());

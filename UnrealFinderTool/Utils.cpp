@@ -292,6 +292,12 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 bool Utils::IsValidGObjectsAddress(uintptr_t address, bool* isChunks)
 {
+	if (isChunks)
+		*isChunks = false;
+
+	if (MemoryObj == nullptr || !IsValidAddress(MemoryObj, address))
+		return false;
+
 	bool firstCheck = true;
 	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
 	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4,
@@ -357,7 +363,7 @@ CheckAgian:
 		goto CheckAgian;
 	}
 
-	if (isChunks != nullptr)
+	if (isChunks)
 		*isChunks = !firstCheck;
 
 	return false;

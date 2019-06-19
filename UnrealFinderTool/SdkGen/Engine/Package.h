@@ -29,7 +29,7 @@ public:
 	/// <summary>
 	/// Process the classes the package contains.
 	/// </summary>
-	void Process(std::unordered_map<UEObject, bool>& processedObjects, std::mutex& packageLocker);
+	void Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::mutex& packageLocker);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.
@@ -48,14 +48,14 @@ private:
 	/// </summary>
 	/// <param name="obj">The object.</param>
 	/// <param name="processedObjects"></param>
-	void GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEObject, bool>& processedObjects);
+	void GeneratePrerequisites(const UEObject& obj, std::unordered_map<uintptr_t, bool>& processedObjects);
 
 	/// <summary>
 	/// Checks and generates the prerequisites of the members.
 	/// </summary>
 	/// <param name="first">The first member in the chain.</param>
 	/// <param name="processedObjects"></param>
-	void GenerateMemberPrerequisites(const UEProperty& first, std::unordered_map<UEObject, bool>& processedObjects);
+	void GenerateMemberPrerequisites(const UEProperty& first, std::unordered_map<uintptr_t, bool>& processedObjects);
 
 	/// <summary>
 	/// Generates a script structure.

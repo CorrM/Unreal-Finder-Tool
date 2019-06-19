@@ -59,8 +59,8 @@ public:
 	/// </summary>
 	/// <param name="objAddress">The address of object.</param>
 	/// <returns>The object.</returns>
-	UEObject* GetByAddress(uintptr_t objAddress) const;
-	UEObject* GetByAddress(uintptr_t objAddress, bool& success) const;
+	static UEObject* GetByAddress(uintptr_t objAddress);
+	static UEObject* GetByAddress(uintptr_t objAddress, bool& success);
 
 	/// <summary>
 	/// Searches for the first class with the given name.

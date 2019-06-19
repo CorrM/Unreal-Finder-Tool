@@ -102,7 +102,8 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 
 			for (uintptr_t address_ptr : address_holder)
 			{
-				if (!Memory::IsStaticAddress(address_ptr))
+				bool isChunks;
+				if (Utils::IsValidGObjectsAddress(address_ptr, &isChunks) && isChunks && !Memory::IsStaticAddress(address_ptr))
 					search_result.push_back(address_ptr);
 			}
 		}
