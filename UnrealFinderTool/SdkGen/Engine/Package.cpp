@@ -632,6 +632,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 				previousBitfieldProperty = UEBoolProperty();
 			}
 
+			sp.Name = generator->GetSafeKeywordsName(sp.Name);
 			sp.Flags = static_cast<size_t>(prop.GetPropertyFlags());
 			sp.FlagsString = StringifyFlags(prop.GetPropertyFlags());
 
@@ -677,10 +678,10 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 			m.FullName = function.GetFullName();
 			m.Name = MakeValidName(function.GetName());
 
+			m.Name = generator->GetSafeKeywordsName(m.Name);
 			if (uniqueMethods.find(m.FullName) != std::end(uniqueMethods))
-			{
 				continue;
-			}
+
 			uniqueMethods.insert(m.FullName);
 
 			m.IsNative = function.GetFunctionFlags() & UEFunctionFlags::Native;

@@ -284,7 +284,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	{
 		{
 			std::ofstream os2(path / "SDK" / tfm::format("Basic.h"));
-			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<vector>", "<locale>" }, true);
+			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<vector>", "<locale>", "<set>" }, true);
 			os2 << generator->GetBasicDeclarations() << "\n";
 			PrintFileFooter(os2);
 
