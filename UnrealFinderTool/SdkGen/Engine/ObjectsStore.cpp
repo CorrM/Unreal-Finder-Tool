@@ -89,11 +89,11 @@ bool ObjectsStore::ReadUObjectArray()
 {
 	for (int i = 0; i < GInfo.ChunksCount; ++i)
 	{
-		int skipCount = 0;
+		size_t skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
 
-		for (size_t uIndex = 0; uIndex <= numElementsPerChunk; ++uIndex)
+		for (size_t uIndex = 0; GInfo.IsChunksAddress ? uIndex <= numElementsPerChunk : skipCount <= minZeroAddress; ++uIndex)
 		{
 			uintptr_t dwUObject = NULL;
 
