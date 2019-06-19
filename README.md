@@ -35,10 +35,12 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 [![Last Version](/images/download.gif)](https://github.com/CorrM/Unreal-Finder-Tool/releases/latest)
 
 ## Credits
-- [@CorrM](https://github.com/CorrM).
-- [@WheresMyRide](https://github.com/WheresMyRide).
-- @KN4CK3R.
-- [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html).
+Name | Reason
+---- | ------
+[@CorrM](https://github.com/CorrM) | Build This Tool :v:
+[@WheresMyRide](https://github.com/WheresMyRide) | Bug Haunter :joy:
+@KN4CK3R | Base SDK Generator
+[@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html) | BypassPH (Read/Write Kernal)
 
 ## Change Log
 ##### 18-07-2019 - Atomic edition
