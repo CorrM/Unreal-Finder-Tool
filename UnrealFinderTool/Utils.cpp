@@ -15,7 +15,7 @@ Memory* Utils::MemoryObj = nullptr;
 UiWindow* Utils::UiMainWindow = nullptr;
 MySettings Utils::Settings;
 WorkingTools Utils::WorkingNow;
-
+std::mutex Utils::MainMutex;
 
 #pragma region Json
 bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)

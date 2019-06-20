@@ -118,6 +118,7 @@ size_t ObjectsStore::CountObjects(const std::string& name) const
 	worker.Start();
 	worker.WaitAll();
 
+	std::lock_guard mainLocker(Utils::MainMutex);
 	cache[name] = count;
 	return count;
 }

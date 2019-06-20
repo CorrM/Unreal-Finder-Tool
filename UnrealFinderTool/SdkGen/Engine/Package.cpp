@@ -152,7 +152,10 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<uint
 		return;
 	}
 
-	processedObjects[obj.GetAddress()] |= false;
+	{
+		std::lock_guard mainLocker(Utils::MainMutex);
+		processedObjects[obj.GetAddress()] |= false;
+	}
 
 	auto classPackage = obj.GetPackageObject();
 	if (!classPackage->IsValid())

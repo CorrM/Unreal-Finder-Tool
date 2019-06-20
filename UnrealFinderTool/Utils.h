@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <mutex>
 
 namespace fs = std::filesystem;
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
@@ -55,6 +56,8 @@ struct WorkingTools
 class Utils
 {
 public:
+	// Package Process Mutex
+	static std::mutex MainMutex;
 	// Main Window
 	static UiWindow* UiMainWindow;
 	// Tool settings container

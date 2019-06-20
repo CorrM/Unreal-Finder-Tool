@@ -611,7 +611,7 @@ void Finder(UiWindow* thiz)
 				&g_obj_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&g_obj_listbox_items), static_cast<int>(g_obj_listbox_items.size()),
-				3);
+				4);
 
 			// Popup
 			if (ui::BeginPopupModal("Easy?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
@@ -694,7 +694,7 @@ void Finder(UiWindow* thiz)
 				VectorGetter,
 				static_cast<void*>(&g_names_listbox_items),
 				static_cast<int>(g_names_listbox_items.size()),
-				3);
+				4);
 			ui::EndGroup();
 		}
 
@@ -753,7 +753,7 @@ void Finder(UiWindow* thiz)
 				VectorGetter,
 				static_cast<void*>(&class_listbox_items),
 				static_cast<int>(class_listbox_items.size()),
-				7);
+				6);
 			ui::EndGroup();
 		}
 

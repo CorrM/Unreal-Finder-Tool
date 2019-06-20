@@ -161,6 +161,9 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 					++index;
 				}
 
+				if (!curObj)
+					continue;
+
 				UEObject* package = curObj->GetPackageObject();
 				if (package->IsValid())
 				{
@@ -218,9 +221,9 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 1, threadCount, [&](UEObject* obj, ParallelOptions& options)
 	{
 		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects, options.Locker);
+		package->Process(processedObjects, Utils::MainMutex);
 		
-		std::lock_guard lock(options.Locker);
+		std::lock_guard lock(Utils::MainMutex);
 		++*pPackagesDone;
 
 		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "

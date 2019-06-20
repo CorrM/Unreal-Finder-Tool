@@ -46,7 +46,7 @@ inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "D6AFC7F520";// { 0 };
+inline char g_names_buf[18] = "2B608341238";// { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
