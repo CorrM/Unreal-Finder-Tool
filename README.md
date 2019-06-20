@@ -17,7 +17,7 @@ Find GNames |
 Find GObjects | 
 Instance Logger | 
 Sdk Generator | 
-Read/Write Kenrnal |
+Read/Write Kernal |
 
 ## Compatibility
 Platform | Compatibility
