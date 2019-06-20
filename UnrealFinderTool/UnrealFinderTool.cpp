@@ -542,7 +542,7 @@ void InformationSection(UiWindow* thiz)
 			ui::EndTooltip();
 		}
 		ui::SameLine();
-		ui::SetNextItemWidth(LeftWidth / 1.5f);
+		ui::SetNextItemWidth(LeftWidth / 1.57f);
 		ENABLE_DISABLE_WIDGET_IF(ui::BeginCombo("##UnrealVersion", unreal_versions[ue_selected_version].c_str()), game_ue_disabled,
 		{
 			for (size_t i = 0; i < unreal_versions.size(); ++i)
