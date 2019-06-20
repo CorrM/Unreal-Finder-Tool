@@ -5,21 +5,26 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - I already spent a good count of my time to make this tool and improve it, and will give it more time with your support.
 - There are some goals we would like to achieve on patreon.
 
-[![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
-
-[![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
+Website | Link
+------- | ----
+PayPal | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
+patron | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
 
 ## Features
-- **Nice and Easy UI**.
-- **Find GNames**.
-- **Find GObjects**.
-- **Instance Logger**.
-- **Sdk Generator**. *Based on @KN4CK3R* (**External**, **More effective**, **Super Fast** and **Multi-thread**)
-- **Kenrnal to read process memory**. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
+Feature | Description
+------- | -----------
+Nice and Easy UI | i use [ImGUI](https://github.com/ocornut/imgui) for easy and beautifully UI
+Find GNames | Find GNames array
+Find GObjects | Find GObjects array
+Instance Logger | Dump GNames and GObjects into file
+Sdk Generator | Generate CPP SDK
+Read/Write Kernal | Read/Write Process memory with Kernal
 
 ## Compatibility
-- Windows 64bit => x32/x64 games.
-- Windows 32bit => x32 games.
+Platform | Game Compatibility
+-------- | ------------------
+Windows 64bit | x32 & x64
+Windows 32bit | x32
 
 ## How to use
 This video tell you how to use the tool and dump sdk for ue4 game.
