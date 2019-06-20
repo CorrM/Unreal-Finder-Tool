@@ -7,6 +7,35 @@ class JsonVar;
 
 class Memory
 {
+	typedef enum _MEMORY_INFORMATION_CLASS
+	{
+		MemoryBasicInformation,
+		MemoryWorkingSetInformation,
+		MemoryMappedFilenameInformation,
+		MemoryRegionInformation,
+		MemoryWorkingSetExInformation,
+		MemorySharedCommitInformation,
+		MemoryImageInformation,
+		MemoryRegionInformationEx,
+		MemoryPrivilegedBasicInformation,
+		MemoryEnclaveImageInformation,
+		MemoryBasicInformationCapped
+	} MEMORY_INFORMATION_CLASS;
+
+	typedef NTSTATUS(NTAPI* hsNtQueryVirtualMemory)(
+		HANDLE ProcessHandle,
+		PVOID BaseAddress, MEMORY_INFORMATION_CLASS MemoryInformationClass,
+		PVOID Buffer, SIZE_T Length, PSIZE_T ResultLength
+		);
+
+	struct SECTION_INFO
+	{
+		WORD Len;
+		WORD MaxLen;
+		wchar_t* szData;
+		BYTE pData[MAX_PATH * 2];
+	};
+
 	bool useKernal = false;
 	static BypaPH* bypaPh;
 public:
@@ -21,8 +50,9 @@ public:
 	static std::string GetProcessNameById(DWORD pId);
 	static bool IsValidProcess(int p_id, PHANDLE pHandle);
 	static bool IsValidProcess(int p_id);
-	static bool IsStaticAddress(uintptr_t address);
+	static bool IsHandleValid(HANDLE processHandle);
 
+	bool IsStaticAddress(uintptr_t address);
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();

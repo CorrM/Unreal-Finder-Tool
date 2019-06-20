@@ -198,7 +198,7 @@ std::string Utils::AddressToHex(const uintptr_t address)
 #pragma endregion
 
 #pragma region Address stuff
-bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
+bool Utils::IsValidRemoteAddress(Memory* mem, const uintptr_t address)
 {
 	if (INVALID_POINTER_VALUE(address))
 		return false;
@@ -210,13 +210,13 @@ bool Utils::IsValidAddress(Memory* mem, const uintptr_t address)
 	if (VirtualQueryEx(mem->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
-		return info.Protect != PAGE_NOACCESS;
+		return !(info.Protect & PAGE_NOACCESS);
 	}
 
 	return false;
 }
 
-bool Utils::IsValidAddress(const uintptr_t address)
+bool Utils::IsValidLocalAddress(const uintptr_t address)
 {
 	if (INVALID_POINTER_VALUE(address))
 		return false;
@@ -228,21 +228,19 @@ bool Utils::IsValidAddress(const uintptr_t address)
 	if (VirtualQuery(LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
-		return info.Protect != PAGE_NOACCESS;
+		return /*(info.State & MEM_COMMIT) && */!(info.Protect & PAGE_NOACCESS);
 	}
 
 	return false;
 }
 
-bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
+bool Utils::IsValidRemotePointer(const uintptr_t pointer, uintptr_t *address)
 {
-	pointer = NULL;
-	if (!MemoryObj->Is64Bit)
-		pointer = MemoryObj->ReadUInt(address);
-	else
-		pointer = MemoryObj->ReadUInt64(address);
+	uintptr_t tmp;
+	if (!address) address = &tmp;
 
-	if (INVALID_POINTER_VALUE(pointer) /*|| pointer <= dwStart || pointer > dwEnd*/)
+	*address = MemoryObj->ReadAddress(pointer);
+	if (INVALID_POINTER_VALUE(*address))
 		return false;
 
 	// Check memory state, type and permission
@@ -251,9 +249,7 @@ bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
 	if (VirtualQueryEx(MemoryObj->ProcessHandle, LPVOID(pointer), &info, sizeof info) == sizeof info)
 	{
-		// Bad Memory
-		// if (info.State != MEM_COMMIT) return false;
-		return info.Protect != PAGE_NOACCESS;
+		return (info.State & MEM_COMMIT) && !(info.Protect & PAGE_NOACCESS);
 	}
 
 	return false;
@@ -261,7 +257,7 @@ bool Utils::IsValidPointer(const uintptr_t address, uintptr_t& pointer)
 
 bool Utils::IsValidGNamesAddress(const uintptr_t address)
 {
-	if (MemoryObj == nullptr || !IsValidAddress(MemoryObj, address))
+	if (MemoryObj == nullptr || !IsValidRemoteAddress(MemoryObj, address))
 		return false;
 
 	int null_count = 0;
@@ -281,7 +277,7 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 
 	// Read First FName Address
 	uintptr_t noneFName = MemoryObj->ReadAddress(MemoryObj->ReadAddress(address));
-	if (!IsValidAddress(MemoryObj, noneFName)) return false;
+	if (!IsValidRemoteAddress(MemoryObj, noneFName)) return false;
 
 	// Search for none FName
 	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
@@ -290,12 +286,13 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	return !resVec.empty();
 }
 
-bool Utils::IsValidGObjectsAddress(uintptr_t address, bool* isChunks)
+bool Utils::IsValidGObjectsAddress(const uintptr_t address, bool* isChunks)
 {
+	uintptr_t addressHolder = address;
 	if (isChunks)
 		*isChunks = false;
 
-	if (MemoryObj == nullptr || !IsValidAddress(MemoryObj, address))
+	if (MemoryObj == nullptr || !IsValidRemoteAddress(MemoryObj, addressHolder))
 		return false;
 
 	bool firstCheck = true;
@@ -307,20 +304,20 @@ CheckAgian:
 	for (int i = 0x0; i <= 0x20; i += 0x4)
 	{
 		// Check (UObject*) Is Valid Pointer
-		if (!IsValidPointer(address + (i * 0), ptrUObject0)) continue;
-		if (!IsValidPointer(address + (i * 1), ptrUObject1)) continue;
-		if (!IsValidPointer(address + (i * 2), ptrUObject2)) continue;
-		if (!IsValidPointer(address + (i * 3), ptrUObject3)) continue;
-		if (!IsValidPointer(address + (i * 4), ptrUObject4)) continue;
-		if (!IsValidPointer(address + (i * 5), ptrUObject5)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 0), &ptrUObject0)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 1), &ptrUObject1)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 2), &ptrUObject2)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 3), &ptrUObject3)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 4), &ptrUObject4)) continue;
+		if (!IsValidRemotePointer(addressHolder + (i * 5), &ptrUObject5)) continue;
 
 		// Check vfTableObject Is Valid Pointer
-		if (!IsValidPointer(ptrUObject0, ptrVfTableObject0)) continue;
-		if (!IsValidPointer(ptrUObject1, ptrVfTableObject1)) continue;
-		if (!IsValidPointer(ptrUObject2, ptrVfTableObject2)) continue;
-		if (!IsValidPointer(ptrUObject3, ptrVfTableObject3)) continue;
-		if (!IsValidPointer(ptrUObject4, ptrVfTableObject4)) continue;
-		if (!IsValidPointer(ptrUObject5, ptrVfTableObject5)) continue;
+		if (!IsValidRemotePointer(ptrUObject0, &ptrVfTableObject0)) continue;
+		if (!IsValidRemotePointer(ptrUObject1, &ptrVfTableObject1)) continue;
+		if (!IsValidRemotePointer(ptrUObject2, &ptrVfTableObject2)) continue;
+		if (!IsValidRemotePointer(ptrUObject3, &ptrVfTableObject3)) continue;
+		if (!IsValidRemotePointer(ptrUObject4, &ptrVfTableObject4)) continue;
+		if (!IsValidRemotePointer(ptrUObject5, &ptrVfTableObject5)) continue;
 
 		// Check Objects (InternalIndex)
 		for (int io = 0x0; io < 0x1C; io += 0x4)
@@ -351,6 +348,36 @@ CheckAgian:
 				}
 			}
 
+			// Check if it's chunks address
+			if (isChunks && !firstCheck)
+			{
+				int skipCount = 0;
+				for (size_t uIndex = 0; uIndex <= 20 && skipCount <= 5; ++uIndex)
+				{
+					uintptr_t curAddress = address + uIndex * PointerSize();
+					uintptr_t chunk = MemoryObj->ReadAddress(curAddress);
+
+					// Skip null address and bad address
+					if (chunk == 0)
+					{
+						++skipCount;
+						continue;
+					}
+					if (!IsValidRemoteAddress(MemoryObj, chunk)) break;
+
+					skipCount = 0;
+				}
+
+				if (skipCount >= 5)
+				{
+					*isChunks = true;
+				}
+				else
+				{
+					*isChunks = false;
+				}
+			}
+
 			return bFoundNameIndex;
 		}
 	}
@@ -359,7 +386,7 @@ CheckAgian:
 	if (firstCheck)
 	{
 		firstCheck = false;
-		address = MemoryObj->ReadAddress(address);
+		addressHolder = MemoryObj->ReadAddress(addressHolder);
 		goto CheckAgian;
 	}
 

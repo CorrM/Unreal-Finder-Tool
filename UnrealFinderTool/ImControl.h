@@ -11,7 +11,7 @@
 // => Main Options Section
 inline bool process_id_disabled = false;
 inline bool process_detector_disabled = false;
-inline int process_id;
+inline int process_id = 54204;
 inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernal_disabled = false;
@@ -40,13 +40,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = { 0 };
+inline char g_objects_buf[18] = "2B645D08700";// { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = { 0 };
+inline char g_names_buf[18] = "D6AFC7F520";// { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 

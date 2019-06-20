@@ -40,37 +40,26 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 		uintptr_t currentAddress = dwStart;
 		bool exitLoop = false;
 
-		ParallelSingleShot worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
+		do
 		{
-			do
+			exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
+
+			// Size will used to alloc and read memory
+			const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
+
+			// Bad Memory
+			if (info.Protect & PAGE_NOACCESS)
 			{
-				// Get Region information
-				{
-					std::lock_guard lock(options.Locker);
-					exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
-				}
-
-				// Size will used to alloc and read memory
-				const size_t allocSize = dwEnd - dwStart >= (easyMethod ? info.RegionSize : si.dwPageSize) ? (easyMethod ? info.RegionSize : si.dwPageSize) : dwEnd - dwStart;
-
-				// Bad Memory
-				if (!(info.State & MEM_COMMIT))
-				{
-					// Get next address
-					std::lock_guard lock(options.Locker);
-					currentAddress += allocSize;
-					continue;
-				}
-
 				// Get next address
-				std::lock_guard lock(options.Locker);
 				currentAddress += allocSize;
-				mem_block.push_back(currentAddress);
+				continue;
+			}
 
-			} while (!exitLoop);
-		});
-		worker.Start();
-		worker.WaitAll();
+			// Get next address
+			currentAddress += allocSize;
+			mem_block.push_back(currentAddress);
+
+		} while (!exitLoop);
 
 		ParallelQueue<std::vector<uintptr_t>, uintptr_t> worker2(mem_block, 0, Utils::Settings.SdkGen.Threads, [&ret](uintptr_t& address, ParallelOptions& options)
 		{
@@ -103,7 +92,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 			for (uintptr_t address_ptr : address_holder)
 			{
 				bool isChunks;
-				if (Utils::IsValidGObjectsAddress(address_ptr, &isChunks) && isChunks && !Memory::IsStaticAddress(address_ptr))
+				if (Utils::IsValidGObjectsAddress(address_ptr, &isChunks) && isChunks && !Utils::MemoryObj->IsStaticAddress(address_ptr))
 					search_result.push_back(address_ptr);
 			}
 		}

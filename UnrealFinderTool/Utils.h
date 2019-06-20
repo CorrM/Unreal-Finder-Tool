@@ -101,11 +101,11 @@ public:
 	// Return size of pointer in target game
 	static int PointerSize();
 	// Check valid address in remote process
-	static bool IsValidAddress(Memory* mem, uintptr_t address);
+	static bool IsValidRemoteAddress(Memory* mem, uintptr_t address);
 	// Check valid address in local process
-	static bool IsValidAddress(uintptr_t address);
+	static bool IsValidLocalAddress(uintptr_t address);
 	// Check valid pointer in remote process, (Read address and check it's value is valid address)
-	static bool IsValidPointer(uintptr_t address, uintptr_t& pointer);
+	static bool IsValidRemotePointer(uintptr_t pointer, uintptr_t *address = nullptr);
 	// Check if Address is point GNames Array
 	static bool IsValidGNamesAddress(uintptr_t address);
 	// Check if Address is point GObjects Array

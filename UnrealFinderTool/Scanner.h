@@ -42,7 +42,7 @@ namespace Hyperscan
 
 	public: static BOOL IsProcess64Bit(HANDLE ProcessHandle);
 
-	public: static BOOL IsAddressStatic(DWORD ProcessID, BYTE * &Address);
+	public: static BOOL IsAddressStatic(DWORD ProcessID, uintptr_t Address);
 	} *PHYPERSCAN_CHECK;
 
 	typedef class HYPERSCAN_SCANNER

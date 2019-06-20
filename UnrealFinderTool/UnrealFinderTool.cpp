@@ -29,6 +29,8 @@ float LeftWidth, RightWidth;
 CMIDI* MidiPlayer = nullptr;
 #endif
 
+// ToDo: Check GObjects Finder, Check Dauntless will create a full sdk or not
+
 void SetupMemoryStuff(const HANDLE pHandle)
 {
 	// Setup Memory Stuff
@@ -329,13 +331,33 @@ void TitleBar(UiWindow* thiz)
 				ui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("SDK##menu"))
+			if (ImGui::BeginMenu("Locator##menu"))
 			{
+				if (ui::MenuItem("Tool Folder"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						Utils::GetWorkingDirectory().c_str(),
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
 				if (ui::MenuItem("SDK Folder"))
 				{
 					ShellExecute(nullptr,
 						"open",
 						(Utils::GetWorkingDirectory() + "\\Results").c_str(), 
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
+				if (ui::MenuItem("Config Folder"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						(Utils::GetWorkingDirectory() + "\\Config").c_str(),
 						nullptr,
 						nullptr,
 						SW_SHOWDEFAULT);
@@ -508,7 +530,7 @@ void InformationSection(UiWindow* thiz)
 
 		if (process_id != NULL && Memory::IsValidProcess(process_id))
 		{
-			if (window_title.empty())
+			if (window_title.empty() || window_title == "NONE")
 			{
 				Utils::DetectUnrealGame(window_title);
 			}

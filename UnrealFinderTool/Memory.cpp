@@ -106,6 +106,15 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	return miInfos;
 }
 
+bool Memory::IsHandleValid(const HANDLE processHandle)
+{
+	if (!processHandle || processHandle == INVALID_HANDLE_VALUE)
+		return false;
+
+	DWORD handleInformation;
+	return GetHandleInformation(processHandle, &handleInformation) == TRUE;
+}
+
 bool Memory::IsValidProcess(const int p_id, const PHANDLE pHandle)
 {
 	DWORD exitCode;
@@ -127,7 +136,74 @@ bool Memory::IsValidProcess(const int p_id)
 
 bool Memory::IsStaticAddress(const uintptr_t address)
 {
-	return address > uintptr_t(0x7ff00000000);
+	if (ProcessId == NULL || address == NULL)
+		return false;
+
+	auto queryVirtualMemory = reinterpret_cast<hsNtQueryVirtualMemory>(GetProcAddress(LoadLibraryW(L"ntdll.dll"), "NtQueryVirtualMemory"));
+
+	if (!queryVirtualMemory)
+		return false;
+
+	if (!IsHandleValid(ProcessHandle))
+		return false;
+
+	SECTION_INFO sectionInformation;
+
+	NTSTATUS returnStatus = queryVirtualMemory(ProcessHandle, reinterpret_cast<PVOID>(address), MemoryMappedFilenameInformation, &sectionInformation, sizeof(sectionInformation), nullptr);
+
+	if (!NT_SUCCESS(returnStatus))
+		return false;
+
+	wchar_t* deviceName = sectionInformation.szData;
+	wchar_t* filePath = deviceName;
+
+	while (*(filePath++) != '\\') {} 
+	while (*(filePath++) != '\\') {}
+	while (*(filePath++) != '\\') {}
+	*(filePath - 1) = 0;
+
+	auto driveLetters = new wchar_t[MAX_PATH + 1];
+	auto driveSize = GetLogicalDriveStringsW(MAX_PATH, driveLetters);
+
+	if (driveSize > MAX_PATH)
+	{
+		delete[] driveLetters;
+		driveLetters = new wchar_t[size_t(driveSize + 1)];
+		driveSize = GetLogicalDriveStringsW(driveSize, driveLetters);
+	}
+
+	for (int i = 0; i != driveSize / 4; ++i)
+	{
+		driveLetters[i * 4 + 2] = 0;
+		wchar_t buffer[64]{ 0 };
+
+		QueryDosDeviceW(&driveLetters[size_t(i * 4)], buffer, 64 * 2);
+
+		if (!wcscmp(buffer, deviceName))
+		{
+			filePath -= 3;
+			filePath[2] = '\\';
+			filePath[1] = ':';
+			filePath[0] = driveLetters[i * 4];
+
+			delete[] driveLetters;
+
+			/*
+			HMODULE Ret = GetModuleHandleW(FilePath);
+
+			if (nullptr == Ret)
+			{
+				return FALSE;
+			}
+			Address = reinterpret_cast<uintptr_t>(Ret);
+			*/
+
+			return true;
+		}
+	}
+
+	delete[] driveLetters;
+	return false;
 }
 
 bool Memory::SuspendProcess()

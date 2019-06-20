@@ -39,6 +39,7 @@ bool ObjectsStore::FetchData()
 bool ObjectsStore::GetGObjectInfo()
 {
 	// Check if it's first `UObject` or first `Chunk` address
+	// And Get Chunk and other GObjects info
 	{
 		int skipCount = 0;
 		for (size_t uIndex = 0; uIndex <= 20 && skipCount <= 5; ++uIndex)
@@ -52,6 +53,8 @@ bool ObjectsStore::GetGObjectInfo()
 				++skipCount;
 				continue;
 			}
+
+			if (!Utils::IsValidRemoteAddress(Utils::MemoryObj, chunk)) break;
 
 			skipCount = 0;
 			GInfo.GChunks.push_back(chunk);
@@ -76,10 +79,10 @@ bool ObjectsStore::GetGObjectInfo()
 		uintptr_t obj1 = Utils::MemoryObj->ReadAddress(firstUObj);
 		uintptr_t obj2 = Utils::MemoryObj->ReadAddress(firstUObj + Utils::PointerSize());
 
-		if (!Utils::IsValidAddress(Utils::MemoryObj, obj1)) return false;
+		if (!Utils::IsValidRemoteAddress(Utils::MemoryObj, obj1)) return false;
 
 		// Not Valid mean it's not Pointer Next To Pointer, or GObject address is wrong.
-		GInfo.IsPointerNextToPointer = Utils::IsValidAddress(Utils::MemoryObj, obj2);
+		GInfo.IsPointerNextToPointer = Utils::IsValidRemoteAddress(Utils::MemoryObj, obj2);
 	}
 
 	return true;
@@ -87,14 +90,16 @@ bool ObjectsStore::GetGObjectInfo()
 
 bool ObjectsStore::ReadUObjectArray()
 {
+	uintptr_t lastObj = NULL;
 	for (int i = 0; i < GInfo.ChunksCount; ++i)
 	{
 		size_t skipCount = 0;
 		int offset = i * Utils::PointerSize();
 		uintptr_t chunkAddress = GInfo.IsChunksAddress ? Utils::MemoryObj->ReadAddress(GInfo.GObjAddress + size_t(offset)) : GInfo.GObjAddress;
 
-		for (size_t uIndex = 0; GInfo.IsChunksAddress ? uIndex <= numElementsPerChunk : skipCount <= minZeroAddress; ++uIndex)
+		for (size_t uIndex = 0; GInfo.IsChunksAddress ? uIndex <= numElementsPerChunk : (skipCount <= minZeroAddress); ++uIndex)
 		{
+			uintptr_t fUObject = NULL;
 			uintptr_t dwUObject = NULL;
 
 			// Get object address
@@ -105,13 +110,13 @@ bool ObjectsStore::ReadUObjectArray()
 			else
 			{
 				FUObjectItem fUObjectItem;
-				dwUObject = chunkAddress + uIndex * fUObjectItem.StructSize();
-				fUObjectItem.ReadData(dwUObject);
+				fUObject = chunkAddress + uIndex * fUObjectItem.StructSize();
+				fUObjectItem.ReadData(fUObject);
 				dwUObject = fUObjectItem.Object;
 			}
 
 			// Skip null pointer in GObjects array
-			if (dwUObject == 0)
+			if (dwUObject == NULL)
 			{
 				++skipCount;
 				continue;
@@ -121,14 +126,12 @@ bool ObjectsStore::ReadUObjectArray()
 			// Object container
 			auto curObject = std::make_unique<UEObject>();
 
-			// Skip bad object in GObjects array
-			if (!ReadUObject(dwUObject, *curObject))
-			{
-				++skipCount;
-				continue;
-			}
-			skipCount = 0;
+			// Break if found bad object in GObjects array, GObjects shouldn't have bad object
+			// check is not a static address !
+			if (Utils::MemoryObj->IsStaticAddress(dwUObject) || !ReadUObject(dwUObject, *curObject))
+				break;
 
+			lastObj = fUObject;
 			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
 			++GInfo.Count;
 		}
@@ -140,7 +143,8 @@ bool ObjectsStore::ReadUObjectArray()
 bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, UEObject& retUObj)
 {
 	auto tmp = new UObject();
-	if (!tmp->ReadData(uObjectAddress)) return false;
+	if (!Utils::IsValidRemoteAddress(Utils::MemoryObj, uObjectAddress) || !tmp->ReadData(uObjectAddress))
+		return false;
 
 	retUObj.Object = tmp;
 	return true;

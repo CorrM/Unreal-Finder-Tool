@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Scanner.h"
-#include <assert.h>
+#include <cassert>
 #include <Tlhelp32.h>
 #include "ParallelWorker.h"
 
@@ -74,9 +74,9 @@ typedef NTSTATUS(NTAPI *hsNtQueryVirtualMemory)(
 	PVOID Buffer, SIZE_T Length, PSIZE_T ResultLength
 	);
 
-BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
+BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, uintptr_t Address)
 {
-	if (NULL == ProcessID || nullptr == Address)
+	if (NULL == ProcessID || NULL == Address)
 	{
 		return FALSE;
 	}
@@ -99,7 +99,7 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 
 	SECTION_INFO SectionInformation;
 
-	NTSTATUS ReturnStatus = QueryVirtualMemory(ProcessHandle, Address, MemoryMappedFilenameInformation, &SectionInformation, sizeof(SectionInformation), nullptr);
+	NTSTATUS ReturnStatus = QueryVirtualMemory(ProcessHandle, reinterpret_cast<PVOID>(Address), MemoryMappedFilenameInformation, &SectionInformation, sizeof(SectionInformation), nullptr);
 
 	if (!NT_SUCCESS(ReturnStatus))
 	{
@@ -115,7 +115,7 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 	while (*(FilePath++) != '\\');
 	*(FilePath - 1) = 0;
 
-	wchar_t * DriveLetters = new wchar_t[MAX_PATH + 1];
+	auto DriveLetters = new wchar_t[MAX_PATH + 1];
 	auto DriveSize = GetLogicalDriveStringsW(MAX_PATH, DriveLetters);
 
 	if (DriveSize > MAX_PATH)
@@ -130,7 +130,7 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 		DriveLetters[i * 4 + 2] = 0;
 		wchar_t Buffer[64]{ 0 };
 
-		QueryDosDeviceW(&DriveLetters[i * 4], Buffer, sizeof(Buffer));
+		QueryDosDeviceW(&DriveLetters[i * 4], Buffer, 64 * 2);
 
 		if (!wcscmp(Buffer, DeviceName))
 		{
@@ -141,15 +141,16 @@ BOOL HYPERSCAN_CHECK::IsAddressStatic(DWORD ProcessID, BYTE * &Address)
 
 			delete[] DriveLetters;
 
-			BYTE * Ret = reinterpret_cast<BYTE*>(GetModuleHandleW(FilePath));
+			/*
+			HMODULE Ret = GetModuleHandleW(FilePath);
 
 			if (nullptr == Ret)
 			{
 				CloseHandle(ProcessHandle);
 				return FALSE;
 			}
-
-			Address = Ret;
+			Address = reinterpret_cast<uintptr_t>(Ret);
+			*/
 
 			CloseHandle(ProcessHandle);
 			return TRUE;
@@ -318,7 +319,7 @@ std::vector<uintptr_t> HYPERSCAN_SCANNER::ScanWholeMemoryWithDelimiters(DWORD Pr
 	while (VirtualQueryEx(QueryHandle, reinterpret_cast<VOID*>(AddressForScan), &BasicInformation, sizeof(BasicInformation))
 		&& AddressForScan < EndAddress)
 	{
-		if ((BasicInformation.State & MEM_COMMIT))
+		if (BasicInformation.State & MEM_COMMIT && BasicInformation.Type & MEM_PRIVATE)
 		{
 			mem_blocks.emplace_back(AddressForScan, BasicInformation);
 		}
