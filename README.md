@@ -18,7 +18,7 @@ Find GNames | Find GNames array
 Find GObjects | Find GObjects array
 Instance Logger | Dump GNames and GObjects into file
 Sdk Generator | Generate CPP SDK
-Read/Write Kernal | Read/Write Process memory with Kernal
+Read/Write Kernel | Read/Write Process memory with Kernel
 
 ## Compatibility
 Platform | Game Compatibility
