@@ -24,6 +24,7 @@
 MemoryEditor mem_edit;
 bool memory_init = false;
 bool override_engine = false;
+bool donate_show = true;
 float LeftWidth, RightWidth;
 
 #ifdef MIDI_h
@@ -330,6 +331,62 @@ void StartSdkGenerator()
 #pragma endregion
 
 #pragma region User Interface
+void Donation(UiWindow* thiz)
+{
+#ifndef _DEBUG
+	if (donate_show)
+		ui::OpenPopup("Donate?");
+
+	// Popup
+	if (ui::BeginPopupModal("Donate?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+	{
+		ui::Text("I already spent a good count of my time to,\nMake this tool and improve it,\nAnd will give it more time with your support.\n\n");
+		ui::Separator();
+
+		ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.30f, 0.29f, 1.0f));
+		if (ui::Button("Patreon", ImVec2(100, 0)))
+		{
+			ShellExecute(nullptr,
+				"open",
+				"https://www.patreon.com/bePatron?u=16013498",
+				nullptr,
+				nullptr,
+				SW_SHOWDEFAULT);
+			donate_show = false;
+			ui::CloseCurrentPopup();
+		}
+		ui::PopStyleColor();
+
+		ui::SetItemDefaultFocus();
+		ui::SameLine();
+		ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.20f, 0.83f, 1.0f));
+		if (ui::Button("PayPal", ImVec2(100, 0)))
+		{
+			ShellExecute(nullptr,
+				"open",
+				"http://paypal.me/IslamNofl",
+				nullptr,
+				nullptr,
+				SW_SHOWDEFAULT);
+			donate_show = false;
+			ui::CloseCurrentPopup();
+		}
+		ui::PopStyleColor();
+
+		ui::SameLine();
+		ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+		if (ui::Button("Cancel", ImVec2(100, 0)))
+		{
+			donate_show = false;
+			ui::CloseCurrentPopup();
+		}
+		ui::PopStyleColor();
+
+		ui::EndPopup();
+	}
+#endif
+}
+
 void TitleBar(UiWindow* thiz)
 {
 	// ui::ShowDemoWindow();
@@ -392,10 +449,16 @@ void TitleBar(UiWindow* thiz)
 						nullptr,
 						SW_SHOWDEFAULT);
 				}
-
 				ui::EndMenu();
 			}
 
+			ui::Separator();
+
+#ifndef _DEBUG
+			ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+			if (ui::MenuItem("DONATE")) donate_show = true;
+			ui::PopStyleColor();
+#endif
 			ui::EndPopup();
 		}
 	}
@@ -938,8 +1001,9 @@ void SdkGenerator(UiWindow* thiz)
 
 void MainUi(UiWindow* thiz)
 {
-	TitleBar(thiz);
+	Donation(thiz);
 
+	TitleBar(thiz);
 	ui::Separator();
 
 	// left-group
