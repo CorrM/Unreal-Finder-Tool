@@ -44,7 +44,16 @@ bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)
 void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 {
 	// Get engine files and Override it's structs on EngineBase, if return false then there is no override for target engine and use the EngineBase
-	JsonReflector::ReadAndLoadFile("Config\\EngineCore\\" + engineVersion + ".json", true);
+	try
+	{
+		JsonReflector::ReadAndLoadFile("Config\\EngineCore\\" + engineVersion + ".json", true);
+	}
+	catch (...)
+	{
+		std::string error = "Can't find/parse json file '" + engineVersion + ".json'.";
+		MessageBoxA(nullptr, error.c_str(), "Critical Problem", MB_OK | MB_ICONERROR);
+		ExitProcess(-1);
+	}
 }
 
 bool Utils::LoadSettings()

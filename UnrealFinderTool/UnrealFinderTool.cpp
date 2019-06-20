@@ -56,10 +56,17 @@ bool IsReadyToGo()
 	if (Memory::IsValidProcess(process_id, &pHandle))
 	{
 		SetupMemoryStuff(pHandle);
+
 		for (size_t i = 0; i < unreal_versions.size(); i++)
 		{
+			std::string toLowerTitle = window_title;
+			std::string toLowerJson = unreal_versions[i];
+
+			std::transform(toLowerTitle.begin(), toLowerTitle.end(), toLowerTitle.begin(), ::tolower);
+			std::transform(toLowerJson.begin(), toLowerJson.end(), toLowerJson.begin(), ::tolower);
+
 			if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
-				Utils::ContainsString(window_title, unreal_versions[i]))
+				Utils::ContainsString(toLowerTitle, toLowerJson))
 			{
 				ue_selected_version = i;
 				break;
@@ -535,7 +542,7 @@ void InformationSection(UiWindow* thiz)
 			ui::EndTooltip();
 		}
 		ui::SameLine();
-		ui::SetNextItemWidth(LeftWidth / 2.4f);
+		ui::SetNextItemWidth(LeftWidth / 1.5f);
 		ENABLE_DISABLE_WIDGET_IF(ui::BeginCombo("##UnrealVersion", unreal_versions[ue_selected_version].c_str()), game_ue_disabled,
 		{
 			for (size_t i = 0; i < unreal_versions.size(); ++i)

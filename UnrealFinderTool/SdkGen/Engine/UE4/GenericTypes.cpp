@@ -43,7 +43,7 @@ std::string UEObject::GetName() const
 		return obj->objName;
 
 	auto name = NamesStore().GetByIndex(Object->Name.ComparisonIndex);
-	if (!name.empty() && Object->Name.Number > 0)
+	if (!name.empty() && (Object->Name.Number > 0 && Object->Name.ComparisonIndex != Object->Name.Number))
 		name += '_' + std::to_string(Object->Name.Number);
 
 	auto pos = name.rfind('/');

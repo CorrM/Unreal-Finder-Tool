@@ -23,7 +23,27 @@
         { "Children": "UField*" },
         { "PropertySize": "int" },
         { "MinAlignment": "int" },
-        { "pad_2": "64" }
+        { "pad_02": "64" }
+      ],
+      "note": ""
+    },
+	{
+      "name": "UProperty",
+      "super": "UField",
+      "vars": [
+        { "ArrayDim": "int" },
+        { "ElementSize": "int" },
+        { "PropertyFlags": "FQWord" },
+        { "RepIndex": "uint16" },
+        { "BlueprintReplicationCondition": "uint8" },
+        { "pad_01": "uint8" },
+        { "Offset": "int" },
+        { "RepNotifyFunc": "FName" },
+        { "PropertyLinkNext": "*" },
+        { "NextRef": "*" },
+        { "DestructorLinkNext": "*" },
+        { "PostConstructLinkNext": "*" },
+		{ "pad_02": "*" }
       ],
       "note": ""
     }

@@ -2,7 +2,7 @@
 #include "ImGUI/imgui.h"
 #include <vector>
 
-#define TOOL_VERSION "3.0.9"
+#define TOOL_VERSION "3.1.0"
 #define TOOL_VERSION_TITLE "Atomic edition"
 
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
@@ -11,7 +11,7 @@
 // => Main Options Section
 inline bool process_id_disabled = false;
 inline bool process_detector_disabled = false;
-inline int process_id = 54204;
+inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernal_disabled = false;
@@ -40,13 +40,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = "20400439AC0";// { 0 };
+inline char g_objects_buf[18] = { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "2047E190080";// { 0 };
+inline char g_names_buf[18] = { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
