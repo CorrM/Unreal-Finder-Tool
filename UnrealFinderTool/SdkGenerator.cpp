@@ -71,7 +71,7 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	// Dump To Files
 	if (generator->ShouldDumpArrays())
 	{
-		Dump(outputDirectory);
+		Dump(outputDirectory, state);
 		state = "Dump (GNames/GObjects) Done.";
 		Sleep(2 * 1000);
 	}
@@ -95,33 +95,42 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 /// Dumps the objects and names to files.
 /// </summary>
 /// <param name="path">The path where to create the dumps.</param>
-void SdkGenerator::Dump(const fs::path& path)
+/// <param name="state"></param>
+void SdkGenerator::Dump(const fs::path& path, std::string& state)
 {
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
+		state = "Dumping Names.";
+
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
 
-		for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
+		size_t vecSize = NamesStore().GetNamesNum();
+		for (size_t i = 0; i < vecSize; ++i)
 		{
 			std::string str = NamesStore().GetByIndex(i);
 			if (!str.empty())
 				tfm::format(o, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
+			state = "Names Progress [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
 		}
 	}
 
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
+		state = "Dumping Objects.";
+
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
 
-		for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+		size_t vecSize = ObjectsStore().GetObjectsNum();
+		for (size_t i = 0; i < vecSize; ++i)
 		{
 			if (ObjectsStore().GetByIndex(i)->IsValid())
 			{
 				const UEObject* obj = ObjectsStore().GetByIndex(i);
 				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
 			}
+			state = "Objects Progress [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
 		}
 	}
 }
@@ -151,7 +160,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		size_t index = 0;
 		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
 		{
-			while (ObjectsStore::GObjObjects.size() > index)
+			size_t vecSize = ObjectsStore::GObjObjects.size();
+			while (vecSize > index)
 			{
 				UEObject* curObj;
 				// Get current object
@@ -169,6 +179,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 				{
 					std::lock_guard lock(options.Locker);
 					packageObjects.push_back(package);
+					state = "Progress [ " + std::to_string(index) + " / " + std::to_string(vecSize) + " ].";
 				}
 			}
 		});
