@@ -234,7 +234,7 @@ std::vector<std::string> UEEnum::GetNames() const
 
 	// Get Names
 	uintptr_t dataAddress = objEnum.Names.Data;
-	if (objEnum.Names.Count > 100)
+	if (objEnum.Names.Count > 300)
 	{
 		MessageBoxA(nullptr, "UEnum looks bad.", "Problem", MB_OK);
 		ExitProcess(-1);

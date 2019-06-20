@@ -17,7 +17,7 @@
         { "NextRef": "*" },
         { "DestructorLinkNext": "*" },
         { "PostConstructLinkNext": "*" },
-		{ "pad_2": "8" }
+		{ "pad_2": "*" }
       ],
       "note": ""
     }

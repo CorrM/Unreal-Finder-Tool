@@ -224,12 +224,12 @@ bool JsonReflector::Load(nlohmann::json* jsonObj, const bool overrideOld)
 				}
 
 				// Update all structs that inheritance form this overrides struct
-				for (auto& jStructContainer : StructsList)
+				// Twice to be sure all structs override
+				for (size_t i = 0; i < 2; i++)
 				{
-					auto& jStruct = jStructContainer.second;
-
-					if (jStruct.StructSuper == tempToSave.StructName)
+					for (auto& jStructContainer : StructsList)
 					{
+						auto& jStruct = jStructContainer.second;
 						LoadStruct(jStruct.StructName, &JsonBaseObj, true);
 					}
 				}
