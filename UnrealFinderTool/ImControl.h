@@ -40,13 +40,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = "22D5C6E8700";// { 0 };
+inline char g_objects_buf[18] = "223C87B0000";// { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "22D57840080";// { 0 };
+inline char g_names_buf[18] = "223C71F0080";// { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
@@ -96,7 +96,6 @@ static void DisabledAll()
 	process_id_disabled = true;
 	process_detector_disabled = true;
 	use_kernal_disabled = true;
-	game_ue_disabled = true;
 
 	g_objects_disabled = true;
 	g_names_disabled = true;

@@ -12,12 +12,14 @@ using JsonVariables = UnsortedMap<std::string, JsonVar>;
 class JsonReflector
 {
 public:
+	// json reader for EngineBaseFile
+	static nlohmann::json JsonBaseObj;
 	// Main json reader for structs
 	static nlohmann::json JsonObj;
 	// Contains all loaded structs
 	static JsonStructs StructsList;
 	// Read Json file into memory to be ready to load structs inside them
-	static bool ReadJsonFile(const std::string& fileName, void* jsonObj);
+	static bool ReadJsonFile(const std::string& fileName, nlohmann::json* jsonObj);
 	// Read Json file into memory to be ready to load structs inside them, [Using main `JsonObj`]
 	static bool ReadJsonFile(const std::string& fileName);
 	// Check variable type is struct
@@ -25,15 +27,15 @@ public:
 	// Read struct form loaded json structs
 	static JsonStruct GetStruct(const std::string& structName);
 	// Load all json structs inside `StructsList`
-	static bool Load(void* jsonObj, bool overrideOld = false);
+	static bool Load(nlohmann::json* jsonObj, bool overrideOld = false);
 	// Load all json structs inside `StructsList`, [Using main `JsonObj`]
 	static bool Load(bool overrideOld = false);
 	// Read Json file into memory AND read all structs inside json file, then store structs inside `StructsList`
-	static bool ReadAndLoadFile(const std::string& fileName, void* jsonObj, bool overrideOld = false);
+	static bool ReadAndLoadFile(const std::string& fileName, nlohmann::json* jsonObj, bool overrideOld = false);
 	// Read Json file into memory AND read all structs inside json file, then store structs inside `StructsList`, [Using main `JsonObj`]
 	static bool ReadAndLoadFile(const std::string& fileName, bool overrideOld = false);
 	// Load json struct by name
-	static bool LoadStruct(const std::string& structName, bool overrideOld = false);
+	static bool LoadStruct(const std::string& structName, nlohmann::json* jsonObj, bool overrideOld = false);
 	// Get json struct variable size
 	static int VarSizeFromJson(const std::string& typeName, bool overrideOld);
 };

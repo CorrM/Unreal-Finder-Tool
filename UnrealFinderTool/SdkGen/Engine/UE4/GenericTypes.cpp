@@ -977,6 +977,7 @@ UEClass UENameProperty::StaticClass()
 #pragma region UEStructProperty
 UEScriptStruct UEStructProperty::GetStruct() const
 {
+	static auto gg = JsonReflector::StructsList;
 	if (objStructProperty.Empty())
 		objStructProperty = Object->Cast<UStructProperty>();
 

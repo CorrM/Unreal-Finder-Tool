@@ -5,9 +5,10 @@
 
 JsonStructs JsonReflector::StructsList;
 nlohmann::json JsonReflector::JsonObj;
+nlohmann::json JsonReflector::JsonBaseObj;
 
 #pragma region JsonReflector
-bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
+bool JsonReflector::ReadJsonFile(const std::string& fileName, nlohmann::json* jsonObj)
 {
 	// read a JSON file
 	std::ifstream i(fileName.c_str());
@@ -30,11 +31,14 @@ JsonStruct JsonReflector::GetStruct(const std::string& structName)
 	throw std::exception(("Can't find " + structName + " in loaded structs.").c_str());
 }
 
-bool JsonReflector::LoadStruct(const std::string& structName, const bool overrideOld)
+bool JsonReflector::LoadStruct(const std::string& structName, nlohmann::json* jsonObj, const bool overrideOld)
 {
 	// Check is already here
 	if (StructsList.find(structName) != StructsList.end() && !overrideOld) return true;
-	auto j = JsonObj; // Don't make it reference var
+
+	// Don't make it reference var
+	auto j = *jsonObj;
+	auto jOver = JsonObj;
 
 	for (const auto& parent : j.at("structs").items())
 	{
@@ -53,7 +57,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, const bool overrid
 				tempToSave.StructSuper = eSuper;
 
 				// Add super struct Variables to struct first
-				if (LoadStruct(eSuper, overrideOld))
+				if (LoadStruct(eSuper, overrideOld ? &jOver : jsonObj, overrideOld))
 				{
 					auto s = StructsList.find(eSuper);
 					if (s != StructsList.end())
@@ -133,10 +137,9 @@ bool JsonReflector::LoadStruct(const std::string& structName, const bool overrid
 	return overrideOld;
 }
 
-bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
+bool JsonReflector::Load(nlohmann::json* jsonObj, const bool overrideOld)
 {
-	auto jObj = reinterpret_cast<nlohmann::json*>(jsonObj);
-	auto j = *jObj;
+	auto j = *jsonObj;
 
 	for (const auto& parent : j.at("structs").items())
 	{
@@ -156,7 +159,7 @@ bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
 			tempToSave.StructSuper = eSuper;
 
 			// Add super struct Variables to struct first
-			if (LoadStruct(eSuper, overrideOld))
+			if (LoadStruct(eSuper, jsonObj, overrideOld))
 			{
 				auto s = StructsList.find(eSuper);
 				if (s != StructsList.end())
@@ -219,6 +222,17 @@ bool JsonReflector::Load(void* jsonObj, const bool overrideOld)
 				{
 					*foundIt = { eName, tempToSave };
 				}
+
+				// Update all structs that inheritance form this overrides struct
+				for (auto& jStructContainer : StructsList)
+				{
+					auto& jStruct = jStructContainer.second;
+
+					if (jStruct.StructSuper == tempToSave.StructName)
+					{
+						LoadStruct(jStruct.StructName, &JsonBaseObj, true);
+					}
+				}
 			}
 
 			// check if it not in the list
@@ -234,14 +248,14 @@ bool JsonReflector::Load(const bool overrideOld)
 	return Load(&JsonObj, overrideOld);
 }
 
-bool JsonReflector::ReadAndLoadFile(const std::string& fileName, void* jsonObj, const bool overrideOld)
+bool JsonReflector::ReadAndLoadFile(const std::string& fileName, nlohmann::json* jsonObj, const bool overrideOld)
 {
 	return ReadJsonFile(fileName, jsonObj) && Load(jsonObj, overrideOld);
 }
 
 bool JsonReflector::ReadAndLoadFile(const std::string& fileName, const bool overrideOld)
 {
-	return ReadAndLoadFile(fileName, reinterpret_cast<void*>(&JsonObj), overrideOld);
+	return ReadAndLoadFile(fileName, &JsonObj, overrideOld);
 }
 
 int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overrideOld)
@@ -281,7 +295,7 @@ int JsonReflector::VarSizeFromJson(const std::string& typeName, const bool overr
 
 	if (IsStructType(typeName))
 	{
-		if (LoadStruct(typeName, overrideOld))
+		if (LoadStruct(typeName, &JsonObj, overrideOld))
 		{
 			auto s = StructsList.find(typeName);
 			if (s != StructsList.end())

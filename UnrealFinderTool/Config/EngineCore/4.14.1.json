@@ -1,0 +1,25 @@
+{
+  "engine version": "4.14.1",
+  "structs": [
+    {
+      "name": "UProperty",
+      "super": "UField",
+      "vars": [
+        { "ArrayDim": "int" },
+        { "ElementSize": "int" },
+        { "PropertyFlags": "FQWord" },
+        { "RepIndex": "uint16" },
+        { "BlueprintReplicationCondition": "uint8" },
+        { "pad_1": "uint8" },
+        { "Offset": "int" },
+        { "RepNotifyFunc": "FName" },
+        { "PropertyLinkNext": "*" },
+        { "NextRef": "*" },
+        { "DestructorLinkNext": "*" },
+        { "PostConstructLinkNext": "*" },
+		{ "pad_2": "8" }
+      ],
+      "note": ""
+    }
+  ]
+}

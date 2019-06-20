@@ -23,6 +23,7 @@
 
 MemoryEditor mem_edit;
 bool memory_init = false;
+bool override_engine = false;
 float LeftWidth, RightWidth;
 
 #ifdef MIDI_h
@@ -55,6 +56,15 @@ bool IsReadyToGo()
 	if (Memory::IsValidProcess(process_id, &pHandle))
 	{
 		SetupMemoryStuff(pHandle);
+		for (size_t i = 0; i < unreal_versions.size(); i++)
+		{
+			if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
+				Utils::ContainsString(window_title, unreal_versions[i]))
+			{
+				ue_selected_version = i;
+				break;
+			}
+		}
 		return true;
 	}
 	return false;
@@ -92,11 +102,20 @@ void GoToAddress(const uintptr_t address)
 }
 #pragma endregion
 
-void BeforeWork()
+void LoadOverrideEngine()
 {
+	if (override_engine)
+		return;
+
+	override_engine = true;
+	game_ue_disabled = true;
+
 	// Override UE4 Engine Structs
 	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
+}
 
+void BeforeWork()
+{
 	DisabledAll();
 }
 
@@ -197,8 +216,10 @@ void StartClassFinder()
 	if (!contin || std::string(class_find_buf).empty())
 		return;
 
+	LoadOverrideEngine();
 	Utils::WorkingNow.ClassesFinder = true;
 	class_listbox_items.clear();
+
 	std::thread t([&]()
 	{
 		BeforeWork();
@@ -221,6 +242,7 @@ void StartInstanceLogger()
 	il_names_count = 0;
 	il_state = "Running . . .";
 	Utils::WorkingNow.InstanceLogger = true;
+	LoadOverrideEngine();
 
 	std::thread t([&]()
 	{
@@ -262,6 +284,7 @@ void StartSdkGenerator()
 	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
 	Utils::WorkingNow.SdkGenerator = true;
+	LoadOverrideEngine();
 
 	std::thread t([&]()
 	{

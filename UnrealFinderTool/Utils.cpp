@@ -21,9 +21,10 @@ std::mutex Utils::MainMutex;
 bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)
 {
 	// Get all engine files and load it's structs
-	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\EngineBase.json"))
+	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\EngineBase.json", &JsonReflector::JsonBaseObj))
 	{
 		MessageBox(nullptr, "Can't read EngineBase file.", "Error", MB_OK);
+		PostQuitMessage(-1);
 		return false;
 	}
 	ue_versions_container.emplace_back("EngineBase");
@@ -145,6 +146,11 @@ std::string Utils::ReplaceString(std::string str, const std::string& to_find, co
 	for (size_t position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
 		str.replace(position, to_find.length(), to_replace);
 	return str;
+}
+
+bool Utils::ContainsString(const std::string& str, const std::string& strToFind)
+{
+	return str.find(strToFind) != std::string::npos;
 }
 
 bool Utils::EndsWith(const std::string& value, const std::string& ending)
