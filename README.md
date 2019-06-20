@@ -13,15 +13,15 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 Feature | Description
 ------- | -----------
 Nice and Easy UI | i use [ImGUI](https://github.com/ocornut/imgui) for easy and beautifully UI
-Find GNames | 
-Find GObjects | 
-Instance Logger | 
-Sdk Generator | 
-Read/Write Kernal |
+Find GNames | Find GNames array
+Find GObjects | Find GObjects array
+Instance Logger | Dump GNames and GObjects into file
+Sdk Generator | Generate CPP SDK
+Read/Write Kernal | Read/Write Process memory with Kernal
 
 ## Compatibility
-Platform | Compatibility
--------- | -------------
+Platform | Game Compatibility
+-------- | ------------------
 Windows 64bit | x32 & x64
 Windows 32bit | x32
 
