@@ -5,9 +5,10 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - I already spent a good count of my time to make this tool and improve it, and will give it more time with your support.
 - There are some goals we would like to achieve on patreon.
 
-[![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
-
-[![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
+Website | Link
+------- | ----
+PayPal | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
+patron | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
 
 ## Features
 Feature | Description
