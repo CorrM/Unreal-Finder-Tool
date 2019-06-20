@@ -18,8 +18,10 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 - **Kenrnal to read process memory**. [Based on @harakirinox](https://www.unknowncheats.me/forum/anti-cheat-bypass/312791-bypaph-process-hackers-bypass-read-write-process-virtual-memory-kernel-mem.html)
 
 ## Compatibility
-- Windows 64bit => x32/x64 games.
-- Windows 32bit => x32 games.
+Platform | Compatibility
+-------- | -------------
+Windows 64bit | x32 & x64
+Windows 32bit | x32
 
 ## How to use
 This video tell you how to use the tool and dump sdk for ue4 game.
