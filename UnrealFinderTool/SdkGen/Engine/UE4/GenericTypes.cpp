@@ -234,6 +234,11 @@ std::vector<std::string> UEEnum::GetNames() const
 
 	// Get Names
 	uintptr_t dataAddress = objEnum.Names.Data;
+	if (objEnum.Names.Count > 100)
+	{
+		MessageBoxA(nullptr, "UEnum looks bad.", "Problem", MB_OK);
+		ExitProcess(-1);
+	}
 	auto cls = new FUEnumItem[objEnum.Names.Count];
 	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Count);
 
@@ -977,7 +982,6 @@ UEClass UENameProperty::StaticClass()
 #pragma region UEStructProperty
 UEScriptStruct UEStructProperty::GetStruct() const
 {
-	static auto gg = JsonReflector::StructsList;
 	if (objStructProperty.Empty())
 		objStructProperty = Object->Cast<UStructProperty>();
 

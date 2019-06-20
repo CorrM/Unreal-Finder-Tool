@@ -24,8 +24,8 @@ bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)
 	if (!JsonReflector::ReadAndLoadFile("Config\\EngineCore\\EngineBase.json", &JsonReflector::JsonBaseObj))
 	{
 		MessageBox(nullptr, "Can't read EngineBase file.", "Error", MB_OK);
-		PostQuitMessage(-1);
-		return false;
+		ExitProcess(-1);
+		// return false;
 	}
 	ue_versions_container.emplace_back("EngineBase");
 
