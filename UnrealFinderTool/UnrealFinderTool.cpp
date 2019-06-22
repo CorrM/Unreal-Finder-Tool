@@ -31,8 +31,6 @@ float LeftWidth, RightWidth;
 CMIDI* MidiPlayer = nullptr;
 #endif
 
-// ToDo: Check GObjects Finder, Check Dauntless will create a full sdk or not
-
 void SetupMemoryStuff(const HANDLE pHandle)
 {
 	// Setup Memory Stuff
@@ -340,7 +338,7 @@ void Donation(UiWindow* thiz)
 	// Popup
 	if (ui::BeginPopupModal("Donate?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 	{
-		ui::Text("I already spent a good count of my time to,\nMake this tool and improve it,\nAnd will give it more time with your support.\n\n");
+		ui::Text("Welcome on Unreal Finder Tool,\nTo code this tool it's take BIG time.\nIt's free open source tool.\nWith your support i can give it more time.\n\n");
 		ui::Separator();
 
 		ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.30f, 0.29f, 1.0f));
@@ -415,8 +413,11 @@ void TitleBar(UiWindow* thiz)
 							Utils::MemoryObj->ResumeProcess();
 					}
 				}
+
 				ui::EndMenu();
 			}
+
+			ui::Separator();
 
 			if (ImGui::BeginMenu("Locator##menu"))
 			{
@@ -429,6 +430,7 @@ void TitleBar(UiWindow* thiz)
 						nullptr,
 						SW_SHOWDEFAULT);
 				}
+				ui::Separator();
 
 				if (ui::MenuItem("SDK Folder"))
 				{
@@ -439,6 +441,7 @@ void TitleBar(UiWindow* thiz)
 						nullptr,
 						SW_SHOWDEFAULT);
 				}
+				ui::Separator();
 
 				if (ui::MenuItem("Config Folder"))
 				{
@@ -449,12 +452,63 @@ void TitleBar(UiWindow* thiz)
 						nullptr,
 						SW_SHOWDEFAULT);
 				}
+
 				ui::EndMenu();
 			}
 
 			ui::Separator();
 
+			if (ImGui::BeginMenu("Help##menu"))
+			{
+				if (ui::MenuItem("GitHub"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						"https://github.com/CorrM/Unreal-Finder-Tool",
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+				ui::Separator();
+
+				if (ui::MenuItem("Wiki"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						"https://github.com/CorrM/Unreal-Finder-Tool/wiki",
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+				ui::Separator();
+
+				if (ui::MenuItem("Report issue"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						"https://github.com/CorrM/Unreal-Finder-Tool/issues/new",
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+				ui::Separator();
+
+				if (ui::MenuItem("Version note"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						"https://github.com/CorrM/Unreal-Finder-Tool/releases/tag/" TOOL_VERSION,
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+
+				ui::EndMenu();
+			}
+
 #ifndef _DEBUG
+			ui::Separator();
+
 			ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
 			if (ui::MenuItem("DONATE")) donate_show = true;
 			ui::PopStyleColor();
