@@ -194,6 +194,45 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Getting Packages Done.";
 	*pPackagesCount = packageObjects.size();
 
+	/*
+	 * First we must complete Core Package.
+	 * it's contains all important stuff, (like we need it in 'StaticClass' function)
+	 * so before go parallel we must get 'CoreUObject'
+	 * it's the first package always (packageObjects[0])
+	*/
+	{
+		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
+
+		// Get CoreUObject, Some times CoreUObject not the first Package
+		UEObject* coreUObject;
+		for (auto& pack : packageObjects)
+		{
+			if (pack->GetName() == Utils::Settings.SdkGen.CorePackageName)
+				coreUObject = pack;
+		}
+
+		auto package = std::make_unique<Package>(coreUObject);
+		std::mutex tmp_lock;
+		package->Process(processedObjects, tmp_lock);
+		if (package->Save(sdkPath))
+		{
+			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
+				"C: " + std::to_string(package->Classes.size()) + ", " +
+				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+				"E: " + std::to_string(package->Enums.size()) + " ]"
+			);
+
+			Package::PackageMap[*coreUObject] = package.get();
+			packages.emplace_back(std::move(package));
+		}
+
+		// Set Sleep Every
+		Utils::Settings.Parallel.SleepEvery = 30;
+	}
+
+	Sleep(100);
+
+	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done
