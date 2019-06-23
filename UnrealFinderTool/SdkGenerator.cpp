@@ -230,8 +230,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		Utils::Settings.Parallel.SleepEvery = 30;
 	}
 
-	Sleep(100);
-
 	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 

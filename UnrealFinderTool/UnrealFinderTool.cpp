@@ -330,7 +330,7 @@ void StartSdkGenerator()
 #pragma endregion
 
 #pragma region User Interface
-void Donation(UiWindow* thiz)
+void DonationUi(UiWindow* thiz)
 {
 #ifndef _DEBUG
 	if (donate_show)
@@ -393,7 +393,7 @@ Any help, even small, make a difference.
 #endif
 }
 
-void TitleBar(UiWindow* thiz)
+void TitleBarUi(UiWindow* thiz)
 {
 	// ui::ShowDemoWindow();
 
@@ -564,7 +564,7 @@ void TitleBar(UiWindow* thiz)
 	}
 }
 
-void InformationSection(UiWindow* thiz)
+void InformationSectionUi(UiWindow* thiz)
 {
 	// Process ID
 	{
@@ -695,7 +695,7 @@ void InformationSection(UiWindow* thiz)
 	}
 }
 
-void MemoryInterface(UiWindow* thiz)
+void MemoryInterfaceUi(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
@@ -706,7 +706,7 @@ void MemoryInterface(UiWindow* thiz)
 	ui::PopStyleColor();
 }
 
-void Finder(UiWindow* thiz)
+void FinderUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Finder"))
 	{
@@ -913,7 +913,7 @@ void Finder(UiWindow* thiz)
 	}
 }
 
-void InstanceLogger(UiWindow* thiz)
+void InstanceLoggerUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Instance"))
 	{
@@ -951,7 +951,7 @@ void InstanceLogger(UiWindow* thiz)
 	}
 }
 
-void SdkGenerator(UiWindow* thiz)
+void SdkGeneratorUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("S-D-K"))
 	{
@@ -1060,9 +1060,9 @@ void SdkGenerator(UiWindow* thiz)
 
 void MainUi(UiWindow* thiz)
 {
-	Donation(thiz);
+	DonationUi(thiz);
 
-	TitleBar(thiz);
+	TitleBarUi(thiz);
 	ui::Separator();
 
 	// left-group
@@ -1072,7 +1072,7 @@ void MainUi(UiWindow* thiz)
 		{
 			LeftWidth = ui::GetWindowWidth();
 
-			InformationSection(thiz);
+			InformationSectionUi(thiz);
 			ui::Separator();
 
 			// Tabs
@@ -1081,7 +1081,7 @@ void MainUi(UiWindow* thiz)
 				{
 					if (ui::BeginTabItem("Address Viewer"))
 					{
-						MemoryInterface(thiz);
+						MemoryInterfaceUi(thiz);
 						ui::EndTabItem();
 					}
 
@@ -1109,9 +1109,9 @@ void MainUi(UiWindow* thiz)
 			{
 				if (ui::BeginTabBar("Debug", ImGuiTabBarFlags_NoTooltip))
 				{
-					Finder(thiz);
-					InstanceLogger(thiz);
-					SdkGenerator(thiz);
+					FinderUi(thiz);
+					InstanceLoggerUi(thiz);
+					SdkGeneratorUi(thiz);
 
 					ui::EndTabBar();
 				}
