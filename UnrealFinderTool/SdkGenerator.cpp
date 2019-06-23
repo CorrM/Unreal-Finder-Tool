@@ -111,7 +111,7 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state)
 			std::string str = NamesStore().GetByIndex(i);
 			if (!str.empty())
 				tfm::format(o, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
-			state = "Names Progress [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
+			state = "Names [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
 		}
 	}
 
@@ -130,7 +130,7 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state)
 				const UEObject* obj = ObjectsStore().GetByIndex(i);
 				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
 			}
-			state = "Objects Progress [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
+			state = "Objects [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
 		}
 	}
 }
@@ -194,38 +194,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	state = "Getting Packages Done.";
 	*pPackagesCount = packageObjects.size();
 
-	/*
-	 * First we must complete Core Package.
-	 * it's contains all important stuff, (like we need it in 'StaticClass' function)
-	 * so before go parallel we must get 'CoreUObject'
-	 * it's the first package always (packageObjects[0])
-	*/
-	{
-		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
-		UEObject* obj = packageObjects[0];
-
-		auto package = std::make_unique<Package>(obj);
-		std::mutex tmp_lock;
-		package->Process(processedObjects, tmp_lock);
-		if (package->Save(sdkPath))
-		{
-			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
-				"C: " + std::to_string(package->Classes.size()) + ", " +
-				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-				"E: " + std::to_string(package->Enums.size()) + " ]"
-			);
-
-			Package::PackageMap[*obj] = package.get();
-			packages.emplace_back(std::move(package));
-		}
-
-		// Set Sleep Every
-		Utils::Settings.Parallel.SleepEvery = 30;
-	}
-
-	Sleep(100);
-
-	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
 	// Start From 1 because core package is already done

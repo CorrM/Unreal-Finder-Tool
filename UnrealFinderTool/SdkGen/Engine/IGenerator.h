@@ -77,7 +77,7 @@ public:
 	/// <returns>true if the arrays should get dumped.</returns>
 	virtual bool ShouldDumpArrays() const
 	{
-		return true;
+		return false;
 	}
 
 	/// <summary>

@@ -37,7 +37,7 @@ public:
 		virtualFunctionPattern["Class CoreUObject.Object"] =
 		{
 			{ 
-				PatternScan::Parse("ProcessEvent", 0, "45 33 F6 4D 8B E0", 0xFF),
+				PatternScan::Parse("ProcessEvent", 0, "FF FF FF FF FF", 0xFE),
 				R"(	inline void ProcessEvent(class UFunction* function, void* parms)
 	{
 		return GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);

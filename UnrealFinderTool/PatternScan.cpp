@@ -76,7 +76,7 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 			const size_t allocSize = dwEnd - dwStart >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 
 			// Bad Memory
-			if (!(info.State & MEM_COMMIT) || !(info.Type & MEM_PRIVATE) || !(info.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY)))
+			if (!(info.State & MEM_COMMIT) || info.Protect & (PAGE_NOACCESS | PAGE_WRITECOPY | PAGE_TARGETS_INVALID))
 			{
 				// Get next address
 				currentAddress += allocSize;
@@ -151,14 +151,13 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 	{
 		for (RegionHolder memRegion : mem_regions)
 		{
-			SIZE_T allocCount = (dwEnd - dwStart) > info.RegionSize ? info.RegionSize : dwEnd - dwStart;
-			const auto pBuf = static_cast<PBYTE>(malloc(allocCount));
+			const auto pBuf = new BYTE[memRegion.second];
 
 			// Read one page or skip if failed
-			const SIZE_T dwOut = mem->ReadBytes(memRegion.first, pBuf, allocCount);
+			const SIZE_T dwOut = mem->ReadBytes(memRegion.first, pBuf, memRegion.second);
 			if (dwOut == 0)
 			{
-				free(pBuf);
+				delete[] pBuf;
 				continue;
 			}
 
@@ -192,7 +191,7 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 				}
 			}
 
-			free(pBuf);
+			delete[] pBuf;
 		}
 	}
 
