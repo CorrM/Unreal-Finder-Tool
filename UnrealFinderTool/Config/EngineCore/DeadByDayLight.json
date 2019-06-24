@@ -10,24 +10,12 @@
         { "InternalIndex": "int" },
         { "Class": "UClass*" },
         { "Name": "FName" },
-		{ "pad_01": "*" },
+        { "pad_01": "*" },
         { "Outer": "UObject*" }
       ],
       "note": ""
     },
-	{
-      "name": "UStruct",
-      "super": "UField",
-      "vars": [
-        { "SuperField": "UStruct*" },
-        { "Children": "UField*" },
-        { "PropertySize": "int" },
-        { "MinAlignment": "int" },
-        { "pad_02": "64" }
-      ],
-      "note": ""
-    },
-	{
+    {
       "name": "UProperty",
       "super": "UField",
       "vars": [

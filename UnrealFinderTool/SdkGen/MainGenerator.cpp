@@ -15,6 +15,8 @@ public:
 		keywordsName =
 		{
 			{"return", "returnValue"},
+			{"continue", "continueValue"},
+			{"break", "breakValue"},
 			{"int", "intValue"}
 		};
 

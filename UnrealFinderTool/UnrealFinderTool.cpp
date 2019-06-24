@@ -31,6 +31,34 @@ float LeftWidth, RightWidth;
 CMIDI* MidiPlayer = nullptr;
 #endif
 
+void BeforeWork()
+{
+	DisabledAll();
+}
+
+void AfterWork()
+{
+	EnabledAll();
+}
+
+std::string GetTookTime(const std::tm take_time)
+{
+	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
+}
+
+void LoadOverrideEngine()
+{
+	if (override_engine)
+		return;
+
+	override_engine = true;
+	game_ue_disabled = true;
+
+	// Override UE4 Engine Structs
+	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
+}
+
+#pragma region Memory
 void SetupMemoryStuff(const HANDLE pHandle)
 {
 	// Setup Memory Stuff
@@ -75,33 +103,7 @@ bool IsReadyToGo()
 	}
 	return false;
 }
-
-std::string GetTookTime(const std::tm take_time)
-{
-	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
-}
-
-void LoadOverrideEngine()
-{
-	if (override_engine)
-		return;
-
-	override_engine = true;
-	game_ue_disabled = true;
-
-	// Override UE4 Engine Structs
-	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
-}
-
-void BeforeWork()
-{
-	DisabledAll();
-}
-
-void AfterWork()
-{
-	EnabledAll();
-}
+#pragma endregion
 
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
@@ -1133,10 +1135,9 @@ void MainUi(UiWindow* thiz)
 }
 #pragma endregion
 
-// int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 // Fix vs2019 Problem [wWinMain instead of WinMain]
 // ReSharper disable once CppInconsistentNaming
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // NOLINT(readability-non-const-parameter)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)  // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hInstance);
