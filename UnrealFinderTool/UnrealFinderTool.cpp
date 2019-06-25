@@ -21,6 +21,8 @@
 #include <sstream>
 #include <shellapi.h>
 
+#include "HttpWorker.h"
+
 MemoryEditor mem_edit;
 bool memory_init = false;
 bool override_engine = false;
@@ -56,6 +58,40 @@ void LoadOverrideEngine()
 
 	// Override UE4 Engine Structs
 	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
+}
+
+void CheckLastVer()
+{
+	std::string lastVer;
+
+	auto requestTask = HttpWorker::Get(L"https://github.com/CorrM/Unreal-Finder-Tool/releases/latest")
+	.then([&](http_response response)
+	{
+		std::wstring locationHeader = response.headers()[L"Location"];
+		size_t pos = 0;
+		if ((pos = locationHeader.rfind(L'/')) != std::wstring::npos)
+			lastVer.assign(locationHeader.begin() + pos + 1, locationHeader.end());
+	});
+
+	try
+	{
+		requestTask.wait();
+		if (lastVer == TOOL_VERSION)
+		{
+			MessageBox(Utils::UiMainWindow->GetWindowHandle(),
+				(
+					"There is a new version of this tool.\n"s +
+					"Your Version : " TOOL_VERSION + ".\n"
+					"New Version : " + lastVer + "."
+					).c_str(),
+				"New Version",
+				MB_OK | MB_ICONINFORMATION);
+		}
+	}
+	catch (const std::exception& e)
+	{
+		MessageBox(nullptr, ("Error exception: "s + e.what()).c_str(), "", MB_OK | MB_ICONERROR);
+	}
 }
 
 #pragma region Memory
@@ -1177,6 +1213,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Launch the main window
 	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 680, 530);
 	Utils::UiMainWindow->Show(MainUi);
+
+	// Check New Version
+	CheckLastVer();
 
 	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);

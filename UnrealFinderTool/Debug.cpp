@@ -25,7 +25,7 @@ void Debugging::EnterDebugMode(const bool bConsole)
 LONG WINAPI Debugging::ExceptionHandler(EXCEPTION_POINTERS* e)
 {
 	//UNREFERENCED_PARAMETER(e);
-	if (e->ExceptionRecord->ExceptionCode != 0x406d1388 && CreateMiniDump(e))
+	if (e->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION && CreateMiniDump(e))
 	{
 		MessageBox(HWND_DESKTOP,
 			"Program encountered an issue and was terminated. Dump information is located in Dumps folder in program directory.",
