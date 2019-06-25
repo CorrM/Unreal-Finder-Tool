@@ -499,7 +499,7 @@ void Package::GenerateClass(const UEClass& classObj)
 			std::vector<uintptr_t> vTable;
 
 			size_t methodCount = 0;
-			while (true)
+			while (methodCount < 500)
 			{
 				MEMORY_BASIC_INFORMATION info;
 				uintptr_t vAddress;
@@ -508,8 +508,8 @@ void Package::GenerateClass(const UEClass& classObj)
 				vAddress = Utils::MemoryObj->ReadAddress(vTableAddress + (methodCount * ptrSize));
 
 				// Check valid address
-				auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, LPVOID(vAddress), &info, sizeof info);
-				if (res == 0 || !(info.Protect & PAGE_EXECUTE_READWRITE) && !(info.Protect & PAGE_EXECUTE_READ))
+				auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(vAddress), &info, sizeof info);
+				if (res == NULL || !(info.Protect & PAGE_EXECUTE_READWRITE) && !(info.Protect & PAGE_EXECUTE_READ))
 					break;
 
 				vTable.push_back(vAddress);
@@ -520,7 +520,7 @@ void Package::GenerateClass(const UEClass& classObj)
 			{
 				for (auto i = 0u; i < methodCount; ++i)
 				{
-					if (vTable[i] != 0)
+					if (vTable[i] != NULL)
 					{
 						auto scanResult = PatternScan::FindPattern(Utils::MemoryObj, vTable[i], vTable[i] + 0x200, { std::get<0>(pattern) }, true);
 						auto toFind = scanResult.find(std::get<0>(pattern).Name);
@@ -736,9 +736,9 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 					{
 						p.CppType = generator->GetOverrideType("bool");
 					}
-					switch (p.ParamType)
+
+					if (p.ParamType == Type::Default)
 					{
-					case Type::Default:
 						if (prop.GetArrayDim() > 1)
 						{
 							p.CppType = p.CppType + "*";
@@ -747,7 +747,6 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 						{
 							p.PassByReference = true;
 						}
-						break;
 					}
 
 					p.Name = generator->GetSafeKeywordsName(p.Name);

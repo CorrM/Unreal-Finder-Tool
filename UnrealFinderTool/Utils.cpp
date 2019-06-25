@@ -46,7 +46,8 @@ void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 	// Get engine files and Override it's structs on EngineBase, if return false then there is no override for target engine and use the EngineBase
 	try
 	{
-		JsonReflector::ReadAndLoadFile("Config\\EngineCore\\" + engineVersion + ".json", true);
+		if (engineVersion != "EngineBase")
+			JsonReflector::ReadAndLoadFile("Config\\EngineCore\\" + engineVersion + ".json", true);
 	}
 	catch (...)
 	{

@@ -31,6 +31,34 @@ float LeftWidth, RightWidth;
 CMIDI* MidiPlayer = nullptr;
 #endif
 
+void BeforeWork()
+{
+	DisabledAll();
+}
+
+void AfterWork()
+{
+	EnabledAll();
+}
+
+std::string GetTookTime(const std::tm take_time)
+{
+	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
+}
+
+void LoadOverrideEngine()
+{
+	if (override_engine)
+		return;
+
+	override_engine = true;
+	game_ue_disabled = true;
+
+	// Override UE4 Engine Structs
+	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
+}
+
+#pragma region Memory
 void SetupMemoryStuff(const HANDLE pHandle)
 {
 	// Setup Memory Stuff
@@ -75,11 +103,7 @@ bool IsReadyToGo()
 	}
 	return false;
 }
-
-std::string GetTookTime(const std::tm take_time)
-{
-	return std::to_string(take_time.tm_hour) + "h " + std::to_string(take_time.tm_min) + "m " + std::to_string(take_time.tm_sec) + "s";
-}
+#pragma endregion
 
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
@@ -107,28 +131,6 @@ void GoToAddress(const uintptr_t address)
 	}
 }
 #pragma endregion
-
-void LoadOverrideEngine()
-{
-	if (override_engine)
-		return;
-
-	override_engine = true;
-	game_ue_disabled = true;
-
-	// Override UE4 Engine Structs
-	Utils::OverrideLoadedEngineCore(unreal_versions[ue_selected_version]);
-}
-
-void BeforeWork()
-{
-	DisabledAll();
-}
-
-void AfterWork()
-{
-	EnabledAll();
-}
 
 #pragma region Work Functions
 void StartGObjFinder(const bool easyMethod)
@@ -290,10 +292,11 @@ void StartSdkGenerator()
 	sg_packages_done_count = 0;
 	sg_state = "Running . . .";
 	Utils::WorkingNow.SdkGenerator = true;
-	LoadOverrideEngine();
 
 	std::thread t([&]()
 	{
+		LoadOverrideEngine();
+
 		SdkGenerator sg(g_objects_address, g_names_address);
 		SdkInfo ret = sg.Start(&sg_objects_count,
 		                              &sg_names_count,
@@ -329,7 +332,7 @@ void StartSdkGenerator()
 #pragma endregion
 
 #pragma region User Interface
-void Donation(UiWindow* thiz)
+void DonationUi(UiWindow* thiz)
 {
 #ifndef _DEBUG
 	if (donate_show)
@@ -338,11 +341,18 @@ void Donation(UiWindow* thiz)
 	// Popup
 	if (ui::BeginPopupModal("Donate?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 	{
-		ui::Text("Welcome on Unreal Finder Tool,\nTo code this tool it's take BIG time.\nIt's free open source tool.\nWith your support i can give it more time.\n\n");
+		ui::TextColored(ImVec4(0.92f, 0.30f, 0.29f, 1.0f), "Welcome on Unreal Finder Tool");
+		ui::Text(R"(
+To code this tool it take a BIG time.
+With your support i can give it more time.
+Any help, even small, make a difference.
+
+)");
+		ui::TextColored(IM_COL4(230, 126, 34, 255), "On Patreon:\nYou will open future Exclusive articles and tutorial");
 		ui::Separator();
 
 		ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.30f, 0.29f, 1.0f));
-		if (ui::Button("Patreon", ImVec2(100, 0)))
+		if (ui::Button("Patreon", ImVec2(120, 0)))
 		{
 			ShellExecute(nullptr,
 				"open",
@@ -358,7 +368,7 @@ void Donation(UiWindow* thiz)
 		ui::SetItemDefaultFocus();
 		ui::SameLine();
 		ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.20f, 0.83f, 1.0f));
-		if (ui::Button("PayPal", ImVec2(100, 0)))
+		if (ui::Button("PayPal", ImVec2(120, 0)))
 		{
 			ShellExecute(nullptr,
 				"open",
@@ -373,7 +383,7 @@ void Donation(UiWindow* thiz)
 
 		ui::SameLine();
 		ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-		if (ui::Button("Cancel", ImVec2(100, 0)))
+		if (ui::Button("Cancel", ImVec2(120, 0)))
 		{
 			donate_show = false;
 			ui::CloseCurrentPopup();
@@ -385,7 +395,7 @@ void Donation(UiWindow* thiz)
 #endif
 }
 
-void TitleBar(UiWindow* thiz)
+void TitleBarUi(UiWindow* thiz)
 {
 	// ui::ShowDemoWindow();
 
@@ -556,7 +566,7 @@ void TitleBar(UiWindow* thiz)
 	}
 }
 
-void InformationSection(UiWindow* thiz)
+void InformationSectionUi(UiWindow* thiz)
 {
 	// Process ID
 	{
@@ -677,10 +687,7 @@ void InformationSection(UiWindow* thiz)
 
 		if (process_id != NULL && Memory::IsValidProcess(process_id))
 		{
-			if (window_title.empty() || window_title == "NONE")
-			{
-				Utils::DetectUnrealGame(window_title);
-			}
+			Utils::DetectUnrealGame(window_title);
 		}
 
 		if (window_title.empty())
@@ -690,7 +697,7 @@ void InformationSection(UiWindow* thiz)
 	}
 }
 
-void MemoryInterface(UiWindow* thiz)
+void MemoryInterfaceUi(UiWindow* thiz)
 {
 	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
@@ -701,7 +708,7 @@ void MemoryInterface(UiWindow* thiz)
 	ui::PopStyleColor();
 }
 
-void Finder(UiWindow* thiz)
+void FinderUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Finder"))
 	{
@@ -908,7 +915,7 @@ void Finder(UiWindow* thiz)
 	}
 }
 
-void InstanceLogger(UiWindow* thiz)
+void InstanceLoggerUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("Instance"))
 	{
@@ -946,7 +953,7 @@ void InstanceLogger(UiWindow* thiz)
 	}
 }
 
-void SdkGenerator(UiWindow* thiz)
+void SdkGeneratorUi(UiWindow* thiz)
 {
 	if (ui::BeginTabItem("S-D-K"))
 	{
@@ -1055,9 +1062,9 @@ void SdkGenerator(UiWindow* thiz)
 
 void MainUi(UiWindow* thiz)
 {
-	Donation(thiz);
+	DonationUi(thiz);
 
-	TitleBar(thiz);
+	TitleBarUi(thiz);
 	ui::Separator();
 
 	// left-group
@@ -1067,7 +1074,7 @@ void MainUi(UiWindow* thiz)
 		{
 			LeftWidth = ui::GetWindowWidth();
 
-			InformationSection(thiz);
+			InformationSectionUi(thiz);
 			ui::Separator();
 
 			// Tabs
@@ -1076,7 +1083,7 @@ void MainUi(UiWindow* thiz)
 				{
 					if (ui::BeginTabItem("Address Viewer"))
 					{
-						MemoryInterface(thiz);
+						MemoryInterfaceUi(thiz);
 						ui::EndTabItem();
 					}
 
@@ -1104,9 +1111,9 @@ void MainUi(UiWindow* thiz)
 			{
 				if (ui::BeginTabBar("Debug", ImGuiTabBarFlags_NoTooltip))
 				{
-					Finder(thiz);
-					InstanceLogger(thiz);
-					SdkGenerator(thiz);
+					FinderUi(thiz);
+					InstanceLoggerUi(thiz);
+					SdkGeneratorUi(thiz);
 
 					ui::EndTabBar();
 				}
@@ -1128,10 +1135,9 @@ void MainUi(UiWindow* thiz)
 }
 #pragma endregion
 
-// int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 // Fix vs2019 Problem [wWinMain instead of WinMain]
 // ReSharper disable once CppInconsistentNaming
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // NOLINT(readability-non-const-parameter)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)  // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hInstance);

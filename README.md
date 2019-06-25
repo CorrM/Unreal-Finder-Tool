@@ -50,6 +50,15 @@ Name | Reason
 [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html) | BypassPH (Read/Write Kernal)
 
 ## Change Log
+##### 25-07-2019 - 3.1.0
+- Support `ProcessEvent`.
+- Add colors for GObjects input field.
+- Add some useful items on `Menu Button`.
+- Add `Donate` Popup.
+- Some Improves for `GObjects Finder`.
+- Add example `JsonEngine` file `DeadByDayLight.json`.
+- Some Bugs fixed.
+
 ##### 18-07-2019 - Atomic edition
 - Improves for `SDK-Generator`:
   - Now it's `super super fast` And Generate a `Full Dump`.
