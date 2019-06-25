@@ -53,6 +53,8 @@ Name | Reason
 ##### 25-07-2019 - 3.1.0
 - Support `ProcessEvent`.
 - Add colors for GObjects input field.
+- Add some useful items on `Menu Button`.
+- Add `Donate` Popup.
 - Some Improves for `GObjects Finder`.
 - Add example `JsonEngine` file `DeadByDayLight.json`.
 - Some Bugs fixed.
