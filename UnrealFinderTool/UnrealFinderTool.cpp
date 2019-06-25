@@ -76,7 +76,7 @@ void CheckLastVer()
 	try
 	{
 		requestTask.wait();
-		if (lastVer == TOOL_VERSION)
+		if (lastVer != TOOL_VERSION)
 		{
 			MessageBox(Utils::UiMainWindow->GetWindowHandle(),
 				(
