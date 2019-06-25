@@ -208,9 +208,9 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		int coreUObjectIndex = 0;
 		for (auto i = 0; i < packageObjects.size(); i++)
 		{
-			auto pack = packageObjects[ i ];
+			auto pack = packageObjects[i];
 
-			if( pack->GetName() == Utils::Settings.SdkGen.CorePackageName )
+			if(pack->GetName() == Utils::Settings.SdkGen.CorePackageName)
 			{
 				coreUObject = pack;
 				coreUObjectIndex = i;
@@ -237,7 +237,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		Utils::Settings.Parallel.SleepEvery = 30;
 
 		// Remove CoreUObject Package to not dump it twice
-		packageObjects.erase( packageObjects.begin() + coreUObjectIndex );
+		packageObjects.erase(packageObjects.begin() + coreUObjectIndex);
 	}
 
 	++*pPackagesDone;
