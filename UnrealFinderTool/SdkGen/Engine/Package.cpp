@@ -499,7 +499,7 @@ void Package::GenerateClass(const UEClass& classObj)
 			std::vector<uintptr_t> vTable;
 
 			size_t methodCount = 0;
-			while (methodCount < 500)
+			while (methodCount < 150)
 			{
 				MEMORY_BASIC_INFORMATION info;
 				uintptr_t vAddress;
@@ -509,7 +509,7 @@ void Package::GenerateClass(const UEClass& classObj)
 
 				// Check valid address
 				auto res = VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(vAddress), &info, sizeof info);
-				if (res == NULL || !(info.Protect & PAGE_EXECUTE_READWRITE) && !(info.Protect & PAGE_EXECUTE_READ))
+				if (res == NULL || info.Protect & PAGE_NOACCESS)
 					break;
 
 				vTable.push_back(vAddress);
@@ -522,7 +522,7 @@ void Package::GenerateClass(const UEClass& classObj)
 				{
 					if (vTable[i] != NULL)
 					{
-						auto scanResult = PatternScan::FindPattern(Utils::MemoryObj, vTable[i], vTable[i] + 0x200, { std::get<0>(pattern) }, true);
+						auto scanResult = PatternScan::FindPattern(Utils::MemoryObj, vTable[i], vTable[i] + 0x300, { std::get<0>(pattern) }, true);
 						auto toFind = scanResult.find(std::get<0>(pattern).Name);
 						if (toFind != scanResult.end() && !toFind->second.empty())
 						{

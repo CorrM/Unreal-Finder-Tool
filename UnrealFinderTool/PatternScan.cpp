@@ -72,6 +72,9 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 			// Get Region information
 			exitLoop = !(VirtualQueryEx(mem->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
 
+			if (exitLoop)
+				break;
+
 			// Size will used to alloc and read memory
 			const size_t allocSize = dwEnd - dwStart >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 
@@ -89,7 +92,7 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 			// Get next address
 			currentAddress += allocSize;
 
-		} while (!exitLoop);
+		} while (true);
 	}
 	
 	if (useThreads)

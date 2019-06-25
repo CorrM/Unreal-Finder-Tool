@@ -48,12 +48,12 @@ public:
 		};
 		virtualFunctionPattern["Class CoreUObject.Class"] =
 		{
-			{ 
+			{
 				PatternScan::Parse("CreateDefaultObject", 0, "4C 8B DC 57 48 81 EC", 0xFF),
 				R"(	inline UObject* CreateDefaultObject()
 	{
 		return GetVFunction<UObject*(*)(UClass*)>(this, %d)(this);
-	})" }
+	})"		}
 		};
 
 		predefinedMembers["Class CoreUObject.Object"] =
@@ -272,6 +272,15 @@ public:
 	})")
 		};
 
+		/*
+		predefinedMethods["Class Engine.GameViewportClient"] =
+		{
+			PredefinedMethod::Inline(R"(	inline void PostRender(UCanvas* Canvas)
+	{
+		return GetVFunction<void(*)(UGameViewportClient*, UCanvas*)>(this, %d)(this, Canvas);
+	})")
+		};
+		*/
 		return true;
 	}
 

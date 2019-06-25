@@ -68,7 +68,7 @@ void CheckLastVer()
 	.then([&](http_response response)
 	{
 		std::wstring locationHeader = response.headers()[L"Location"];
-		size_t pos = 0;
+		size_t pos;
 		if ((pos = locationHeader.rfind(L'/')) != std::wstring::npos)
 			lastVer.assign(locationHeader.begin() + pos + 1, locationHeader.end());
 	});
@@ -80,17 +80,18 @@ void CheckLastVer()
 		{
 			MessageBox(Utils::UiMainWindow->GetWindowHandle(),
 				(
-					"There is a new version of this tool.\n"s +
+					"There is a new version of this tool.\n"s
 					"Your Version : " TOOL_VERSION + ".\n"
-					"New Version : " + lastVer + "."
+					"New Version : " + lastVer + ".\n\n"
+					"Recommended to use last version.\nTo download :\nMenuButton->Help->Last version."
 					).c_str(),
 				"New Version",
 				MB_OK | MB_ICONINFORMATION);
 		}
 	}
-	catch (const std::exception& e)
+	catch (const std::exception&)
 	{
-		MessageBox(nullptr, ("Error exception: "s + e.what()).c_str(), "", MB_OK | MB_ICONERROR);
+		// MessageBox(nullptr, ("Error exception: "s + e.what()).c_str(), "", MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -533,6 +534,17 @@ void TitleBarUi(UiWindow* thiz)
 					ShellExecute(nullptr,
 						"open",
 						"https://github.com/CorrM/Unreal-Finder-Tool/issues/new",
+						nullptr,
+						nullptr,
+						SW_SHOWDEFAULT);
+				}
+				ui::Separator();
+
+				if (ui::MenuItem("Last version"))
+				{
+					ShellExecute(nullptr,
+						"open",
+						"https://github.com/CorrM/Unreal-Finder-Tool/releases/latest",
 						nullptr,
 						nullptr,
 						SW_SHOWDEFAULT);
