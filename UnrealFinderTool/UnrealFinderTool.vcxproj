@@ -273,10 +273,10 @@
     <ResourceCompile Include="UnrealFinderTool.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Resources\win.ico" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Image Include="..\Resources\win.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

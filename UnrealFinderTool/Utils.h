@@ -87,6 +87,8 @@ public:
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
 	// Check if string contains another string
 	static bool ContainsString(const std::string& str, const std::string& strToFind);
+	// Check if string starts with other string
+	static bool StartsWith(const std::string& value, const std::string& starting);
 	// Check if string ends with other string
 	static bool EndsWith(const std::string& value, const std::string& ending);
 	// Determine if tool is working on x64 version. (Not Target game version)

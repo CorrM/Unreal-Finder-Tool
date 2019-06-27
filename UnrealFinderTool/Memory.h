@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <psapi.h>
+#include <TlHelp32.h>
+#include <vector>
 #pragma comment(lib, "psapi")
 
 class JsonVar;
@@ -56,6 +58,7 @@ public:
 	void UpdateHandle(HANDLE processHandle);
 	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
+	std::vector<MODULEENTRY32> GetModuleList();
 	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
 	bool SuspendProcess();
 	bool ResumeProcess();

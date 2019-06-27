@@ -116,8 +116,10 @@ bool IsReadyToGo()
 	HANDLE pHandle;
 	if (Memory::IsValidProcess(process_id, &pHandle))
 	{
+		// Setup Memory and lock process
 		SetupMemoryStuff(pHandle);
 
+		// Get JsonEngine to override
 		for (size_t i = 0; i < unreal_versions.size(); i++)
 		{
 			std::string toLowerTitle = window_title;
@@ -133,6 +135,22 @@ bool IsReadyToGo()
 				break;
 			}
 		}
+
+		// Get Game Window Title
+		if (process_id != NULL && Memory::IsValidProcess(process_id))
+		{
+			Utils::DetectUnrealGame(window_title);
+			strcpy_s(sg_game_name_buf, window_title.length(), window_title.c_str());
+		}
+
+		// Get Game Modules
+		auto modList = Utils::MemoryObj->GetModuleList();
+		for (auto& mod : modList)
+		{
+			if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
+				sg_module_items.emplace_back(mod.szModule);
+		}
+
 		return true;
 	}
 	return false;
@@ -730,14 +748,6 @@ void InformationSectionUi(UiWindow* thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Win Title  : ");
 		ui::SameLine();
 
-		if (process_id != NULL && Memory::IsValidProcess(process_id))
-		{
-			Utils::DetectUnrealGame(window_title);
-		}
-
-		if (window_title.empty())
-			window_title = "NONE";
-
 		ui::TextUnformatted(window_title.c_str());
 	}
 }
@@ -1008,36 +1018,51 @@ void SdkGeneratorUi(UiWindow* thiz)
 			cur_tap_id = 3;
 		}
 
+		// Objects/Names
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Objects/Names : ");
 		ui::SameLine();
 		ui::Text("%d / %d", sg_objects_count, sg_names_count);
 
+		// Packages
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Packages      : ");
 		ui::SameLine();
 		ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
 
+		// Sdk Type
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(100);
+		ui::SetNextItemWidth(RightWidth / 2.3f);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
 		ui::SameLine();
 		HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
+		// Game Module
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Module   : ");
+		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 2.3f);
+		ENABLE_DISABLE_WIDGET(ui::Combo("##GameModule", &sg_module_item_current, VectorGetter, static_cast<void*>(&sg_module_items), static_cast<int>(sg_module_items.size()), 4), sg_module_disabled);
+		ui::SameLine();
+		HelpMarker("Pick base module for your game.\nThat's for init SDK with.");
+
+		// Game Name
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
 		ui::SameLine();
 		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
 
+		// Game Version
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : ");
 		ui::SameLine();
 		ui::SetNextItemWidth(RightWidth / 1.9f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
-
+		
+		// State
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "State         : ");
 		ui::SameLine();
@@ -1049,7 +1074,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 8, true);
+			static_cast<int>(sg_packages_items.size()), 7, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,

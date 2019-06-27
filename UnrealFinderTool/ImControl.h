@@ -26,7 +26,8 @@ inline bool game_ue_disabled = false;
 inline std::string game_ue_version = "0.0.0";
 inline size_t ue_selected_version;
 inline std::vector<std::string> unreal_versions;
-inline std::string window_title;
+
+inline std::string window_title = "NONE";
 // => Main Options Section
 
 // => Popup
@@ -79,6 +80,10 @@ inline size_t sg_packages_done_count = 0;
 inline bool sg_type_disabled = false;
 inline std::vector<std::string> sg_type_items = { "Internal", "External" };
 inline int sg_type_item_current = 0;
+
+inline bool sg_module_disabled = false;
+inline std::vector<std::string> sg_module_items;
+inline int sg_module_item_current = 0;
 
 inline bool sg_game_name_disabled = false;
 inline char sg_game_name_buf[30] = { 0 };

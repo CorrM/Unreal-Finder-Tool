@@ -163,6 +163,12 @@ bool Utils::ContainsString(const std::string& str, const std::string& strToFind)
 	return str.find(strToFind) != std::string::npos;
 }
 
+bool Utils::StartsWith(const std::string& value, const std::string& starting)
+{
+	if (starting.size() > value.size()) return false;
+	return std::equal(starting.begin(), starting.begin() + starting.length(), value.begin());
+}
+
 bool Utils::EndsWith(const std::string& value, const std::string& ending)
 {
 	if (ending.size() > value.size()) return false;
@@ -493,8 +499,8 @@ DWORD Utils::DetectUnrealGame(HWND* windowHandle, std::string& windowTitle)
 		if (windowHandle != nullptr)
 			*windowHandle = childControl;
 
-		windowTitle.resize(27);
-		GetWindowText(childControl, windowTitle.data(), 27);
+		windowTitle.resize(30);
+		GetWindowText(childControl, windowTitle.data(), 30);
 		return pId;
 	}
 

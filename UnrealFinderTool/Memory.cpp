@@ -60,10 +60,8 @@ int Memory::GetProcessIdByName(const std::string& processName)
 
 	if (hSnapshot != INVALID_HANDLE_VALUE)
 		CloseHandle(hSnapshot);
-	const int err = GetLastError();
-	//std::cout << err << std::endl;
-	if (err != 0)
-		return 0;
+
+	if (GetLastError() != 0) return 0;
 	return pe32.th32ProcessID;
 }
 
@@ -94,6 +92,28 @@ std::string Memory::GetProcessNameById(const DWORD pId)
 	//std::cout << err << std::endl;
 	if (err != 0)
 		return ret;
+	return ret;
+}
+
+std::vector<MODULEENTRY32> Memory::GetModuleList()
+{
+	std::vector<MODULEENTRY32> ret;
+	MODULEENTRY32 mod;
+	mod.dwSize = sizeof(MODULEENTRY32);
+
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, ProcessId);
+
+	if (Module32First(hSnapshot, &mod))
+	{
+		do
+		{
+			ret.push_back(mod);
+		} while (Module32Next(hSnapshot, &mod));
+	}
+
+	if (hSnapshot != INVALID_HANDLE_VALUE)
+		CloseHandle(hSnapshot);
+
 	return ret;
 }
 
