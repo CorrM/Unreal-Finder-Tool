@@ -16,6 +16,7 @@
 #include "BypaPH.h"
 #include "Utils.h"
 #include "ImGUI/imgui.h"
+#include "HttpWorker.h"
 
 #define INVALID_POINTER_VALUE(x) ((x == (uintptr_t)-1) || x == NULL)
 #endif //PCH_H

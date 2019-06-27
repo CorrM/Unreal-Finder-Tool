@@ -6,7 +6,6 @@
 #include "SdkGenerator.h"
 
 #include "UiWindow.h"
-#include "ImGUI/imgui_internal.h"
 #include "ImControl.h"
 #include "IconsFontAwesome.h"
 #include "MemoryEditor.h"
@@ -20,8 +19,6 @@
 
 #include <sstream>
 #include <shellapi.h>
-
-#include "HttpWorker.h"
 
 MemoryEditor mem_edit;
 bool memory_init = false;

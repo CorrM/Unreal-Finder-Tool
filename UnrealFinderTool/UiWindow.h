@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "ImGUI/imgui.h"
+#include "ImGUI/imgui_internal.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 
