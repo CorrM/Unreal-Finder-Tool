@@ -50,7 +50,7 @@ Name | Reason
 [@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html) | BypassPH (Read/Write Kernal)
 
 ## Change Log
-##### 25-07-2019 - 3.1.0
+##### 25-06-2019 - 3.1.0
 - Support `ProcessEvent`.
 - Add colors for GObjects input field.
 - Add some useful items on `Menu Button`.
@@ -59,7 +59,7 @@ Name | Reason
 - Add example `JsonEngine` file `DeadByDayLight.json`.
 - Some Bugs fixed.
 
-##### 18-07-2019 - Atomic edition
+##### 18-06-2019 - Atomic edition
 - Improves for `SDK-Generator`:
   - Now it's `super super fast` And Generate a `Full Dump`.
     - A lot of fixes.
@@ -74,7 +74,7 @@ Name | Reason
     - Solve bug, Some time `Generator` genrate a cpp keyword as param or bad char on variable names.
 - Some `UI` changes and bugs solved.
 
-##### 09-07-2019
+##### 09-06-2019
 - `JsonEngine` is system that's use josn files as container for main ue4 structs.
   - Since UE4 have different versions, some time `ue4 structs` changes.
   - That's make fix specific games problems is easy, since the most of problems because of UE4 Version structs changes.
@@ -103,11 +103,11 @@ Name | Reason
   - Fix some `UI` bugs.
   - Fix some `Finder` bugs.
 
-##### 04-07-2019
+##### 04-06-2019
 - Add Settings button.
 - Start using [Font Awesome](https://fontawesome.com/)
 
-##### 03-07-2019
+##### 03-06-2019
 - Improve `Sdk Generator`.
   - `Sdk Generator` now significantly faster
   - Some organization for `Sdk Generator` code.
@@ -119,18 +119,18 @@ Name | Reason
     - In example you search for `PlayerBase` you will get `PlayerBase`, `PlayerExtarBase` and `GamePlayer`.
   - Now significantly faster.
 
-##### 01-07-2019
+##### 01-06-2019
 - Support `GObjects Chunks`.
   - Some games use `GObject's chunks` as same as `GNames`, so i just support it.
   - You still can set the addres of `first UObject` in GObject list or `first chunk` address.
   - Auto detect it's first `UObject` or first `chunk` address.
   
-##### 31-06-2019
+##### 31-05-2019
 - Add `Class Finder`.
   - Search for instance with his `class name`.
   - Useful to find some `hard adrress`, for ex: to make a `sig` to scan.
 
-##### 30-06-2019
+##### 30-05-2019
 - Add new settings.
 - Sdk Generator +10% faster.
 - Add `Game Name`, `Game Version` to `Sdk Generator`.
@@ -147,23 +147,23 @@ Name | Reason
     - Good example for `read` function [here](https://github.com/CorrM/Unreal-Finder-Tool/blob/ebc7abfd28b2a5a3df19baffc485770f982d102d/UnrealFinderTool/Memory.h#L24), for write function same as `read` but `WriteProcessMemory`.
 - Some Optimization.
 
-##### 28-06-2019
+##### 28-05-2019
 - Add UI.
 - Some changes to `SDK Generator` and `Instance Logger`.
 - Let GObject address getted form `GObject Finder` be valid to use directly.
   - You can now just set the address you get from `GObjects finder` in the `GObject input field`.
 
-##### 25-06-2019
+##### 25-05-2019
 - Add `SDK Generator`.
 - Add Settings file.
 - Improve `Instance Logger`.
 
-##### 09-06-2019
+##### 09-05-2019
 - Add `JSON reflctor`.
 - Convert `Instance Logger` to `JSON reflector`.
 
-##### 06-06-2019
+##### 06-05-2019
 - Add `Instance Logger`.
 
-##### 02-06-2019
+##### 02-05-2019
 - First version released
