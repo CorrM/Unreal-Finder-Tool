@@ -314,22 +314,46 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	//include the basics
 	{
 		{
-			std::ofstream os2(path / "SDK" / tfm::format("Basic.h"));
-			PrintFileHeader(os2, { "warning(disable: 4267)" }, { "<vector>", "<locale>", "<set>" }, true);
-			os2 << generator->GetBasicDeclarations() << "\n";
-			PrintFileFooter(os2);
+			PrintExistsFile(
+				"Basic.h", 
+				path / "SDK",
+				{ "warning(disable: 4267)" },
+				{ "<vector>", "<locale>", "<set>" },
+				true,
+				[](std::string& fileText)
+			{
+				std::string fUObjectItemStr;
+				static JsonStruct jStruct = JsonReflector::GetStruct("FUObjectItem");
+				for (const auto& varContainer : jStruct.Vars)
+				{
+					auto var = varContainer.second;
+					std::string type = var.Type;
+					if (Utils::IsNumber(type))
+						fUObjectItemStr += "\t" + std::string("unsigned char ") + var.Name + "[" + type + "]" + ";\n";
+					else
+						fUObjectItemStr += "\t" + var.Type + " " + var.Name + ";\n";
+				}
+
+				fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", generator->GetIsGObjectsChunks() ? "#define GOBJECTS_CHUNKS" : "");
+				fileText = Utils::ReplaceString(fileText, "/*!!POINTER_SIZE_PLACEHOLDER!!*/", std::to_string(Utils::PointerSize()));
+				fileText = Utils::ReplaceString(fileText, "/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
+			});
 
 			// Add basics to SDK.h
 			os << "\n#include \"SDK/" << tfm::format("Basic.h") << "\"\n";
 		}
+
 		{
-			std::ofstream os2(path / "SDK" / tfm::format("Basic.cpp"));
-
-			PrintFileHeader(os2, { "\"../SDK.h\"", "<Windows.h>" }, false);
-
-			os2 << generator->GetBasicDefinitions() << "\n";
-
-			PrintFileFooter(os2);
+			PrintExistsFile(
+				"Basic.cpp",
+				path / "SDK",
+				{ },
+				{ "\"../SDK.h\"", "<Windows.h>" },
+				false,
+				[](std::string& fileText)
+			{
+				fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", "");
+			});
 		}
 	}
 

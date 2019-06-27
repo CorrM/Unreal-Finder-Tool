@@ -71,6 +71,8 @@ public:
 
 	virtual void SetIsGObjectsChunks(bool isChunks) const = 0;
 
+	virtual bool GetIsGObjectsChunks() const = 0;
+
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.
 	/// </summary>
@@ -169,24 +171,6 @@ public:
 			return it->second;
 		}
 		return 0;
-	}
-
-	/// <summary>
-	/// Gets the declarations of some basic classes and methods.
-	/// </summary>
-	/// <returns>The basic declarations.</returns>
-	virtual std::string GetBasicDeclarations() const
-	{
-		return std::string();
-	}
-
-	/// <summary>
-	/// Gets the definitions of the <see cref="GetBasicDeclarations()" /> declarations.
-	/// </summary>
-	/// <returns>The basic definitions.</returns>
-	virtual std::string GetBasicDefinitions() const
-	{
-		return std::string();
 	}
 
 	/// <summary>

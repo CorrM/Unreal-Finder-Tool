@@ -1,38 +1,60 @@
 #include "pch.h"
-#include "PrintHelper.h"
-
 #include <tinyformat.h>
 
 #include "IGenerator.h"
 #include "Package.h"
+#include "PrintHelper.h"
 
-void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, const bool isHeaderFile)
+std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, const bool isHeaderFile)
 {
 	extern IGenerator* generator;
 
-	if (isHeaderFile)
-		os << "#pragma once\n";
+	std::string sstr;
 
-	if (!pragmas.empty())
+	if (isHeaderFile)
 	{
-		for (auto&& i : pragmas) { os << "#pragma " << i << "\n"; }
+		sstr += "#pragma once\n";
+		if (!pragmas.empty())
+		{
+			for (auto&& i : pragmas) { sstr += "#pragma " + i + "\n"; }
+		}
+		sstr += "\n";
 	}
-	os << "\n";
 
 	if (generator->GetSdkType() == SdkType::External)
-		os << "#include \"" << Utils::Settings.SdkGen.MemoryHeader << "\"\n";
+		sstr += "#include \"" + Utils::Settings.SdkGen.MemoryHeader + "\"\n";
 
 	if (!includes.empty())
 	{
-		for (auto&& i : includes) { os << "#include " << i << "\n"; }
-		os << "\n";
+		for (auto&& i : includes) { sstr += "#include " + i + "\n"; }
+		sstr += "\n";
 	}
 
-	os << tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
-	   << tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
+	sstr += tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
+		 + tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
 
 	if (!generator->GetNamespaceName().empty())
-		os << "namespace " << generator->GetNamespaceName() << "\n{\n";
+		sstr += "namespace " + generator->GetNamespaceName() + "\n{\n";
+
+	return sstr;
+}
+
+std::string GetFileFooter()
+{
+	extern IGenerator* generator;
+
+	std::string str;
+
+	if (!generator->GetNamespaceName().empty())
+		str += "}\n\n";
+
+	str += "#ifdef _MSC_VER\n\t#pragma pack(pop)\n#endif\n";
+	return str;
+}
+
+void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, const bool isHeaderFile)
+{
+	os << GetFileHeader(pragmas, includes, isHeaderFile);
 }
 
 void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, const bool isHeaderFile)
@@ -42,21 +64,38 @@ void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes,
 
 void PrintFileHeader(std::ostream& os, const bool isHeaderFile)
 {
-	extern IGenerator* generator;
-
-	PrintFileHeader(os, {}, isHeaderFile);
+	PrintFileHeader(os, {}, {}, isHeaderFile);
 }
 
 void PrintFileFooter(std::ostream& os)
 {
-	extern IGenerator* generator;
+	os << GetFileFooter();
+}
 
-	if (!generator->GetNamespaceName().empty())
-	{
-		os << "}\n\n";
-	}
+void PrintExistsFile(
+	const std::string& fileName,
+	const fs::path& sdkPath,
+	const std::vector<std::string>& pragmas,
+	const std::vector<std::string>& includes,
+	const bool isHeaderFile,
+	const std::function<void(std::string&)>& execBeforeWrite)
+{
+	std::string fileText;
+	if (!Utils::FileRead("Config\\Includes\\" + fileName, fileText)) return;
 
-	os << "#ifdef _MSC_VER\n\t#pragma pack(pop)\n#endif\n";
+	// Replace Main Stuff
+	fileText = Utils::ReplaceString(fileText, "/*!!INCLUDE_PLACEHOLDER!!*/", GetFileHeader(pragmas, includes, isHeaderFile));
+
+	// Do replaces here
+	execBeforeWrite(fileText);
+
+	// Get footer
+	fileText = Utils::ReplaceString(fileText, "/*!!FOOTER_PLACEHOLDER!!*/", GetFileFooter());
+
+	// Write file
+	std::string filePath = (sdkPath / fileName).string();
+	Utils::FileCreate(filePath);
+	Utils::FileWrite(filePath, fileText);
 }
 
 void PrintSectionHeader(std::ostream& os, const char* name)

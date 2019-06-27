@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, bool isHeaderFile);
+
 void PrintFileHeader(std::ostream& os, const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, bool isHeaderFile);
 
 void PrintFileHeader(std::ostream& os, const std::vector<std::string>& includes, bool isHeaderFile);
@@ -12,6 +14,14 @@ void PrintFileHeader(std::ostream& os, bool isHeaderFile);
 void PrintFileFooter(std::ostream& os);
 
 void PrintSectionHeader(std::ostream& os, const char* name);
+
+void PrintExistsFile(
+	const std::string& fileName,
+	const fs::path& sdkPath,
+	const std::vector<std::string>& pragmas,
+	const std::vector<std::string>& includes,
+	bool isHeaderFile,
+	const std::function<void(std::string&)>& execBeforeWrite);
 
 enum class FileContentType
 {

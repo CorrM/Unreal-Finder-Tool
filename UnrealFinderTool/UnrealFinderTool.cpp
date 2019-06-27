@@ -140,7 +140,10 @@ bool IsReadyToGo()
 		if (process_id != NULL && Memory::IsValidProcess(process_id))
 		{
 			Utils::DetectUnrealGame(window_title);
-			strcpy_s(sg_game_name_buf, window_title.length(), window_title.c_str());
+			if (!window_title.empty())
+			{
+				sg_game_name_buf = window_title;
+			}
 		}
 
 		// Get Game Modules
@@ -1053,7 +1056,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
 		ui::SameLine();
 		ui::SetNextItemWidth(RightWidth / 1.9f);
-		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf, IM_ARRAYSIZE(sg_game_name_buf)), sg_game_name_disabled);
+		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf.data(), sg_game_name_buf.length()), sg_game_name_disabled);
 
 		// Game Version
 		ui::AlignTextToFramePadding();

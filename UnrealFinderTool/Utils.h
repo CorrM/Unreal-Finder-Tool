@@ -73,6 +73,16 @@ public:
 	static bool FileExists(const std::string& filePath);
 	// Delete file
 	static bool FileDelete(const std::string& filePath);
+	// Get all files on dir
+	static std::vector<fs::path> FileList(const std::string& dirPath);
+	// Create File
+	static void FileCreate(const std::string& filePath);
+	// Copy File
+	static bool FileCopy(const std::string& src, const std::string& dest, bool overwriteExisting = false);
+	// Read File as text
+	static bool FileRead(const std::string& filePath, std::string& fileText);
+	// Write File text
+	static bool FileWrite(const std::string& filePath, const std::string& fileText);
 	// Delete Directory
 	static bool DirectoryDelete(const std::string& dirPath);
 	// Get Current Directory

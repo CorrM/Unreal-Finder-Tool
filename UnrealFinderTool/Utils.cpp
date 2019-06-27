@@ -103,6 +103,59 @@ bool Utils::FileDelete(const std::string& filePath)
 	return fs::remove(path);
 }
 
+std::vector<fs::path> Utils::FileList(const std::string& dirPath)
+{
+	std::vector<fs::path> ret;
+
+	for (auto& file : fs::directory_iterator(dirPath))
+		ret.push_back(file.path());
+
+	return ret;
+}
+
+void Utils::FileCreate(const std::string& filePath)
+{
+	fs::path path(filePath);
+
+	fs::create_directories(path.parent_path());
+	std::ofstream ofs(path);
+	ofs.close();
+}
+
+bool Utils::FileCopy(const std::string& src, const std::string& dest, const bool overwriteExisting)
+{
+	return fs::copy_file(fs::path(src), fs::path(dest), overwriteExisting ? fs::copy_options::overwrite_existing : fs::copy_options::none);
+}
+
+bool Utils::FileRead(const std::string& filePath, std::string& fileText)
+{
+	if (!FileExists(filePath)) return false;
+
+	std::ifstream ifs(filePath.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+	std::ifstream::pos_type fileSize = ifs.tellg();
+	ifs.seekg(0, std::ios::beg);
+
+	std::vector<char> bytes(fileSize);
+	ifs.read(&bytes[0], fileSize);
+
+	fileText = std::string(&bytes[0], fileSize);
+
+	return true;
+}
+
+bool Utils::FileWrite(const std::string& filePath, const std::string& fileText)
+{
+	auto path = fs::path(filePath);
+	if (!FileExists(filePath)) return false;
+
+	std::ofstream ofs(path, std::ios::out | std::ios::binary);
+	ofs << fileText;
+	ofs.close();
+
+	return true;
+}
+
 bool Utils::DirectoryDelete(const std::string& dirPath)
 {
 	if (!FileExists(dirPath))
@@ -155,6 +208,7 @@ std::string Utils::ReplaceString(std::string str, const std::string& to_find, co
 
 	for (size_t position = str.find(to_find); position != std::string::npos; position = str.find(to_find, position))
 		str.replace(position, to_find.length(), to_replace);
+
 	return str;
 }
 
@@ -499,8 +553,9 @@ DWORD Utils::DetectUnrealGame(HWND* windowHandle, std::string& windowTitle)
 		if (windowHandle != nullptr)
 			*windowHandle = childControl;
 
-		windowTitle.resize(30);
-		GetWindowText(childControl, windowTitle.data(), 30);
+		char windowText[30];
+		GetWindowText(childControl, windowText, 30);
+		windowTitle = windowText;
 		return pId;
 	}
 
