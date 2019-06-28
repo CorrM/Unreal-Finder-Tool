@@ -15,7 +15,8 @@ bool Generator::Initialize()
 		badChars =
 		{
 			{",", ""},
-			{"!", ""}
+			{"!", ""},
+			{"-", ""}
 		};
 
 		alignasClasses =

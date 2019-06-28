@@ -84,7 +84,7 @@ UiWindow::~UiWindow()
 void UiWindow::Show(UiFunc uiForm)
 {
 	// Start thread, create window and show it
-	if (hWindow == nullptr)
+	if (!hWindow)
 	{
 		uiFunc = std::move(uiForm);
 		loopThread = std::thread(&UiWindow::WinLoop, this);

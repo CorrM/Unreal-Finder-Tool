@@ -24,7 +24,7 @@ MemoryEditor mem_edit;
 bool memory_init = false;
 bool override_engine = false;
 bool donate_show = true;
-float LeftWidth, RightWidth;
+float LeftWidth, MidWidth, RightWidth;
 
 #ifdef MIDI_h
 CMIDI* MidiPlayer = nullptr;
@@ -608,16 +608,6 @@ void TitleBarUi(UiWindow* thiz)
 		
 		if (ui::Button(!MidiPlayer || (MidiPlayer->IsPaused() || !MidiPlayer->IsPlaying()) ? ICON_FA_PLAY : ICON_FA_PAUSE))
 		{
-			if (MidiPlayer)
-			{
-				MidiPlayer->Rewind();
-			}
-			else
-			{
-				MidiPlayer = new CMIDI();
-				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof(midi_track1));
-			}
-
 			if (MidiPlayer->IsPaused())
 				MidiPlayer->Continue();
 			else if (MidiPlayer->IsPlaying())
@@ -783,12 +773,12 @@ void FinderUi(UiWindow* thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - (RightWidth / 2.3f)) / 2 - 5.f;
+			static float gobj_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ GObjects ]~!").x - (MidWidth / 2.f)) / 2 - 3.f;
 			ui::SetCursorPosX(gobj_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GObjects ]~!");
 
 			// Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects", { RightWidth / 5.4f, 0.0f }), g_objects_find_disabled,
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GObjects", { MidWidth / 4.7f, 0.0f }), g_objects_find_disabled,
 			{
 				if (IsReadyToGo())
 					ui::OpenPopup("Easy?");
@@ -797,7 +787,7 @@ void FinderUi(UiWindow* thiz)
 			});
 
 			ui::SameLine();
-			if (ui::Button("Use##Objects", { RightWidth / 5.4f, 0.0f }))
+			if (ui::Button("Use##Objects", { MidWidth / 4.7f, 0.0f }))
 			{
 				if (size_t(g_obj_listbox_item_current) < g_obj_listbox_items.size())
 				{
@@ -819,7 +809,7 @@ void FinderUi(UiWindow* thiz)
 				}
 			}
 
-			ui::SetNextItemWidth(RightWidth / 2.5f);
+			ui::SetNextItemWidth(MidWidth / 2.15f);
 			ui::ListBox("##Obj_listbox",
 				&g_obj_listbox_item_current,
 				VectorGetter,
@@ -864,15 +854,15 @@ void FinderUi(UiWindow* thiz)
 		{
 			ui::BeginGroup();
 			ui::AlignTextToFramePadding();
-			static float gnames_label_pos = RightWidth / 2 + (abs(ui::CalcTextSize("!~[ GNames ]~!").x - RightWidth / 2.3f) / 2.f) - 15.f;
+			static float gnames_label_pos = MidWidth / 2 + abs(ui::CalcTextSize("!~[ GNames ]~!").x - MidWidth / 2.f) / 2.f;
 			ui::SetCursorPosX(gnames_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ GNames ]~!");
 
 			// Start Finder
-			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { RightWidth / 5.4f, 0.0f }), g_names_find_disabled,
-				{
-					if (IsReadyToGo())
-						StartGNamesFinder();
+			ENABLE_DISABLE_WIDGET_IF(ui::Button("Find##GNames", { MidWidth / 4.7f, 0.0f }), g_names_find_disabled,
+			{
+				if (IsReadyToGo())
+					StartGNamesFinder();
 				else
 					popup_not_valid_process = true;
 			});
@@ -880,7 +870,7 @@ void FinderUi(UiWindow* thiz)
 			ui::SameLine();
 
 			// Set to input box
-			if (ui::Button("Use##Names", { RightWidth / 5.4f, 0.0f }))
+			if (ui::Button("Use##Names", { MidWidth / 4.7f, 0.0f }))
 			{
 				if (size_t(g_names_listbox_item_current) < g_names_listbox_items.size())
 				{
@@ -901,13 +891,14 @@ void FinderUi(UiWindow* thiz)
 				}
 			}
 
-			ui::SetNextItemWidth(RightWidth / 2.5f);
+			ui::SetNextItemWidth(MidWidth / 2.15f);
 			ui::ListBox("##Names_listbox",
 				&g_names_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&g_names_listbox_items),
 				static_cast<int>(g_names_listbox_items.size()),
 				4);
+
 			ui::EndGroup();
 		}
 
@@ -919,7 +910,7 @@ void FinderUi(UiWindow* thiz)
 
 			// Label
 			ui::AlignTextToFramePadding();
-			static float class_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ Classes ]~!").x - RightWidth) / 2.f - 20.f;
+			static float class_label_pos = ui::GetCursorPosX() + abs(ui::CalcTextSize("!~[ Classes ]~!").x - MidWidth) / 2.f;
 			ui::SetCursorPosX(class_label_pos);
 			ui::TextColored(ImVec4(0.16f, 0.50f, 72.0f, 1.0f), "!~[ Classes ]~!");
 
@@ -928,7 +919,7 @@ void FinderUi(UiWindow* thiz)
 			ui::SameLine();
 
 			// Class Input
-			ui::SetNextItemWidth(RightWidth / 1.75f);
+			ui::SetNextItemWidth(MidWidth / 1.45f);
 			ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##FindClass", "LocalPlayer, 0x0000000000", class_find_buf, IM_ARRAYSIZE(class_find_buf)), class_find_input_disabled);
 			ui::SameLine();
 			HelpMarker("What you can put here.?\n- Class Name:\n  - LocalPlayer or ULocalPlayer.\n  - MyGameInstance_C or UMyGameInstance_C.\n  - PlayerController or APlayerController.\n\n- Instance address:\n  - 0x0000000000.\n  - 0000000000.");
@@ -960,13 +951,14 @@ void FinderUi(UiWindow* thiz)
 				}
 			}
 
-			ui::SetNextItemWidth(RightWidth - 45.f);
+			ui::SetNextItemWidth(MidWidth);
 			ui::ListBox("##Class_listbox",
 				&class_listbox_item_current,
 				VectorGetter,
 				static_cast<void*>(&class_listbox_items),
 				static_cast<int>(class_listbox_items.size()),
 				6);
+
 			ui::EndGroup();
 		}
 
@@ -1000,7 +992,7 @@ void InstanceLoggerUi(UiWindow* thiz)
 		ui::Text("%s", il_state.c_str());
 
 		// Start Logger
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { RightWidth - 45.f, 0.0f }), il_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##InstanceLogger", { MidWidth, 0.0f }), il_start_disabled,
 		{
 			if (IsReadyToGo())
 				StartInstanceLogger();
@@ -1038,7 +1030,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Lang      : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(RightWidth / 2.3f);
+		ui::SetNextItemWidth(MidWidth / 1.8f);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkLang", &sg_lang_item_current, VectorGetter, static_cast<void*>(&sg_lang_items), static_cast<int>(sg_lang_items.size()), 4), sg_lang_disabled);
 		ui::SameLine();
 		HelpMarker("Pick programming language for generated sdk.");
@@ -1047,7 +1039,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(RightWidth / 2.3f);
+		ui::SetNextItemWidth(MidWidth / 1.8f);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkType", &sg_type_item_current, VectorGetter, static_cast<void*>(&sg_type_items), static_cast<int>(sg_type_items.size()), 4), sg_type_disabled);
 		ui::SameLine();
 		HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
@@ -1056,7 +1048,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Module   : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(RightWidth / 2.3f);
+		ui::SetNextItemWidth(MidWidth / 1.8f);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##GameModule", &sg_module_item_current, VectorGetter, static_cast<void*>(&sg_module_items), static_cast<int>(sg_module_items.size()), 4), sg_module_disabled);
 		ui::SameLine();
 		HelpMarker("Pick base module for your game.\nThat's to put on 'initSDK' function.");
@@ -1065,14 +1057,14 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(RightWidth / 1.9f);
+		ui::SetNextItemWidth(MidWidth / 1.8f);
 		ENABLE_DISABLE_WIDGET(ui::InputTextWithHint("##GameName", "PUBG, Fortnite", sg_game_name_buf.data(), sg_game_name_buf.length()), sg_game_name_disabled);
 
 		// Game Version
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Version  : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(RightWidth / 1.9f);
+		ui::SetNextItemWidth(MidWidth / 1.8f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt3("##GameVersion", sg_game_version), sg_game_version_disabled);
 		
 		// State
@@ -1082,7 +1074,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::Text("%s", sg_state.c_str());
 
 		// Packages Box
-		ui::SetNextItemWidth(RightWidth - 45.f);
+		ui::SetNextItemWidth(MidWidth);
 		ui::ListBoxA("##Packages_listbox",
 			&sg_packages_item_current,
 			VectorGetter,
@@ -1090,7 +1082,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			static_cast<int>(sg_packages_items.size()), 5, true);
 
 		// Start Generator
-		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
+		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { MidWidth, 0.0f }), sg_start_disabled,
 		{
 			if (Utils::FileExists(Utils::GetWorkingDirectory() + "\\Results"))
 			{
@@ -1143,11 +1135,25 @@ void SdkGeneratorUi(UiWindow* thiz)
 	}
 }
 
+void PatreonSection(UiWindow* thiz)
+{
+	ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals");
+
+	if (ui::BeginChild("goals"))
+	{
+		for (size_t i = 0; i < 100; i++)
+		{
+			ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals");
+		}
+		ui::EndChild();
+	}
+}
+
 void MainUi(UiWindow* thiz)
 {
 	DonationUi(thiz);
-
 	TitleBarUi(thiz);
+
 	ui::Separator();
 
 	// left-group
@@ -1175,21 +1181,21 @@ void MainUi(UiWindow* thiz)
 
 			ui::EndChild();
 		}
-
-		ui::SameLine();
-		ui::VerticalSeparator();
-		ui::SameLine();
 	}
+
+	ui::SameLine();
+	ui::VerticalSeparator();
+	ui::SameLine();
 	
-	// right-group
+	// mid-group
 	{
-		if (ui::BeginChild("##right-group", {Utils::UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
+		if (ui::BeginChild("##mid-group", { 350, 0 }, false))
 		{
-			RightWidth = ui::GetWindowWidth();
+			MidWidth = ui::GetWindowWidth();
 
 			// Tabs
 			{
-				if (ui::BeginTabBar("Debug", ImGuiTabBarFlags_NoTooltip))
+				if (ui::BeginTabBar("Tools", ImGuiTabBarFlags_NoTooltip))
 				{
 					FinderUi(thiz);
 					InstanceLoggerUi(thiz);
@@ -1198,6 +1204,21 @@ void MainUi(UiWindow* thiz)
 					ui::EndTabBar();
 				}
 			}
+
+			ui::EndChild();
+		}
+	}
+
+	ui::SameLine();
+	ui::VerticalSeparator();
+	ui::SameLine();
+
+	// right-group
+	{
+		if (ui::BeginChild("##right-group"))
+		{
+			RightWidth = ui::GetWindowWidth();
+			PatreonSection(thiz);
 
 			ui::EndChild();
 		}
@@ -1254,11 +1275,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 680, 530);
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 1050, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
+	// Auto play MIDI
+	MidiPlayer = new CMIDI();
+	MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof midi_track1);
+	MidiPlayer->Play();
+
+#ifndef _DEBUG
 	// Check New Version
 	CheckLastVer();
+#endif // _DEBUG
 
 	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);
