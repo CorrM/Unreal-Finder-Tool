@@ -96,6 +96,8 @@ public:
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 	// Replace string
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
+	// Remove string between two string
+	std::string RemoveStringBetween(std::string str, const std::string& between1, const std::string& between2);
 	// Check if string contains another string
 	static bool ContainsString(const std::string& str, const std::string& strToFind);
 	// Check if string starts with other string
@@ -116,6 +118,11 @@ public:
 	static bool IsNumber(const std::string& s);
 	// Determine if string is HEX number
 	static bool IsHexNumber(const std::string& s);
+	// Replace string
+	static std::wstring ReplaceString(std::wstring str, const std::wstring& to_find, const std::wstring& to_replace);
+	// Remove string between two string
+	static std::wstring RemoveStringBetween(std::wstring str, const std::wstring& between1, const std::wstring& between2);
+
 	// Return size of pointer in target game
 	static int PointerSize();
 	// Check valid address in remote process

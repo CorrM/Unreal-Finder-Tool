@@ -207,6 +207,27 @@ std::string Utils::ReplaceString(std::string str, const std::string& to_find, co
 	return str;
 }
 
+std::string Utils::RemoveStringBetween(std::string str, const std::string& between1, const std::string& between2)
+{
+	if (str.empty() || between1.empty() || between2.empty())
+		return str;
+
+	size_t position1 = 0, position2 = 0;
+	do
+	{
+		position1 = str.find(between1, position1);
+		position2 = str.find(between2, position2);
+
+		if (position1 == std::string::npos || position2 == std::string::npos)
+			break;
+
+		str.replace(position1, position2 - position1 + 1, "");
+
+	} while (true);
+
+	return str;
+}
+
 bool Utils::ContainsString(const std::string& str, const std::string& strToFind)
 {
 	return str.find(strToFind) != std::string::npos;
@@ -234,6 +255,40 @@ bool Utils::IsHexNumber(const std::string& s)
 {
 	return std::all_of(s.begin(), s.end(), [](const unsigned char c) { return std::isxdigit(c); });
 }
+
+std::wstring Utils::ReplaceString(std::wstring str, const std::wstring& to_find, const std::wstring& to_replace)
+{
+	if (to_find.empty())
+		return str;
+
+	for (size_t position = str.find(to_find); position != std::wstring::npos; position = str.find(to_find, position))
+		str.replace(position, to_find.length(), to_replace);
+
+	return str;
+}
+
+std::wstring Utils::RemoveStringBetween(std::wstring str, const std::wstring& between1, const std::wstring& between2)
+{
+	if (str.empty() || between1.empty() || between2.empty())
+		return str;
+
+	size_t position1 = 0, position2 = 0, strSize = 0;
+	do
+	{
+		position1 = str.find(between1, position1);
+		position2 = str.find(between2, position1);
+		strSize = position2 - position1;
+
+		if (position1 == std::wstring::npos || position2 == std::wstring::npos)
+			break;
+
+		str.replace(position1, strSize + 1, L"");
+
+	} while (true);
+
+	return str;
+}
+
 #pragma endregion
 
 #pragma region Types Converter

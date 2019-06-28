@@ -130,6 +130,71 @@ void CheckLastVer()
 	}
 }
 
+#pragma region Patreon
+pplx::task<http_response> GetGoals()
+{
+	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379");
+	jsonReq.then([&](http_response& res)
+	{
+		// to solve json problem
+		res.headers()[L"Content-Type"] = L"application/json";
+		auto json = res.extract_json().get();
+
+		auto includes = json.at(L"included").as_array();
+		for (auto& item : includes)
+		{
+			if (item.at(L"type").as_string() != L"goal") continue;
+
+			int completed_percentage = item.at(L"attributes").at(L"completed_percentage").as_integer();
+			std::wstring description = item.at(L"attributes").at(L"description").as_string();
+			description = Utils::RemoveStringBetween(description, L"<", L">");
+
+			Goals.push_back({ completed_percentage, description });
+		}
+	});
+
+	return jsonReq;
+}
+
+pplx::task<http_response> GetLastNews()
+{
+	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379/posts");
+	jsonReq.then([&](http_response& res)
+	{
+		// to solve json problem
+		res.headers()[L"Content-Type"] = L"application/json";
+		auto json = res.extract_json().get();
+
+		auto data = json.at(L"data").as_array();
+		for (auto& item : data)
+		{
+			if (item.at(L"id").as_string() != L"27973158") continue;
+
+			std::wstring title = item.at(L"attributes").at(L"title").as_string();
+			std::wstring content = item.at(L"attributes").at(L"content").as_string();
+			content = Utils::ReplaceString(content, L"</p>", L"\n"); 
+			content = Utils::ReplaceString(content, L"</li>", L"\n");
+			content = Utils::ReplaceString(content, L"</ul>", L"\n");
+			content = Utils::ReplaceString(content, L"\xa0", L""); // &nbsp; for html
+			content = Utils::RemoveStringBetween(content, L"<", L">");
+
+			LastNews = { title, content };
+		}
+	});
+
+	return jsonReq;
+}
+
+void InitPatreon()
+{
+	try { GetGoals().wait(); }
+	catch (const std::exception&) {}
+
+	try { GetLastNews().wait(); }
+	catch (const std::exception&) {}
+}
+#pragma endregion
+
 #pragma region Address Viewer
 PBYTE PCurrentAddressData = nullptr;
 int BufSize = 0x200;
@@ -1137,14 +1202,31 @@ void SdkGeneratorUi(UiWindow* thiz)
 
 void PatreonSection(UiWindow* thiz)
 {
-	ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals");
+	if (ui::BeginChild("last-news", ImVec2(0, thiz->GetSize().y * 0.35f)))
+	{
+		ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_GRIN_HEARTS " Patreon Support");
+		ui::Separator();
+		if (!LastNews.Title.empty())
+		{
+			ui::TextColored(IM_COL4(142, 68, 173, 255), "Go to patreon by press `MenuButton->DONATE`.");
+			ui::TextWrapped("%ls", LastNews.Content.c_str());
+		}
 
+		ui::EndChild();
+	}
+	ui::Separator();
+
+	ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals [%d]", Goals.size());
 	if (ui::BeginChild("goals"))
 	{
-		for (size_t i = 0; i < 100; i++)
+		for (auto& goal : Goals)
 		{
-			ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals");
+			ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_FLAG " %d%% Complete", goal.CompletedPercentage);
+			ui::ProgressBar(static_cast<float>(goal.CompletedPercentage) * .01f);
+			ui::TextWrapped("%ls", goal.Description.c_str());
+			ui::Separator();
 		}
+
 		ui::EndChild();
 	}
 }
@@ -1287,6 +1369,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Check New Version
 	CheckLastVer();
 #endif // _DEBUG
+
+	InitPatreon();
 
 	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);

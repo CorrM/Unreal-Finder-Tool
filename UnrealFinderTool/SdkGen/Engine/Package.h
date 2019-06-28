@@ -137,7 +137,7 @@ private:
 
 
 	/*
-	 * SCRIPT_STRUCT
+	 * MEMBER
 	 */
 	struct Member
 	{
@@ -182,6 +182,9 @@ private:
 	/// <param name="members">[out] The members of the struct or class.</param>
 	void GenerateMembers(const UEStruct& structObj, size_t offset, const std::vector<UEProperty>& properties, std::vector<Member>& members) const;
 
+	/*
+	 * SCRIPT_STRUCT
+	 */
 	struct ScriptStruct
 	{
 		std::string Name;

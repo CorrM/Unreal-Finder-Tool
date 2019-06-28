@@ -1,124 +1,133 @@
 #include "pch.h"
 #include "Utils.h"
+#include "JsonReflector.h"
 #include "Generator.h"
 
 bool Generator::Initialize()
+{
+	keywordsName =
 	{
-		keywordsName =
-		{
-			{"return", "returnValue"},
-			{"continue", "continueValue"},
-			{"break", "breakValue"},
-			{"int", "intValue"}
-		};
+		{"return", "returnValue"},
+		{"continue", "continueValue"},
+		{"break", "breakValue"},
+		{"int", "intValue"}
+	};
 
-		badChars =
-		{
-			{",", ""},
-			{"!", ""},
-			{"-", ""}
-		};
-
-		alignasClasses =
-		{
-			{ "ScriptStruct CoreUObject.Plane", 16 },
-			{ "ScriptStruct CoreUObject.Quat", 16 },
-			{ "ScriptStruct CoreUObject.Transform", 16 },
-			{ "ScriptStruct CoreUObject.Vector4", 16 },
-
-			{ "ScriptStruct Engine.RootMotionSourceGroup", 8 }
-		};
-
-		virtualFunctionPattern["Class CoreUObject.Object"] =
-		{
-			{ 
-				PatternScan::Parse("ProcessEvent", 0, "40 55 56 57 41 54 41 55 41 56 41 57", 0xFF),
-				R"(	inline void ProcessEvent(class UFunction* function, void* parms)
+	badChars =
 	{
-		return GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);
-	})" 
-			}
-		};
-		virtualFunctionPattern["Class CoreUObject.Class"] =
-		{
-			{
-				PatternScan::Parse("CreateDefaultObject", 0, "4C 8B DC 57 48 81 EC", 0xFF),
-				R"(	inline UObject* CreateDefaultObject()
+		{",", ""},
+		{"!", ""},
+		{"-", ""}
+	};
+
+	alignasClasses =
 	{
-		return GetVFunction<UObject*(*)(UClass*)>(this, %d)(this);
-	})"		}
-		};
+		{"ScriptStruct CoreUObject.Plane", 16},
+		{"ScriptStruct CoreUObject.Quat", 16},
+		{"ScriptStruct CoreUObject.Transform", 16},
+		{"ScriptStruct CoreUObject.Vector4", 16},
 
-		predefinedMembers["Class CoreUObject.Object"] =
-		{
-			{ "void*", "Vtable" },
-			{ "int32_t", "ObjectFlags" },
-			{ "int32_t", "InternalIndex" },
-			{ "class UClass*", "Class" },
-			{ "FName", "Name" },
-			{ "class UObject*", "Outer" }
-		};
-		predefinedStaticMembers["Class CoreUObject.Object"] =
-		{
-			{ "FUObjectArray*", "GObjects" }
-		};
-		predefinedMembers["Class CoreUObject.Field"] =
-		{
-			{ "class UField*", "Next" }
-		};
-		predefinedMembers["Class CoreUObject.Struct"] =
-		{
-			{ "class UStruct*", "SuperField" },
-			{ "class UField*", "Children" },
-			{ "int32_t", "PropertySize" },
-			{ "int32_t", "MinAlignment" },
-			{ "unsigned char", "UnknownData0x0048[0x40]" }
-		};
-		predefinedMembers["Class CoreUObject.Function"] =
-		{
-			{ "int32_t", "FunctionFlags" },
-			{ "int16_t", "RepOffset" },
-			{ "int8_t", "NumParms" },
-			{ "int16_t", "ParmsSize" },
-			{ "int16_t", "ReturnValueOffset" },
-			{ "int16_t", "RPCId" },
-			{ "int16_t", "RPCResponseId" },
-			{ "class UProperty*", "FirstPropertyToInit" },
-			{ "class UFunction*", "EventGraphFunction" },
-			{ "int32_t", "EventGraphCallOffset" },
-			{ "void*", "Func" }
-		};
+		{"ScriptStruct Engine.RootMotionSourceGroup", 8}
+	};
 
-		predefinedMethods["ScriptStruct CoreUObject.Vector2D"] =
+	virtualFunctionPattern["Class CoreUObject.Object"] =
+	{
 		{
-			PredefinedMethod::Inline(R"(	inline FVector2D()
+			PatternScan::Parse("ProcessEvent", 0, "40 55 56 57 41 54 41 55 41 56 41 57", 0xFF),
+			R"(	inline void ProcessEvent(class UFunction* function, void* parms)
+	{
+		GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);
+	})"
+		}
+	};
+	virtualFunctionPattern["Class CoreUObject.Class"] =
+	{
+		{
+			PatternScan::Parse("CreateDefaultObject", 0, "4C 8B DC 57 48 81 EC", 0xFF),
+			R"(	inline UObject* CreateDefaultObject()
+	{
+		GetVFunction<UObject*(*)(UClass*)>(this, %d)(this);
+	})"
+		}
+	};
+
+	predefinedMembers["Class CoreUObject.Object"] =
+	{
+		{"void*", "Vtable"},
+		{"int32_t", "ObjectFlags"},
+		{"int32_t", "InternalIndex"},
+		{"class UClass*", "Class"},
+		{"FName", "Name"},
+		{"class UObject*", "Outer"}
+	};
+
+	predefinedStaticMembers["Class CoreUObject.Object"] =
+	{
+		{"FUObjectArray*", "GObjects"}
+	};
+
+	predefinedMembers["Class CoreUObject.Field"] =
+	{
+		{"class UField*", "Next"}
+	};
+
+	predefinedMembers["Class CoreUObject.Struct"] =
+	{
+		{"class UStruct*", "SuperField"},
+		{"class UField*", "Children"},
+		{"int32_t", "PropertySize"},
+		{"int32_t", "MinAlignment"},
+		{"unsigned char", "UnknownData0x0048[0x40]"}
+	};
+
+	predefinedMembers["Class CoreUObject.Function"] =
+	{
+		{"int32_t", "FunctionFlags"},
+		{"int16_t", "RepOffset"},
+		{"int8_t", "NumParms"},
+		{"int16_t", "ParmsSize"},
+		{"int16_t", "ReturnValueOffset"},
+		{"int16_t", "RPCId"},
+		{"int16_t", "RPCResponseId"},
+		{"class UProperty*", "FirstPropertyToInit"},
+		{"class UFunction*", "EventGraphFunction"},
+		{"int32_t", "EventGraphCallOffset"},
+		{"void*", "Func"}
+	};
+
+	predefinedMethods["ScriptStruct CoreUObject.Vector2D"] =
+	{
+		PredefinedMethod::Inline(R"(	inline FVector2D()
 		: X(0), Y(0)
 	{ })"),
-			PredefinedMethod::Inline(R"(	inline FVector2D(float x, float y)
+		PredefinedMethod::Inline(R"(	inline FVector2D(float x, float y)
 		: X(x),
 		  Y(y)
 	{ })")
-		};
-		predefinedMethods["ScriptStruct CoreUObject.LinearColor"] =
-		{
-			PredefinedMethod::Inline(R"(	inline FLinearColor()
+	};
+	predefinedMethods["ScriptStruct CoreUObject.LinearColor"] =
+	{
+		PredefinedMethod::Inline(R"(	inline FLinearColor()
 		: R(0), G(0), B(0), A(0)
 	{ })"),
-			PredefinedMethod::Inline(R"(	inline FLinearColor(float r, float g, float b, float a)
+		PredefinedMethod::Inline(
+			R"(	inline FLinearColor(float r, float g, float b, float a)
 		: R(r),
 		  G(g),
 		  B(b),
 		  A(a)
 	{ })")
-		};
+	};
 
-		predefinedMethods["Class CoreUObject.Object"] =
-		{
-			PredefinedMethod::Inline(R"(	static inline TUObjectArray& GetGlobalObjects()
+	predefinedMethods["Class CoreUObject.Object"] =
+	{
+		PredefinedMethod::Inline(
+			R"(	static inline TUObjectArray& GetGlobalObjects()
 	{
 		return GObjects->ObjObjects;
 	})"),
-			PredefinedMethod::Default("std::string GetName() const", R"(std::string UObject::GetName() const
+		PredefinedMethod::Default("std::string GetName() const",
+		                          R"(std::string UObject::GetName() const
 {
 	std::string name(Name.GetName());
 	if (Name.Number > 0)
@@ -134,7 +143,8 @@ bool Generator::Initialize()
 	
 	return name.substr(pos + 1);
 })"),
-			PredefinedMethod::Default("std::string GetFullName() const", R"(std::string UObject::GetFullName() const
+		PredefinedMethod::Default("std::string GetFullName() const",
+		                          R"(std::string UObject::GetFullName() const
 {
 	std::string name;
 
@@ -154,7 +164,8 @@ bool Generator::Initialize()
 
 	return name;
 })"),
-			PredefinedMethod::Inline(R"(	template<typename T>
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	static T* FindObject(const std::string& name)
 	{
 		for (int i = 0; i < GetGlobalObjects().Num(); ++i)
@@ -173,7 +184,8 @@ bool Generator::Initialize()
 		}
 		return nullptr;
 	})"),
-			PredefinedMethod::Inline(R"(	template<typename T>
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	static T* FindObject()
 	{
 		auto v = T::StaticClass();
@@ -193,7 +205,8 @@ bool Generator::Initialize()
 		}
 		return nullptr;
 	})"),
-			PredefinedMethod::Inline(R"(	template<typename T>
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	static std::vector<T*> FindObjects(const std::string& name)
 	{
 		std::vector<T*> ret;
@@ -213,7 +226,8 @@ bool Generator::Initialize()
 		}
 		return ret;
 	})"),
-			PredefinedMethod::Inline(R"(	template<typename T>
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	static std::vector<T*> FindObjects()
 	{
 		std::vector<T*> ret;
@@ -234,16 +248,19 @@ bool Generator::Initialize()
 		}
 		return ret;
 	})"),
-			PredefinedMethod::Inline(R"(	static UClass* FindClass(const std::string& name)
+		PredefinedMethod::Inline(
+			R"(	static UClass* FindClass(const std::string& name)
 	{
 		return FindObject<UClass>(name);
 	})"),
-			PredefinedMethod::Inline(R"(	template<typename T>
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	static T* GetObjectCasted(std::size_t index)
 	{
 		return static_cast<T*>(GetGlobalObjects().GetByIndex(index));
 	})"),
-			PredefinedMethod::Default("bool IsA(UClass* cmp) const", R"(bool UObject::IsA(UClass* cmp) const
+		PredefinedMethod::Default("bool IsA(UClass* cmp) const",
+		                          R"(bool UObject::IsA(UClass* cmp) const
 {
 	for (auto super = Class; super; super = static_cast<UClass*>(super->SuperField))
 	{
@@ -255,27 +272,28 @@ bool Generator::Initialize()
 
 	return false;
 })")
-		};
-		predefinedMethods["Class CoreUObject.Class"] =
-		{
-			PredefinedMethod::Inline(R"(	template<typename T>
+	};
+	predefinedMethods["Class CoreUObject.Class"] =
+	{
+		PredefinedMethod::Inline(
+			R"(	template<typename T>
 	inline T* CreateDefaultObject()
 	{
 		return static_cast<T*>(CreateDefaultObject());
 	})")
-		};
+	};
 
-		/*
-		predefinedMethods["Class Engine.GameViewportClient"] =
-		{
-			PredefinedMethod::Inline(R"(	inline void PostRender(UCanvas* Canvas)
+	/*
+	predefinedMethods["Class Engine.GameViewportClient"] =
 	{
-		return GetVFunction<void(*)(UGameViewportClient*, UCanvas*)>(this, %d)(this, Canvas);
-	})")
-		};
-		*/
-		return true;
-	}
+		PredefinedMethod::Inline(R"(	inline void PostRender(UCanvas* Canvas)
+{
+	return GetVFunction<void(*)(UGameViewportClient*, UCanvas*)>(this, %d)(this, Canvas);
+})")
+	};
+	*/
+	return true;
+}
 
 std::string Generator::GetOutputDirectory() const
 {
@@ -319,7 +337,7 @@ std::string Generator::GetNamespaceName() const
 
 std::vector<std::string> Generator::GetIncludes() const
 {
-	return { };
+	return {};
 }
 
 size_t Generator::GetGlobalMemberAlignment() const
