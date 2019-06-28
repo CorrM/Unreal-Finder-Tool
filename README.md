@@ -31,7 +31,7 @@ This video tell you how to use the tool and dump sdk for ue4 game.
 - Some changes before watch the video.
   - Now you don't need to do any thing about GNames address since now you just need to click `use` button.
 
-[![Youtube Video](/images/youtube_thumbnail.png)](https://www.youtube.com/watch?v=3CjsrnvKtGs)
+[Youtube Video](https://www.youtube.com/watch?v=3CjsrnvKtGs)
 
 ## Screen Shots
 ![ui_1](/images/ui_1.png)
