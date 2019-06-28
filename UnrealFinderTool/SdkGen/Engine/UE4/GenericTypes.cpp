@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "EngineClasses.h"
-#include "IGenerator.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
 #include "NameValidator.h"
+#include "Utils.h"
 #include "GenericTypes.h"
 
 #pragma region UEObject
@@ -1066,9 +1066,7 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 	auto inner = GetInner().GetInfo();
 	if (inner.Type != PropertyType::Unknown)
 	{
-		extern IGenerator* generator;
-
-		return Info::Create(PropertyType::Container, sizeof(TArray), false, "TArray<" + generator->GetOverrideType(inner.CppType) + ">");
+		return Info::Create(PropertyType::Container, sizeof(TArray), false, "TArray<" + Utils::GenObj->GetOverrideType(inner.CppType) + ">");
 	}
 
 	return { PropertyType::Unknown };
@@ -1118,9 +1116,7 @@ UEProperty::Info UEMapProperty::GetInfo() const
 	auto value = GetValueProperty().GetInfo();
 	if (key.Type != PropertyType::Unknown && value.Type != PropertyType::Unknown)
 	{
-		extern IGenerator* generator;
-
-		return Info::Create(PropertyType::Container, 0x50, false, "TMap<" + generator->GetOverrideType(key.CppType) + ", " + generator->GetOverrideType(value.CppType) + ">");
+		return Info::Create(PropertyType::Container, 0x50, false, "TMap<" + Utils::GenObj->GetOverrideType(key.CppType) + ", " + Utils::GenObj->GetOverrideType(value.CppType) + ">");
 	}
 
 	return { PropertyType::Unknown };

@@ -1,18 +1,13 @@
 #include "pch.h"
-#include "JsonReflector.h"
-#include "PatternScan.h"
 #include "Memory.h"
 #include "UiWindow.h"
+#include "JsonReflector.h"
+#include "PatternScan.h"
 #include "Utils.h"
-
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include <cctype>
-#include <tchar.h>
 
 Memory* Utils::MemoryObj = nullptr;
 UiWindow* Utils::UiMainWindow = nullptr;
+Generator* Utils::GenObj = new Generator();
 MySettings Utils::Settings;
 WorkingTools Utils::WorkingNow;
 std::mutex Utils::MainMutex;
@@ -615,3 +610,16 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 	return ret;
 }
 #pragma endregion
+
+void Utils::CleanUp()
+{
+	if (MemoryObj)
+	{
+		MemoryObj->ResumeProcess();
+		CloseHandle(MemoryObj->ProcessHandle);
+	}
+
+	delete MemoryObj;
+	delete UiMainWindow;
+	delete GenObj;
+}

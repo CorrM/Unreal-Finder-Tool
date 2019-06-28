@@ -210,7 +210,7 @@
     <ClInclude Include="SdkGenerator.h" />
     <ClInclude Include="SdkGen\EngineClasses.h" />
     <ClInclude Include="SdkGen\Engine\cpplinq.hpp" />
-    <ClInclude Include="SdkGen\Engine\IGenerator.h" />
+    <ClInclude Include="SdkGen\Generator.h" />
     <ClInclude Include="SdkGen\Engine\NamesStore.h" />
     <ClInclude Include="SdkGen\Engine\NameValidator.h" />
     <ClInclude Include="SdkGen\Engine\ObjectsStore.h" />
@@ -262,7 +262,7 @@
     <ClCompile Include="SdkGen\Engine\UE4\GenericTypes.cpp" />
     <ClCompile Include="SdkGen\Engine\UE4\PackageCore.cpp" />
     <ClCompile Include="SdkGen\Engine\UE4\PropertyFlags.cpp" />
-    <ClCompile Include="SdkGen\MainGenerator.cpp" />
+    <ClCompile Include="SdkGen\Generator.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="UiWindow.cpp" />
     <ClCompile Include="UnrealFinderTool.cpp" />

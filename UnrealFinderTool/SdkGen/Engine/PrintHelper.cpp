@@ -1,14 +1,12 @@
 #include "pch.h"
 #include <tinyformat.h>
 
-#include "IGenerator.h"
 #include "Package.h"
+#include "Utils.h"
 #include "PrintHelper.h"
 
 std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::vector<std::string>& includes, const bool isHeaderFile)
 {
-	extern IGenerator* generator;
-
 	std::string sstr;
 
 	if (isHeaderFile)
@@ -21,7 +19,7 @@ std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::ve
 		sstr += "\n";
 	}
 
-	if (generator->GetSdkType() == SdkType::External)
+	if (Utils::GenObj->GetSdkType() == SdkType::External)
 		sstr += "#include \"" + Utils::Settings.SdkGen.MemoryHeader + "\"\n";
 
 	if (!includes.empty())
@@ -30,22 +28,20 @@ std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::ve
 		sstr += "\n";
 	}
 
-	sstr += tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion())
-		 + tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", generator->GetGlobalMemberAlignment());
+	sstr += tfm::format("// Name: %s, Version: %s\n\n", Utils::GenObj->GetGameName(), Utils::GenObj->GetGameVersion())
+		 + tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", Utils::GenObj->GetGlobalMemberAlignment());
 
-	if (!generator->GetNamespaceName().empty())
-		sstr += "namespace " + generator->GetNamespaceName() + "\n{\n";
+	if (!Utils::GenObj->GetNamespaceName().empty())
+		sstr += "namespace " + Utils::GenObj->GetNamespaceName() + "\n{\n";
 
 	return sstr;
 }
 
 std::string GetFileFooter()
 {
-	extern IGenerator* generator;
-
 	std::string str;
 
-	if (!generator->GetNamespaceName().empty())
+	if (!Utils::GenObj->GetNamespaceName().empty())
 		str += "}\n\n";
 
 	str += "#ifdef _MSC_VER\n\t#pragma pack(pop)\n#endif\n";
@@ -107,8 +103,6 @@ void PrintSectionHeader(std::ostream& os, const char* name)
 
 std::string GenerateFileName(const FileContentType type, const Package& package)
 {
-	extern IGenerator* generator;
-
 	const char* name = "";
 	switch (type)
 	{

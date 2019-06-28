@@ -1,16 +1,8 @@
 #include "pch.h"
-#include "IGenerator.h"
-#include "ObjectsStore.h"
+#include "Utils.h"
+#include "Generator.h"
 
-class Generator final : public IGenerator
-{
-	mutable std::string gameName;
-	mutable std::string gameVersion;
-	mutable bool isGObjectsChunks = false;
-	mutable SdkType sdkType = SdkType::Internal;
-
-public:
-	bool Initialize() override
+bool Generator::Initialize()
 	{
 		keywordsName =
 		{
@@ -284,61 +276,182 @@ public:
 		return true;
 	}
 
-	std::string GetGameName() const override
+std::string Generator::GetOutputDirectory() const
+{
+	return "C:\\SDK";
+}
+
+std::string Generator::GetGameName() const
+{
+	return gameName;
+}
+
+void Generator::SetGameName(const std::string& gameName) const
+{
+	this->gameName = gameName;
+}
+
+std::string Generator::GetGameVersion() const
+{
+	return this->gameVersion;
+}
+
+void Generator::SetGameVersion(const std::string& gameVersion) const
+{
+	this->gameVersion = gameVersion;
+}
+
+SdkType Generator::GetSdkType() const
+{
+	return this->sdkType;
+}
+
+void Generator::SetSdkType(const SdkType sdkType) const
+{
+	this->sdkType = sdkType;
+}
+
+std::string Generator::GetNamespaceName() const
+{
+	return "SDK";
+}
+
+std::vector<std::string> Generator::GetIncludes() const
+{
+	return { };
+}
+
+size_t Generator::GetGlobalMemberAlignment() const
+{
+	return sizeof(size_t);
+}
+
+size_t Generator::GetClassAlignas(const std::string& name) const
+{
+	auto it = alignasClasses.find(name);
+	if (it != std::end(alignasClasses))
 	{
-		return gameName;
+		return it->second;
+	}
+	return 0;
+}
+
+std::string Generator::GetOverrideType(const std::string& type) const
+{
+	auto it = overrideTypes.find(type);
+	if (it == std::end(overrideTypes))
+	{
+		return type;
+	}
+	return it->second;
+}
+
+std::string Generator::GetSafeKeywordsName(const std::string& name) const
+{
+	std::string ret = name;
+	auto it = keywordsName.find(ret);
+	if (it == std::end(keywordsName))
+	{
+		for (const auto& badChar : badChars)
+			ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
+		return ret;
 	}
 
-	void SetGameName(const std::string& gameName) const override
+	ret = it->second;
+	for (const auto& badChar : badChars)
+		ret = Utils::ReplaceString(ret, badChar.first, badChar.second);
+
+	return ret;
+}
+
+bool Generator::GetPredefinedClassMembers(const std::string& name, std::vector<PredefinedMember>& members) const
+{
+	auto it = predefinedMembers.find(name);
+	if (it != std::end(predefinedMembers))
 	{
-		this->gameName = gameName;
+		std::copy(std::begin(it->second), std::end(it->second), std::back_inserter(members));
+
+		return true;
 	}
 
-	std::string GetGameVersion() const override
+	return false;
+}
+
+bool Generator::GetPredefinedClassStaticMembers(const std::string& name, std::vector<PredefinedMember>& members) const
+{
+	auto it = predefinedStaticMembers.find(name);
+	if (it != std::end(predefinedStaticMembers))
 	{
-		return this->gameVersion;
+		std::copy(std::begin(it->second), std::end(it->second), std::back_inserter(members));
+
+		return true;
 	}
 
-	void SetGameVersion(const std::string& gameVersion) const override
+	return false;
+}
+
+bool Generator::GetVirtualFunctionPatterns(const std::string& name, VirtualFunctionPatterns& patterns) const
+{
+	auto it = virtualFunctionPattern.find(name);
+	if (it != std::end(virtualFunctionPattern))
 	{
-		this->gameVersion = gameVersion;
+		std::copy(std::begin(it->second), std::end(it->second), std::back_inserter(patterns));
+
+		return true;
 	}
 
-	SdkType GetSdkType() const override
+	return false;
+}
+
+bool Generator::GetPredefinedClassMethods(const std::string& name, std::vector<PredefinedMethod>& methods) const
+{
+	auto it = predefinedMethods.find(name);
+	if (it != std::end(predefinedMethods))
 	{
-		return this->sdkType;
+		std::copy(std::begin(it->second), std::end(it->second), std::back_inserter(methods));
+
+		return true;
 	}
 
-	void SetSdkType(const SdkType sdkType) const override
-	{
-		this->sdkType = sdkType;
-	}
+	return false;
+}
 
-	std::string GetNamespaceName() const override
-	{
-		return "SDK";
-	}
+bool Generator::ShouldGenerateFunctionParametersFile() const
+{
+	return sdkType == SdkType::Internal;
+}
 
-	std::vector<std::string> GetIncludes() const override
-	{
-		return { };
-	}
+void Generator::SetIsGObjectsChunks(const bool isChunks) const
+{
+	isGObjectsChunks = isChunks;
+}
 
-	bool ShouldGenerateFunctionParametersFile() const override
-	{
-		return sdkType == SdkType::Internal;
-	}
+bool Generator::GetIsGObjectsChunks() const
+{
+	return isGObjectsChunks;
+}
 
-	void SetIsGObjectsChunks(const bool isChunks) const override
-	{
-		isGObjectsChunks = isChunks;
-	}
+bool Generator::ShouldDumpArrays() const
+{
+	return false;
+}
 
-	bool GetIsGObjectsChunks() const override
-	{
-		return isGObjectsChunks;
-	}
-};
+bool Generator::ShouldGenerateEmptyFiles() const
+{
+	return false;
+}
 
-Generator _generator;
-IGenerator* generator = &_generator;
+bool Generator::ShouldUseStrings() const
+{
+	return true;
+}
+
+bool Generator::ShouldXorStrings() const
+{
+	return false;
+}
+
+bool Generator::ShouldConvertStaticMethods() const
+{
+	return true;
+}

@@ -114,9 +114,6 @@
     <ClInclude Include="SdkGen\Engine\NamesStore.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="SdkGen\Engine\IGenerator.h">
-      <Filter>SdkGen\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.h">
       <Filter>SdkGen\Engine\UE4</Filter>
     </ClInclude>
@@ -216,6 +213,12 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SdkGen\Generator.h">
+      <Filter>SdkGen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -281,9 +284,6 @@
     <ClCompile Include="SdkGen\Engine\PrintHelper.cpp">
       <Filter>SdkGen\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="SdkGen\MainGenerator.cpp">
-      <Filter>SdkGen</Filter>
-    </ClCompile>
     <ClCompile Include="SdkGen\Engine\UE4\PackageCore.cpp">
       <Filter>SdkGen\Engine\UE4</Filter>
     </ClCompile>
@@ -322,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="HttpWorker.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="SdkGen\Generator.cpp">
+      <Filter>SdkGen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

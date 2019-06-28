@@ -5,17 +5,8 @@
 #include "Logger.h"
 #include "ObjectsStore.h"
 #include "NamesStore.h"
-#include "SdkGenerator.h"
-
-#include <cinttypes>
-#include <fstream>
-#include <chrono>
-#include <bitset>
-#include <unordered_set>
-#include <tlhelp32.h>
 #include "ParallelWorker.h"
-
-extern IGenerator* generator;
+#include "SdkGenerator.h"
 
 // ToDo: Instated of crash just popup a msg that's tell the user to use another GObjects address
 
@@ -46,15 +37,15 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	*pObjCount = ObjectsStore().GetObjectsNum();
 
 	// Init Generator Settings
-	if (!generator->Initialize())
+	if (!Utils::GenObj->Initialize())
 	{
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
 		return { GeneratorState::Bad };
 	}
-	generator->SetGameName(gameName);
-	generator->SetGameVersion(gameVersion);
-	generator->SetSdkType(sdkType);
-	generator->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
+	Utils::GenObj->SetGameName(gameName);
+	Utils::GenObj->SetGameVersion(gameVersion);
+	Utils::GenObj->SetSdkType(sdkType);
+	Utils::GenObj->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
 
 	// Get Current Dir
 	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectory());
@@ -69,7 +60,7 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	state = "Dumping (GNames/GObjects).";
 
 	// Dump To Files
-	if (generator->ShouldDumpArrays())
+	if (Utils::GenObj->ShouldDumpArrays())
 	{
 		Dump(outputDirectory, state);
 		state = "Dump (GNames/GObjects) Done.";
@@ -301,12 +292,12 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	os << "// ------------------------------------------------\n";
 
 	os << "#pragma once\n\n"
-		<< tfm::format("// Name: %s, Version: %s\n\n", generator->GetGameName(), generator->GetGameVersion());
+		<< tfm::format("// Name: %s, Version: %s\n\n", Utils::GenObj->GetGameName(), Utils::GenObj->GetGameVersion());
 
 	//Includes
 	os << "#include <set>\n";
 	os << "#include <string>\n";
-	for (auto&& i : generator->GetIncludes())
+	for (auto&& i : Utils::GenObj->GetIncludes())
 	{
 		os << "#include " << i << "\n";
 	}
@@ -334,7 +325,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 						fUObjectItemStr += "\t" + var.Type + " " + var.Name + ";\n";
 				}
 
-				fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", generator->GetIsGObjectsChunks() ? "#define GOBJECTS_CHUNKS" : "");
+				fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", Utils::GenObj->GetIsGObjectsChunks() ? "#define GOBJECTS_CHUNKS" : "");
 				fileText = Utils::ReplaceString(fileText, "/*!!POINTER_SIZE_PLACEHOLDER!!*/", std::to_string(Utils::PointerSize()));
 				fileText = Utils::ReplaceString(fileText, "/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
 			});
@@ -387,7 +378,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	{
 		os << R"(#include "SDK/)" << GenerateFileName(FileContentType::Structs, *package) << "\"\n";
 		os << R"(#include "SDK/)" << GenerateFileName(FileContentType::Classes, *package) << "\"\n";
-		if (generator->ShouldGenerateFunctionParametersFile())
+		if (Utils::GenObj->ShouldGenerateFunctionParametersFile())
 		{
 			os << R"(#include "SDK/)" << GenerateFileName(FileContentType::FunctionParameters, *package) << "\"\n";
 		}

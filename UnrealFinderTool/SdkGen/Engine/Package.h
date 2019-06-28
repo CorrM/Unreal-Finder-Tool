@@ -1,4 +1,6 @@
 #pragma once
+#include "GenericTypes.h"
+
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -7,7 +9,6 @@
 
 namespace fs = std::filesystem;
 
-#include "GenericTypes.h"
 
 class Package
 {
@@ -167,8 +168,8 @@ private:
 	/// </summary>
 	/// <param name="id">The unique name identifier.</param>
 	/// <param name="offset">The offset.</param>
-	/// <param name="size">The size.</param>
-	/// <param name="reason">The reason.</param>
+	/// <param name="type">The type.</param>
+	/// <param name="bits">The bits.</param>
 	/// <returns>A padding member.</returns>
 	static Member CreateBitfieldPadding(size_t id, size_t offset, std::string type, size_t bits);
 
@@ -193,7 +194,7 @@ private:
 
 		std::vector<Member> Members;
 
-		std::vector<IGenerator::PredefinedMethod> PredefinedMethods;
+		std::vector<PredefinedMethod> PredefinedMethods;
 	};
 
 	/// <summary>

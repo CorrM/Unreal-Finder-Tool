@@ -1,14 +1,13 @@
 #pragma once
-#include "Memory.h"
-
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <mutex>
+#include "Generator.h"
 
-namespace fs = std::filesystem;
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
+
 class UiWindow;
+class Memory;
 
 struct MySettings
 {
@@ -64,6 +63,8 @@ public:
 	static MySettings Settings;
 	// Main Memory reader for read game memory props
 	static Memory* MemoryObj;
+	// Main Generator for sdk generator
+	static Generator* GenObj;
 	// Store information about which tools working
 	static WorkingTools WorkingNow;
 
@@ -129,6 +130,8 @@ public:
 	static bool IsValidGObjectsAddress(uintptr_t address, bool* isChunks = nullptr);
 	// Sleep when counter hit each selected ms
 	static void SleepEvery(int ms, int& counter, int every);
+	// Clean heap pointers before close the tool
+	static void CleanUp();
 
 	/// <summary>
 	/// Fix pointer size in struct or class. used for convert 64bit to 32bit pointer.

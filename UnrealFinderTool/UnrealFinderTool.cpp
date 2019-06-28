@@ -13,11 +13,11 @@
 #include "Memory.h"
 #include "Debug.h"
 #include "Scanner.h"
+#include "Generator.h"
 
 #include "Midi/MIDI.h"
 #include "Midi/MIDI_Resource.h"
 
-#include <sstream>
 #include <shellapi.h>
 
 MemoryEditor mem_edit;
@@ -757,13 +757,11 @@ void InformationSectionUi(UiWindow* thiz)
 
 void MemoryInterfaceUi(UiWindow* thiz)
 {
-	ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();
 	}
-	ui::PopStyleColor();
 }
 
 void FinderUi(UiWindow* thiz)
@@ -1142,7 +1140,6 @@ void MainUi(UiWindow* thiz)
 
 	// left-group
 	{
-		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 		if (ui::BeginChild("##left-group", { 320.f - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
 			LeftWidth = ui::GetWindowWidth();
@@ -1166,7 +1163,6 @@ void MainUi(UiWindow* thiz)
 
 			ui::EndChild();
 		}
-		ui::PopStyleColor();
 
 		ui::SameLine();
 		ui::VerticalSeparator();
@@ -1175,7 +1171,6 @@ void MainUi(UiWindow* thiz)
 	
 	// right-group
 	{
-		ui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 		if (ui::BeginChild("##right-group", {Utils::UiMainWindow->GetSize().x - LeftWidth - thiz->GetUiStyle().ItemSpacing.x, 0 }, false))
 		{
 			RightWidth = ui::GetWindowWidth();
@@ -1194,7 +1189,6 @@ void MainUi(UiWindow* thiz)
 
 			ui::EndChild();
 		}
-		ui::PopStyleColor();
 	}
 
 	// Popups
@@ -1258,12 +1252,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		Sleep(1);
 
 	// Cleanup
-	if (Utils::MemoryObj)
-	{
-		Utils::MemoryObj->ResumeProcess();
-		CloseHandle(Utils::MemoryObj->ProcessHandle);
-		delete Utils::MemoryObj;
-	}
+	Utils::CleanUp();
 
 	return ERROR_SUCCESS;
 }

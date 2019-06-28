@@ -1,9 +1,8 @@
 #include "pch.h"
 #include "Memory.h"
 #include "PatternScan.h"
+#include "Utils.h"
 #include "ParallelWorker.h"
-
-#include <future>
 
 Pattern PatternScan::Parse(const std::string& name, const int offset, std::string hexStr, const uchar_t wildcard, const std::string& delimiter)
 {

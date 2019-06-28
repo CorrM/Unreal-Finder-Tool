@@ -1,14 +1,11 @@
 #include "pch.h"
-#include "UiWindow.h"
 #include "ImGUI/imgui_internal.h"
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "IconsFontAwesome.h"
-
-#include <tchar.h>
+#include "Utils.h"
 #include "resource.h"
-#include <functional>
-#include <utility>
+#include "UiWindow.h"
 
 ID3D11Device* UiWindow::gPd3dDevice = nullptr;
 ID3D11DeviceContext* UiWindow::gPd3dDeviceContext = nullptr;
@@ -318,6 +315,7 @@ void UiWindow::SetStyle()
 	style->Colors[ImGuiCol_TextDisabled] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
 	style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
 	style->Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+	style->Colors[ImGuiCol_ChildBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
 	style->Colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 	style->Colors[ImGuiCol_Border] = ImVec4(0.80f, 0.80f, 0.83f, 0.88f);
 	style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);

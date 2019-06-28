@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Scanner.h"
-#include <cassert>
 #include <Tlhelp32.h>
 #include "ParallelWorker.h"
+#include "Utils.h"
 
 using namespace Hyperscan;
 

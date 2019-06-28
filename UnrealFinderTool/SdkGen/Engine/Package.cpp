@@ -6,7 +6,6 @@
 
 #include "tinyformat.h"
 #include "cpplinq.hpp"
-#include "IGenerator.h"
 #include "Logger.h"
 #include "NameValidator.h"
 #include "PatternScan.h"
@@ -16,6 +15,7 @@
 #include "PrintHelper.h"
 #include "ParallelWorker.h"
 #include "Package.h"
+#include "Utils.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 
@@ -96,12 +96,10 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std
 
 bool Package::Save(const fs::path& path) const
 {
-	extern IGenerator* generator;
-
 	using namespace cpplinq;
 
 	//check if package is empty (no enums, structs or classes without members)
-	if (generator->ShouldGenerateEmptyFiles()
+	if (Utils::GenObj->ShouldGenerateEmptyFiles()
 		|| (from(Enums) >> where([](auto && e) { return !e.Values.empty(); }) >> any()
 			|| from(ScriptStructs) >> where([](auto && s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
 			|| from(Classes) >> where([](auto && c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
@@ -125,13 +123,10 @@ bool Package::Save(const fs::path& path) const
 
 bool Package::AddDependency(UEObject* package) const
 {
-	if (package != packageObj)
-	{
-		dependencies.insert(*package);
+	if (package == packageObj) return false;
 
-		return true;
-	}
-	return false;
+	dependencies.insert(*package);
+	return true;
 }
 
 void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<uintptr_t, bool>& processedObjects)
@@ -254,8 +249,6 @@ void Package::GenerateMemberPrerequisites(const UEProperty& first, std::unordere
 
 void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 {
-	extern IGenerator* generator;
-
 	ScriptStruct ss;
 	ss.Name = scriptStructObj.GetName();
 	ss.FullName = scriptStructObj.GetFullName();
@@ -270,7 +263,7 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 	ss.NameCppFull = "struct ";
 
 	//some classes need special alignment
-	const auto alignment = generator->GetClassAlignas(ss.FullName);
+	const auto alignment = Utils::GenObj->GetClassAlignas(ss.FullName);
 	if (alignment != 0)
 	{
 		ss.NameCppFull += tfm::format("alignas(%d) ", alignment);
@@ -308,22 +301,22 @@ void Package::GenerateScriptStruct(const UEScriptStruct& scriptStructObj)
 
 	GenerateMembers(scriptStructObj, offset, properties, ss.Members);
 
-	if (generator->GetSdkType() == SdkType::External)
+	if (Utils::GenObj->GetSdkType() == SdkType::External)
 	{
-		ss.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s ReadAsMe(uintptr_t address)
+		ss.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static %s ReadAsMe(uintptr_t address)
 	{
 		%s ret;
 		%s(address, ret);
 		return ret;
 	})", scriptStructObj.GetNameCpp(), scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
 
-		ss.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
+		ss.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
 	})", Utils::Settings.SdkGen.MemoryWriteType, scriptStructObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 
-	generator->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
+	Utils::GenObj->GetPredefinedClassMethods(scriptStructObj.GetFullName(), ss.PredefinedMethods);
 
 	ScriptStructs.emplace_back(std::move(ss));
 }
@@ -378,8 +371,6 @@ void Package::GenerateConst(const UEConst& constObj)
 
 void Package::GenerateClass(const UEClass& classObj)
 {
-	extern IGenerator* generator;
-
 	Class c;
 	c.Name = classObj.GetName();
 	c.FullName = classObj.GetFullName();
@@ -405,8 +396,8 @@ void Package::GenerateClass(const UEClass& classObj)
 		c.NameCppFull += " : public " + MakeValidName(super.GetNameCpp());
 	}
 
-	std::vector<IGenerator::PredefinedMember> predefinedStaticMembers;
-	if (generator->GetPredefinedClassStaticMembers(c.FullName, predefinedStaticMembers))
+	std::vector<PredefinedMember> predefinedStaticMembers;
+	if (Utils::GenObj->GetPredefinedClassStaticMembers(c.FullName, predefinedStaticMembers))
 	{
 		for (auto&& prop : predefinedStaticMembers)
 		{
@@ -419,8 +410,8 @@ void Package::GenerateClass(const UEClass& classObj)
 		}
 	}
 
-	std::vector<IGenerator::PredefinedMember> predefinedMembers;
-	if (generator->GetPredefinedClassMembers(c.FullName, predefinedMembers))
+	std::vector<PredefinedMember> predefinedMembers;
+	if (Utils::GenObj->GetPredefinedClassMembers(c.FullName, predefinedMembers))
 	{
 		for (auto&& prop : predefinedMembers)
 		{
@@ -454,34 +445,34 @@ void Package::GenerateClass(const UEClass& classObj)
 		GenerateMembers(classObj, offset, properties, c.Members);
 	}
 
-	generator->GetPredefinedClassMethods(c.FullName, c.PredefinedMethods);
+	Utils::GenObj->GetPredefinedClassMethods(c.FullName, c.PredefinedMethods);
 	
-	if (generator->GetSdkType() == SdkType::External)
+	if (Utils::GenObj->GetSdkType() == SdkType::External)
 	{
-		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s ReadAsMe(const uintptr_t address)
+		c.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static %s ReadAsMe(const uintptr_t address)
 	{
 		%s ret;
 		%s(address, ret);
 		return ret;
 	})", classObj.GetNameCpp(), classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryRead)));
-		c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
+		c.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static %s WriteAsMe(const uintptr_t address, %s& toWrite)
 	{
 		return %s(address, toWrite);
 	})", Utils::Settings.SdkGen.MemoryWriteType, classObj.GetNameCpp(), Utils::Settings.SdkGen.MemoryWrite)));
 	}
 	else
 	{
-		if (generator->ShouldUseStrings())
+		if (Utils::GenObj->ShouldUseStrings())
 		{
-			c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static UClass* StaticClass()
+			c.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static UClass* StaticClass()
 	{
 		static auto ptr = UObject::FindClass(%s);
 		return ptr;
-	})", generator->ShouldXorStrings() ? tfm::format("_xor_(\"%s\")", c.FullName) : tfm::format("\"%s\"", c.FullName))));
+	})", Utils::GenObj->ShouldXorStrings() ? tfm::format("_xor_(\"%s\")", c.FullName) : tfm::format("\"%s\"", c.FullName))));
 		}
 		else
 		{
-			c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(R"(	static UClass* StaticClass()
+			c.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(R"(	static UClass* StaticClass()
 	{
 		static auto ptr = UObject::GetObjectCasted<UClass>(%d);
 		return ptr;
@@ -491,8 +482,8 @@ void Package::GenerateClass(const UEClass& classObj)
 		GenerateMethods(classObj, c.Methods);
 
 		//search virtual functions
-		IGenerator::VirtualFunctionPatterns patterns;
-		if (generator->GetVirtualFunctionPatterns(c.FullName, patterns))
+		VirtualFunctionPatterns patterns;
+		if (Utils::GenObj->GetVirtualFunctionPatterns(c.FullName, patterns))
 		{
 			int ptrSize = Utils::PointerSize();
 			uintptr_t vTableAddress = classObj.Object->VfTable;
@@ -526,7 +517,7 @@ void Package::GenerateClass(const UEClass& classObj)
 						auto toFind = scanResult.find(std::get<0>(pattern).Name);
 						if (toFind != scanResult.end() && !toFind->second.empty())
 						{
-							c.PredefinedMethods.push_back(IGenerator::PredefinedMethod::Inline(tfm::format(std::get<1>(pattern), i)));
+							c.PredefinedMethods.push_back(PredefinedMethod::Inline(tfm::format(std::get<1>(pattern), i)));
 							break;
 						}
 					}
@@ -563,8 +554,6 @@ Package::Member Package::CreateBitfieldPadding(const size_t id, const size_t off
 
 void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const std::vector<UEProperty>& properties, std::vector<Member>& members) const
 {
-	extern IGenerator* generator;
-
 	std::unordered_map<std::string, size_t> uniqueMemberNames;
 	size_t unknownDataCounter = 0;
 	UEBoolProperty previousBitfieldProperty;
@@ -635,7 +624,7 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 				previousBitfieldProperty = UEBoolProperty();
 			}
 
-			sp.Name = generator->GetSafeKeywordsName(sp.Name);
+			sp.Name = Utils::GenObj->GetSafeKeywordsName(sp.Name);
 			sp.Flags = static_cast<size_t>(prop.GetPropertyFlags());
 			sp.FlagsString = StringifyFlags(prop.GetPropertyFlags());
 
@@ -665,8 +654,6 @@ void Package::GenerateMembers(const UEStruct& structObj, size_t offset, const st
 
 void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const
 {
-	extern IGenerator* generator;
-
 	//some classes (AnimBlueprintGenerated...) have multiple members with the same name, so filter them out
 	std::unordered_set<std::string> uniqueMethods;
 
@@ -681,7 +668,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 			m.FullName = function.GetFullName();
 			m.Name = MakeValidName(function.GetName());
 
-			m.Name = generator->GetSafeKeywordsName(m.Name);
+			m.Name = Utils::GenObj->GetSafeKeywordsName(m.Name);
 			if (uniqueMethods.find(m.FullName) != std::end(uniqueMethods))
 				continue;
 
@@ -734,7 +721,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 					p.CppType = info.CppType;
 					if (param.IsA<UEBoolProperty>())
 					{
-						p.CppType = generator->GetOverrideType("bool");
+						p.CppType = Utils::GenObj->GetOverrideType("bool");
 					}
 
 					if (p.ParamType == Type::Default)
@@ -749,7 +736,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 						}
 					}
 
-					p.Name = generator->GetSafeKeywordsName(p.Name);
+					p.Name = Utils::GenObj->GetSafeKeywordsName(p.Name);
 
 					parameters.emplace_back(std::make_pair(prop, std::move(p)));
 				}
@@ -769,8 +756,6 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 
 void Package::SaveStructs(const fs::path & path) const
 {
-	extern IGenerator* generator;
-
 	std::ofstream os(path / GenerateFileName(FileContentType::Structs, *this));
 
 	PrintFileHeader(os, true);
@@ -802,8 +787,6 @@ void Package::SaveStructs(const fs::path & path) const
 
 void Package::SaveClasses(const fs::path& path) const
 {
-	extern IGenerator* generator;
-
 	std::ofstream os(path / GenerateFileName(FileContentType::Classes, *this));
 
 	PrintFileHeader(os, true);
@@ -819,14 +802,13 @@ void Package::SaveClasses(const fs::path& path) const
 
 void Package::SaveFunctions(const fs::path & path) const
 {
-	extern IGenerator* generator;
 	using namespace cpplinq;
 
 	// Skip Functions if it's external
-	if (generator->GetSdkType() == SdkType::External)
+	if (Utils::GenObj->GetSdkType() == SdkType::External)
 		return;
 
-	if (generator->ShouldGenerateFunctionParametersFile())
+	if (Utils::GenObj->ShouldGenerateFunctionParametersFile())
 		SaveFunctionParameters(path);
 
 	std::ofstream os(path / GenerateFileName(FileContentType::Functions, *this));
@@ -839,7 +821,7 @@ void Package::SaveFunctions(const fs::path & path) const
 	{
 		for (auto&& m : s.PredefinedMethods)
 		{
-			if (m.MethodType != IGenerator::PredefinedMethod::Type::Inline)
+			if (m.MethodType != PredefinedMethod::Type::Inline)
 			{
 				os << m.Body << "\n\n";
 			}
@@ -850,7 +832,7 @@ void Package::SaveFunctions(const fs::path & path) const
 	{
 		for (auto&& m : c.PredefinedMethods)
 		{
-			if (m.MethodType != IGenerator::PredefinedMethod::Type::Inline)
+			if (m.MethodType != PredefinedMethod::Type::Inline)
 			{
 				os << m.Body << "\n\n";
 			}
@@ -954,7 +936,7 @@ void Package::PrintStruct(std::ostream & os, const ScriptStruct & ss) const
 				os << "\n";
 				for (auto&& m : ss.PredefinedMethods)
 				{
-					if (m.MethodType == IGenerator::PredefinedMethod::Type::Inline)
+					if (m.MethodType == PredefinedMethod::Type::Inline)
 					{
 						os << m.Body;
 					}
@@ -1006,7 +988,7 @@ void Package::PrintClass(std::ostream & os, const Class & c) const
 		os << "\n";
 		for (auto&& m : c.PredefinedMethods)
 		{
-			if (m.MethodType == IGenerator::PredefinedMethod::Type::Inline)
+			if (m.MethodType == PredefinedMethod::Type::Inline)
 			{
 				os << m.Body;
 			}
@@ -1034,14 +1016,12 @@ void Package::PrintClass(std::ostream & os, const Class & c) const
 
 std::string Package::BuildMethodSignature(const Method & m, const Class & c, bool inHeader) const
 {
-	extern IGenerator* generator;
-
 	using namespace cpplinq;
 	using Type = Method::Parameter::Type;
 
 	std::ostringstream ss;
 
-	if (m.IsStatic && inHeader && !generator->ShouldConvertStaticMethods())
+	if (m.IsStatic && inHeader && !Utils::GenObj->ShouldConvertStaticMethods())
 	{
 		ss << "static ";
 	}
@@ -1062,7 +1042,7 @@ std::string Package::BuildMethodSignature(const Method & m, const Class & c, boo
 	{
 		ss << c.NameCpp << "::";
 	}
-	if (m.IsStatic && generator->ShouldConvertStaticMethods())
+	if (m.IsStatic && Utils::GenObj->ShouldConvertStaticMethods())
 	{
 		ss << "STATIC_";
 	}
@@ -1082,8 +1062,6 @@ std::string Package::BuildMethodSignature(const Method & m, const Class & c, boo
 
 std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 {
-	extern IGenerator* generator;
-
 	using namespace cpplinq;
 	using Type = Method::Parameter::Type;
 
@@ -1092,11 +1070,11 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 	//Function Pointer
 	ss << "{\n\tstatic auto fn";
 
-	if (generator->ShouldUseStrings())
+	if (Utils::GenObj->ShouldUseStrings())
 	{
 		ss << " = UObject::FindObject<UFunction>(";
 
-		if (generator->ShouldXorStrings())
+		if (Utils::GenObj->ShouldXorStrings())
 		{
 			ss << "_xor_(\"" << m.FullName << "\")";
 		}
@@ -1113,7 +1091,7 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 	}
 
 	//Parameters
-	if (generator->ShouldGenerateFunctionParametersFile())
+	if (Utils::GenObj->ShouldGenerateFunctionParametersFile())
 	{
 		ss << "\t" << c.NameCpp << "_" << m.Name << "_Params params;\n";
 	}
@@ -1147,7 +1125,7 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 
 	ss << "\n";
 
-	if (m.IsStatic && !generator->ShouldConvertStaticMethods())
+	if (m.IsStatic && !Utils::GenObj->ShouldConvertStaticMethods())
 	{
 		ss << "\tstatic auto defaultObj = StaticClass()->CreateDefaultObject();\n";
 		ss << "\tdefaultObj->ProcessEvent(fn, &params);\n\n";

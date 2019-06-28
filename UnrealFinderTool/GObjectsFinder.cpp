@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "Memory.h"
-#include "GObjectsFinder.h"
 #include "Scanner.h"
 #include "ParallelWorker.h"
+#include "Utils.h"
+#include "GObjectsFinder.h"
 
 /*
  * #NOTES
@@ -32,13 +33,13 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 	if (dwEnd > reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress))
 		dwEnd = reinterpret_cast<uintptr_t>(si.lpMaximumApplicationAddress);
 
-	MEMORY_BASIC_INFORMATION info = { 0 };
+	MEMORY_BASIC_INFORMATION info = { nullptr };
 	std::vector<uintptr_t> mem_block;
 
 	// Cycle through memory based on RegionSize
 	{
 		uintptr_t currentAddress = dwStart;
-		bool exitLoop = false;
+		bool exitLoop;
 
 		do
 		{

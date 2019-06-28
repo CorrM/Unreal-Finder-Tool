@@ -5,7 +5,6 @@
 
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
-#include "IGenerator.h"
 #include "EngineClasses.h"
 
 class UEClass;
@@ -188,11 +187,9 @@ public:
 		bool CanBeReference;
 		std::string CppType = "";
 
-		static Info Create(PropertyType type, size_t size, bool reference, std::string&& cppType)
+		static Info Create(const PropertyType type, const size_t size, const bool reference, std::string&& cppType)
 		{
-			extern IGenerator* generator;
-
-			return { type, size, reference, generator->GetOverrideType(cppType) };
+			return { type, size, reference, Utils::GenObj->GetOverrideType(cppType) };
 		}
 	};
 
