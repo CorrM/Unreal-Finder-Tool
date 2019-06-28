@@ -93,12 +93,6 @@
     <ClInclude Include="JsonReflector.h">
       <Filter>Json</Filter>
     </ClInclude>
-    <ClInclude Include="SdkGen\Engine\cpplinq.hpp">
-      <Filter>SdkGen\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="SdkGen\Engine\tinyformat.h">
-      <Filter>SdkGen\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="SdkGen\Engine\ObjectsStore.h">
       <Filter>SdkGen\Engine</Filter>
     </ClInclude>
@@ -218,6 +212,15 @@
     </ClInclude>
     <ClInclude Include="SdkGen\Generator.h">
       <Filter>SdkGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyformat.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="cpplinq.hpp">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -209,14 +209,14 @@
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="SdkGenerator.h" />
     <ClInclude Include="SdkGen\EngineClasses.h" />
-    <ClInclude Include="SdkGen\Engine\cpplinq.hpp" />
+    <ClInclude Include="cpplinq.hpp" />
     <ClInclude Include="SdkGen\Generator.h" />
     <ClInclude Include="SdkGen\Engine\NamesStore.h" />
     <ClInclude Include="SdkGen\Engine\NameValidator.h" />
     <ClInclude Include="SdkGen\Engine\ObjectsStore.h" />
     <ClInclude Include="SdkGen\Engine\Package.h" />
     <ClInclude Include="SdkGen\Engine\PrintHelper.h" />
-    <ClInclude Include="SdkGen\Engine\tinyformat.h" />
+    <ClInclude Include="tinyformat.h" />
     <ClInclude Include="SdkGen\Engine\UE4\FunctionFlags.h" />
     <ClInclude Include="SdkGen\Engine\UE4\GenericTypes.h" />
     <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.h" />
