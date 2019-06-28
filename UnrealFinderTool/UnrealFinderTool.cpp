@@ -59,7 +59,7 @@ void LoadOverrideEngine()
 
 void CheckLastVer()
 {
-	std::string lastVer;
+	std::wstring lastVer;
 
 	auto requestTask = HttpWorker::Get(L"https://github.com/CorrM/Unreal-Finder-Tool/releases/latest")
 	.then([&](http_response response)
@@ -73,16 +73,16 @@ void CheckLastVer()
 	try
 	{
 		requestTask.wait();
-		if (lastVer != TOOL_VERSION)
+		if (lastVer != std::wstring(U(TOOL_VERSION)))
 		{
-			MessageBox(Utils::UiMainWindow->GetWindowHandle(),
+			MessageBoxW(Utils::UiMainWindow->GetWindowHandle(),
 				(
-					"There is a new version of this tool.\n"s
-					"Your Version : " TOOL_VERSION + ".\n"
-					"New Version : " + lastVer + ".\n\n"
-					"Recommended to use last version.\nTo download :\nMenuButton->Help->Last version."
+					L"There is a new version of this tool.\n"s
+					L"Your Version : " TOOL_VERSION + ".\n"
+					L"New Version : " + lastVer + ".\n\n"
+					L"Recommended to use last version.\nTo download :\nMenuButton->Help->Last version."
 					).c_str(),
-				"New Version",
+				L"New Version",
 				MB_OK | MB_ICONINFORMATION);
 		}
 	}
@@ -1204,7 +1204,7 @@ void MainUi(UiWindow* thiz)
 
 // Fix vs2019 Problem [wWinMain instead of WinMain]
 // ReSharper disable once CppInconsistentNaming
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)  // NOLINT(readability-non-const-parameter)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) // NOLINT(readability-non-const-parameter)
 {
 	// Remove unneeded variables
 	UNREFERENCED_PARAMETER(hInstance);

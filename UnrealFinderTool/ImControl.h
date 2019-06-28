@@ -2,8 +2,8 @@
 #include "ImGUI/imgui.h"
 #include <vector>
 
-#define TOOL_VERSION "3.1.0"
-#define TOOL_VERSION_TITLE "Atomic edition"
+#define TOOL_VERSION "3.2.0"
+#define TOOL_VERSION_TITLE "SDK PULLER"
 
 #define IM_COL4(R, G, B, A) ImVec4((float)R / 255.f, (float)G / 255.f, (float)B / 255.f, (float)A / 255.f)
 
