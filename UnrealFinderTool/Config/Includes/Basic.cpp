@@ -8,7 +8,7 @@ void InitSdk(const std::string& moduleName, const size_t gObjectsOffset, const s
 {
 	auto mBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandleA(moduleName.c_str()));
 
-	UObject::GObjects = reinterpret_cast<SDK::FUObjectArray*>(mBaseAddress + gObjectsOffset);
+	UObject::GObjects = reinterpret_cast<SDK::FUObjectArray*>(mBaseAddress + gObjectsOffset - 0x10);
 	FName::GNames = reinterpret_cast<SDK::TNameEntryArray*>(mBaseAddress + gNamesOffset);
 }
 //---------------------------------------------------------------------------

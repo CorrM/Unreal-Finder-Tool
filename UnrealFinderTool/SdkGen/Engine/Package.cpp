@@ -53,7 +53,7 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std
 		// Wait to get package object's, just to use 6 threads instead of 12 thread
 		std::lock_guard lock(packageLocker);
 
-		ParallelQueue<GObjects, ObjectItem>
+		ParallelQueue<GObjectContainer<UEObject>, ObjectItem>
 		worker(ObjectsStore::GObjObjects, 0, Utils::Settings.SdkGen.Threads, [&](ObjectItem& curObj, ParallelOptions& options)
 		{
 			UEObject* obj = curObj.second.get();

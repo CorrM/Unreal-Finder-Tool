@@ -31,7 +31,7 @@ bool Generator::Initialize()
 		virtualFunctionPattern["Class CoreUObject.Object"] =
 		{
 			{ 
-				PatternScan::Parse("ProcessEvent", 0, "FF FF FF FF FF", 0xFE),
+				PatternScan::Parse("ProcessEvent", 0, "40 55 56 57 41 54 41 55 41 56 41 57", 0xFF),
 				R"(	inline void ProcessEvent(class UFunction* function, void* parms)
 	{
 		return GetVFunction<void(*)(UObject*, class UFunction*, void*)>(this, %d)(this, function, parms);

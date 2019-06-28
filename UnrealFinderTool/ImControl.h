@@ -85,6 +85,10 @@ inline bool sg_module_disabled = false;
 inline std::vector<std::string> sg_module_items;
 inline int sg_module_item_current = 0;
 
+inline bool sg_lang_disabled = false;
+inline std::vector<std::string> sg_lang_items = { "C++" };
+inline int sg_lang_item_current = 0;
+
 inline bool sg_game_name_disabled = false;
 inline std::string sg_game_name_buf;
 
@@ -106,14 +110,17 @@ static void DisabledAll()
 
 	g_objects_disabled = true;
 	g_names_disabled = true;
+
 	class_find_disabled = true;
 	class_find_input_disabled = true;
 
 	il_start_disabled = true;
-	sg_start_disabled = true;
+
+	sg_module_disabled = true;
 	sg_type_disabled = true;
 	sg_game_name_disabled = true;
 	sg_game_version_disabled = true;
+	sg_start_disabled = true;
 }
 
 static void EnabledAll()
@@ -124,11 +131,12 @@ static void EnabledAll()
 	class_find_input_disabled = false;
 
 	il_start_disabled = false;
-	sg_start_disabled = false;
 
+	sg_module_disabled = false;
 	sg_type_disabled = false;
 	sg_game_name_disabled = false;
 	sg_game_version_disabled = false;
+	sg_start_disabled = false;
 }
 
 static bool VectorGetter(void* vec, const int idx, const char** out_text)

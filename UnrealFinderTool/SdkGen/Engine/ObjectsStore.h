@@ -6,7 +6,8 @@
 class ObjectsIterator;
 class Memory;
 
-using GObjects = UnsortedMap<uintptr_t, std::unique_ptr<UEObject>>;
+template<typename ObjType>
+using GObjectContainer = UnsortedMap<uintptr_t, std::unique_ptr<ObjType>>;
 
 struct GObjectInfo
 {
@@ -29,7 +30,7 @@ class ObjectsStore
 
 public:
 	static GObjectInfo GInfo;
-	static GObjects GObjObjects;
+	static GObjectContainer<UEObject> GObjObjects;
 
 	/// <summary>
 	/// Initializes this object.
@@ -38,6 +39,7 @@ public:
 	/// true if it succeeds, false if it fails.
 	/// </returns>
 	static bool Initialize(uintptr_t gObjAddress, bool forceReInit = true);
+
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
 	static uintptr_t GetAddress();
@@ -74,8 +76,7 @@ public:
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
-	template<class T>
-	size_t CountObjects(const std::string& name) const;
+	template<class T> size_t CountObjects(const std::string& name) const;
 
 	ObjectsIterator begin();
 	ObjectsIterator begin() const;

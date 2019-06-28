@@ -6,7 +6,7 @@
 #include <cassert>
 
 GObjectInfo ObjectsStore::GInfo;
-GObjects ObjectsStore::GObjObjects;
+GObjectContainer<UEObject> ObjectsStore::GObjObjects;
 
 #pragma region ObjectsStore
 bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReInit)

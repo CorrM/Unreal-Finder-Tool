@@ -33,6 +33,44 @@ CMIDI* MidiPlayer = nullptr;
 void BeforeWork()
 {
 	DisabledAll();
+
+	// Get JsonEngine to override
+	for (size_t i = 0; i < unreal_versions.size(); i++)
+	{
+		std::string toLowerTitle = window_title;
+		std::string toLowerJson = unreal_versions[i];
+
+		std::transform(toLowerTitle.begin(), toLowerTitle.end(), toLowerTitle.begin(), ::tolower);
+		std::transform(toLowerJson.begin(), toLowerJson.end(), toLowerJson.begin(), ::tolower);
+
+		if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
+			Utils::ContainsString(toLowerTitle, toLowerJson))
+		{
+			ue_selected_version = i;
+			break;
+		}
+	}
+
+	// Get Game Window Title
+	if (process_id != NULL && Memory::IsValidProcess(process_id))
+	{
+		Utils::DetectUnrealGame(window_title);
+		if (!window_title.empty())
+		{
+			sg_game_name_buf = window_title;
+		}
+	}
+
+	// Get Game Modules
+	if (sg_module_items.empty())
+	{
+		auto modList = Utils::MemoryObj->GetModuleList();
+		for (auto& mod : modList)
+		{
+			if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
+				sg_module_items.emplace_back(mod.szModule);
+		}
+	}
 }
 
 void AfterWork()
@@ -92,6 +130,33 @@ void CheckLastVer()
 	}
 }
 
+#pragma region Address Viewer
+PBYTE PCurrentAddressData = nullptr;
+int BufSize = 0x200;
+uintptr_t CurrentViewerAddress = uintptr_t(0x0);
+
+MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
+{
+	if (!PCurrentAddressData)
+		return 0;
+
+	return PCurrentAddressData[off];
+}
+
+void GoToAddress(const uintptr_t address)
+{
+	if (Utils::MemoryObj)
+	{
+		// Only alloc once
+		if (!PCurrentAddressData)
+			PCurrentAddressData = new BYTE[BufSize];
+
+		Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
+		CurrentViewerAddress = address;
+	}
+}
+#pragma endregion
+
 #pragma region Memory
 void SetupMemoryStuff(const HANDLE pHandle)
 {
@@ -119,71 +184,9 @@ bool IsReadyToGo()
 		// Setup Memory and lock process
 		SetupMemoryStuff(pHandle);
 
-		// Get JsonEngine to override
-		for (size_t i = 0; i < unreal_versions.size(); i++)
-		{
-			std::string toLowerTitle = window_title;
-			std::string toLowerJson = unreal_versions[i];
-
-			std::transform(toLowerTitle.begin(), toLowerTitle.end(), toLowerTitle.begin(), ::tolower);
-			std::transform(toLowerJson.begin(), toLowerJson.end(), toLowerJson.begin(), ::tolower);
-
-			if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
-				Utils::ContainsString(toLowerTitle, toLowerJson))
-			{
-				ue_selected_version = i;
-				break;
-			}
-		}
-
-		// Get Game Window Title
-		if (process_id != NULL && Memory::IsValidProcess(process_id))
-		{
-			Utils::DetectUnrealGame(window_title);
-			if (!window_title.empty())
-			{
-				sg_game_name_buf = window_title;
-			}
-		}
-
-		// Get Game Modules
-		auto modList = Utils::MemoryObj->GetModuleList();
-		for (auto& mod : modList)
-		{
-			if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
-				sg_module_items.emplace_back(mod.szModule);
-		}
-
 		return true;
 	}
 	return false;
-}
-#pragma endregion
-
-#pragma region Address Viewer
-PBYTE PCurrentAddressData = nullptr;
-int BufSize = 0x200;
-uintptr_t CurrentViewerAddress = uintptr_t(0x0);
-
-MemoryEditor::u8 AddressViewerReadFn(const MemoryEditor::u8* data, const size_t off)
-{
-	if (!PCurrentAddressData)
-		return 0;
-
-	return PCurrentAddressData[off];
-}
-
-void GoToAddress(const uintptr_t address)
-{
-	if (Utils::MemoryObj)
-	{
-		// Only alloc once
-		if (!PCurrentAddressData)
-			PCurrentAddressData = new BYTE[BufSize];
-
-		Utils::MemoryObj->ReadBytes(address, PCurrentAddressData, BufSize);
-		CurrentViewerAddress = address;
-	}
 }
 #pragma endregion
 
@@ -1031,6 +1034,15 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::SameLine();
 		ui::Text("%d / %d", sg_packages_done_count, sg_packages_count);
 
+		// Sdk Lang
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Lang      : ");
+		ui::SameLine();
+		ui::SetNextItemWidth(RightWidth / 2.3f);
+		ENABLE_DISABLE_WIDGET(ui::Combo("##SdkLang", &sg_lang_item_current, VectorGetter, static_cast<void*>(&sg_lang_items), static_cast<int>(sg_lang_items.size()), 4), sg_lang_disabled);
+		ui::SameLine();
+		HelpMarker("Pick programming language for generated sdk.");
+
 		// Sdk Type
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Sdk Type      : ");
@@ -1047,7 +1059,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::SetNextItemWidth(RightWidth / 2.3f);
 		ENABLE_DISABLE_WIDGET(ui::Combo("##GameModule", &sg_module_item_current, VectorGetter, static_cast<void*>(&sg_module_items), static_cast<int>(sg_module_items.size()), 4), sg_module_disabled);
 		ui::SameLine();
-		HelpMarker("Pick base module for your game.\nThat's for init SDK with.");
+		HelpMarker("Pick base module for your game.\nThat's to put on 'initSDK' function.");
 
 		// Game Name
 		ui::AlignTextToFramePadding();
@@ -1075,7 +1087,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 7, true);
+			static_cast<int>(sg_packages_items.size()), 5, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { RightWidth - 45.f, 0.0f }), sg_start_disabled,
