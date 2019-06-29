@@ -143,6 +143,7 @@ private:
 	{
 		std::string Name;
 		std::string Type;
+		bool IsStatic = false;
 
 		size_t Offset;
 		size_t Size;

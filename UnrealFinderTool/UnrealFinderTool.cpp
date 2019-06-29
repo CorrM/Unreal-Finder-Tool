@@ -1202,6 +1202,12 @@ void SdkGeneratorUi(UiWindow* thiz)
 
 void PatreonSection(UiWindow* thiz)
 {
+	if (ui::Button("ffffff"))
+	{
+		bool gg = Utils::MemoryObj->TerminateProcess();
+		gg;
+	}
+
 	if (ui::BeginChild("last-news", ImVec2(0, thiz->GetSize().y * 0.35f)))
 	{
 		ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_GRIN_HEARTS " Patreon Support");

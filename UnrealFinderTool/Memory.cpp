@@ -236,10 +236,18 @@ bool Memory::SuspendProcess()
 
 bool Memory::ResumeProcess()
 {
-	typedef LONG (NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
+	typedef LONG(NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
 	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
 
 	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
+}
+
+bool Memory::TerminateProcess()
+{
+	typedef LONG(NTAPI* NtTerminateProcess)(IN HANDLE ProcessHandle, NTSTATUS ExitStatus);
+	static auto pfnNtTerminateProcess = reinterpret_cast<NtTerminateProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtTerminateProcess"));
+
+	return NT_SUCCESS(pfnNtTerminateProcess(ProcessHandle, 0));
 }
 
 bool Memory::IsSuspend()
@@ -417,7 +425,7 @@ int Memory::ReadInt(const uintptr_t address)
 	return buffer;
 }
 
-INT64 Memory::ReadInt64(const uintptr_t address)
+int64_t Memory::ReadInt64(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
@@ -446,7 +454,7 @@ INT64 Memory::ReadInt64(const uintptr_t address)
 	return buffer;
 }
 
-UINT32 Memory::ReadUInt(const uintptr_t address)
+uint32_t Memory::ReadUInt(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;
@@ -476,7 +484,7 @@ UINT32 Memory::ReadUInt(const uintptr_t address)
 	return buffer;
 }
 
-UINT64 Memory::ReadUInt64(const uintptr_t address)
+uint64_t Memory::ReadUInt64(const uintptr_t address)
 {
 	if (address == static_cast<uintptr_t>(-1))
 		return -1;

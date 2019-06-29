@@ -405,7 +405,8 @@ void Package::GenerateClass(const UEClass& classObj)
 			p.Offset = 0;
 			p.Size = 0;
 			p.Name = prop.Name;
-			p.Type = "static " + prop.Type;
+			p.Type = prop.Type;
+			p.IsStatic = true;
 			c.Members.push_back(std::move(p));
 		}
 	}
@@ -922,8 +923,9 @@ void Package::PrintStruct(std::ostream & os, const ScriptStruct & ss) const
 
 	//Member
 	os << (from(ss.Members)
-		>> select([](auto && m) {
-			return tfm::format("\t%-50s %-58s// 0x%04X(0x%04X)", m.Type, m.Name + ";", m.Offset, m.Size)
+		>> select([](Member&& m) {
+			return
+			tfm::format("\t%-50s %-58s// 0x%04X(0x%04X)", (m.IsStatic ? "static " + m.Type : m.Type), m.Name + ";", m.Offset, m.Size)
 				+ (!m.Comment.empty() ? " " + m.Comment : "")
 				+ (!m.FlagsString.empty() ? " (" + m.FlagsString + ")" : "");
 			})
@@ -970,7 +972,7 @@ void Package::PrintClass(std::ostream & os, const Class & c) const
 	//Member
 	for (auto&& m : c.Members)
 	{
-		tfm::format(os, "\t%-50s %-58s// 0x%04X(0x%04X)", m.Type, m.Name + ";", m.Offset, m.Size);
+		tfm::format(os, "\t%-50s %-58s// 0x%04X(0x%04X)", (m.IsStatic ? "static " + m.Type : m.Type), m.Name + ";", m.Offset, m.Size);
 		if (!m.Comment.empty())
 		{
 			os << " " << m.Comment;

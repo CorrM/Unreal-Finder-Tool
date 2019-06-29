@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <psapi.h>
+#include <Psapi.h>
 #include <TlHelp32.h>
 #include <vector>
 #pragma comment(lib, "psapi")
@@ -62,6 +62,7 @@ public:
 	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
 	bool SuspendProcess();
 	bool ResumeProcess();
+	bool TerminateProcess();
 	bool IsSuspend();
 
 	template<typename T>
@@ -70,13 +71,13 @@ public:
 	size_t ReadBytes(uintptr_t baseAddress, JsonVar& jsonVar, LPVOID buf);
 	bool ReadBool(uintptr_t address);
 	int ReadInt(uintptr_t address);
-	INT64 ReadInt64(uintptr_t address);
-	UINT32 ReadUInt(uintptr_t address);
-	UINT64 ReadUInt64(uintptr_t address);
+	int64_t ReadInt64(uintptr_t address);
+	uint32_t ReadUInt(uintptr_t address);
+	uint64_t ReadUInt64(uintptr_t address);
 	uintptr_t ReadAddress(uintptr_t address);
 	float ReadFloat(uintptr_t address);
 	std::string ReadText(uintptr_t address);
-	std::string ReadPointerText(const uintptr_t address, int offsets[], int offsetCount);
+	std::string ReadPointerText(uintptr_t address, int offsets[], int offsetCount);
 
 	int ReadPointerInt(uintptr_t address, int offsets[], int offsetCount);
 	float ReadPointerFloat(uintptr_t address, int offsets[], int offsetCount);
