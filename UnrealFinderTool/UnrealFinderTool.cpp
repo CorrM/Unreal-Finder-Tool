@@ -18,6 +18,8 @@
 #include "Midi/MIDI.h"
 #include "Midi/MIDI_Resource.h"
 
+#include "DotNetConnect.h"
+
 #include <shellapi.h>
 
 MemoryEditor mem_edit;
@@ -1202,12 +1204,6 @@ void SdkGeneratorUi(UiWindow* thiz)
 
 void PatreonSection(UiWindow* thiz)
 {
-	if (ui::Button("ffffff"))
-	{
-		bool gg = Utils::MemoryObj->TerminateProcess();
-		gg;
-	}
-
 	if (ui::BeginChild("last-news", ImVec2(0, thiz->GetSize().y * 0.35f)))
 	{
 		ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_GRIN_HEARTS " Patreon Support");
@@ -1361,6 +1357,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Run the new debugging tools
 	Debugging d;
 	d.EnterDebugMode();
+
+	// DotNet Connect
+	DotNetConnect dd(L"..\\CppLang\\bin\\Debug\\x64\\CppLang.dll");
+	dd.Load();
+	auto func = dd.GetFunction<void(__cdecl *)(const TCHAR*, const TCHAR*, const TCHAR*, bool)>("Init");
+	func(Utils::GetExePath().c_str(), "BB"s.c_str(), "CC"s.c_str(), true);
 
 	// Launch the main window
 	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 1050, 530);

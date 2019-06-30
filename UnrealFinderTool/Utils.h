@@ -72,6 +72,7 @@ public:
 	static bool LoadSettings();
 	// Check file Exists
 	static bool FileExists(const std::string& filePath);
+	static bool FileExists(const std::wstring& filePath);
 	// Delete file
 	static bool FileDelete(const std::string& filePath);
 	// Get all files on dir
@@ -88,6 +89,8 @@ public:
 	static bool DirectoryDelete(const std::string& dirPath);
 	// Get Current Directory
 	static std::string GetWorkingDirectory();
+	// Get Current Exe Path
+	static std::string GetExePath();
 	// Load engine structs from `EngineBase.json`
 	static bool LoadEngineCore(std::vector<std::string>& ue_versions_container);
 	// Override engine structs that load form another engine structs, `engineVersion` must look like '4.0.0'

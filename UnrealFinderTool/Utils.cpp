@@ -89,6 +89,12 @@ bool Utils::FileExists(const std::string& filePath)
 	return fs::exists(path);
 }
 
+bool Utils::FileExists(const std::wstring& filePath)
+{
+	fs::path path(filePath);
+	return fs::exists(path);
+}
+
 bool Utils::FileDelete(const std::string& filePath)
 {
 	if (!FileExists(filePath))
@@ -162,18 +168,21 @@ bool Utils::DirectoryDelete(const std::string& dirPath)
 
 std::string Utils::GetWorkingDirectory()
 {
+	return fs::current_path().string();
+}
+
+std::string Utils::GetExePath()
+{
 	// Returned cached copy of path
-	static std::string curDir(260, '\0');
-	if (curDir[0] != '\0')
-		return curDir;
+	static std::string curExePath(260, '\0');
+	if (curExePath[0] != '\0')
+		return curExePath;
 
 	// Get working directory path
-	GetModuleFileName(nullptr, curDir.data(), static_cast<DWORD>(curDir.length()));
+	GetModuleFileName(nullptr, curExePath.data(), static_cast<DWORD>(curExePath.length()));
 
-	fs::path curPath(curDir);
-	curDir = curPath.parent_path().string();
-
-	return curDir;
+	fs::path curPath(curExePath);
+	return curPath.string();
 }
 #pragma endregion
 

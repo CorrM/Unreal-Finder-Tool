@@ -228,6 +228,9 @@
     <ClInclude Include="UnsortedMap.h">
       <Filter>Misc</Filter>
     </ClInclude>
+    <ClInclude Include="DotNetConnect.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -333,6 +336,9 @@
       <Filter>SdkGen</Filter>
     </ClCompile>
     <ClCompile Include="HttpWorker.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="DotNetConnect.cpp">
       <Filter>Misc</Filter>
     </ClCompile>
   </ItemGroup>

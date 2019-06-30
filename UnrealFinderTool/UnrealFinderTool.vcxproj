@@ -179,6 +179,7 @@
   <ItemGroup>
     <ClInclude Include="BypaPH.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DotNetConnect.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="GnamesFinder.h" />
     <ClInclude Include="HttpWorker.h" />
@@ -228,6 +229,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="DotNetConnect.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="GnamesFinder.cpp" />
     <ClCompile Include="HttpWorker.cpp" />

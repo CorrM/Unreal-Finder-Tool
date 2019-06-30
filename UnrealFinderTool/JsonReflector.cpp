@@ -32,6 +32,15 @@ JsonStruct JsonReflector::GetStruct(const std::string& structName)
 	throw std::exception(("Can't find " + structName + " in loaded structs.").c_str());
 }
 
+JsonStruct* JsonReflector::GetStructPtr(TCHAR* structName)
+{
+	auto s = StructsList.find(structName);
+	if (s != StructsList.end())
+		return &s->second;
+
+	return nullptr;
+}
+
 bool JsonReflector::LoadStruct(const std::string& structName, nlohmann::json* jsonObj, const bool overrideOld)
 {
 	// Check is already here

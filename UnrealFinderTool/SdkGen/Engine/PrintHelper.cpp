@@ -31,8 +31,7 @@ std::string GetFileHeader(const std::vector<std::string>& pragmas, const std::ve
 	sstr += tfm::format("// Name: %s, Version: %s\n\n", Utils::GenObj->GetGameName(), Utils::GenObj->GetGameVersion())
 		 + tfm::format("#ifdef _MSC_VER\n\t#pragma pack(push, 0x%X)\n#endif\n\n", Utils::GenObj->GetGlobalMemberAlignment());
 
-	if (!Utils::GenObj->GetNamespaceName().empty())
-		sstr += "namespace " + Utils::GenObj->GetNamespaceName() + "\n{\n";
+	sstr += "namespace " + Utils::GenObj->GetNamespaceName() + "\n{\n";
 
 	return sstr;
 }
