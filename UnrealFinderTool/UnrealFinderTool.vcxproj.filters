@@ -231,6 +231,9 @@
     <ClInclude Include="DotNetConnect.h">
       <Filter>Misc</Filter>
     </ClInclude>
+    <ClInclude Include="Native.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

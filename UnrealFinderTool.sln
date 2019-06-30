@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnrealFinderTool", "UnrealFinderTool\UnrealFinderTool.vcxproj", "{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CppLang", "CppLang\CppLang.csproj", "{15105E17-74E0-40CD-94CA-B2A67145477A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkLang", "SdkLang\SdkLang.csproj", "{15105E17-74E0-40CD-94CA-B2A67145477A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|x86.Build.0 = Release|Win32
 		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.Build.0 = Debug|Any CPU
-		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.Build.0 = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.ActiveCfg = Debug|x64
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.Build.0 = Debug|x64
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.ActiveCfg = Debug|x86
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.Build.0 = Debug|x86
 		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|x64.ActiveCfg = Release|Any CPU

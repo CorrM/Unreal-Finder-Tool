@@ -5,6 +5,7 @@
 #include "Generator.h"
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
+#define EXAPI extern "C" _declspec(dllexport)
 
 class UiWindow;
 class Memory;

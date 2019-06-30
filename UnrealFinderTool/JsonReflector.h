@@ -26,8 +26,6 @@ public:
 	static bool IsStructType(const std::string& typeName);
 	// Read struct form loaded json structs
 	static JsonStruct GetStruct(const std::string& structName);
-	// Read struct form loaded json structs => For C#
-	static JsonStruct* GetStructPtr(TCHAR* structName);
 	// Load all json structs inside `StructsList`
 	static bool Load(nlohmann::json* jsonObj, bool overrideOld = false);
 	// Load all json structs inside `StructsList`, [Using main `JsonObj`]

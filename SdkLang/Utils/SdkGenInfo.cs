@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CppLang
+namespace SdkLang.Utils
 {
     public struct JsonVar
     {
@@ -21,7 +21,7 @@ namespace CppLang
     public struct SdkGenInfo
     {
         public string GameName, GameVersion, NamespaceName;
-        public int MemberAlignment;
-        public bool IsExternal;
+        public int MemberAlignment, PointerSize;
+        public bool IsExternal, IsGObjectsChunks;
     }
 }

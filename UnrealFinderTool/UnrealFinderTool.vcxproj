@@ -202,6 +202,7 @@
     <ClInclude Include="MemoryEditor.h" />
     <ClInclude Include="Midi\MIDI.h" />
     <ClInclude Include="Midi\MIDI_Resource.h" />
+    <ClInclude Include="Native.h" />
     <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
     <ClInclude Include="pch.h" />

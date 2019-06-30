@@ -1359,7 +1359,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	d.EnterDebugMode();
 
 	// DotNet Connect
-	DotNetConnect dd(L"..\\CppLang\\bin\\Debug\\x64\\CppLang.dll");
+	DotNetConnect dd(L"C:\\Users\\CorrM\\source\\repos\\Unreal-Finder-Tool\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll");
 	dd.Load();
 	auto func = dd.GetFunction<void(__cdecl *)(const TCHAR*, const TCHAR*, const TCHAR*, bool)>("Init");
 	func(Utils::GetExePath().c_str(), "BB"s.c_str(), "CC"s.c_str(), true);
