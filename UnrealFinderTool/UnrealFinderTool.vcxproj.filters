@@ -46,6 +46,9 @@
     <Filter Include="Midi">
       <UniqueIdentifier>{936adf0a-284f-46ed-95e9-d9524622ccbf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Misc">
+      <UniqueIdentifier>{c15022a5-7f22-4875-908f-94e1f859ca4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -87,9 +90,6 @@
     <ClInclude Include="SdkGenerator.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="JsonReflector.h">
       <Filter>Json</Filter>
     </ClInclude>
@@ -116,12 +116,6 @@
     </ClInclude>
     <ClInclude Include="SdkGen\Engine\UE4\PropertyFlags.h">
       <Filter>SdkGen\Engine\UE4</Filter>
-    </ClInclude>
-    <ClInclude Include="UnsortedMap.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="ParallelWorker.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="imGUI\imgui.h">
       <Filter>ImGUI</Filter>
@@ -201,9 +195,6 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HttpWorker.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -221,6 +212,21 @@
     </ClInclude>
     <ClInclude Include="cpplinq.hpp">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpWorker.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="ParallelWorker.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="UnsortedMap.h">
+      <Filter>Misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -323,11 +329,11 @@
     <ClCompile Include="Midi\MIDI.cpp">
       <Filter>Midi</Filter>
     </ClCompile>
-    <ClCompile Include="HttpWorker.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="SdkGen\Generator.cpp">
       <Filter>SdkGen</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpWorker.cpp">
+      <Filter>Misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,26 +1,44 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnrealFinderTool", "UnrealFinderTool\UnrealFinderTool.vcxproj", "{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CppLang", "CppLang\CppLang.csproj", "{15105E17-74E0-40CD-94CA-B2A67145477A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Debug|x64.ActiveCfg = Debug|x64
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Debug|x64.Build.0 = Debug|x64
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Debug|x86.ActiveCfg = Debug|Win32
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Debug|x86.Build.0 = Debug|Win32
+		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|Any CPU.ActiveCfg = Release|Win32
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|x64.ActiveCfg = Release|x64
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|x64.Build.0 = Release|x64
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|x86.ActiveCfg = Release|Win32
 		{FE73D2A7-562C-4B4D-B740-162D1DDDFFAB}.Release|x86.Build.0 = Release|Win32
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x64.Build.0 = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Debug|x86.Build.0 = Debug|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|x64.ActiveCfg = Release|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|x64.Build.0 = Release|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|x86.ActiveCfg = Release|Any CPU
+		{15105E17-74E0-40CD-94CA-B2A67145477A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

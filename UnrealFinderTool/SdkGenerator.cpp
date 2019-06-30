@@ -197,7 +197,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		// Get CoreUObject, Some times CoreUObject not the first Package
 		UEObject* coreUObject;
 		int coreUObjectIndex = 0;
-		for (auto i = 0; i < packageObjects.size(); i++)
+		for (size_t i = 0; i < packageObjects.size(); i++)
 		{
 			auto pack = packageObjects[i];
 
@@ -320,7 +320,7 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 					auto var = varContainer.second;
 					std::string type = var.Type;
 					if (Utils::IsNumber(type))
-						fUObjectItemStr += "\t" + std::string("unsigned char ") + var.Name + "[" + type + "]" + ";\n";
+						fUObjectItemStr += "\t" + "unsigned char "s + var.Name + "[" + type + "]" + ";\n";
 					else
 						fUObjectItemStr += "\t" + var.Type + " " + var.Name + ";\n";
 				}

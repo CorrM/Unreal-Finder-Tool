@@ -203,7 +203,6 @@
     <ClInclude Include="Midi\MIDI_Resource.h" />
     <ClInclude Include="ParallelWorker.h" />
     <ClInclude Include="PatternScan.h" />
-    <ClInclude Include="Logger.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
