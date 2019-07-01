@@ -7,31 +7,32 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
 Website | Link
 ------- | ----
-PayPal | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
-patron | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
+PayPal  | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
+patron  | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
 
 ## Features
-Feature | Description
-------- | -----------
-Nice and Easy UI | i use [ImGUI](https://github.com/ocornut/imgui) for easy and beautifully UI
-Find GNames | Find GNames array
-Find GObjects | Find GObjects array
-Instance Logger | Dump GNames and GObjects into file
-Sdk Generator | Generate CPP SDK
-Read/Write Kernel | Read/Write Process memory with Kernel
+| Feature           | Description |
+| ----------------- | ----------- |
+| Nice and Easy UI  | i use [ImGUI](https://github.com/ocornut/imgui) for easy and beautifully UI |
+| Find GNames       | Find GNames array |
+| Find GObjects     | Find GObjects array |
+| Instance Logger   | Dump GNames and GObjects into file |
+| Sdk Generator     | Generate CPP SDK |
+| Read/Write Kernel | Read/Write Process memory with Kernel |
 
 ## Compatibility
-Platform | Game Compatibility
--------- | ------------------
-Windows 64bit | x32 & x64
-Windows 32bit | x32
+
+| Platform      | Game Compatibility |
+| ------------- | ------------------ |
+| Windows 64bit | x32 & x64          |
+| Windows 32bit | x32                |
 
 ## How to use
 This video tell you how to use the tool and dump sdk for ue4 game.
 - Some changes before watch the video.
   - Now you don't need to do any thing about GNames address since now you just need to click `use` button.
 
-[![Youtube Video](/images/youtube_thumbnail.png)](https://www.youtube.com/watch?v=3CjsrnvKtGs)
+[Youtube Video](https://www.youtube.com/watch?v=3CjsrnvKtGs)
 
 ## Screen Shots
 ![ui_1](/images/ui_1.png)
