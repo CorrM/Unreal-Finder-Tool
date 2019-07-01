@@ -4,7 +4,6 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <filesystem>
 #include <mutex>
 
 namespace fs = std::filesystem;
@@ -17,8 +16,6 @@ class Package
 	friend bool operator==(const Package& lhs, const Package& rhs);
 
 public:
-	static std::unordered_map<UEObject, const Package*> PackageMap;
-
 	/// <summary>
 	/// Constructor.
 	/// </summary>
@@ -109,14 +106,20 @@ private:
 	UEObject* packageObj;
 	mutable std::unordered_set<UEObject> dependencies;
 
+	/*
+	 * Constant
+	 */
+	struct Constant
+	{
+		std::string Name;
+		std::string Value;
+	};
 	/// <summary>
 	/// Prints the c++ code of the constant.
 	/// </summary>
 	/// <param name="os">[in] The stream to print to.</param>
 	/// <param name="c">The constant to print.</param>
-	void PrintConstant(std::ostream& os, const std::pair<std::string, std::string>& c) const;
-
-	std::unordered_map<std::string, std::string> constants;
+	void PrintConstant(std::ostream& os, const Constant& c) const;
 
 	/*
 	 * ENUMS
@@ -197,7 +200,6 @@ private:
 		size_t InheritedSize;
 
 		std::vector<Member> Members;
-
 		std::vector<PredefinedMethod> PredefinedMethods;
 	};
 
@@ -253,6 +255,9 @@ private:
 	/// <param name="methods">[out] The methods of the class.</param>
 	void GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const;
 
+	/*
+	 * CLASS
+	 */
 	struct Class : ScriptStruct
 	{
 		std::vector<std::string> VirtualFunctions;
@@ -284,6 +289,8 @@ private:
 	void PrintClass(std::ostream& os, const Class& c) const;
 
 public:
+	static std::unordered_map<UEObject, const Package*> PackageMap;
+	std::vector<Constant> Constants;
 	std::vector<Class> Classes;
 	std::vector<ScriptStruct> ScriptStructs;
 	std::vector<Enum> Enums;

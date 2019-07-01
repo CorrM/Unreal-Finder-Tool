@@ -197,7 +197,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		// Get CoreUObject, Some times CoreUObject not the first Package
 		UEObject* coreUObject;
 		int coreUObjectIndex = 0;
-		for (size_t i = 0; i < packageObjects.size(); i++)
+		for (size_t i = 0; i < packageObjects.size(); ++i)
 		{
 			auto pack = packageObjects[i];
 
@@ -209,12 +209,13 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 			}
 		}
 
+		// Process CoreUObject
 		auto package = std::make_unique<Package>(coreUObject);
 		std::mutex tmp_lock;
 		package->Process(processedObjects, tmp_lock);
 		if (package->Save(sdkPath))
 		{
-			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ "
+			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ " +
 				"C: " + std::to_string(package->Classes.size()) + ", " +
 				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
 				"E: " + std::to_string(package->Enums.size()) + " ]"
@@ -243,7 +244,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		std::lock_guard lock(Utils::MainMutex);
 		++*pPackagesDone;
 
-		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ "
+		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
 			"C: " + std::to_string(package->Classes.size()) + ", " +
 			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
 			"E: " + std::to_string(package->Enums.size()) + " ]"
@@ -312,23 +313,24 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 				{ "<vector>", "<locale>", "<set>" },
 				true,
 				[](std::string& fileText)
-			{
-				std::string fUObjectItemStr;
-				static JsonStruct jStruct = JsonReflector::GetStruct("FUObjectItem");
-				for (const auto& varContainer : jStruct.Vars)
 				{
-					auto var = varContainer.second;
-					std::string type = var.Type;
-					if (Utils::IsNumber(type))
-						fUObjectItemStr += "\t" + "unsigned char "s + var.Name + "[" + type + "]" + ";\n";
-					else
-						fUObjectItemStr += "\t" + var.Type + " " + var.Name + ";\n";
-				}
+					std::string fUObjectItemStr;
+					static JsonStruct jStruct = JsonReflector::GetStruct("FUObjectItem");
+					for (const auto& varContainer : jStruct.Vars)
+					{
+						auto var = varContainer.second;
+						std::string type = var.Type;
+						if (Utils::IsNumber(type))
+							fUObjectItemStr += "\t" + "unsigned char "s + var.Name + "[" + type + "]" + ";\n";
+						else
+							fUObjectItemStr += "\t" + var.Type + " " + var.Name + ";\n";
+					}
 
-				fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", Utils::GenObj->GetIsGObjectsChunks() ? "#define GOBJECTS_CHUNKS" : "");
-				fileText = Utils::ReplaceString(fileText, "/*!!POINTER_SIZE_PLACEHOLDER!!*/", std::to_string(Utils::PointerSize()));
-				fileText = Utils::ReplaceString(fileText, "/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
-			});
+					fileText = Utils::ReplaceString(fileText, "/*!!DEFINE_PLACEHOLDER!!*/", Utils::GenObj->GetIsGObjectsChunks() ? "#define GOBJECTS_CHUNKS" : "");
+					fileText = Utils::ReplaceString(fileText, "/*!!POINTER_SIZE_PLACEHOLDER!!*/", std::to_string(Utils::PointerSize()));
+					fileText = Utils::ReplaceString(fileText, "/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
+				}
+			);
 
 			// Add basics to SDK.h
 			os << "\n#include \"SDK/" << tfm::format("Basic.h") << "\"\n";

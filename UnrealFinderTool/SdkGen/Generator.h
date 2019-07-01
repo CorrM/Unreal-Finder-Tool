@@ -6,8 +6,8 @@
 
 enum class SdkType
 {
-	Internal = 0,
-	External = 1
+	Internal,
+	External
 };
 
 struct PredefinedMember

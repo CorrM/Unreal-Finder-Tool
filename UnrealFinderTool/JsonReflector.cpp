@@ -53,9 +53,12 @@ EXAPI NativeJsonStruct* GetStructPtr(TCHAR* structName)
 		auto ret = new NativeJsonStruct();
 		ret->StructName = const_cast<TCHAR*>(s->second.StructName.c_str());
 		ret->StructSuper = const_cast<TCHAR*>(s->second.StructSuper.c_str());
-		ret->Members = members;
-		ret->MemberSize = sizeof(NativeJsonVar);
-		ret->MembersCount = s->second.Vars.size();
+		ret->Members = StructArray<NativeJsonVar>
+			{
+				members,
+				s->second.Vars.size(),
+				sizeof(NativeJsonVar)
+			};
 
 		return ret;
 	}
@@ -65,7 +68,7 @@ EXAPI NativeJsonStruct* GetStructPtr(TCHAR* structName)
 
 EXAPI void FreeStructPtr(NativeJsonStruct* structPtr)
 {
-	delete[] structPtr->Members;
+	delete[] structPtr->Members.Ptr;
 	delete structPtr;
 }
 

@@ -35,6 +35,7 @@ enum class FileContentType
 /// Generates a file name composed by the game name and the package object.
 /// </summary>
 /// <param name="type">The type of the file.</param>
+/// <param name="package">The type of the file.</param>
 /// <returns>
 /// The generated file name.
 /// </returns>

@@ -31,7 +31,7 @@ namespace SdkLang
             };
 
             IncludePath = LangPath + (GenInfo.IsExternal ? @"\External" : @"\Internal");
-            UftCpp.InitIncludes();
+            new UftCpp().Init();
         }
     }
 }

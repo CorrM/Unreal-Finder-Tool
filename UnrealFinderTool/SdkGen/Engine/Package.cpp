@@ -14,8 +14,8 @@
 #include "FunctionFlags.h"
 #include "PrintHelper.h"
 #include "ParallelWorker.h"
-#include "Package.h"
 #include "Utils.h"
+#include "Package.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 
@@ -100,10 +100,9 @@ bool Package::Save(const fs::path& path) const
 
 	//check if package is empty (no enums, structs or classes without members)
 	if (Utils::GenObj->ShouldGenerateEmptyFiles()
-		|| (from(Enums) >> where([](auto && e) { return !e.Values.empty(); }) >> any()
-			|| from(ScriptStructs) >> where([](auto && s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
-			|| from(Classes) >> where([](auto && c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any()
-			)
+		|| (from(Enums) >> where([](Enum&& e) { return !e.Values.empty(); }) >> any()
+		|| from(ScriptStructs) >> where([](ScriptStruct&& s) { return !s.Members.empty() || !s.PredefinedMethods.empty(); }) >> any()
+		|| from(Classes) >> where([](Class&& c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any())
 		)
 	{
 		SaveStructs(path);
@@ -366,7 +365,8 @@ void Package::GenerateConst(const UEConst& constObj)
 		return;
 	}
 
-	constants[name] = constObj.GetValue();
+	// Constants[name] = Constant{ name, constObj.GetValue() };
+	Constants.emplace_back(name, constObj.GetValue());
 }
 
 void Package::GenerateClass(const UEClass& classObj)
@@ -761,10 +761,10 @@ void Package::SaveStructs(const fs::path & path) const
 
 	PrintFileHeader(os, true);
 
-	if (!constants.empty())
+	if (!Constants.empty())
 	{
 		PrintSectionHeader(os, "Constants");
-		for (auto&& c : constants) { PrintConstant(os, c); }
+		for (auto&& c : Constants) { PrintConstant(os, c); }
 
 		os << "\n";
 	}
@@ -889,12 +889,12 @@ void Package::SaveFunctionParameters(const fs::path & path) const
 	PrintFileFooter(os);
 }
 
-void Package::PrintConstant(std::ostream & os, const std::pair<std::string, std::string> & c) const
+void Package::PrintConstant(std::ostream& os, const Constant& c) const
 {
-	tfm::format(os, "#define CONST_%-50s %s\n", c.first, c.second);
+	tfm::format(os, "#define CONST_%-50s %s\n", c.Name, c.Value);
 }
 
-void Package::PrintEnum(std::ostream & os, const Enum & e) const
+void Package::PrintEnum(std::ostream& os, const Enum& e) const
 {
 	using namespace cpplinq;
 
@@ -905,7 +905,7 @@ void Package::PrintEnum(std::ostream & os, const Enum & e) const
 		<< "\n};\n\n";
 }
 
-void Package::PrintStruct(std::ostream & os, const ScriptStruct & ss) const
+void Package::PrintStruct(std::ostream& os, const ScriptStruct& ss) const
 {
 	using namespace cpplinq;
 
