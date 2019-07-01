@@ -12,7 +12,7 @@ patron | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_
 
 ## Features
 Feature | Description
-------- | -----------
+------- | -------
 Nice and Easy UI | i use [ImGUI](https://github.com/ocornut/imgui) for easy and beautifully UI
 Find GNames | Find GNames array
 Find GObjects | Find GObjects array
@@ -22,7 +22,7 @@ Read/Write Kernel | Read/Write Process memory with Kernel
 
 ## Compatibility
 Platform | Game Compatibility
--------- | ------------------
+-------- | --------
 Windows 64bit | x32 & x64
 Windows 32bit | x32
 
