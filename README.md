@@ -23,8 +23,8 @@ Read/Write Kernel | Read/Write Process memory with Kernel
 ## Compatibility
 Platform | Game Compatibility
 -------- | --------
-Windows 64bit | x32 & x64
-Windows 32bit | x32
+Windows64bit | x32 & x64
+Windows32bit | x32
 
 ## How to use
 This video tell you how to use the tool and dump sdk for ue4 game.
