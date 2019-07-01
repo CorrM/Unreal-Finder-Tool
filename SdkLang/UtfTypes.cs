@@ -13,7 +13,8 @@ namespace SdkLang
     {
         public string GameName, GameVersion, NamespaceName;
         public int MemberAlignment, PointerSize;
-        public bool IsExternal, IsGObjectsChunks;
+        public bool IsExternal, IsGObjectsChunks, ShouldConvertStaticMethods, ShouldUseStrings;
+        public bool ShouldXorStrings, ShouldGenerateFunctionParametersFile;
     }
 
     public struct JsonVar
@@ -81,14 +82,14 @@ namespace SdkLang
     }
     public struct SdkMember
     {
-        public string Name, FullName, FlagsString, Comment;
+        public string Name, Type, FlagsString, Comment;
         public bool IsStatic;
         public size_t Offset, Size, Flags;
 
         public SdkMember(Native.Member nMember)
         {
             Name = nMember.Name.Str;
-            FullName = nMember.FullName.Str;
+            Type = nMember.Type.Str;
             FlagsString = nMember.FlagsString.Str;
             Comment = nMember.Comment.Str;
             IsStatic = nMember.IsStatic;

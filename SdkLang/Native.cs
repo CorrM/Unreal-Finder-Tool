@@ -75,7 +75,7 @@ namespace SdkLang
         public struct Member
         {
             public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr FullName;
+            public CTypes.UftCharPtr Type;
             public bool IsStatic;
             public size_t Offset;
             public size_t Size;

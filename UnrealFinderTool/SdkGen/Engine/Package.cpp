@@ -932,25 +932,25 @@ void Package::PrintStruct(std::ostream& os, const ScriptStruct& ss) const
 		>> concatenate("\n"))
 		<< "\n";
 
-			//Predefined Methods
-			if (!ss.PredefinedMethods.empty())
+	//Predefined Methods
+	if (!ss.PredefinedMethods.empty())
+	{
+		os << "\n";
+		for (auto&& m : ss.PredefinedMethods)
+		{
+			if (m.MethodType == PredefinedMethod::Type::Inline)
 			{
-				os << "\n";
-				for (auto&& m : ss.PredefinedMethods)
-				{
-					if (m.MethodType == PredefinedMethod::Type::Inline)
-					{
-						os << m.Body;
-					}
-					else
-					{
-						os << "\t" << m.Signature << ";";
-					}
-					os << "\n\n";
-				}
+				os << m.Body;
 			}
+			else
+			{
+				os << "\t" << m.Signature << ";";
+			}
+			os << "\n\n";
+		}
+	}
 
-			os << "};\n";
+	os << "};\n";
 }
 
 void Package::PrintClass(std::ostream & os, const Class & c) const
@@ -1016,7 +1016,7 @@ void Package::PrintClass(std::ostream & os, const Class & c) const
 	os << "};\n\n";
 }
 
-std::string Package::BuildMethodSignature(const Method & m, const Class & c, bool inHeader) const
+std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool inHeader) const
 {
 	using namespace cpplinq;
 	using Type = Method::Parameter::Type;
@@ -1029,7 +1029,7 @@ std::string Package::BuildMethodSignature(const Method & m, const Class & c, boo
 	}
 
 	//Return Type
-	auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
+	auto retn = from(m.Parameters) >> where([](Method::Parameter && param) { return param.ParamType == Type::Return; });
 	if (retn >> any())
 	{
 		ss << (retn >> first()).CppType;

@@ -101,7 +101,7 @@ namespace SdkLang.Utils
                 }
             }
             public UftStringArrayPtr(Native.StringArray strArray, bool uniCode = false) 
-                : this(strArray.ArrayPtr, strArray.ArrayCount, uniCode)
+                : this(strArray.Ptr, strArray.Count, uniCode)
             {
             }
 
