@@ -100,6 +100,7 @@ namespace SdkLang
             public StructArray PredefinedMethods; // PredefinedMethod
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct Method
         {
             public struct Parameter
@@ -127,6 +128,7 @@ namespace SdkLang
             public bool IsStatic;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct Class
         {
             // ScriptStruct
@@ -147,6 +149,7 @@ namespace SdkLang
             public StructArray Methods; // Method
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct Package
         {
             public CTypes.UftCharPtr Name;
@@ -154,6 +157,16 @@ namespace SdkLang
             public StructArray Classes; // Class
             public StructArray ScriptStructs; // ScriptStruct
             public StructArray Enums; // Enum
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct UStruct
+        {
+            public CTypes.UftCharPtr Name;
+            public CTypes.UftCharPtr FullName;
+            public CTypes.UftCharPtr CppName;
+
+            public size_t PropertySize;
         }
     }
 }

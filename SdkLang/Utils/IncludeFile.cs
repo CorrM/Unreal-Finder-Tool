@@ -16,8 +16,16 @@ namespace SdkLang.Utils
             TargetLang = targetLang;
             SdkPath = sdkPath;
         }
-        public abstract void Process();
+        public abstract void Process(string includePath);
 
+        public void CreateFile()
+        {
+            File.CreateText($@"{SdkPath}\{FileName()}").Close();
+        }
+        public static void CreateFile(string sdkPah, string fileName)
+        {
+            File.CreateText($@"{sdkPah}\{fileName}").Close();
+        }
         public StringBuilder ReadThisFile(string includePath)
         {
             return new StringBuilder(File.ReadAllText($@"{includePath}\{FileName()}"));
@@ -38,13 +46,9 @@ namespace SdkLang.Utils
         {
             File.AppendAllText($@"{sdkPath}\{fileName}", text);
         }
-        public void CreateFile()
+        public static void WriteToSdk(string sdkPath, string fileName, string text)
         {
-            File.CreateText($@"{SdkPath}\{FileName()}").Close();
-        }
-        public static void CreateFile(string sdkPah, string fileName)
-        {
-            File.CreateText($@"{sdkPah}\{fileName}").Close();
+            File.WriteAllText($@"{sdkPath}\{fileName}", text);
         }
     }
 }

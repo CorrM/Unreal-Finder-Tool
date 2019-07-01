@@ -234,4 +234,18 @@ namespace SdkLang
                 .Select(nVar => new SdkEnum(nVar)).ToList();
         }
     }
+    public struct SdkUStruct
+    {
+        public string Name, FullName, CppName;
+        public size_t PropertySize;
+
+        public SdkUStruct(Native.UStruct nStruct)
+        {
+            Name = nStruct.Name.Str;
+            FullName = nStruct.FullName.Str;
+            CppName = nStruct.CppName.Str;
+
+            PropertySize = nStruct.PropertySize;
+        }
+    }
 }

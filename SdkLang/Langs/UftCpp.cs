@@ -14,23 +14,23 @@ namespace SdkLang.Langs
 {
     public class BasicHeader : IncludeFile<UftCpp>
     {
-        public override string FileName() => "Basic.h";
-        public List<string> Pragmas() => new List<string>() { "warning(disable: 4267)" };
-        public List<string> Include() => new List<string>() { "<vector>", "<locale>", "<set>" };
+        private readonly List<string> _pragmas = new List<string>() { "warning(disable: 4267)" };
+        private readonly List<string> _include = new List<string>() { "<vector>", "<locale>", "<set>" };
 
-        public override void Process()
+        public override string FileName() => "Basic.h";
+        public override void Process(string includePath)
         {
             // Read File
-            var fileStr = ReadThisFile(Main.IncludePath);
+            var fileStr = ReadThisFile(includePath);
 
             // Replace Main stuff
-            fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(Pragmas(), Include(), true));
+            fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_pragmas, _include, true));
             fileStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
 
             var jStruct = UtilsFunctions.GetStruct("FUObjectItem");
             string fUObjectItemStr = string.Empty;
 
-            // Replace Major Stuff
+            // Replace
             foreach (var mem in jStruct.Members)
             {
                 fUObjectItemStr += mem.Type.All(char.IsDigit)
@@ -44,18 +44,46 @@ namespace SdkLang.Langs
 
             // Write File
             CopyToSdk(fileStr);
+
+            // Append To SdkHeader file
+            AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName()}\"\n");
+        }
+    }
+    public class BasicCpp : IncludeFile<UftCpp>
+    {
+        private readonly List<string> _include = new List<string>() { "\"../SDK.h\"", "<Windows.h>" };
+
+        public override string FileName() => "Basic.cpp";
+        public override void Process(string includePath)
+        {
+            // Read File
+            var fileStr = ReadThisFile(includePath);
+
+            // Replace Main stuff
+            fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_include, false));
+            fileStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
+
+            var jStruct = UtilsFunctions.GetStruct("FUObjectItem");
+            string fUObjectItemStr = string.Empty;
+
+            // Replace
+            fileStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", "");
+
+            // Write File
+            CopyToSdk(fileStr);
         }
     }
 
     public class UftCpp : UtfLang
     {
+        #region FileStruct
         public enum FileContentType
         {
             Structs,
             Classes,
             Functions,
             FunctionParameters
-        };
+        }
         public string GetFileHeader(List<string> pragmas, List<string> includes, bool isHeaderFile)
         {
             var genInfo = Main.GenInfo;
@@ -99,7 +127,7 @@ namespace SdkLang.Langs
         }
         public string GetSectionHeader(string name)
         {
-            return 
+            return
                 $"//---------------------------------------------------------------------------\n" +
                 $"// {name}\n" +
                 $"//---------------------------------------------------------------------------\n\n";
@@ -120,8 +148,38 @@ namespace SdkLang.Langs
                     throw new Exception("WHAT IS THIS TYPE .?!!");
             }
         }
+        #endregion
 
         #region BuildMethod
+        public string MakeValidName(string name)
+        {
+            name = name.Replace(' ', '_')
+                .Replace('?', '_')
+                .Replace('+', '_')
+                .Replace('-', '_')
+                .Replace(':', '_')
+                .Replace('/', '_')
+                .Replace('^', '_')
+                .Replace('(', '_')
+                .Replace(')', '_')
+                .Replace('[', '_')
+                .Replace(']', '_')
+                .Replace('<', '_')
+                .Replace('>', '_')
+                .Replace('&', '_')
+                .Replace('.', '_')
+                .Replace('#', '_')
+                .Replace('\\', '_')
+                .Replace('"', '_')
+                .Replace('%', '_');
+
+            if (string.IsNullOrEmpty(name)) return name;
+
+            if (char.IsDigit(name[0]))
+                name = '_' + name;
+
+            return name;
+        }
         public string BuildMethodSignature(SdkMethod m, SdkClass c, bool inHeader)
         {
             string text = string.Empty;
@@ -344,9 +402,12 @@ namespace SdkLang.Langs
         #endregion
 
         #region SavePackage
-        public void SaveStructs(SdkPackage package)
+        public override void SaveStructs(SdkPackage package)
         {
+            // Create file
             string fileName = GenerateFileName(FileContentType.Structs, package.Name);
+
+            // Init File
             IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
             IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(true));
 
@@ -371,24 +432,172 @@ namespace SdkLang.Langs
                     PrintStruct(fileName, ss);
             }
         }
-        public string SaveSdkHeader()
+        public override void SaveClasses(SdkPackage package)
         {
-            string ret =
+            // Create file
+            string fileName = GenerateFileName(FileContentType.Classes, package.Name);
+
+            // Init File
+            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(true));
+
+            if (package.Classes.Count <= 0) return;
+
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetSectionHeader("Classes"));
+            foreach (var c in package.Classes)
+                PrintClass(fileName, c);
+        }
+        public override void SaveFunctions(SdkPackage package)
+        {
+            if (Main.GenInfo.IsExternal)
+                return;
+
+            // Create Function Parameters File
+            if (Main.GenInfo.ShouldGenerateFunctionParametersFile)
+                SaveFunctionParameters(package);
+
+            // ////////////////////////
+
+            // Create Functions file
+            string fileName = GenerateFileName(FileContentType.Functions, package.Name);
+
+            // Init Functions File
+            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, false));
+
+            string text = GetSectionHeader("Functions");
+            foreach (var s in package.ScriptStructs)
+            {
+                foreach (var m in s.PredefinedMethods)
+                {
+                    if (m.MethodType != Native.PredefinedMethod.Type.Inline)
+                        text += $"{m.Body}\n\n";
+                }
+            }
+
+            foreach (var c in package.Classes)
+            {
+                foreach (var m in c.PredefinedMethods)
+                {
+                    if (m.MethodType != Native.PredefinedMethod.Type.Inline)
+                        text += $"{m.Body}\n\n";
+                }
+
+                foreach (var m in c.Methods)
+                {
+                    //Method Info
+                    text += $"// {m.FullName}\n" + $"// ({m.FlagsString})\n";
+
+                    if (m.Parameters.Count > 0)
+                    {
+                        text += $"// Parameters:\n";
+                        foreach (var param in m.Parameters)
+                            text += $"// {param.CppType,-30} {param.Name,-30} ({param.FlagsString})\n";
+                    }
+
+                    text += "\n";
+                    text += BuildMethodSignature(m, c, false) + "\n";
+                    text += BuildMethodBody(c, m) + "\n\n";
+                }
+            }
+
+            text += GetFileFooter();
+
+            // Write the file
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+        }
+        public override void SaveFunctionParameters(SdkPackage package)
+        {
+            // Create file
+            string fileName = GenerateFileName(FileContentType.FunctionParameters, package.Name);
+
+            // Init File
+            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, true));
+
+            // Section
+            string text = GetSectionHeader("Parameters");
+
+            // Method Params
+            foreach (var c in package.Classes)
+            {
+                foreach (var m in c.Methods)
+                {
+                    text += $"// {m.FullName}\n" +
+                            $"struct {c.NameCpp}_{m.Name}_Params\n{{\n";
+
+                    foreach (var param in m.Parameters)
+                        text += $"\t{param.CppType,-50} {param.Name + ";",58} // ({param.FlagsString})\n";
+                    text += "};\n\n";
+                }
+            }
+
+            text += GetFileFooter();
+
+            // Write the file
+            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+        }
+        public override void SdkAfterFinish(List<SdkPackage> packages, List<SdkUStruct> missing)
+        {
+            // Copy Include File
+            new BasicHeader().Process(Main.IncludePath);
+            new BasicCpp().Process(Main.IncludePath);
+
+            string text =
                 $"// ------------------------------------------------\n" +
                 $"// Sdk Generated By ( Unreal Finder Tool By CorrM )\n" +
                 $"// ------------------------------------------------\n" +
+
                 $"#pragma once\n\n" +
                 $"// Name: {Main.GenInfo.GameName}, Version: {Main.GenInfo.GameVersion}\n\n" +
+
                 $"#include <set>\n" +
                 $"#include <string>\n";
 
-            return ret;
+            // Check for missing structs
+            if (missing.Count > 0)
+            {
+                string missingText = string.Empty;
+
+                // Init File
+                IncludeFile<UftCpp>.CreateFile(Path.GetDirectoryName(Main.SdkPath), "MISSING.h");
+
+                foreach (var s in missing)
+                {
+                    IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "MISSING.h", GetFileHeader(true));
+
+                    missingText += $"// {s.FullName}\n// ";
+                    missingText += $"0x{(long)s.PropertySize:X4}\n";
+
+                    missingText += $"struct {MakeValidName(s.CppName)}\n{{\n";
+                    missingText += $"\tunsigned char UnknownData[0x{(long)s.PropertySize:X}];\n}};\n\n";
+                }
+
+                missingText += GetFileFooter();
+                IncludeFile<UftCpp>.WriteToSdk(Path.GetDirectoryName(Main.SdkPath), "MISSING.h", missingText);
+
+                // Append To Sdk Header
+                text += "\n#include \"SDK/MISSING.h\"\n";
+            }
+
+            text += "\n";
+            foreach (var package in packages)
+            {
+                text += $"(#include \"SDK /){GenerateFileName(FileContentType.Structs, package.Name)}\"\n";
+                text += $"(#include \"SDK /){GenerateFileName(FileContentType.Classes, package.Name)}\"\n";
+
+                if (Main.GenInfo.ShouldGenerateFunctionParametersFile)
+                    text += $"(#include \"SDK /){GenerateFileName(FileContentType.FunctionParameters, package.Name)}\"\n";
+            }
+
+            // 
+            IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "SDK.h", text);
         }
         #endregion
 
         public void Init()
         {
-            new BasicHeader().Init(this);
+            new BasicHeader().Init(this, Main.SdkPath);
         }
     }
 }

@@ -335,11 +335,6 @@ std::string Generator::GetNamespaceName() const
 	return "SDK";
 }
 
-std::vector<std::string> Generator::GetIncludes() const
-{
-	return {};
-}
-
 size_t Generator::GetGlobalMemberAlignment() const
 {
 	return sizeof(size_t);

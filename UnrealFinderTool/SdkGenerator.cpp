@@ -298,10 +298,6 @@ void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<
 	//Includes
 	os << "#include <set>\n";
 	os << "#include <string>\n";
-	for (auto&& i : Utils::GenObj->GetIncludes())
-	{
-		os << "#include " << i << "\n";
-	}
 
 	//include the basics
 	{

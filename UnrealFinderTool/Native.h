@@ -126,3 +126,11 @@ struct NativePackage
 	StructArray<NativeScriptStruct> ScriptStructs;
 	StructArray<NativeEnum> Enums;
 };
+
+struct NativeUStruct
+{
+	TCHAR* Name;
+	TCHAR* FullName;
+	TCHAR* CppName;
+	size_t PropertySize;
+};

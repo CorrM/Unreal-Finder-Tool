@@ -166,12 +166,6 @@ public:
 	std::string GetNamespaceName() const;
 
 	/// <summary>
-	/// Gets a list of custom include files which gets inserted in the SDK.
-	/// </summary>
-	/// <returns>The list of include files.</returns>
-	std::vector<std::string> GetIncludes() const;
-
-	/// <summary>
 	/// Gets the member alignment.
 	/// https://msdn.microsoft.com/en-us/library/2e70t5y1.aspx
 	/// </summary>
