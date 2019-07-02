@@ -110,7 +110,7 @@
     <Compile Include="Langs\UftCpp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\UEFunctionFlags.cs" />
-    <Compile Include="Utils\UtfLang.cs" />
+    <Compile Include="Utils\UftLang.cs" />
     <Compile Include="Utils\UtilsFunctions.cs" />
   </ItemGroup>
   <ItemGroup>

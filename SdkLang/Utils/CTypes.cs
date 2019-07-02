@@ -13,7 +13,7 @@ namespace SdkLang.Utils
     public class CTypes
     {
         [DebuggerDisplay("{Str} [ Length: {Length} ]")]
-        public struct UftCharPtr
+        public class UftCharPtr
         {
             public readonly IntPtr Ptr;
 
@@ -33,7 +33,7 @@ namespace SdkLang.Utils
             }
         }
         [DebuggerDisplay("{ToString()} [ Length: {Length} ]")]
-        public struct UftWCharPtr
+        public class UftWCharPtr
         {
             public readonly IntPtr Ptr;
 
@@ -51,23 +51,46 @@ namespace SdkLang.Utils
                 return (Ptr == IntPtr.Zero ? base.ToString() : Marshal.PtrToStringUni(Ptr)) ?? "null";
             }
         }
-        public struct UftArrayPtr
+        public class UftArrayPtr
         {
-            public readonly IntPtr Ptr;
+            public IntPtr Ptr;
             private readonly IntPtr[] _data;
 
+            public bool IsStructArray { get; private set; }
+            public int ItemSize { get; }
             public int Count { get; }
 
+            public UftArrayPtr(IntPtr arrayPtr, IntPtr itemCount, IntPtr itemSize) 
+                : this(arrayPtr, itemCount.ToInt32(), itemSize.ToInt32())
+            {
+
+            }
             public UftArrayPtr(IntPtr arrayPtr, int itemCount, int itemSize)
             {
                 Ptr = arrayPtr;
                 Count = itemCount;
+                ItemSize = itemSize;
                 _data = new IntPtr[Count];
 
+                Init(arrayPtr, false);
+            }
+
+            private void Init(IntPtr arrayPtr, bool isStructArray)
+            {
+                Ptr = arrayPtr;
+                IsStructArray = isStructArray;
                 for (int i = 0; i < Count; i++)
                 {
-                    int offset = i * itemSize;
-                    _data[i] = new IntPtr((IntPtr.Size == 8 ? arrayPtr.ToInt64() : arrayPtr.ToInt32()) + offset);
+                    if (isStructArray)
+                    {
+                        int offset = i * IntPtr.Size;
+                        _data[i] = Marshal.ReadIntPtr(Ptr + offset);
+                    }
+                    else
+                    {
+                        int offset = i * ItemSize;
+                        _data[i] = new IntPtr((IntPtr.Size == 8 ? arrayPtr.ToInt64() : arrayPtr.ToInt32()) + offset);
+                    }
                 }
             }
             public IntPtr this[int index] => GetItemPtr(index);
@@ -75,12 +98,20 @@ namespace SdkLang.Utils
             {
                 return _data[index];
             }
-            public List<TNativeType> ToStructList<TNativeType>()
+            public List<TNativeType> ToPtrStructList<TNativeType>()
             {
-                return _data.Select(item => (TNativeType)new UnmanagedStructure(item, typeof(TNativeType)).Managed).ToList();
+                if (Ptr == IntPtr.Zero)
+                    return new List<TNativeType>();
+
+                Init(Ptr, true);
+
+                return _data
+                    .Where(ptr => ptr != IntPtr.Zero)
+                    .Select(ptr => (TNativeType)new UnmanagedStructure(ptr, typeof(TNativeType)).Managed)
+                    .ToList();
             }
         }
-        public struct UftStringArrayPtr
+        public class UftStringArrayPtr
         {
             public readonly IntPtr Ptr;
             private readonly string[] _data;
@@ -93,16 +124,24 @@ namespace SdkLang.Utils
                 Count = itemCount;
                 _data = new string[Count];
 
-                IntPtr curPtr = arrayPtr;
                 for (int i = 0; i < Count; i++)
                 {
-                    _data[i] = Marshal.PtrToStringAnsi(curPtr);
-                    curPtr += _data[i].Length; // + 1
+                    int offset = i * IntPtr.Size;
+                    if (uniCode)
+                        _data[i] = Marshal.PtrToStringUni(Marshal.ReadIntPtr(Ptr + offset));
+                    else
+                        _data[i] = Marshal.PtrToStringAnsi(Marshal.ReadIntPtr(Ptr + offset));
                 }
             }
             public UftStringArrayPtr(Native.StringArray strArray, bool uniCode = false) 
-                : this(strArray.Ptr, strArray.Count, uniCode)
+                : this(strArray.Ptr, strArray.Count.ToInt32(), uniCode)
             {
+            }
+
+            public UftStringArrayPtr(IntPtr arrayPtr, IntPtr itemCount, bool uniCode = false)
+                : this(arrayPtr, itemCount.ToInt32(), uniCode)
+            {
+
             }
 
             public string this[int index] => GetItem(index);

@@ -16,6 +16,84 @@ class Package
 	friend bool operator==(const Package& lhs, const Package& rhs);
 
 public:
+	struct Constant
+	{
+		std::string Name;
+		std::string Value;
+	};
+	struct Enum
+	{
+		std::string Name;
+		std::string FullName;
+		std::vector<std::string> Values;
+	};
+	struct Member
+	{
+		std::string Name;
+		std::string Type;
+		bool IsStatic = false;
+
+		size_t Offset;
+		size_t Size;
+
+		size_t Flags;
+		std::string FlagsString;
+
+		std::string Comment;
+	};
+	struct ScriptStruct
+	{
+		std::string Name;
+		std::string FullName;
+		std::string NameCpp;
+		std::string NameCppFull;
+
+		size_t Size;
+		size_t InheritedSize;
+
+		std::vector<Member> Members;
+		std::vector<PredefinedMethod> PredefinedMethods;
+	};
+	struct Method
+	{
+		struct Parameter
+		{
+			enum class Type
+			{
+				Default,
+				Out,
+				Return
+			};
+
+			Type ParamType;
+			bool PassByReference;
+			std::string CppType;
+			std::string Name;
+			std::string FlagsString;
+
+			/// <summary>
+			/// Generates a valid type of the property flags.
+			/// </summary>
+			/// <param name="flags">The property flags.</param>
+			/// <param name="type">[out] The parameter type.</param>
+			/// <returns>true if it is a valid type, else false.</returns>
+			static bool MakeType(UEPropertyFlags flags, Type& type);
+		};
+
+		size_t Index;
+		std::string Name;
+		std::string FullName;
+		std::vector<Parameter> Parameters;
+		std::string FlagsString;
+		bool IsNative;
+		bool IsStatic;
+	};
+	struct Class : ScriptStruct
+	{
+		std::vector<std::string> VirtualFunctions;
+		std::vector<Method> Methods;
+	};
+
 	/// <summary>
 	/// Constructor.
 	/// </summary>
@@ -109,11 +187,6 @@ private:
 	/*
 	 * Constant
 	 */
-	struct Constant
-	{
-		std::string Name;
-		std::string Value;
-	};
 	/// <summary>
 	/// Prints the c++ code of the constant.
 	/// </summary>
@@ -124,13 +197,6 @@ private:
 	/*
 	 * ENUMS
 	 */
-	struct Enum
-	{
-		std::string Name;
-		std::string FullName;
-		std::vector<std::string> Values;
-	};
-
 	/// <summary>
 	/// Prints the c++ code of the enum.
 	/// </summary>
@@ -142,21 +208,6 @@ private:
 	/*
 	 * MEMBER
 	 */
-	struct Member
-	{
-		std::string Name;
-		std::string Type;
-		bool IsStatic = false;
-
-		size_t Offset;
-		size_t Size;
-
-		size_t Flags;
-		std::string FlagsString;
-
-		std::string Comment;
-	};
-
 	/// <summary>
 	/// Generates a padding member.
 	/// </summary>
@@ -189,20 +240,6 @@ private:
 	/*
 	 * SCRIPT_STRUCT
 	 */
-	struct ScriptStruct
-	{
-		std::string Name;
-		std::string FullName;
-		std::string NameCpp;
-		std::string NameCppFull;
-
-		size_t Size;
-		size_t InheritedSize;
-
-		std::vector<Member> Members;
-		std::vector<PredefinedMethod> PredefinedMethods;
-	};
-
 	/// <summary>
 	/// Print the C++ code of the structure.
 	/// </summary>
@@ -213,41 +250,6 @@ private:
 	/*
 	 * METHODS
 	 */
-	struct Method
-	{
-		struct Parameter
-		{
-			enum class Type
-			{
-				Default,
-				Out,
-				Return
-			};
-
-			Type ParamType;
-			bool PassByReference;
-			std::string CppType;
-			std::string Name;
-			std::string FlagsString;
-
-			/// <summary>
-			/// Generates a valid type of the property flags.
-			/// </summary>
-			/// <param name="flags">The property flags.</param>
-			/// <param name="type">[out] The parameter type.</param>
-			/// <returns>true if it is a valid type, else false.</returns>
-			static bool MakeType(UEPropertyFlags flags, Type& type);
-		};
-
-		size_t Index;
-		std::string Name;
-		std::string FullName;
-		std::vector<Parameter> Parameters;
-		std::string FlagsString;
-		bool IsNative;
-		bool IsStatic;
-	};
-
 	/// <summary>
 	/// Generates the methods of a class.
 	/// </summary>
@@ -258,11 +260,6 @@ private:
 	/*
 	 * CLASS
 	 */
-	struct Class : ScriptStruct
-	{
-		std::vector<std::string> VirtualFunctions;
-		std::vector<Method> Methods;
-	};
 
 	/// <summary>
 	/// Builds the C++ method signature.

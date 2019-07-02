@@ -7,9 +7,9 @@ class DotNetConnect
 	std::wstring dllPath;
 
 public:
-	explicit DotNetConnect(const std::wstring& dllPath);
+	explicit DotNetConnect();
 	~DotNetConnect();
-	bool Load();
+	bool Load(const std::wstring& dllPath);
 	void Free();
 	template<typename Fn>
 	Fn GetFunction(const std::string& funcName);

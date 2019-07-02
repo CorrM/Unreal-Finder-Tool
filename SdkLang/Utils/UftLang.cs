@@ -9,7 +9,7 @@ using net.r_eg.Conari.Types;
 
 namespace SdkLang.Utils
 {
-    public abstract class UtfLang
+    public abstract class UftLang
     {
         public abstract void SaveStructs(SdkPackage package);
         public abstract void SaveClasses(SdkPackage package);

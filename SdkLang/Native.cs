@@ -15,33 +15,40 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct StructArray
         {
-            public IntPtr Ptr;
-            public size_t Count;
-            public size_t ItemSize;
+            public IntPtr Ptr; // NativeArrayType**
+            public IntPtr Count;
+            public IntPtr ItemSize;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct StringArray
         {
             public IntPtr Ptr;
-            public size_t Count;
+            public IntPtr Count;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct GenInfo
         {
-            public UftCharPtr UftPath;
-            public UftCharPtr SdkPath;
-            public UftCharPtr LangPath;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string UftPath;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string SdkPath;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string LangPath;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string SdkLang;
 
-            public UftCharPtr SdkLang;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string GameName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string GameVersion;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string NamespaceName;
 
-            public UftCharPtr GameName;
-            public UftCharPtr GameVersion;
-            public UftCharPtr NamespaceName;
+            public IntPtr MemberAlignment;
+            public IntPtr PointerSize;
 
-            public size_t MemberAlignment;
-            public size_t PointerSize;
             public bool IsExternal;
             public bool IsGObjectsChunks;
             public bool ShouldConvertStaticMethods;
@@ -53,16 +60,20 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct JsonVar
         {
-            public UftCharPtr Name;
-            public UftCharPtr Type;
-            public size_t Size, Offset;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Type;
+            public IntPtr Size, Offset;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct JsonStruct
         {
-            public UftCharPtr StructName;
-            public UftCharPtr StructSuper;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string StructName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string StructSuper;
             public StructArray Members;
         }
 
@@ -75,50 +86,63 @@ namespace SdkLang
                 Inline
             }
 
-            public UftCharPtr Signature;
-            public UftCharPtr Body;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Signature;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Body;
             public Type MethodType;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Constant
         {
-            public UftCharPtr Name;
-            public UftCharPtr Value;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Value;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Enum
         {
-            public UftCharPtr Name;
-            public UftCharPtr FullName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FullName;
             public StringArray Values;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Member
         {
-            public UftCharPtr Name;
-            public UftCharPtr Type;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Type;
             public bool IsStatic;
-            public size_t Offset;
-            public size_t Size;
-            public size_t Flags;
-            public UftCharPtr FlagsString;
-            public UftCharPtr Comment;
+            public IntPtr Offset;
+            public IntPtr Size;
+            public IntPtr Flags;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FlagsString;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Comment;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct ScriptStruct
         {
-            public UftCharPtr Name;
-            public UftCharPtr Type;
-            public UftCharPtr FullName;
-            public UftCharPtr NameCpp;
-            public UftCharPtr NameCppFull;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FullName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string NameCpp;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string NameCppFull;
 
-            public size_t Size;
-            public size_t InheritedSize;
+            public IntPtr Size;
+            public IntPtr InheritedSize;
 
             public StructArray Members; // Member
             public StructArray PredefinedMethods; // PredefinedMethod
@@ -138,16 +162,22 @@ namespace SdkLang
 
                 public Type ParamType;
                 public bool PassByReference;
-                public UftCharPtr CppType;
-                public UftCharPtr Name;
-                public UftCharPtr FlagsString;
+                [MarshalAs(UnmanagedType.LPStr)]
+                public string CppType;
+                [MarshalAs(UnmanagedType.LPStr)]
+                public string Name;
+                [MarshalAs(UnmanagedType.LPStr)]
+                public string FlagsString;
             }
 
-            public size_t Index;
-            public UftCharPtr Name;
-            public UftCharPtr FullName;
+            public IntPtr Index;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FullName;
             public StructArray Parameters; // Parameter
-            public UftCharPtr FlagsString;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FlagsString;
             public bool IsNative;
             public bool IsStatic;
         }
@@ -156,14 +186,17 @@ namespace SdkLang
         public struct Class
         {
             // ScriptStruct
-            public UftCharPtr Name;
-            public UftCharPtr Type;
-            public UftCharPtr FullName;
-            public UftCharPtr NameCpp;
-            public UftCharPtr NameCppFull;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FullName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string NameCpp;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string NameCppFull;
 
-            public size_t Size;
-            public size_t InheritedSize;
+            public IntPtr Size;
+            public IntPtr InheritedSize;
 
             public StructArray Members; // Member
             public StructArray PredefinedMethods; // PredefinedMethod
@@ -176,7 +209,8 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct Package
         {
-            public UftCharPtr Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
             public StructArray Constants; // Constant
             public StructArray Classes; // Class
             public StructArray ScriptStructs; // ScriptStruct
@@ -186,11 +220,14 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct UStruct
         {
-            public UftCharPtr Name;
-            public UftCharPtr FullName;
-            public UftCharPtr CppName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string Name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string FullName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string CppName;
 
-            public size_t PropertySize;
+            public IntPtr PropertySize;
         }
     }
 }

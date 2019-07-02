@@ -14,8 +14,10 @@
 #include "FunctionFlags.h"
 #include "PrintHelper.h"
 #include "ParallelWorker.h"
-#include "Utils.h"
+#include "DotNetConnect.h"
 #include "Package.h"
+#include "Native.h"
+#include "Utils.h"
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 
@@ -757,6 +759,17 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 
 void Package::SaveStructs(const fs::path & path) const
 {
+	auto func = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
+	if (!func)
+	{
+		MessageBox(nullptr, "Can't Load Func `UftLangSaveStructs`", "ERROR", MB_OK | MB_ICONERROR);
+		throw std::exception("Can't Load Func `UftLangSaveStructs`");
+	}
+
+	NativePackage pack(*this);
+	func(&pack);
+	return;
+
 	std::ofstream os(path / GenerateFileName(FileContentType::Structs, *this));
 
 	PrintFileHeader(os, true);

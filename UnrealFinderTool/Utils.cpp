@@ -3,11 +3,13 @@
 #include "UiWindow.h"
 #include "JsonReflector.h"
 #include "PatternScan.h"
+#include "DotNetConnect.h"
 #include "Utils.h"
 
 Memory* Utils::MemoryObj = nullptr;
 UiWindow* Utils::UiMainWindow = nullptr;
 Generator* Utils::GenObj = new Generator();
+DotNetConnect* Utils::Dnc = new DotNetConnect();
 MySettings Utils::Settings;
 WorkingTools Utils::WorkingNow;
 std::mutex Utils::MainMutex;
@@ -168,18 +170,20 @@ bool Utils::DirectoryDelete(const std::string& dirPath)
 
 std::string Utils::GetWorkingDirectory()
 {
-	return fs::current_path().string();
+	return fs::path(GetExePath()).parent_path().string();
 }
 
 std::string Utils::GetExePath()
 {
 	// Returned cached copy of path
-	static std::string curExePath(260, '\0');
+	static std::string curExePath(1024, '\0');
 	if (curExePath[0] != '\0')
 		return curExePath;
 
 	// Get working directory path
 	GetModuleFileName(nullptr, curExePath.data(), static_cast<DWORD>(curExePath.length()));
+
+	curExePath.resize(curExePath.find('\0'));
 
 	fs::path curPath(curExePath);
 	return curPath.string();
@@ -686,4 +690,5 @@ void Utils::CleanUp()
 	delete MemoryObj;
 	delete UiMainWindow;
 	delete GenObj;
+	delete Dnc;
 }

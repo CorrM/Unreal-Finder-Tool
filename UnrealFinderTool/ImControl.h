@@ -59,13 +59,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = "19379390000"; // { 0 };
+inline char g_objects_buf[18] = "15AFAF90000"; // { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "19378610080"; // { 0 };
+inline char g_names_buf[18] = "15AF9E70080"; // { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 

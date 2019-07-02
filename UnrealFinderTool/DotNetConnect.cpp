@@ -2,9 +2,8 @@
 #include "DotNetConnect.h"
 #include "Utils.h"
 
-DotNetConnect::DotNetConnect(const std::wstring& dllPath): lib(nullptr), freed(false)
+DotNetConnect::DotNetConnect(): lib(nullptr), freed(false)
 {
-	this->dllPath = dllPath;
 }
 
 DotNetConnect::~DotNetConnect()
@@ -13,7 +12,7 @@ DotNetConnect::~DotNetConnect()
 		FreeLibrary(lib);
 }
 
-bool DotNetConnect::Load()
+bool DotNetConnect::Load(const std::wstring& dllPath)
 {
 	if (lib || !Utils::FileExists(dllPath)) return false;
 	lib = LoadLibraryW(dllPath.c_str());
@@ -25,4 +24,5 @@ void DotNetConnect::Free()
 {
 	if (!freed)
 		FreeLibrary(lib);
+	lib = nullptr;
 }

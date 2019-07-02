@@ -7,8 +7,8 @@
 #include "NamesStore.h"
 #include "ParallelWorker.h"
 #include "Native.h"
-#include "DotNetConnect.h"
 #include "SdkGenerator.h"
+#include "DotNetConnect.h"
 
 // ToDo: Instated of crash just popup a msg that's tell the user to use another GObjects address
 
@@ -91,47 +91,38 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 
 bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath)
 {
-	// DotNet Connect
-	DotNetConnect dd(L"C:\\Users\\CorrM\\source\\repos\\Unreal-Finder-Tool\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll");
-	if (!dd.Load())
+	if (!Utils::Dnc->Load(L"C:\\Users\\CorrM\\source\\repos\\Unreal-Finder-Tool\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll"))
 	{
 		MessageBox(nullptr, "Can't Load `SdkLang.dll`.", "ERROR", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	auto sdkLangInit = dd.GetFunction<void(__cdecl*)(NativeGenInfo*)>("SdkLangInit");
+	auto sdkLangInit = Utils::Dnc->GetFunction<void(__cdecl*)(NativeGenInfo*)>("UftLangInit");
 	if (!sdkLangInit)
 	{
 		MessageBox(nullptr, "Can't Load Function `SdkLangInit`.", "ERROR", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	// Init tmp containers
-	auto uftPath = Utils::GetExePath();
-	auto sdkLang = Utils::GenObj->GetSdkLang();
-	auto gameName = Utils::GenObj->GetGameName();
-	auto gameVersion = Utils::GenObj->GetGameVersion();
-	auto namespaceName = Utils::GenObj->GetNamespaceName();
-
-	NativeGenInfo genInfo;
-	genInfo.UftPath = const_cast<TCHAR*>(uftPath.c_str());
-	genInfo.SdkPath = const_cast<TCHAR*>(sdkPath.c_str());
-	genInfo.LangPath = const_cast<TCHAR*>(langPath.c_str());
-
-	genInfo.SdkLang = const_cast<TCHAR*>(sdkLang.c_str());
-
-	genInfo.GameName = const_cast<TCHAR*>(gameName.c_str());
-	genInfo.GameVersion = const_cast<TCHAR*>(gameVersion.c_str());
-	genInfo.NamespaceName = const_cast<TCHAR*>(namespaceName.c_str());
-
-	genInfo.MemberAlignment = Utils::GenObj->GetGlobalMemberAlignment();
-	genInfo.PointerSize = Utils::PointerSize();
-	genInfo.IsExternal = Utils::GenObj->GetSdkType() == SdkType::External;
-	genInfo.IsGObjectsChunks = Utils::GenObj->GetIsGObjectsChunks();
-	genInfo.ShouldConvertStaticMethods = Utils::GenObj->ShouldConvertStaticMethods();
-	genInfo.ShouldUseStrings = Utils::GenObj->ShouldUseStrings();
-	genInfo.ShouldXorStrings = Utils::GenObj->ShouldXorStrings();
-	genInfo.ShouldGenerateFunctionParametersFile = Utils::GenObj->ShouldGenerateFunctionParametersFile();
+	// Init Struct
+	NativeGenInfo genInfo
+	(
+		Utils::GetExePath(),
+		sdkPath,
+		langPath,
+		Utils::GenObj->GetSdkLang(),
+		Utils::GenObj->GetGameName(),
+		Utils::GenObj->GetGameVersion(),
+		Utils::GenObj->GetNamespaceName(),
+		Utils::GenObj->GetGlobalMemberAlignment(),
+		Utils::PointerSize(),
+		Utils::GenObj->GetSdkType() == SdkType::External,
+		Utils::GenObj->GetIsGObjectsChunks(),
+		Utils::GenObj->ShouldConvertStaticMethods(),
+		Utils::GenObj->ShouldUseStrings(),
+		Utils::GenObj->ShouldXorStrings(),
+		Utils::GenObj->ShouldGenerateFunctionParametersFile()
+	);
 
 	sdkLangInit(&genInfo);
 	return true;
@@ -194,7 +185,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
 		{
 			size_t vecSize = ObjectsStore::GObjObjects.size();
-			while (vecSize > index)
+			while (index < vecSize)
 			{
 				UEObject* curObj;
 				// Get current object

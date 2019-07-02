@@ -71,7 +71,7 @@ namespace SdkLang.Langs
         }
     }
 
-    public class UftCpp : UtfLang
+    public class UftCpp : UftLang
     {
         #region FileStruct
         public enum FileContentType
@@ -302,14 +302,15 @@ namespace SdkLang.Langs
                 text += $"\t{e.Values[i],-30} = {i},\n";
 
             text += $"\n}};\n\n";
+
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public void PrintStruct(string fileName, SdkScriptStruct ss)
         {
             string text = $"// {ss.FullName}\n// ";
 
-            if (ss.InheritedSize > 0)
-                text += $"0x{(long)ss.Size - ss.InheritedSize:X4} ({(long)ss.Size:X4} - 0x{(long)ss.InheritedSize:X4})\n";
+            if (ss.InheritedSize.ToInt32() > 0)
+                text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} ({(long)ss.Size:X4} - 0x{(long)ss.InheritedSize:X4})\n";
             else
                 text += $"0x{(long)ss.Size:X4}\n";
 
@@ -319,7 +320,7 @@ namespace SdkLang.Langs
             foreach (var m in ss.Members)
             {
                 text += 
-                    $"\t{(m.IsStatic ? "static " + m.Type : m.Type),-50} {m.Name,-58}; // 0x{(long)m.Offset:X4}(0x{(long)m.Size:X4})" +
+                    $"\t{(m.IsStatic ? "static " + m.Type : m.Type),-50} {m.Name + ";",-58} // 0x{(long)m.Offset:X4}(0x{(long)m.Size:X4})" +
                     (!string.IsNullOrEmpty(m.Comment) ? " " + m.Comment : "") +
                     (!string.IsNullOrEmpty(m.FlagsString) ? " (" + m.FlagsString + ")" : "") +
                     "\n";
@@ -347,8 +348,8 @@ namespace SdkLang.Langs
         {
             string text = $"// {c.FullName}\n// ";
 
-            if (c.InheritedSize > 0)
-                text += $"0x{(long)c.Size - c.InheritedSize:X4} ({(long)c.Size:X4} - 0x{(long)c.InheritedSize:X4})\n";
+            if (c.InheritedSize.ToInt32() > 0)
+                text += $"0x{c.Size.ToInt32() - c.InheritedSize.ToInt32():X4} ({(long)c.Size:X4} - 0x{(long)c.InheritedSize:X4})\n";
             else
                 text += $"0x{(long)c.Size:X4}\n";
 
@@ -426,6 +427,8 @@ namespace SdkLang.Langs
                 foreach (var ss in package.ScriptStructs)
                     PrintStruct(fileName, ss);
             }
+
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileFooter());
         }
         public override void SaveClasses(SdkPackage package)
         {
@@ -441,6 +444,8 @@ namespace SdkLang.Langs
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetSectionHeader("Classes"));
             foreach (var c in package.Classes)
                 PrintClass(fileName, c);
+
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileFooter());
         }
         public override void SaveFunctions(SdkPackage package)
         {

@@ -9,6 +9,7 @@
 
 class UiWindow;
 class Memory;
+class DotNetConnect;
 
 struct MySettings
 {
@@ -68,6 +69,8 @@ public:
 	static Generator* GenObj;
 	// Store information about which tools working
 	static WorkingTools WorkingNow;
+	// Store Connected SdkLang Lib
+	static DotNetConnect* Dnc;
 
 	// Load settings form the file
 	static bool LoadSettings();

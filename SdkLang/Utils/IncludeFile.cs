@@ -5,7 +5,7 @@ using System.IO;
 
 namespace SdkLang.Utils
 {
-    public abstract class IncludeFile<TLang> where TLang : UtfLang
+    public abstract class IncludeFile<TLang> where TLang : UftLang
     {
         public TLang TargetLang { get; private set; }
         public string SdkPath { get; private set; }

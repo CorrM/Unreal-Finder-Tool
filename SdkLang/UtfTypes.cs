@@ -14,24 +14,24 @@ namespace SdkLang
         public string UftPath, SdkPath, LangPath, SdkLang;
 
         public string GameName, GameVersion, NamespaceName;
-        public size_t MemberAlignment, PointerSize;
+        public long MemberAlignment, PointerSize;
         public bool IsExternal, IsGObjectsChunks, ShouldConvertStaticMethods, ShouldUseStrings;
         public bool ShouldXorStrings, ShouldGenerateFunctionParametersFile;
 
         public SdkGenInfo(Native.GenInfo nGenInfo)
         {
-            UftPath = nGenInfo.UftPath.Str;
-            SdkPath = nGenInfo.SdkPath.Str;
-            LangPath = nGenInfo.LangPath.Str;
+            UftPath = nGenInfo.UftPath;
+            SdkPath = nGenInfo.SdkPath;
+            LangPath = nGenInfo.LangPath;
 
-            SdkLang = nGenInfo.SdkLang.Str;
+            SdkLang = nGenInfo.SdkLang;
 
-            GameName = nGenInfo.GameName.Str;
-            GameVersion = nGenInfo.GameVersion.Str;
-            NamespaceName = nGenInfo.NamespaceName.Str;
+            GameName = nGenInfo.GameName;
+            GameVersion = nGenInfo.GameVersion;
+            NamespaceName = nGenInfo.NamespaceName;
 
-            MemberAlignment = nGenInfo.MemberAlignment;
-            PointerSize = nGenInfo.PointerSize;
+            MemberAlignment = nGenInfo.MemberAlignment.ToInt64();
+            PointerSize = nGenInfo.PointerSize.ToInt64();
             IsExternal = nGenInfo.IsExternal;
             IsGObjectsChunks = nGenInfo.IsGObjectsChunks;
             ShouldConvertStaticMethods = nGenInfo.ShouldConvertStaticMethods;
@@ -43,14 +43,14 @@ namespace SdkLang
     public struct JsonVar
     {
         public string Name, Type;
-        public size_t Size, Offset;
+        public IntPtr Size, Offset;
 
         public JsonVar(Native.JsonVar nJsonVar)
         {
-            Name = nJsonVar.Name.Str;
+            Name = nJsonVar.Name;
             Offset = nJsonVar.Offset;
             Size = nJsonVar.Size;
-            Type = nJsonVar.Type.Str;
+            Type = nJsonVar.Type;
 
         }
     }
@@ -61,10 +61,10 @@ namespace SdkLang
 
         public JsonStruct(Native.JsonStruct nStruct)
         {
-            Name = nStruct.StructName.Str;
-            Super = nStruct.StructSuper.Str;
+            Name = nStruct.StructName;
+            Super = nStruct.StructSuper;
 
-            Members = new CTypes.UftArrayPtr(nStruct.Members.Ptr, nStruct.Members.Count, nStruct.Members.ItemSize).ToStructList<Native.JsonVar>()
+            Members = new CTypes.UftArrayPtr(nStruct.Members.Ptr, nStruct.Members.Count.ToInt32(), nStruct.Members.ItemSize.ToInt32()).ToPtrStructList<Native.JsonVar>()
                 .Select(nVar => new JsonVar(nVar)).ToList();
         }
     }
@@ -75,8 +75,8 @@ namespace SdkLang
 
         public SdkPredefinedMethod(Native.PredefinedMethod nPredefined)
         {
-            Signature = nPredefined.Signature.Str;
-            Body = nPredefined.Body.Str;
+            Signature = nPredefined.Signature;
+            Body = nPredefined.Body;
             MethodType = nPredefined.MethodType;
         }
     }
@@ -86,8 +86,8 @@ namespace SdkLang
 
         public SdkConstant(Native.Constant nConstant)
         {
-            Name = nConstant.Name.Str;
-            Value = nConstant.Value.Str;
+            Name = nConstant.Name;
+            Value = nConstant.Value;
         }
     }
     public struct SdkEnum
@@ -98,23 +98,23 @@ namespace SdkLang
 
         public SdkEnum(Native.Enum nEnum)
         {
-            Name = nEnum.Name.Str;
-            FullName = nEnum.FullName.Str;
-            Values = new CTypes.UftStringArrayPtr(nEnum.Values.Ptr, nEnum.Values.Count).ToList();
+            Name = nEnum.Name;
+            FullName = nEnum.FullName;
+            Values = new CTypes.UftStringArrayPtr(nEnum.Values.Ptr, nEnum.Values.Count.ToInt32()).ToList();
         }
     }
     public struct SdkMember
     {
         public string Name, Type, FlagsString, Comment;
         public bool IsStatic;
-        public size_t Offset, Size, Flags;
+        public IntPtr Offset, Size, Flags;
 
         public SdkMember(Native.Member nMember)
         {
-            Name = nMember.Name.Str;
-            Type = nMember.Type.Str;
-            FlagsString = nMember.FlagsString.Str;
-            Comment = nMember.Comment.Str;
+            Name = nMember.Name;
+            Type = nMember.Type;
+            FlagsString = nMember.FlagsString;
+            Comment = nMember.Comment;
             IsStatic = nMember.IsStatic;
             Offset = nMember.Offset;
             Size = nMember.Size;
@@ -123,29 +123,28 @@ namespace SdkLang
     }
     public struct SdkScriptStruct
     {
-        public string Name, Type, FullName, NameCpp, NameCppFull;
-        public size_t Size, InheritedSize;
+        public string Name, FullName, NameCpp, NameCppFull;
+        public IntPtr Size, InheritedSize;
 
         public List<SdkMember> Members;
         public List<SdkPredefinedMethod> PredefinedMethods;
 
         public SdkScriptStruct(Native.ScriptStruct nScriptStruct)
         {
-            Name = nScriptStruct.Name.Str;
-            Type = nScriptStruct.Type.Str;
-            FullName = nScriptStruct.FullName.Str;
-            NameCpp = nScriptStruct.NameCpp.Str;
-            NameCppFull = nScriptStruct.NameCppFull.Str;
+            Name = nScriptStruct.Name;
+            FullName = nScriptStruct.FullName;
+            NameCpp = nScriptStruct.NameCpp;
+            NameCppFull = nScriptStruct.NameCppFull;
 
             Size = nScriptStruct.Size;
             InheritedSize = nScriptStruct.InheritedSize;
 
-            Members = new CTypes.UftArrayPtr(nScriptStruct.Members.Ptr, nScriptStruct.Members.Count, nScriptStruct.Members.ItemSize)
-                .ToStructList<Native.Member>()
+            Members = new CTypes.UftArrayPtr(nScriptStruct.Members.Ptr, nScriptStruct.Members.Count.ToInt32(), nScriptStruct.Members.ItemSize.ToInt32())
+                .ToPtrStructList<Native.Member>()
                 .Select(nVar => new SdkMember(nVar)).ToList();
 
-            PredefinedMethods = new CTypes.UftArrayPtr(nScriptStruct.PredefinedMethods.Ptr, nScriptStruct.PredefinedMethods.Count, nScriptStruct.PredefinedMethods.ItemSize)
-                .ToStructList<Native.PredefinedMethod>()
+            PredefinedMethods = new CTypes.UftArrayPtr(nScriptStruct.PredefinedMethods.Ptr, nScriptStruct.PredefinedMethods.Count.ToInt32(), nScriptStruct.PredefinedMethods.ItemSize.ToInt32())
+                .ToPtrStructList<Native.PredefinedMethod>()
                 .Select(nVar => new SdkPredefinedMethod(nVar)).ToList();
         }
     }
@@ -161,13 +160,13 @@ namespace SdkLang
             {
                 ParamType = nParameter.ParamType;
                 PassByReference = nParameter.PassByReference;
-                CppType = nParameter.CppType.Str;
-                Name = nParameter.Name.Str;
-                FlagsString = nParameter.FlagsString.Str;
+                CppType = nParameter.CppType;
+                Name = nParameter.Name;
+                FlagsString = nParameter.FlagsString;
             }
         }
 
-        public size_t Index;
+        public IntPtr Index;
         public string Name, FullName, FlagsString;
         public List<SdkParameter> Parameters;
         public bool IsNative, IsStatic;
@@ -175,12 +174,12 @@ namespace SdkLang
         public SdkMethod(Native.Method nMethod)
         {
             Index = nMethod.Index;
-            Name = nMethod.Name.Str;
-            FullName = nMethod.FullName.Str;
-            FlagsString = nMethod.FlagsString.Str;
+            Name = nMethod.Name;
+            FullName = nMethod.FullName;
+            FlagsString = nMethod.FlagsString;
 
-            Parameters = new CTypes.UftArrayPtr(nMethod.Parameters.Ptr, nMethod.Parameters.Count, nMethod.Parameters.ItemSize)
-                .ToStructList<Native.Method.Parameter>()
+            Parameters = new CTypes.UftArrayPtr(nMethod.Parameters.Ptr, nMethod.Parameters.Count.ToInt32(), nMethod.Parameters.ItemSize.ToInt32())
+                .ToPtrStructList<Native.Method.Parameter>()
                 .Select(nVar => new SdkParameter(nVar)).ToList();
 
             IsNative = nMethod.IsNative;
@@ -190,10 +189,10 @@ namespace SdkLang
     public struct SdkClass
     {
         // ScriptStruct
-        public string Name, Type, FullName, NameCpp, NameCppFull;
+        public string Name, FullName, NameCpp, NameCppFull;
 
-        public size_t Size;
-        public size_t InheritedSize;
+        public IntPtr Size;
+        public IntPtr InheritedSize;
 
         public List<SdkMember> Members;
         public List<SdkPredefinedMethod> PredefinedMethods;
@@ -204,27 +203,26 @@ namespace SdkLang
 
         public SdkClass(Native.Class nClass)
         {
-            Name = nClass.Name.Str;
-            Type = nClass.Type.Str;
-            FullName = nClass.FullName.Str;
-            NameCpp = nClass.NameCpp.Str;
-            NameCppFull = nClass.NameCppFull.Str;
+            Name = nClass.Name;
+            FullName = nClass.FullName;
+            NameCpp = nClass.NameCpp;
+            NameCppFull = nClass.NameCppFull;
 
             Size = nClass.Size;
             InheritedSize = nClass.InheritedSize;
 
             Members = new CTypes.UftArrayPtr(nClass.Members.Ptr, nClass.Members.Count, nClass.Members.ItemSize)
-                .ToStructList<Native.Member>()
+                .ToPtrStructList<Native.Member>()
                 .Select(nVar => new SdkMember(nVar)).ToList();
 
             PredefinedMethods = new CTypes.UftArrayPtr(nClass.PredefinedMethods.Ptr, nClass.PredefinedMethods.Count, nClass.PredefinedMethods.ItemSize)
-                .ToStructList<Native.PredefinedMethod>()
+                .ToPtrStructList<Native.PredefinedMethod>()
                 .Select(nVar => new SdkPredefinedMethod(nVar)).ToList();
 
             VirtualFunctions = new CTypes.UftStringArrayPtr(nClass.VirtualFunctions.Ptr, nClass.VirtualFunctions.Count).ToList();
 
             Methods = new CTypes.UftArrayPtr(nClass.Methods.Ptr, nClass.Methods.Count, nClass.Methods.ItemSize)
-                .ToStructList<Native.Method>()
+                .ToPtrStructList<Native.Method>()
                 .Select(nVar => new SdkMethod(nVar)).ToList();
         }
     }
@@ -238,35 +236,39 @@ namespace SdkLang
 
         public SdkPackage(Native.Package nPackage)
         {
-            Name = nPackage.Name.Str;
+            Name = nPackage.Name;
 
             Constants = new CTypes.UftArrayPtr(nPackage.Constants.Ptr, nPackage.Constants.Count, nPackage.Constants.ItemSize)
-                .ToStructList<Native.Constant>()
-                .Select(nVar => new SdkConstant(nVar)).ToList();
+                .ToPtrStructList<Native.Constant>()
+                .Select(nVar => new SdkConstant(nVar))
+                .ToList();
 
             Classes = new CTypes.UftArrayPtr(nPackage.Classes.Ptr, nPackage.Classes.Count, nPackage.Classes.ItemSize)
-                .ToStructList<Native.Class>()
-                .Select(nVar => new SdkClass(nVar)).ToList();
+                .ToPtrStructList<Native.Class>()
+                .Select(nVar => new SdkClass(nVar))
+                .ToList();
 
             ScriptStructs = new CTypes.UftArrayPtr(nPackage.ScriptStructs.Ptr, nPackage.ScriptStructs.Count, nPackage.ScriptStructs.ItemSize)
-                .ToStructList<Native.ScriptStruct>()
-                .Select(nVar => new SdkScriptStruct(nVar)).ToList();
+                .ToPtrStructList<Native.ScriptStruct>()
+                .Select(nVar => new SdkScriptStruct(nVar))
+                .ToList();
 
             Enums = new CTypes.UftArrayPtr(nPackage.Enums.Ptr, nPackage.Enums.Count, nPackage.Enums.ItemSize)
-                .ToStructList<Native.Enum>()
-                .Select(nVar => new SdkEnum(nVar)).ToList();
+                .ToPtrStructList<Native.Enum>()
+                .Select(nVar => new SdkEnum(nVar))
+                .ToList();
         }
     }
     public struct SdkUStruct
     {
         public string Name, FullName, CppName;
-        public size_t PropertySize;
+        public IntPtr PropertySize;
 
         public SdkUStruct(Native.UStruct nStruct)
         {
-            Name = nStruct.Name.Str;
-            FullName = nStruct.FullName.Str;
-            CppName = nStruct.CppName.Str;
+            Name = nStruct.Name;
+            FullName = nStruct.FullName;
+            CppName = nStruct.CppName;
 
             PropertySize = nStruct.PropertySize;
         }
