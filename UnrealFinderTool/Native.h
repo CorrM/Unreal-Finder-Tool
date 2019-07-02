@@ -15,6 +15,27 @@ struct StringArray
 	size_t Count;
 };
 
+struct NativeGenInfo
+{
+	TCHAR* UftPath;
+	TCHAR* SdkPath;
+	TCHAR* LangPath;
+
+	TCHAR* SdkLang;
+
+	TCHAR* GameName;
+	TCHAR* GameVersion;
+	TCHAR* NamespaceName;
+	size_t MemberAlignment;
+	size_t PointerSize;
+	bool IsExternal;
+	bool IsGObjectsChunks;
+	bool ShouldConvertStaticMethods;
+	bool ShouldUseStrings;
+	bool ShouldXorStrings;
+	bool ShouldGenerateFunctionParametersFile;
+};
+
 struct NativeJsonVar
 {
 	TCHAR* Name;

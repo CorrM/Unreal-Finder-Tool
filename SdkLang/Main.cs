@@ -4,6 +4,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using net.r_eg.Conari.Types;
 using SdkLang.Langs;
 using SdkLang.Utils;
 
@@ -11,27 +13,16 @@ namespace SdkLang
 {
     public static class Main
     {
-        public static string UftPath { get; set; }
-        public static string SdkPath { get; set; }
-        public static string LangPath { get; set; }
         public static string IncludePath { get; set; }
         public static SdkGenInfo GenInfo { get; set; }
 
-
         [DllExport]
-        public static void Init(CTypes.UftCharPtr uftPath, CTypes.UftCharPtr sdkPath, CTypes.UftCharPtr langPath, bool isExternal)
+        public static void SdkLangInit(IntPtr genInfo)
         {
-            UftPath = uftPath.ToString();
-            SdkPath = sdkPath.ToString();
-            LangPath = langPath.ToString();
+            GenInfo = new SdkGenInfo((Native.GenInfo)new UnmanagedStructure(genInfo, typeof(Native.GenInfo)).Managed);
+            IncludePath = GenInfo.LangPath + (GenInfo.IsExternal ? @"\External" : @"\Internal");
 
-            GenInfo = new SdkGenInfo
-            {
-                IsExternal = isExternal
-            };
-
-            IncludePath = LangPath + (GenInfo.IsExternal ? @"\External" : @"\Internal");
-            new UftCpp().Init();
+            // new UftCpp().Init();
         }
     }
 }

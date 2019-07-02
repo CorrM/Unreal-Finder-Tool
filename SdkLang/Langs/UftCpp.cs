@@ -46,7 +46,7 @@ namespace SdkLang.Langs
             CopyToSdk(fileStr);
 
             // Append To SdkHeader file
-            AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName()}\"\n");
+            AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName()}\"\n");
         }
     }
     public class BasicCpp : IncludeFile<UftCpp>
@@ -62,9 +62,6 @@ namespace SdkLang.Langs
             // Replace Main stuff
             fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_include, false));
             fileStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
-
-            var jStruct = UtilsFunctions.GetStruct("FUObjectItem");
-            string fUObjectItemStr = string.Empty;
 
             // Replace
             fileStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", "");
@@ -108,7 +105,7 @@ namespace SdkLang.Langs
 
             // 
             sb.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
-            sb.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment:X2})\n#endif\n\n");
+            sb.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{(long)genInfo.MemberAlignment:X2})\n#endif\n\n");
             sb.Append($"namespace {genInfo.NamespaceName}\n{{\n");
 
             return sb.ToString();
@@ -284,10 +281,8 @@ namespace SdkLang.Langs
 	        //Return Value
             var ret = m.Parameters.Where(item => item.ParamType == Native.Method.Parameter.Type.Return).ToList();
             if (ret.Any())
-            {
-                foreach (var param in ret)
-                    text += $"\n\treturn params.{ret.First().Name};\n";
-            }
+                text += $"\n\treturn params.{ret.First().Name};\n";
+
             text += "}\n";
 
             return text;
@@ -297,7 +292,7 @@ namespace SdkLang.Langs
         #region Print
         public void PrintConstant(string fileName, SdkConstant c)
         {
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, $"#define CONST_{c.Name,-50} {c.Value}\n");
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, $"#define CONST_{c.Name,-50} {c.Value}\n");
         }
         public void PrintEnum(string fileName, SdkEnum e)
         {
@@ -307,7 +302,7 @@ namespace SdkLang.Langs
                 text += $"\t{e.Values[i],-30} = {i},\n";
 
             text += $"\n}};\n\n";
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public void PrintStruct(string fileName, SdkScriptStruct ss)
         {
@@ -346,7 +341,7 @@ namespace SdkLang.Langs
             }
             text += "};\n";
 
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public void PrintClass(string fileName, SdkClass c)
         {
@@ -397,7 +392,7 @@ namespace SdkLang.Langs
 
             text += "};\n\n";
 
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         #endregion
 
@@ -408,26 +403,26 @@ namespace SdkLang.Langs
             string fileName = GenerateFileName(FileContentType.Structs, package.Name);
 
             // Init File
-            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(true));
+            IncludeFile<UftCpp>.CreateFile(Main.GenInfo.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(true));
 
             if (package.Constants.Count > 0)
             {
-                IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetSectionHeader("Constants"));
+                IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetSectionHeader("Constants"));
                 foreach (var c in package.Constants)
                     PrintConstant(fileName, c);
             }
 
             if (package.Enums.Count > 0)
             {
-                IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetSectionHeader("Enums"));
+                IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetSectionHeader("Enums"));
                 foreach (var e in package.Enums)
                     PrintEnum(fileName, e);
             }
 
             if (package.ScriptStructs.Count > 0)
             {
-                IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetSectionHeader("Script Structs"));
+                IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetSectionHeader("Script Structs"));
                 foreach (var ss in package.ScriptStructs)
                     PrintStruct(fileName, ss);
             }
@@ -438,12 +433,12 @@ namespace SdkLang.Langs
             string fileName = GenerateFileName(FileContentType.Classes, package.Name);
 
             // Init File
-            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(true));
+            IncludeFile<UftCpp>.CreateFile(Main.GenInfo.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(true));
 
             if (package.Classes.Count <= 0) return;
 
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetSectionHeader("Classes"));
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetSectionHeader("Classes"));
             foreach (var c in package.Classes)
                 PrintClass(fileName, c);
         }
@@ -462,8 +457,8 @@ namespace SdkLang.Langs
             string fileName = GenerateFileName(FileContentType.Functions, package.Name);
 
             // Init Functions File
-            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, false));
+            IncludeFile<UftCpp>.CreateFile(Main.GenInfo.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, false));
 
             string text = GetSectionHeader("Functions");
             foreach (var s in package.ScriptStructs)
@@ -504,7 +499,7 @@ namespace SdkLang.Langs
             text += GetFileFooter();
 
             // Write the file
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public override void SaveFunctionParameters(SdkPackage package)
         {
@@ -512,8 +507,8 @@ namespace SdkLang.Langs
             string fileName = GenerateFileName(FileContentType.FunctionParameters, package.Name);
 
             // Init File
-            IncludeFile<UftCpp>.CreateFile(Main.SdkPath, fileName);
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, true));
+            IncludeFile<UftCpp>.CreateFile(Main.GenInfo.SdkPath, fileName);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, true));
 
             // Section
             string text = GetSectionHeader("Parameters");
@@ -535,7 +530,7 @@ namespace SdkLang.Langs
             text += GetFileFooter();
 
             // Write the file
-            IncludeFile<UftCpp>.AppendToSdk(Main.SdkPath, fileName, text);
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public override void SdkAfterFinish(List<SdkPackage> packages, List<SdkUStruct> missing)
         {
@@ -560,11 +555,11 @@ namespace SdkLang.Langs
                 string missingText = string.Empty;
 
                 // Init File
-                IncludeFile<UftCpp>.CreateFile(Path.GetDirectoryName(Main.SdkPath), "MISSING.h");
+                IncludeFile<UftCpp>.CreateFile(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h");
 
                 foreach (var s in missing)
                 {
-                    IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "MISSING.h", GetFileHeader(true));
+                    IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h", GetFileHeader(true));
 
                     missingText += $"// {s.FullName}\n// ";
                     missingText += $"0x{(long)s.PropertySize:X4}\n";
@@ -574,7 +569,7 @@ namespace SdkLang.Langs
                 }
 
                 missingText += GetFileFooter();
-                IncludeFile<UftCpp>.WriteToSdk(Path.GetDirectoryName(Main.SdkPath), "MISSING.h", missingText);
+                IncludeFile<UftCpp>.WriteToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h", missingText);
 
                 // Append To Sdk Header
                 text += "\n#include \"SDK/MISSING.h\"\n";
@@ -591,13 +586,13 @@ namespace SdkLang.Langs
             }
 
             // 
-            IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.SdkPath), "SDK.h", text);
+            IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", text);
         }
         #endregion
 
-        public void Init()
+        public override void Init()
         {
-            new BasicHeader().Init(this, Main.SdkPath);
+            new BasicHeader().Init(this, Main.GenInfo.SdkPath);
         }
     }
 }

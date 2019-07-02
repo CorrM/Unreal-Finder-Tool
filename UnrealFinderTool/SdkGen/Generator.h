@@ -54,6 +54,7 @@ class Generator
 	mutable std::string gameVersion;
 	mutable bool isGObjectsChunks = false;
 	mutable SdkType sdkType = SdkType::Internal;
+	mutable std::string sdkLang;
 
 	std::unordered_map<std::string, size_t> alignasClasses;
 	std::unordered_map<std::string, std::string> badChars;
@@ -111,11 +112,19 @@ public:
 	/// <summary>
 	/// Sets generator type.
 	/// </summary>
-	/// <returns>The version of the game.</returns>
 	void SetSdkType(SdkType sdkType) const;
 
-	void SetIsGObjectsChunks(bool isChunks) const;
+	/// <summary>
+	/// Sets generator Lang (Cpp, C#, etc).
+	/// </summary>
+	void SetSdkLang(const std::string& sdkLang) const;
 
+	/// <summary>
+	/// Gets generator Lang (Cpp, C#, etc).
+	/// </summary>
+	std::string GetSdkLang() const;
+
+	void SetIsGObjectsChunks(bool isChunks) const;
 	bool GetIsGObjectsChunks() const;
 
 	/// <summary>

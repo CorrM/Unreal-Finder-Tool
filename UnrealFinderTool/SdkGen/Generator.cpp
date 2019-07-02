@@ -320,14 +320,24 @@ void Generator::SetGameVersion(const std::string& gameVersion) const
 	this->gameVersion = gameVersion;
 }
 
+void Generator::SetSdkType(const SdkType sdkType) const
+{
+	this->sdkType = sdkType;
+}
+
 SdkType Generator::GetSdkType() const
 {
 	return this->sdkType;
 }
 
-void Generator::SetSdkType(const SdkType sdkType) const
+void Generator::SetSdkLang(const std::string& sdkLang) const
 {
-	this->sdkType = sdkType;
+	this->sdkLang = sdkLang;
+}
+
+std::string Generator::GetSdkLang() const
+{
+	return this->sdkLang;
 }
 
 std::string Generator::GetNamespaceName() const

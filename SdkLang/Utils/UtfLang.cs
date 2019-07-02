@@ -17,5 +17,6 @@ namespace SdkLang.Utils
         public abstract void SaveFunctionParameters(SdkPackage package);
         public abstract void SdkAfterFinish(List<SdkPackage> packages, List<SdkUStruct> missing);
 
+        public abstract void Init();
     }
 }

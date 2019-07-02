@@ -59,13 +59,13 @@ inline int cur_tap_id = 0;
 // => GObjects, GNames, Class
 inline bool g_objects_find_disabled = false;
 inline uintptr_t g_objects_address;
-inline char g_objects_buf[18] = "21C08BC0000"; // { 0 };
+inline char g_objects_buf[18] = "19379390000"; // { 0 };
 inline std::vector<std::string> g_obj_listbox_items;
 inline int g_obj_listbox_item_current = 0;
 
 inline bool g_names_find_disabled = false;
 inline uintptr_t g_names_address;
-inline char g_names_buf[18] = "21C07A80080"; // { 0 };
+inline char g_names_buf[18] = "19378610080"; // { 0 };
 inline std::vector<std::string> g_names_listbox_items;
 inline int g_names_listbox_item_current = 0;
 
@@ -102,11 +102,11 @@ inline std::vector<std::string> sg_module_items;
 inline int sg_module_item_current = 0;
 
 inline bool sg_lang_disabled = false;
-inline std::vector<std::string> sg_lang_items = { "C++" };
+inline std::vector<std::string> sg_lang_items = { "Cpp" };
 inline int sg_lang_item_current = 0;
 
 inline bool sg_game_name_disabled = false;
-inline std::string sg_game_name_buf;
+inline std::string sg_game_name_buf(30, '\0');
 
 inline bool sg_game_version_disabled = false;
 inline int sg_game_version[3] = { 1, 0, 0 };

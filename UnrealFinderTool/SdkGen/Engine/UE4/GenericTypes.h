@@ -55,7 +55,7 @@ public:
 	// Check type in target process (Remote check type)
 	bool IsA(const std::string& typeName) const;
 
-	static int TypeId();
+	static size_t TypeId();
 	static UEObject* GetObjByAddress(uintptr_t address);
 	static UEClass StaticClass();
 };
@@ -85,7 +85,7 @@ public:
 
 	UEField GetNext() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -99,7 +99,7 @@ public:
 
 	std::vector<std::string> GetNames() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -111,7 +111,7 @@ public:
 
 	std::string GetValue() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -129,7 +129,7 @@ public:
 
 	size_t GetPropertySize() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -139,7 +139,7 @@ class UEScriptStruct : public UEStruct
 public:
 	using UEStruct::UEStruct;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -153,7 +153,7 @@ public:
 
 	UEFunctionFlags GetFunctionFlags() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -163,7 +163,7 @@ class UEClass : public UEStruct
 public:
 	using UEStruct::UEStruct;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -211,7 +211,7 @@ public:
 
 	Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -221,7 +221,7 @@ class UENumericProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -239,7 +239,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -251,7 +251,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -263,7 +263,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -275,7 +275,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -287,7 +287,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -299,7 +299,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -311,7 +311,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -323,7 +323,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -333,7 +333,7 @@ class UEFloatProperty : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	UEProperty::Info GetInfo() const;
 
@@ -347,7 +347,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -375,7 +375,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -398,7 +398,7 @@ public:
 
 	UEClass GetPropertyClass() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -410,7 +410,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -426,7 +426,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -442,7 +442,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -454,7 +454,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -466,7 +466,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -478,7 +478,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -494,7 +494,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -506,7 +506,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -522,7 +522,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -534,7 +534,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -546,7 +546,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -562,7 +562,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -579,7 +579,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -595,7 +595,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -611,7 +611,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -628,7 +628,7 @@ public:
 
 	UEProperty::Info GetInfo() const;
 
-	static int TypeId();
+	static size_t TypeId();
 
 	static UEClass StaticClass();
 };
@@ -638,10 +638,10 @@ bool UEObject::IsA() const
 {
 	if (!IsValid()) return false;
 
-	int cmpTypeId = T::TypeId();
+	size_t cmpTypeId = T::TypeId();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
-		if (super.Object->Name.ComparisonIndex == cmpTypeId)
+		if (super.Object->Name.ComparisonIndex == static_cast<int>(cmpTypeId))
 			return true;
 	}
 	return false;

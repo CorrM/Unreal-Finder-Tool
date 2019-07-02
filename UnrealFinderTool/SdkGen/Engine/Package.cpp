@@ -366,7 +366,7 @@ void Package::GenerateConst(const UEConst& constObj)
 	}
 
 	// Constants[name] = Constant{ name, constObj.GetValue() };
-	Constants.emplace_back(name, constObj.GetValue());
+	Constants.push_back({ name, constObj.GetValue() });
 }
 
 void Package::GenerateClass(const UEClass& classObj)
@@ -486,7 +486,7 @@ void Package::GenerateClass(const UEClass& classObj)
 		VirtualFunctionPatterns patterns;
 		if (Utils::GenObj->GetVirtualFunctionPatterns(c.FullName, patterns))
 		{
-			int ptrSize = Utils::PointerSize();
+			size_t ptrSize = Utils::PointerSize();
 			uintptr_t vTableAddress = classObj.Object->VfTable;
 			std::vector<uintptr_t> vTable;
 

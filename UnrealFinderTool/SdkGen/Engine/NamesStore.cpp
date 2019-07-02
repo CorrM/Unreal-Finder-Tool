@@ -22,15 +22,15 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReIni
 
 bool NamesStore::ReadGNameArray(const uintptr_t address)
 {
-	int ptrSize = Utils::PointerSize();
+	size_t ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
-	for (int i = 0; i < 15; ++i)
+	for (size_t i = 0; i < 15; ++i)
 	{
 		uintptr_t addr;
-		const int offset = ptrSize * i;
+		const size_t offset = ptrSize * i;
 
 		addr = Utils::MemoryObj->ReadAddress(address + offset);
 
@@ -54,10 +54,10 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 	int i = 0;
 	for (uintptr_t chunkAddress : gChunks)
 	{
-		for (int j = 0; j < chunkCount; ++j)
+		for (size_t j = 0; j < chunkCount; ++j)
 		{
 			FNameEntity tmp;
-			const int offset = ptrSize * j;
+			const size_t offset = ptrSize * j;
 			uintptr_t fNameAddress = Utils::MemoryObj->ReadAddress(chunkAddress + offset);
 
 			if (!IsValidAddress(fNameAddress))
@@ -124,7 +124,7 @@ std::string NamesStore::GetByIndex(const size_t id)
 	return gNames[id].AnsiName;
 }
 
-int NamesStore::GetByName(const std::string& name)
+size_t NamesStore::GetByName(const std::string& name)
 {
 	auto retIt = std::find_if(gNames.begin(), gNames.end(), [&](FNameEntity& fName) -> bool
 	{

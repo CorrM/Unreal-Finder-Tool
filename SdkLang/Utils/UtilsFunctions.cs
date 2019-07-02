@@ -13,7 +13,7 @@ namespace SdkLang.Utils
     {
         public static JsonStruct GetStruct(string structName)
         {
-            using (var l = new ConariL(Main.UftPath))
+            using (var l = new ConariL(Main.GenInfo.UftPath))
             {
                 var d = l.DLR;
                 IntPtr structPtr = d.GetStructPtr<IntPtr>(new UnmanagedString(structName, UnmanagedString.SType.Ansi).Pointer);

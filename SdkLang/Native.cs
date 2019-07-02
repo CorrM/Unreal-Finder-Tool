@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using net.r_eg.Conari.Types;
 using SdkLang.Utils;
+using static SdkLang.Utils.CTypes;
 
 namespace SdkLang
 {
@@ -24,21 +25,44 @@ namespace SdkLang
         {
             public IntPtr Ptr;
             public size_t Count;
-        };
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct GenInfo
+        {
+            public UftCharPtr UftPath;
+            public UftCharPtr SdkPath;
+            public UftCharPtr LangPath;
+
+            public UftCharPtr SdkLang;
+
+            public UftCharPtr GameName;
+            public UftCharPtr GameVersion;
+            public UftCharPtr NamespaceName;
+
+            public size_t MemberAlignment;
+            public size_t PointerSize;
+            public bool IsExternal;
+            public bool IsGObjectsChunks;
+            public bool ShouldConvertStaticMethods;
+            public bool ShouldUseStrings;
+            public bool ShouldXorStrings;
+            public bool ShouldGenerateFunctionParametersFile;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct JsonVar
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr Type;
+            public UftCharPtr Name;
+            public UftCharPtr Type;
             public size_t Size, Offset;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct JsonStruct
         {
-            public CTypes.UftCharPtr StructName;
-            public CTypes.UftCharPtr StructSuper;
+            public UftCharPtr StructName;
+            public UftCharPtr StructSuper;
             public StructArray Members;
         }
 
@@ -51,47 +75,47 @@ namespace SdkLang
                 Inline
             }
 
-            public CTypes.UftCharPtr Signature;
-            public CTypes.UftCharPtr Body;
+            public UftCharPtr Signature;
+            public UftCharPtr Body;
             public Type MethodType;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Constant
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr Value;
+            public UftCharPtr Name;
+            public UftCharPtr Value;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Enum
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr FullName;
+            public UftCharPtr Name;
+            public UftCharPtr FullName;
             public StringArray Values;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Member
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr Type;
+            public UftCharPtr Name;
+            public UftCharPtr Type;
             public bool IsStatic;
             public size_t Offset;
             public size_t Size;
             public size_t Flags;
-            public CTypes.UftCharPtr FlagsString;
-            public CTypes.UftCharPtr Comment;
+            public UftCharPtr FlagsString;
+            public UftCharPtr Comment;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct ScriptStruct
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr Type;
-            public CTypes.UftCharPtr FullName;
-            public CTypes.UftCharPtr NameCpp;
-            public CTypes.UftCharPtr NameCppFull;
+            public UftCharPtr Name;
+            public UftCharPtr Type;
+            public UftCharPtr FullName;
+            public UftCharPtr NameCpp;
+            public UftCharPtr NameCppFull;
 
             public size_t Size;
             public size_t InheritedSize;
@@ -114,16 +138,16 @@ namespace SdkLang
 
                 public Type ParamType;
                 public bool PassByReference;
-                public CTypes.UftCharPtr CppType;
-                public CTypes.UftCharPtr Name;
-                public CTypes.UftCharPtr FlagsString;
+                public UftCharPtr CppType;
+                public UftCharPtr Name;
+                public UftCharPtr FlagsString;
             }
 
             public size_t Index;
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr FullName;
+            public UftCharPtr Name;
+            public UftCharPtr FullName;
             public StructArray Parameters; // Parameter
-            public CTypes.UftCharPtr FlagsString;
+            public UftCharPtr FlagsString;
             public bool IsNative;
             public bool IsStatic;
         }
@@ -132,11 +156,11 @@ namespace SdkLang
         public struct Class
         {
             // ScriptStruct
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr Type;
-            public CTypes.UftCharPtr FullName;
-            public CTypes.UftCharPtr NameCpp;
-            public CTypes.UftCharPtr NameCppFull;
+            public UftCharPtr Name;
+            public UftCharPtr Type;
+            public UftCharPtr FullName;
+            public UftCharPtr NameCpp;
+            public UftCharPtr NameCppFull;
 
             public size_t Size;
             public size_t InheritedSize;
@@ -152,7 +176,7 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct Package
         {
-            public CTypes.UftCharPtr Name;
+            public UftCharPtr Name;
             public StructArray Constants; // Constant
             public StructArray Classes; // Class
             public StructArray ScriptStructs; // ScriptStruct
@@ -162,9 +186,9 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct UStruct
         {
-            public CTypes.UftCharPtr Name;
-            public CTypes.UftCharPtr FullName;
-            public CTypes.UftCharPtr CppName;
+            public UftCharPtr Name;
+            public UftCharPtr FullName;
+            public UftCharPtr CppName;
 
             public size_t PropertySize;
         }

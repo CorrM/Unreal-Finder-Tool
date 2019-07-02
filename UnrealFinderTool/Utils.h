@@ -128,7 +128,7 @@ public:
 	static std::wstring RemoveStringBetween(std::wstring str, const std::wstring& between1, const std::wstring& between2);
 
 	// Return size of pointer in target game
-	static int PointerSize();
+	static size_t PointerSize();
 	// Check valid address in remote process
 	static bool IsValidRemoteAddress(Memory* mem, uintptr_t address);
 	// Check valid address in local process

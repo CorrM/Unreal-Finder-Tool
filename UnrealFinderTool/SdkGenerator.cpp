@@ -6,6 +6,8 @@
 #include "ObjectsStore.h"
 #include "NamesStore.h"
 #include "ParallelWorker.h"
+#include "Native.h"
+#include "DotNetConnect.h"
 #include "SdkGenerator.h"
 
 // ToDo: Instated of crash just popup a msg that's tell the user to use another GObjects address
@@ -18,7 +20,7 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 
 SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
 								   const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
-								   std::string& state, std::vector<std::string>& packagesDone)
+								   std::string& state, std::vector<std::string>& packagesDone, const std::string& sdkLang)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
@@ -46,6 +48,7 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	Utils::GenObj->SetGameVersion(gameVersion);
 	Utils::GenObj->SetSdkType(sdkType);
 	Utils::GenObj->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
+	Utils::GenObj->SetSdkLang(sdkLang);
 
 	// Get Current Dir
 	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectory());
@@ -57,11 +60,15 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	Logger::SetStream(&log);
 
 	fs::create_directories(outputDirectory);
-	state = "Dumping (GNames/GObjects).";
+
+	// Init SdkLang
+	if (!InitSdkLang((outputDirectory / "SDK").string(), Utils::GetWorkingDirectory() + R"(\Config\Langs\)" + Utils::GenObj->GetSdkLang()))
+		return { GeneratorState::Bad };
 
 	// Dump To Files
 	if (Utils::GenObj->ShouldDumpArrays())
 	{
+		state = "Dumping (GNames/GObjects).";
 		Dump(outputDirectory, state);
 		state = "Dump (GNames/GObjects) Done.";
 		Sleep(2 * 1000);
@@ -82,11 +89,54 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	return { GeneratorState::Good, took_time };
 }
 
-/// <summary>
-/// Dumps the objects and names to files.
-/// </summary>
-/// <param name="path">The path where to create the dumps.</param>
-/// <param name="state"></param>
+bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath)
+{
+	// DotNet Connect
+	DotNetConnect dd(L"C:\\Users\\CorrM\\source\\repos\\Unreal-Finder-Tool\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll");
+	if (!dd.Load())
+	{
+		MessageBox(nullptr, "Can't Load `SdkLang.dll`.", "ERROR", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	auto sdkLangInit = dd.GetFunction<void(__cdecl*)(NativeGenInfo*)>("SdkLangInit");
+	if (!sdkLangInit)
+	{
+		MessageBox(nullptr, "Can't Load Function `SdkLangInit`.", "ERROR", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	// Init tmp containers
+	auto uftPath = Utils::GetExePath();
+	auto sdkLang = Utils::GenObj->GetSdkLang();
+	auto gameName = Utils::GenObj->GetGameName();
+	auto gameVersion = Utils::GenObj->GetGameVersion();
+	auto namespaceName = Utils::GenObj->GetNamespaceName();
+
+	NativeGenInfo genInfo;
+	genInfo.UftPath = const_cast<TCHAR*>(uftPath.c_str());
+	genInfo.SdkPath = const_cast<TCHAR*>(sdkPath.c_str());
+	genInfo.LangPath = const_cast<TCHAR*>(langPath.c_str());
+
+	genInfo.SdkLang = const_cast<TCHAR*>(sdkLang.c_str());
+
+	genInfo.GameName = const_cast<TCHAR*>(gameName.c_str());
+	genInfo.GameVersion = const_cast<TCHAR*>(gameVersion.c_str());
+	genInfo.NamespaceName = const_cast<TCHAR*>(namespaceName.c_str());
+
+	genInfo.MemberAlignment = Utils::GenObj->GetGlobalMemberAlignment();
+	genInfo.PointerSize = Utils::PointerSize();
+	genInfo.IsExternal = Utils::GenObj->GetSdkType() == SdkType::External;
+	genInfo.IsGObjectsChunks = Utils::GenObj->GetIsGObjectsChunks();
+	genInfo.ShouldConvertStaticMethods = Utils::GenObj->ShouldConvertStaticMethods();
+	genInfo.ShouldUseStrings = Utils::GenObj->ShouldUseStrings();
+	genInfo.ShouldXorStrings = Utils::GenObj->ShouldXorStrings();
+	genInfo.ShouldGenerateFunctionParametersFile = Utils::GenObj->ShouldGenerateFunctionParametersFile();
+
+	sdkLangInit(&genInfo);
+	return true;
+}
+
 void SdkGenerator::Dump(const fs::path& path, std::string& state)
 {
 	if (Utils::Settings.SdkGen.DumpNames)
@@ -126,14 +176,6 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state)
 	}
 }
 
-/// <summary>
-/// Process the packages.
-/// </summary>
-/// <param name="path">The path where to create the package files.</param>
-/// <param name="pPackagesCount"></param>
-/// <param name="pPackagesDone"></param>
-/// <param name="state"></param>
-/// <param name="packagesDone"></param>
 void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount, size_t* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
 	int threadCount = Utils::Settings.SdkGen.Threads;
@@ -196,7 +238,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 
 		// Get CoreUObject, Some times CoreUObject not the first Package
 		UEObject* coreUObject;
-		int coreUObjectIndex = 0;
+		size_t coreUObjectIndex = 0;
 		for (size_t i = 0; i < packageObjects.size(); ++i)
 		{
 			auto pack = packageObjects[i];
@@ -279,12 +321,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	SaveSdkHeader(path, processedObjects, packages);
 }
 
-/// <summary>
-/// Generates the sdk header.
-/// </summary>
-/// <param name="path">The path where to create the sdk header.</param>
-/// <param name="processedObjects">The list of processed objects.</param>
-/// <param name="packages">The package order info.</param>
 void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages)
 {
 	std::ofstream os(path / "SDK.h");

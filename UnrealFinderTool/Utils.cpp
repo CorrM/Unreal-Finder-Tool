@@ -557,7 +557,7 @@ void Utils::FixStructPointer(void* structBase, const int varOffset, const size_t
 	memset(dest, 0x0, 0x4);
 }
 
-int Utils::PointerSize()
+size_t Utils::PointerSize()
 {
 	return MemoryObj->Is64Bit ? 0x8 : 0x4;
 }

@@ -11,12 +11,35 @@ namespace SdkLang
 {
     public struct SdkGenInfo
     {
+        public string UftPath, SdkPath, LangPath, SdkLang;
+
         public string GameName, GameVersion, NamespaceName;
-        public int MemberAlignment, PointerSize;
+        public size_t MemberAlignment, PointerSize;
         public bool IsExternal, IsGObjectsChunks, ShouldConvertStaticMethods, ShouldUseStrings;
         public bool ShouldXorStrings, ShouldGenerateFunctionParametersFile;
-    }
 
+        public SdkGenInfo(Native.GenInfo nGenInfo)
+        {
+            UftPath = nGenInfo.UftPath.Str;
+            SdkPath = nGenInfo.SdkPath.Str;
+            LangPath = nGenInfo.LangPath.Str;
+
+            SdkLang = nGenInfo.SdkLang.Str;
+
+            GameName = nGenInfo.GameName.Str;
+            GameVersion = nGenInfo.GameVersion.Str;
+            NamespaceName = nGenInfo.NamespaceName.Str;
+
+            MemberAlignment = nGenInfo.MemberAlignment;
+            PointerSize = nGenInfo.PointerSize;
+            IsExternal = nGenInfo.IsExternal;
+            IsGObjectsChunks = nGenInfo.IsGObjectsChunks;
+            ShouldConvertStaticMethods = nGenInfo.ShouldConvertStaticMethods;
+            ShouldUseStrings = nGenInfo.ShouldUseStrings;
+            ShouldXorStrings = nGenInfo.ShouldXorStrings;
+            ShouldGenerateFunctionParametersFile = nGenInfo.ShouldGenerateFunctionParametersFile;
+        }
+    }
     public struct JsonVar
     {
         public string Name, Type;
