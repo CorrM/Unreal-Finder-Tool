@@ -527,7 +527,7 @@ namespace SdkLang.Langs
                             $"struct {c.NameCpp}_{m.Name}_Params\n{{\n";
 
                     foreach (var param in m.Parameters)
-                        text += $"\t{param.CppType,-50} {param.Name + ";",58} // ({param.FlagsString})\n";
+                        text += $"\t{param.CppType,-50} {param.Name + ";",-58} // ({param.FlagsString})\n";
                     text += "};\n\n";
                 }
             }
@@ -594,10 +594,5 @@ namespace SdkLang.Langs
             IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", text);
         }
         #endregion
-
-        public override void Init()
-        {
-            new BasicHeader().Init(this, Main.GenInfo.SdkPath);
-        }
     }
 }

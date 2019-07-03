@@ -15,8 +15,9 @@ DotNetConnect::~DotNetConnect()
 bool DotNetConnect::Load(const std::wstring& dllPath)
 {
 	if (lib || !Utils::FileExists(dllPath)) return false;
-	lib = LoadLibraryW(dllPath.c_str());
+	this->dllPath = dllPath;
 
+	lib = LoadLibraryW(dllPath.c_str());
 	return lib != nullptr;
 }
 

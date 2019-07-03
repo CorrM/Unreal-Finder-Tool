@@ -359,7 +359,7 @@ void Package::GenerateEnum(const UEEnum& enumObj)
 void Package::GenerateConst(const UEConst& constObj)
 {
 	//auto name = MakeValidName(constObj.GetName());
-	auto name = MakeUniqueCppName(constObj);
+	const auto name = MakeUniqueCppName(constObj);
 
 	if (name.find("Default__") != std::string::npos
 		|| name.find("PLACEHOLDER-CLASS") != std::string::npos)
@@ -759,147 +759,54 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 
 void Package::SaveStructs(const fs::path & path) const
 {
-	auto func = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
-	if (!func)
+	const auto uftLangSaveStructs = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
+	if (!uftLangSaveStructs)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSaveStructs`", "ERROR", MB_OK | MB_ICONERROR);
-		throw std::exception("Can't Load Func `UftLangSaveStructs`");
+		throw std::exception("Can't Load Func `UftLangSaveStructs`.");
 	}
 
 	NativePackage pack(*this);
-	func(&pack);
-	return;
-
-	std::ofstream os(path / GenerateFileName(FileContentType::Structs, *this));
-
-	PrintFileHeader(os, true);
-
-	if (!Constants.empty())
-	{
-		PrintSectionHeader(os, "Constants");
-		for (auto&& c : Constants) { PrintConstant(os, c); }
-
-		os << "\n";
-	}
-
-	if (!Enums.empty())
-	{
-		PrintSectionHeader(os, "Enums");
-		for (auto&& e : Enums) { PrintEnum(os, e); os << "\n"; }
-
-		os << "\n";
-	}
-
-	if (!ScriptStructs.empty())
-	{
-		PrintSectionHeader(os, "Script Structs");
-		for (auto&& s : ScriptStructs) { PrintStruct(os, s); os << "\n"; }
-	}
-
-	PrintFileFooter(os);
+	uftLangSaveStructs(&pack);
 }
 
 void Package::SaveClasses(const fs::path& path) const
 {
-	std::ofstream os(path / GenerateFileName(FileContentType::Classes, *this));
-
-	PrintFileHeader(os, true);
-
-	if (!Classes.empty())
+	const auto uftLangSaveClasses = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveClasses");
+	if (!uftLangSaveClasses)
 	{
-		PrintSectionHeader(os, "Classes");
-		for (auto&& c : Classes) { PrintClass(os, c); os << "\n"; }
+		MessageBox(nullptr, "Can't Load Func `UftLangSaveClasses`", "ERROR", MB_OK | MB_ICONERROR);
+		throw std::exception("Can't Load Func `UftLangSaveClasses`.");
 	}
 
-	PrintFileFooter(os);
+	NativePackage pack(*this);
+	uftLangSaveClasses(&pack);
 }
 
 void Package::SaveFunctions(const fs::path & path) const
 {
-	using namespace cpplinq;
-
-	// Skip Functions if it's external
-	if (Utils::GenObj->GetSdkType() == SdkType::External)
-		return;
-
-	if (Utils::GenObj->ShouldGenerateFunctionParametersFile())
-		SaveFunctionParameters(path);
-
-	std::ofstream os(path / GenerateFileName(FileContentType::Functions, *this));
-
-	PrintFileHeader(os, { "\"../SDK.h\"" }, false);
-
-	PrintSectionHeader(os, "Functions");
-
-	for (auto&& s : ScriptStructs)
+	const auto uftSaveFunctions = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctions");
+	if (!uftSaveFunctions)
 	{
-		for (auto&& m : s.PredefinedMethods)
-		{
-			if (m.MethodType != PredefinedMethod::Type::Inline)
-			{
-				os << m.Body << "\n\n";
-			}
-		}
+		MessageBox(nullptr, "Can't Load Func `UftLangSaveFunctions`", "ERROR", MB_OK | MB_ICONERROR);
+		throw std::exception("Can't Load Func `UftLangSaveFunctions`.");
 	}
 
-	for (auto&& c : Classes)
-	{
-		for (auto&& m : c.PredefinedMethods)
-		{
-			if (m.MethodType != PredefinedMethod::Type::Inline)
-			{
-				os << m.Body << "\n\n";
-			}
-		}
-
-		for (auto&& m : c.Methods)
-		{
-			//Method Info
-			os << "// " << m.FullName << "\n"
-				<< "// (" << m.FlagsString << ")\n";
-			if (!m.Parameters.empty())
-			{
-				os << "// Parameters:\n";
-				for (auto&& param : m.Parameters)
-				{
-					tfm::format(os, "// %-30s %-30s (%s)\n", param.CppType, param.Name, param.FlagsString);
-				}
-			}
-
-			os << "\n";
-			os << BuildMethodSignature(m, c, false) << "\n";
-			os << BuildMethodBody(c, m) << "\n\n";
-		}
-	}
-
-	PrintFileFooter(os);
+	NativePackage pack(*this);
+	uftSaveFunctions(&pack);
 }
 
 void Package::SaveFunctionParameters(const fs::path & path) const
 {
-	using namespace cpplinq;
-
-	std::ofstream os(path / GenerateFileName(FileContentType::FunctionParameters, *this));
-
-	PrintFileHeader(os, { "\"../SDK.h\"" }, true);
-
-	PrintSectionHeader(os, "Parameters");
-
-	for (auto&& c : Classes)
+	const auto uftLangSaveFunctionParameters = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctionParameters");
+	if (!uftLangSaveFunctionParameters)
 	{
-		for (auto&& m : c.Methods)
-		{
-			os << "// " << m.FullName << "\n";
-			tfm::format(os, "struct %s_%s_Params\n{\n", c.NameCpp, m.Name);
-			for (auto&& param : m.Parameters)
-			{
-				tfm::format(os, "\t%-50s %-58s// (%s)\n", param.CppType, param.Name + ";", param.FlagsString);
-			}
-			os << "};\n\n";
-		}
+		MessageBox(nullptr, "Can't Load Func `UftLangSaveFunctionParameters`", "ERROR", MB_OK | MB_ICONERROR);
+		throw std::exception("Can't Load Func `UftLangSaveFunctionParameters`.");
 	}
 
-	PrintFileFooter(os);
+	NativePackage pack(*this);
+	uftLangSaveFunctionParameters(&pack);
 }
 
 void Package::PrintConstant(std::ostream& os, const Constant& c) const
@@ -1042,7 +949,7 @@ std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool 
 	}
 
 	//Return Type
-	auto retn = from(m.Parameters) >> where([](Method::Parameter && param) { return param.ParamType == Type::Return; });
+	const auto retn = from(m.Parameters) >> where([](Method::Parameter && param) { return param.ParamType == Type::Return; });
 	if (retn >> any())
 	{
 		ss << (retn >> first()).CppType;
@@ -1120,7 +1027,7 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 		ss << "\t} params;\n";
 	}
 
-	auto defaultParameters = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Default; });
+	const auto defaultParameters = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Default; });
 	if (defaultParameters >> any())
 	{
 		for (auto&& param : defaultParameters >> experimental::container())
@@ -1153,7 +1060,7 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 	ss << "\tfn->FunctionFlags = flags;\n";
 
 	//Out Parameters
-	auto out = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Out; });
+	const auto out = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Out; });
 	if (out >> any())
 	{
 		ss << "\n";
@@ -1166,7 +1073,7 @@ std::string Package::BuildMethodBody(const Class & c, const Method & m) const
 	}
 
 	//Return Value
-	auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
+	const auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
 	if (retn >> any())
 	{
 		ss << "\n\treturn params." << (retn >> first()).Name << ";\n";

@@ -8,8 +8,8 @@
 #define CustomSetPrivilege  CustomSetPrivilegeA
 #endif
 
-std::wstring str2wstr(std::string  in);
-std::string  wstr2str(std::wstring in);
+std::wstring Str2Wstr(std::string  in);
+std::string  Wstr2Str(std::wstring in);
 
 bool CustomSetPrivilegeW(LPCWSTR lpszPrivilege, BOOL bEnablePrivilege);
 

@@ -63,7 +63,7 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 
 	// Init SdkLang
 	if (!InitSdkLang((outputDirectory / "SDK").string(), Utils::GetWorkingDirectory() + R"(\Config\Langs\)" + Utils::GenObj->GetSdkLang()))
-		return { GeneratorState::Bad };
+		return { GeneratorState::BadSdkLang };
 
 	// Dump To Files
 	if (Utils::GenObj->ShouldDumpArrays())
@@ -91,13 +91,13 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 
 bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath)
 {
-	if (!Utils::Dnc->Load(L"C:\\Users\\CorrM\\source\\repos\\Unreal-Finder-Tool\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll"))
+	if (!Utils::Dnc->Load(L"..\\SdkLang\\bin\\x64\\Debug\\SdkLang.dll"))
 	{
 		MessageBox(nullptr, "Can't Load `SdkLang.dll`.", "ERROR", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	auto sdkLangInit = Utils::Dnc->GetFunction<void(__cdecl*)(NativeGenInfo*)>("UftLangInit");
+	const auto sdkLangInit = Utils::Dnc->GetFunction<bool(__cdecl*)(NativeGenInfo*)>("UftLangInit");
 	if (!sdkLangInit)
 	{
 		MessageBox(nullptr, "Can't Load Function `SdkLangInit`.", "ERROR", MB_OK | MB_ICONERROR);
@@ -124,11 +124,10 @@ bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& la
 		Utils::GenObj->ShouldGenerateFunctionParametersFile()
 	);
 
-	sdkLangInit(&genInfo);
-	return true;
+	return sdkLangInit(&genInfo);
 }
 
-void SdkGenerator::Dump(const fs::path& path, std::string& state)
+void SdkGenerator::Dump(const fs::path& path, std::string& state) const
 {
 	if (Utils::Settings.SdkGen.DumpNames)
 	{
@@ -137,7 +136,7 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state)
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
 
-		size_t vecSize = NamesStore().GetNamesNum();
+		const size_t vecSize = NamesStore().GetNamesNum();
 		for (size_t i = 0; i < vecSize; ++i)
 		{
 			std::string str = NamesStore().GetByIndex(i);
@@ -154,7 +153,7 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state)
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
 
-		size_t vecSize = ObjectsStore().GetObjectsNum();
+		const size_t vecSize = ObjectsStore().GetObjectsNum();
 		for (size_t i = 0; i < vecSize; ++i)
 		{
 			if (ObjectsStore().GetByIndex(i)->IsValid())
@@ -184,7 +183,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		size_t index = 0;
 		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
 		{
-			size_t vecSize = ObjectsStore::GObjObjects.size();
+			const size_t vecSize = ObjectsStore::GObjObjects.size();
 			while (index < vecSize)
 			{
 				UEObject* curObj;
@@ -312,7 +311,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	SaveSdkHeader(path, processedObjects, packages);
 }
 
-void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages)
+void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const
 {
 	std::ofstream os(path / "SDK.h");
 	os << "// ------------------------------------------------\n";

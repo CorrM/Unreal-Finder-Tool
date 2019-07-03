@@ -47,7 +47,7 @@ bool Driver::Connect()
 	OBJECT_ATTRIBUTES objectAttributes;
 	IO_STATUS_BLOCK isb;
 	HANDLE hNtDriver;
-	const auto strObjectName = str2wstr(mStrDeviceName);
+	const auto strObjectName = Str2Wstr(mStrDeviceName);
 
 	RtlInitUnicodeString(&objectName, strObjectName.c_str());
 	InitializeObjectAttributes(&objectAttributes, &objectName, FILE_NON_DIRECTORY_FILE, NULL, NULL);

@@ -280,6 +280,11 @@
   <ItemGroup>
     <Image Include="..\Resources\win.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SdkLang\SdkLang.csproj">
+      <Project>{15105e17-74e0-40cd-94ca-b2a67145477a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\cpprestsdk.v141.2.10.12.1\build\native\cpprestsdk.v141.targets" Condition="Exists('..\packages\cpprestsdk.v141.2.10.12.1\build\native\cpprestsdk.v141.targets')" />
