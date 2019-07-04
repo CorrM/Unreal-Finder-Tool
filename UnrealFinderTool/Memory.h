@@ -38,15 +38,15 @@ class Memory
 		BYTE pData[MAX_PATH * 2];
 	};
 
-	bool useKernal = false;
+	bool useKernel = false;
 	static BypaPH* bypaPh;
 public:
 	HANDLE ProcessHandle = nullptr;
 	int ProcessId = 0;
-	BOOL Is64Bit = false;
+	BOOL Is64 = false;
 
-	explicit Memory(HANDLE processHandle, bool useKernal = false);
-	explicit Memory(int processId, bool useKernal = false);
+	explicit Memory(HANDLE processHandle, bool useKernel = false);
+	explicit Memory(int processId, bool useKernel = false);
 
 	static int GetProcessIdByName(const std::string& processName);
 	static std::string GetProcessNameById(DWORD pId);
@@ -95,7 +95,7 @@ size_t Memory::Read(const uintptr_t address, T& ret)
 
 	uintptr_t remoteAddress = reinterpret_cast<uintptr_t>(&ret);
 
-	if (useKernal)
+	if (useKernel)
 		bypaPh->RWVM(bypaPh->m_hTarget, reinterpret_cast<LPVOID>(address), reinterpret_cast<LPVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);
 	else
 		ReadProcessMemory(ProcessHandle, reinterpret_cast<LPVOID>(address), reinterpret_cast<LPVOID>(remoteAddress), numberOfBytesToRead, &numberOfBytesActuallyRead);

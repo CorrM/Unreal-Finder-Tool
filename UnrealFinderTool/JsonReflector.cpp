@@ -361,7 +361,7 @@ int JsonStruct::GetUnneededSize()
 {
 	int sSub = 0;
 
-	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64Bit)
+	if (Utils::ProgramIs64() && !Utils::MemoryObj->Is64)
 	{
 		// if it's 32bit game (4byte pointer) sub 4byte for every pointer
 		for (auto& varContainer : Vars)

@@ -6,6 +6,11 @@
 
 #define UNREAL_WINDOW_CLASS "UnrealWindow"
 #define EXAPI extern "C" _declspec(dllexport)
+#ifdef _WIN64
+#define VER_BIT_STR "x64"
+#else
+#define VER_BIT_STR "x86"
+#endif
 
 class UiWindow;
 class Memory;
@@ -92,9 +97,13 @@ public:
 	// Delete Directory
 	static bool DirectoryDelete(const std::string& dirPath);
 	// Get Current Directory
-	static std::string GetWorkingDirectory();
+	static std::wstring GetWorkingDirectoryW();
+	// Get Current Directory
+	static std::string GetWorkingDirectoryA();
 	// Get Current Exe Path
-	static std::string GetExePath();
+	static std::wstring GetExePathW();
+	// Get Current Exe Path
+	static std::string GetExePathA();
 	// Load engine structs from `EngineBase.json`
 	static bool LoadEngineCore(std::vector<std::string>& ue_versions_container);
 	// Override engine structs that load form another engine structs, `engineVersion` must look like '4.0.0'
@@ -104,7 +113,7 @@ public:
 	// Replace string
 	static std::string ReplaceString(std::string str, const std::string& to_find, const std::string& to_replace);
 	// Remove string between two string
-	std::string RemoveStringBetween(std::string str, const std::string& between1, const std::string& between2);
+	static std::string RemoveStringBetween(std::string str, const std::string& between1, const std::string& between2);
 	// Check if string contains another string
 	static bool ContainsString(const std::string& str, const std::string& strToFind);
 	// Check if string starts with other string
@@ -180,7 +189,7 @@ private:
 template <typename ElementType>
 void Utils::FixPointer(ElementType* structBase, const int varOffset)
 {
-	if (ProgramIs64() && MemoryObj->Is64Bit)
+	if (ProgramIs64() && MemoryObj->Is64)
 		return;
 	FixStructPointer(structBase, varOffset, sizeof(ElementType));
 }
@@ -188,7 +197,7 @@ void Utils::FixPointer(ElementType* structBase, const int varOffset)
 template <typename ElementType>
 void Utils::FixPointers(ElementType* structBase, const size_t fullCppStructSize, std::vector<int> varsOffsets)
 {
-	if (ProgramIs64() && MemoryObj->Is64Bit)
+	if (ProgramIs64() && MemoryObj->Is64)
 		return;
 
 	for (int varOff : varsOffsets)

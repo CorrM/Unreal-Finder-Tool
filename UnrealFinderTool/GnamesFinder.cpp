@@ -17,7 +17,7 @@ std::vector<uintptr_t> GNamesFinder::Find()
 {
 	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x300000 : static_cast<uintptr_t>(0x7FF00000);
-	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
+	dwEnd = !Utils::MemoryObj->Is64 ? 0x7FEFFFFF : static_cast<uintptr_t>(0x7fffffffffff);
 
 	// Scan
 	std::vector<Pattern> inputs = { noneSig, byteSig, intSig, multicastSig };
@@ -36,7 +36,7 @@ std::vector<uintptr_t> GNamesFinder::Find()
 	const auto cmp2 = GetNearNumbers(cmp1, int_r, 0x150);
 	const auto cmp3 = GetNearNumbers(cmp2, multicast_r, 0x400);
 
-	size_t nameOffset = Utils::MemoryObj->Is64Bit ? 0x10 : 0x8;
+	size_t nameOffset = Utils::MemoryObj->Is64 ? 0x10 : 0x8;
 	uintptr_t byteAddress = 0;
 
 	// Calc Name Offset
@@ -73,7 +73,7 @@ uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fname_address)
 
 	// Get GName array address
 	auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, fname_address,
-		Utils::MemoryObj->Is64Bit ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
+		Utils::MemoryObj->Is64 ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 
 	// Nothing returned quit
 	if (!address_holder.empty())
@@ -86,7 +86,7 @@ uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fname_address)
 
 			// Scan for Gnames chunks address
 			auto gname_array_address = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, i,
-				Utils::MemoryObj->Is64Bit ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
+				Utils::MemoryObj->Is64 ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 			for (uintptr_t chunk_address : gname_array_address)
 			{
 				if (Utils::IsValidGNamesAddress(chunk_address))

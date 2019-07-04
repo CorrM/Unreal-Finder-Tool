@@ -29,7 +29,7 @@ bool Utils::LoadEngineCore(std::vector<std::string>& ue_versions_container)
 	for (auto& file : fs::directory_iterator("Config\\EngineCore\\"))
 	{
 		std::string ue_ver = file.path().filename().string();
-		auto pos = ue_ver.rfind('.');
+		const auto pos = ue_ver.rfind('.');
 		ue_ver = ue_ver.substr(0, pos);
 		if (ue_ver != "EngineBase")
 			ue_versions_container.push_back(ue_ver);
@@ -48,7 +48,7 @@ void Utils::OverrideLoadedEngineCore(const std::string& engineVersion)
 	}
 	catch (...)
 	{
-		std::string error = "Can't find/parse json file '" + engineVersion + ".json'.";
+		const std::string error = "Can't find/parse json file '" + engineVersion + ".json'.";
 		MessageBoxA(nullptr, error.c_str(), "Critical Problem", MB_OK | MB_ICONERROR);
 		ExitProcess(-1);
 	}
@@ -87,13 +87,13 @@ bool Utils::LoadSettings()
 #pragma region FileManager
 bool Utils::FileExists(const std::string& filePath)
 {
-	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+	const fs::path path(std::wstring(filePath.begin(), filePath.end()));
 	return fs::exists(path);
 }
 
 bool Utils::FileExists(const std::wstring& filePath)
 {
-	fs::path path(filePath);
+	const fs::path path(filePath);
 	return fs::exists(path);
 }
 
@@ -101,8 +101,8 @@ bool Utils::FileDelete(const std::string& filePath)
 {
 	if (!FileExists(filePath))
 		return false;
-	
-	fs::path path(std::wstring(filePath.begin(), filePath.end()));
+
+	const fs::path path(std::wstring(filePath.begin(), filePath.end()));
 	return fs::remove(path);
 }
 
@@ -118,7 +118,7 @@ std::vector<fs::path> Utils::FileList(const std::string& dirPath)
 
 void Utils::FileCreate(const std::string& filePath)
 {
-	fs::path path(filePath);
+	const fs::path path(filePath);
 
 	fs::create_directories(path.parent_path());
 	std::ofstream ofs(path);
@@ -136,7 +136,7 @@ bool Utils::FileRead(const std::string& filePath, std::string& fileText)
 
 	std::ifstream ifs(filePath.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
-	std::ifstream::pos_type fileSize = ifs.tellg();
+	const std::ifstream::pos_type fileSize = ifs.tellg();
 	ifs.seekg(0, std::ios::beg);
 
 	std::vector<char> bytes(fileSize);
@@ -149,7 +149,7 @@ bool Utils::FileRead(const std::string& filePath, std::string& fileText)
 
 bool Utils::FileWrite(const std::string& filePath, const std::string& fileText)
 {
-	auto path = fs::path(filePath);
+	const auto path = fs::path(filePath);
 	if (!FileExists(filePath)) return false;
 
 	std::ofstream ofs(path, std::ios::out | std::ios::binary);
@@ -164,19 +164,40 @@ bool Utils::DirectoryDelete(const std::string& dirPath)
 	if (!FileExists(dirPath))
 		return false;
 
-	fs::path path(std::wstring(dirPath.begin(), dirPath.end()));
+	const fs::path path(std::wstring(dirPath.begin(), dirPath.end()));
 	return fs::remove_all(path) > 0;
 }
 
-std::string Utils::GetWorkingDirectory()
+std::wstring Utils::GetWorkingDirectoryW()
 {
-	return fs::path(GetExePath()).parent_path().string();
+	return fs::path(GetExePathW()).parent_path().wstring();
 }
 
-std::string Utils::GetExePath()
+std::string Utils::GetWorkingDirectoryA()
+{
+	return fs::path(GetExePathA()).parent_path().string();
+}
+
+std::wstring Utils::GetExePathW()
 {
 	// Returned cached copy of path
-	static std::string curExePath(1024, '\0');
+	std::wstring curExePath(1024, '\0');
+	if (curExePath[0] != '\0')
+		return curExePath;
+
+	// Get working directory path
+	GetModuleFileNameW(nullptr, curExePath.data(), static_cast<DWORD>(curExePath.length()));
+
+	curExePath.resize(curExePath.find(L'\0'));
+
+	const fs::path curPath(curExePath);
+	return curPath.wstring();
+}
+
+std::string Utils::GetExePathA()
+{
+	// Returned cached copy of path
+	std::string curExePath(1024, '\0');
 	if (curExePath[0] != '\0')
 		return curExePath;
 
@@ -185,7 +206,7 @@ std::string Utils::GetExePath()
 
 	curExePath.resize(curExePath.find('\0'));
 
-	fs::path curPath(curExePath);
+	const fs::path curPath(curExePath);
 	return curPath.string();
 }
 #pragma endregion
@@ -285,12 +306,12 @@ std::wstring Utils::RemoveStringBetween(std::wstring str, const std::wstring& be
 	if (str.empty() || between1.empty() || between2.empty())
 		return str;
 
-	size_t position1 = 0, position2 = 0, strSize = 0;
+	size_t position1 = 0;
 	do
 	{
 		position1 = str.find(between1, position1);
-		position2 = str.find(between2, position1);
-		strSize = position2 - position1;
+		const size_t position2 = str.find(between2, position1);
+		const size_t strSize = position2 - position1;
 
 		if (position1 == std::wstring::npos || position2 == std::wstring::npos)
 			break;
@@ -405,8 +426,8 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	for (int read_address = 0; read_address <= 50; ++read_address)
 	{
 		// Read Chunk Address
-		auto offset = size_t(read_address * PointerSize());
-		uintptr_t chunk_address = MemoryObj->ReadAddress(address + offset);
+		const auto offset = size_t(read_address * PointerSize());
+		const uintptr_t chunk_address = MemoryObj->ReadAddress(address + offset);
 		if (chunk_address == NULL)
 			++null_count;
 	}
@@ -415,13 +436,13 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 		return false;
 
 	// Read First FName Address
-	uintptr_t noneFName = MemoryObj->ReadAddress(MemoryObj->ReadAddress(address));
+	const uintptr_t noneFName = MemoryObj->ReadAddress(MemoryObj->ReadAddress(address));
 	if (!IsValidRemoteAddress(MemoryObj, noneFName)) return false;
 
 	// Search for none FName
-	auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
-	auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
-	auto resVec = result.find("NoneSig")->second;
+	const auto pattern = PatternScan::Parse("NoneSig", 0, "4E 6F 6E 65 00", 0xFF);
+	const auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
+	const auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
 }
 
@@ -493,8 +514,8 @@ CheckAgian:
 				int skipCount = 0;
 				for (size_t uIndex = 0; uIndex <= 20 && skipCount <= 5; ++uIndex)
 				{
-					uintptr_t curAddress = address + uIndex * PointerSize();
-					uintptr_t chunk = MemoryObj->ReadAddress(curAddress);
+					const uintptr_t curAddress = address + uIndex * PointerSize();
+					const uintptr_t chunk = MemoryObj->ReadAddress(curAddress);
 
 					// Skip null address and bad address
 					if (chunk == 0)
@@ -548,7 +569,7 @@ void Utils::FixStructPointer(void* structBase, const int varOffset, const size_t
 		//if (!needFix) return;
 	}
 
-	if (ProgramIs64() && MemoryObj->Is64Bit)
+	if (ProgramIs64() && MemoryObj->Is64)
 		throw std::exception("FixStructPointer only work for 32bit games with 64bit tool version.");
 
 	const size_t destSize = abs(varOffset - static_cast<long long>(structSize));
@@ -563,7 +584,7 @@ void Utils::FixStructPointer(void* structBase, const int varOffset, const size_t
 
 size_t Utils::PointerSize()
 {
-	return MemoryObj->Is64Bit ? 0x8 : 0x4;
+	return MemoryObj->Is64 ? 0x8 : 0x4;
 }
 #pragma endregion
 
@@ -640,7 +661,7 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 {
 	auto ret = false;
 
-	auto process = MemoryObj->ProcessHandle;
+	const auto process = MemoryObj->ProcessHandle;
 	if (!process)
 		return ret;
 
@@ -654,7 +675,7 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 	unsigned long version_size = GetFileVersionInfoSize(path.c_str(), &version_size);
 	if (version_size > 0)
 	{
-		auto pData = new BYTE[version_size];
+		const auto pData = new BYTE[version_size];
 		GetFileVersionInfo(path.c_str(), 0, version_size, static_cast<LPVOID>(pData));
 
 		void* fixed = nullptr;
@@ -663,13 +684,13 @@ bool Utils::UnrealEngineVersion(std::string& ver)
 		VerQueryValue(pData, _T("\\"), &fixed, &size);
 		if (fixed)
 		{
-			auto ffi = static_cast<VS_FIXEDFILEINFO*>(fixed);
+			const auto ffi = static_cast<VS_FIXEDFILEINFO*>(fixed);
 
-			auto v1 = HIWORD(ffi->dwFileVersionMS);
-			auto v2 = LOWORD(ffi->dwFileVersionMS);
-			auto v3 = HIWORD(ffi->dwFileVersionLS);
+			const auto v1 = HIWORD(ffi->dwFileVersionMS);
+			const auto v2 = LOWORD(ffi->dwFileVersionMS);
+			const auto v3 = HIWORD(ffi->dwFileVersionLS);
 
-			std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." + std::to_string(v3);
+			const std::string engine_version = std::to_string(v1) + "." + std::to_string(v2) + "." + std::to_string(v3);
 			ver = engine_version;
 			ret = true;
 		}

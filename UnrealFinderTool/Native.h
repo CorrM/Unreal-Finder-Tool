@@ -46,7 +46,7 @@ struct StringArray
 	}
 };
 
-class Helper
+class NativeHelper
 {
 public:
 	static TCHAR* CreateHeapStr(const std::string& baseStr)
@@ -54,7 +54,7 @@ public:
 		if (baseStr.empty())
 			return nullptr;
 
-		auto ptr = new TCHAR[baseStr.length() + 1];
+		const auto ptr = new TCHAR[baseStr.length() + 1];
 		strcpy_s(ptr, baseStr.length() + 1, baseStr.c_str());
 
 		return ptr;
@@ -78,7 +78,7 @@ public:
 	template<typename TNativeType, typename TBaseType>
 	static void HeapNativeStructArray(std::vector<TBaseType> baseValue, StructArray<TNativeType>& out)
 	{
-		auto ptr = Helper::HeapSdkNativeArray<TNativeType>(baseValue);
+		auto ptr = NativeHelper::HeapSdkNativeArray<TNativeType>(baseValue);
 		out = StructArray<TNativeType>(ptr, baseValue.size());
 	}
 
@@ -146,13 +146,13 @@ struct NativeGenInfo
 		const BOOL shouldXorStrings, const BOOL shouldGenerateFunctionParametersFile
 	)
 	{
-		UftPath = Helper::CreateHeapStr(uftPath);
-		SdkPath = Helper::CreateHeapStr(sdkPath);
-		LangPath = Helper::CreateHeapStr(langPath);
-		SdkLang = Helper::CreateHeapStr(sdkLang);
-		GameName = Helper::CreateHeapStr(gameName);
-		GameVersion = Helper::CreateHeapStr(gameVersion);
-		NamespaceName = Helper::CreateHeapStr(namespaceName);
+		UftPath = NativeHelper::CreateHeapStr(uftPath);
+		SdkPath = NativeHelper::CreateHeapStr(sdkPath);
+		LangPath = NativeHelper::CreateHeapStr(langPath);
+		SdkLang = NativeHelper::CreateHeapStr(sdkLang);
+		GameName = NativeHelper::CreateHeapStr(gameName);
+		GameVersion = NativeHelper::CreateHeapStr(gameVersion);
+		NamespaceName = NativeHelper::CreateHeapStr(namespaceName);
 
 		MemberAlignment = memberAlignment;
 		PointerSize = pointerSize;
@@ -166,13 +166,13 @@ struct NativeGenInfo
 	}
 	~NativeGenInfo()
 	{
-		Helper::FreeHeapStr(UftPath);
-		Helper::FreeHeapStr(SdkPath);
-		Helper::FreeHeapStr(LangPath);
-		Helper::FreeHeapStr(SdkLang);
-		Helper::FreeHeapStr(GameName);
-		Helper::FreeHeapStr(GameVersion);
-		Helper::FreeHeapStr(NamespaceName);
+		NativeHelper::FreeHeapStr(UftPath);
+		NativeHelper::FreeHeapStr(SdkPath);
+		NativeHelper::FreeHeapStr(LangPath);
+		NativeHelper::FreeHeapStr(SdkLang);
+		NativeHelper::FreeHeapStr(GameName);
+		NativeHelper::FreeHeapStr(GameVersion);
+		NativeHelper::FreeHeapStr(NamespaceName);
 	}
 };
 
@@ -185,31 +185,31 @@ struct NativeJsonVar
 	NativeJsonVar() = default;
 	explicit NativeJsonVar(const JsonVar& jVar)
 	{
-		Name = Helper::CreateHeapStr(jVar.Name);
-		Type = Helper::CreateHeapStr(jVar.Type);
+		Name = NativeHelper::CreateHeapStr(jVar.Name);
+		Type = NativeHelper::CreateHeapStr(jVar.Type);
 		Size = jVar.Size;
 		Offset = jVar.Offset;
 	}
 	~NativeJsonVar()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(Type);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(Type);
 	}
 };
 
 struct NativeJsonStruct
 {
-	TCHAR* StructName;
-	TCHAR* StructSuper;
+	TCHAR* StructName = nullptr;
+	TCHAR* StructSuper = nullptr;
 	StructArray<NativeJsonVar> Members;
 
 	NativeJsonStruct() = default;
 	explicit NativeJsonStruct(const JsonStruct& jStruct)
 	{
-		StructName = Helper::CreateHeapStr(jStruct.StructName);
-		StructSuper = Helper::CreateHeapStr(jStruct.StructSuper);
+		StructName = NativeHelper::CreateHeapStr(jStruct.StructName);
+		StructSuper = NativeHelper::CreateHeapStr(jStruct.StructSuper);
 
-		auto members = new NativeJsonVar*[jStruct.Vars.size()];
+		const auto members = new NativeJsonVar*[jStruct.Vars.size()];
 		for (size_t i = 0; i < jStruct.Vars.size(); i++)
 		{
 			auto& curVar = jStruct.Vars[i];
@@ -219,9 +219,9 @@ struct NativeJsonStruct
 	}
 	~NativeJsonStruct()
 	{
-		Helper::FreeHeapStr(StructName);
-		Helper::FreeHeapStr(StructSuper);
-		Helper::FreeNativeStructArray(Members);
+		NativeHelper::FreeHeapStr(StructName);
+		NativeHelper::FreeHeapStr(StructSuper);
+		NativeHelper::FreeNativeStructArray(Members);
 	}
 };
 
@@ -234,14 +234,14 @@ struct NativePredefinedMethod
 	NativePredefinedMethod() = default;
 	explicit NativePredefinedMethod(const PredefinedMethod& method)
 	{
-		Signature = Helper::CreateHeapStr(method.Signature);
-		Body = Helper::CreateHeapStr(method.Body);
+		Signature = NativeHelper::CreateHeapStr(method.Signature);
+		Body = NativeHelper::CreateHeapStr(method.Body);
 		MethodType = method.MethodType;
 	}
 	~NativePredefinedMethod()
 	{
-		Helper::FreeHeapStr(Signature);
-		Helper::FreeHeapStr(Body);
+		NativeHelper::FreeHeapStr(Signature);
+		NativeHelper::FreeHeapStr(Body);
 	}
 };
 
@@ -253,34 +253,34 @@ struct NativeConstant
 	NativeConstant() = default;
 	explicit NativeConstant(const Package::Constant& constant)
 	{
-		Name = Helper::CreateHeapStr(constant.Name);
-		Value = Helper::CreateHeapStr(constant.Value);
+		Name = NativeHelper::CreateHeapStr(constant.Name);
+		Value = NativeHelper::CreateHeapStr(constant.Value);
 	}
 	~NativeConstant()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(Value);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(Value);
 	}
 };
 
 struct NativeEnum
 {
-	TCHAR* Name;
-	TCHAR* FullName;
+	TCHAR* Name = nullptr;
+	TCHAR* FullName = nullptr;
 	StringArray Values;
 
 	NativeEnum() = default;
 	explicit NativeEnum(const Package::Enum& sdkEnum)
 	{
-		Name = Helper::CreateHeapStr(sdkEnum.Name);
-		FullName = Helper::CreateHeapStr(sdkEnum.FullName);
+		Name = NativeHelper::CreateHeapStr(sdkEnum.Name);
+		FullName = NativeHelper::CreateHeapStr(sdkEnum.FullName);
 		Values = StringArray(sdkEnum.Values);
 	}
 	~NativeEnum()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(FullName);
-		Helper::FreeHeapArrayStr(Values);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(FullName);
+		NativeHelper::FreeHeapArrayStr(Values);
 	}
 };
 
@@ -301,33 +301,33 @@ struct NativeMember
 	NativeMember() = default;
 	explicit NativeMember(const Package::Member& member)
 	{
-		Name = Helper::CreateHeapStr(member.Name);
-		Type = Helper::CreateHeapStr(member.Type);
+		Name = NativeHelper::CreateHeapStr(member.Name);
+		Type = NativeHelper::CreateHeapStr(member.Type);
 		IsStatic = member.IsStatic;
 		Offset = member.Offset;
 		Size = member.Size;
 		Flags = member.Flags;
-		FlagsString = Helper::CreateHeapStr(member.FlagsString);
-		Comment = Helper::CreateHeapStr(member.Comment);
+		FlagsString = NativeHelper::CreateHeapStr(member.FlagsString);
+		Comment = NativeHelper::CreateHeapStr(member.Comment);
 	}
 	~NativeMember()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(Type);
-		Helper::FreeHeapStr(FlagsString);
-		Helper::FreeHeapStr(Comment);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(Type);
+		NativeHelper::FreeHeapStr(FlagsString);
+		NativeHelper::FreeHeapStr(Comment);
 	}
 };
 
 struct NativeScriptStruct
 {
-	TCHAR* Name;
-	TCHAR* FullName;
-	TCHAR* NameCpp;
-	TCHAR* NameCppFull;
+	TCHAR* Name = nullptr;
+	TCHAR* FullName = nullptr;
+	TCHAR* NameCpp = nullptr;
+	TCHAR* NameCppFull = nullptr;
 
-	size_t Size;
-	size_t InheritedSize;
+	size_t Size = 0;
+	size_t InheritedSize = 0;
 
 	StructArray<NativeMember> Members;
 	StructArray<NativePredefinedMethod> PredefinedMethods;
@@ -335,24 +335,24 @@ struct NativeScriptStruct
 	NativeScriptStruct() = default;
 	explicit NativeScriptStruct(const Package::ScriptStruct& ss)
 	{
-		Name = Helper::CreateHeapStr(ss.Name);
-		FullName = Helper::CreateHeapStr(ss.FullName);
-		NameCpp = Helper::CreateHeapStr(ss.NameCpp);
-		NameCppFull = Helper::CreateHeapStr(ss.NameCppFull);
+		Name = NativeHelper::CreateHeapStr(ss.Name);
+		FullName = NativeHelper::CreateHeapStr(ss.FullName);
+		NameCpp = NativeHelper::CreateHeapStr(ss.NameCpp);
+		NameCppFull = NativeHelper::CreateHeapStr(ss.NameCppFull);
 		Size = ss.Size;
 		InheritedSize = ss.InheritedSize;
 
-		Helper::HeapNativeStructArray(ss.Members, Members);
-		Helper::HeapNativeStructArray(ss.PredefinedMethods, PredefinedMethods);
+		NativeHelper::HeapNativeStructArray(ss.Members, Members);
+		NativeHelper::HeapNativeStructArray(ss.PredefinedMethods, PredefinedMethods);
 	}
 	~NativeScriptStruct()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(FullName);
-		Helper::FreeHeapStr(NameCpp);
-		Helper::FreeHeapStr(NameCppFull);
-		Helper::FreeNativeStructArray(Members);
-		Helper::FreeNativeStructArray(PredefinedMethods);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(FullName);
+		NativeHelper::FreeHeapStr(NameCpp);
+		NativeHelper::FreeHeapStr(NameCppFull);
+		NativeHelper::FreeNativeStructArray(Members);
+		NativeHelper::FreeNativeStructArray(PredefinedMethods);
 	}
 };
 
@@ -360,54 +360,54 @@ struct NativeMethod
 {
 	struct Parameter
 	{
-		Package::Method::Parameter::Type ParamType;
-		BOOL PassByReference;
-		TCHAR* CppType;
-		TCHAR* Name;
-		TCHAR* FlagsString;
+		Package::Method::Parameter::Type ParamType = Package::Method::Parameter::Type::Default;
+		BOOL PassByReference = FALSE;
+		TCHAR* CppType = nullptr;
+		TCHAR* Name = nullptr;
+		TCHAR* FlagsString = nullptr;
 
 		Parameter() = default;
 		explicit Parameter(const Package::Method::Parameter& param)
 		{
 			ParamType = param.ParamType;
 			PassByReference = param.PassByReference;
-			CppType = Helper::CreateHeapStr(param.CppType);
-			Name = Helper::CreateHeapStr(param.Name);
-			FlagsString = Helper::CreateHeapStr(param.FlagsString);
+			CppType = NativeHelper::CreateHeapStr(param.CppType);
+			Name = NativeHelper::CreateHeapStr(param.Name);
+			FlagsString = NativeHelper::CreateHeapStr(param.FlagsString);
 		}
 		~Parameter()
 		{
-			Helper::FreeHeapStr(CppType);
-			Helper::FreeHeapStr(Name);
-			Helper::FreeHeapStr(FlagsString);
+			NativeHelper::FreeHeapStr(CppType);
+			NativeHelper::FreeHeapStr(Name);
+			NativeHelper::FreeHeapStr(FlagsString);
 		}
 	};
 
-	size_t Index;
-	TCHAR* Name;
-	TCHAR* FullName;
+	size_t Index = 0;
+	TCHAR* Name = nullptr;
+	TCHAR* FullName = nullptr;
 	StructArray<Parameter> Parameters;
-	TCHAR* FlagsString;
-	BOOL IsNative;
-	BOOL IsStatic;
+	TCHAR* FlagsString = nullptr;
+	BOOL IsNative = FALSE;
+	BOOL IsStatic = FALSE;
 
 	NativeMethod() = default;
 	explicit NativeMethod(const Package::Method& method)
 	{
-		Name = Helper::CreateHeapStr(method.Name);
-		FlagsString = Helper::CreateHeapStr(method.FlagsString);
-		FullName = Helper::CreateHeapStr(method.FullName);
+		Name = NativeHelper::CreateHeapStr(method.Name);
+		FlagsString = NativeHelper::CreateHeapStr(method.FlagsString);
+		FullName = NativeHelper::CreateHeapStr(method.FullName);
 		Index = method.Index;
 		IsNative = method.IsNative;
 		IsStatic = method.IsStatic;
-		Helper::HeapNativeStructArray(method.Parameters, Parameters);
+		NativeHelper::HeapNativeStructArray(method.Parameters, Parameters);
 	}
 	~NativeMethod()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(FlagsString);
-		Helper::FreeHeapStr(FullName);
-		Helper::FreeNativeStructArray(Parameters);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(FlagsString);
+		NativeHelper::FreeHeapStr(FullName);
+		NativeHelper::FreeNativeStructArray(Parameters);
 	}
 };
 
@@ -420,18 +420,18 @@ struct NativeClass : NativeScriptStruct
 	explicit NativeClass(const Package::Class& sdkClass) : NativeScriptStruct(sdkClass)
 	{
 		VirtualFunctions = StringArray(sdkClass.VirtualFunctions);
-		Helper::HeapNativeStructArray(sdkClass.Methods, Methods);
+		NativeHelper::HeapNativeStructArray(sdkClass.Methods, Methods);
 	}
 	~NativeClass()
 	{
-		Helper::FreeHeapArrayStr(VirtualFunctions);
-		Helper::FreeNativeStructArray(Methods);
+		NativeHelper::FreeHeapArrayStr(VirtualFunctions);
+		NativeHelper::FreeNativeStructArray(Methods);
 	}
 };
 
 struct NativePackage
 {
-	TCHAR* Name;
+	TCHAR* Name = nullptr;
 	StructArray<NativeConstant> Constants;
 	StructArray<NativeClass> Classes;
 	StructArray<NativeScriptStruct> ScriptStructs;
@@ -440,19 +440,19 @@ struct NativePackage
 	NativePackage() = default;
 	explicit NativePackage(const Package& sdkPackage)
 	{
-		Name = Helper::CreateHeapStr(sdkPackage.GetName());
-		Helper::HeapNativeStructArray(sdkPackage.Constants, Constants);
-		Helper::HeapNativeStructArray(sdkPackage.Classes, Classes);
-		Helper::HeapNativeStructArray(sdkPackage.ScriptStructs, ScriptStructs);
-		Helper::HeapNativeStructArray(sdkPackage.Enums, Enums);
+		Name = NativeHelper::CreateHeapStr(sdkPackage.GetName());
+		NativeHelper::HeapNativeStructArray(sdkPackage.Constants, Constants);
+		NativeHelper::HeapNativeStructArray(sdkPackage.Classes, Classes);
+		NativeHelper::HeapNativeStructArray(sdkPackage.ScriptStructs, ScriptStructs);
+		NativeHelper::HeapNativeStructArray(sdkPackage.Enums, Enums);
 	}
 	~NativePackage()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeNativeStructArray(Constants);
-		Helper::FreeNativeStructArray(Classes);
-		Helper::FreeNativeStructArray(ScriptStructs);
-		Helper::FreeNativeStructArray(Enums);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeNativeStructArray(Constants);
+		NativeHelper::FreeNativeStructArray(Classes);
+		NativeHelper::FreeNativeStructArray(ScriptStructs);
+		NativeHelper::FreeNativeStructArray(Enums);
 	}
 };
 
@@ -466,15 +466,15 @@ struct NativeUStruct
 	NativeUStruct() = default;
 	explicit NativeUStruct(const UEStruct& sdkUStruct)
 	{
-		Name = Helper::CreateHeapStr(sdkUStruct.GetName());
-		FullName = Helper::CreateHeapStr(sdkUStruct.GetFullName());
-		CppName = Helper::CreateHeapStr(sdkUStruct.GetNameCpp());
+		Name = NativeHelper::CreateHeapStr(sdkUStruct.GetName());
+		FullName = NativeHelper::CreateHeapStr(sdkUStruct.GetFullName());
+		CppName = NativeHelper::CreateHeapStr(sdkUStruct.GetNameCpp());
 		PropertySize = sdkUStruct.GetPropertySize();
 	}
 	~NativeUStruct()
 	{
-		Helper::FreeHeapStr(Name);
-		Helper::FreeHeapStr(FullName);
-		Helper::FreeHeapStr(CppName);
+		NativeHelper::FreeHeapStr(Name);
+		NativeHelper::FreeHeapStr(FullName);
+		NativeHelper::FreeHeapStr(CppName);
 	}
 };

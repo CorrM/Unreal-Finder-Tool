@@ -99,7 +99,7 @@ void CheckLastVer()
 {
 	std::wstring lastVer;
 
-	auto requestTask = HttpWorker::Get(L"https://github.com/CorrM/Unreal-Finder-Tool/releases/latest")
+	const auto requestTask = HttpWorker::Get(L"https://github.com/CorrM/Unreal-Finder-Tool/releases/latest", false)
 	.then([&](http_response response)
 	{
 		std::wstring locationHeader = response.headers()[L"Location"];
@@ -111,7 +111,7 @@ void CheckLastVer()
 	try
 	{
 		requestTask.wait();
-		if (lastVer != std::wstring(U(TOOL_VERSION)))
+		if (!lastVer.empty() && lastVer != std::wstring(U(TOOL_VERSION)))
 		{
 			MessageBoxW(Utils::UiMainWindow->GetWindowHandle(),
 				(
@@ -124,9 +124,9 @@ void CheckLastVer()
 				MB_OK | MB_ICONINFORMATION);
 		}
 	}
-	catch (const std::exception&)
+	catch (const std::exception& e)
 	{
-		// MessageBox(nullptr, ("Error exception: "s + e.what()).c_str(), "", MB_OK | MB_ICONERROR);
+		MessageBox(nullptr, ("Error exception: "s + e.what()).c_str(), "", MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -145,7 +145,7 @@ pplx::task<http_response> GetGoals()
 		{
 			if (item.at(L"type").as_string() != L"goal") continue;
 
-			int completed_percentage = item.at(L"attributes").at(L"completed_percentage").as_integer();
+			const int completed_percentage = item.at(L"attributes").at(L"completed_percentage").as_integer();
 			std::wstring description = item.at(L"attributes").at(L"description").as_string();
 			description = Utils::RemoveStringBetween(description, L"<", L">");
 
@@ -237,7 +237,7 @@ void SetupMemoryStuff(const HANDLE pHandle)
 
 		// Setup memory editor
 		mem_edit.OptMidColsCount = static_cast<int>(Utils::PointerSize());
-		mem_edit.PreviewDataType = Utils::MemoryObj->Is64Bit ? MemoryEditor::DataType_S64 : MemoryEditor::DataType_S32;
+		mem_edit.PreviewDataType = Utils::MemoryObj->Is64 ? MemoryEditor::DataType_S64 : MemoryEditor::DataType_S32;
 	}
 }
 
@@ -308,7 +308,7 @@ void StartGNamesFinder()
 	std::thread t([&]()
 	{
 		GNamesFinder gf;
-		uintptr_t gname_address = gf.Find()[0]; // always return one address
+		const uintptr_t gname_address = gf.Find()[0]; // always return one address
 
 		g_names_listbox_items.clear();
 
@@ -378,7 +378,7 @@ void StartInstanceLogger()
 	std::thread t([&]()
 	{
 		InstanceLogger il(g_objects_address, g_names_address);
-		auto retState = il.Start();
+		const auto retState = il.Start();
 
 		switch (retState.State)
 		{
@@ -421,7 +421,7 @@ void StartSdkGenerator()
 		LoadOverrideEngine();
 
 		SdkGenerator sg(g_objects_address, g_names_address);
-		SdkInfo ret = sg.Start(&sg_objects_count,
+		const SdkInfo ret = sg.Start(&sg_objects_count,
 		                       &sg_names_count,
 		                       &sg_packages_count,
 		                       &sg_packages_done_count,
@@ -558,7 +558,7 @@ void TitleBarUi(UiWindow* thiz)
 				{
 					ShellExecute(nullptr,
 						"open",
-						Utils::GetWorkingDirectory().c_str(),
+						Utils::GetWorkingDirectoryA().c_str(),
 						nullptr,
 						nullptr,
 						SW_SHOWDEFAULT);
@@ -569,7 +569,7 @@ void TitleBarUi(UiWindow* thiz)
 				{
 					ShellExecute(nullptr,
 						"open",
-						(Utils::GetWorkingDirectory() + "\\Results").c_str(), 
+						(Utils::GetWorkingDirectoryA() + "\\Results").c_str(), 
 						nullptr,
 						nullptr,
 						SW_SHOWDEFAULT);
@@ -580,7 +580,7 @@ void TitleBarUi(UiWindow* thiz)
 				{
 					ShellExecute(nullptr,
 						"open",
-						(Utils::GetWorkingDirectory() + "\\Config").c_str(),
+						(Utils::GetWorkingDirectoryA() + "\\Config").c_str(),
 						nullptr,
 						nullptr,
 						SW_SHOWDEFAULT);
@@ -727,7 +727,7 @@ void InformationSectionUi(UiWindow* thiz)
 		if (!g_objects_disabled && g_objects_address != 0)
 		{
 			style_pushed = true;
-			bool isValid = Utils::IsValidGObjectsAddress(g_objects_address, &isChunks);
+			const bool isValid = Utils::IsValidGObjectsAddress(g_objects_address, &isChunks);
 			if (isValid && isChunks)
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
 			else if (isValid)
@@ -861,7 +861,7 @@ void FinderUi(UiWindow* thiz)
 
 					if (Utils::MemoryObj)
 					{
-						uintptr_t address = Utils::CharArrayToUintptr(g_obj_listbox_items[g_obj_listbox_item_current]);
+						const uintptr_t address = Utils::CharArrayToUintptr(g_obj_listbox_items[g_obj_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
@@ -944,7 +944,7 @@ void FinderUi(UiWindow* thiz)
 
 					if (Utils::MemoryObj)
 					{
-						uintptr_t address = Utils::CharArrayToUintptr(g_names_listbox_items[g_names_listbox_item_current]);
+						const uintptr_t address = Utils::CharArrayToUintptr(g_names_listbox_items[g_names_listbox_item_current]);
 
 						// Only alloc once
 						if (!PCurrentAddressData)
@@ -1009,7 +1009,7 @@ void FinderUi(UiWindow* thiz)
 			{
 				if (size_t(class_listbox_item_current) < class_listbox_items.size())
 				{
-					std::string curStr = class_listbox_items[class_listbox_item_current];
+					const std::string curStr = class_listbox_items[class_listbox_item_current];
 					size_t position;
 					if ((position = curStr.find(' ')) != std::string::npos)
 						ui::SetClipboardText(curStr.substr(0, position).c_str());
@@ -1149,7 +1149,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { MidWidth, 0.0f }), sg_start_disabled,
 		{
-			if (Utils::FileExists(Utils::GetWorkingDirectory() + "\\Results"))
+			if (Utils::FileExists(Utils::GetWorkingDirectoryA() + "\\Results"))
 			{
 				ui::OpenPopup("Delete Old SDK?");
 			}
@@ -1171,7 +1171,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			if (ui::Button("Yes", ImVec2(75, 0)))
 			{
 				ui::CloseCurrentPopup();
-				Utils::DirectoryDelete(Utils::GetWorkingDirectory() + "\\Results");
+				Utils::DirectoryDelete(Utils::GetWorkingDirectoryA() + "\\Results");
 				if (IsReadyToGo())
 					StartSdkGenerator();
 				else

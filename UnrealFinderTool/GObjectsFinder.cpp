@@ -14,14 +14,14 @@ GObjectsFinder::GObjectsFinder(const bool easyMethod) : easyMethod(easyMethod)
 {
 	dwStart = 0;
 	dwEnd = 0;
-	ptrSize = !Utils::MemoryObj->Is64Bit ? 0x4 : 0x8;
+	ptrSize = !Utils::MemoryObj->Is64 ? 0x4 : 0x8;
 }
 
 std::vector<uintptr_t> GObjectsFinder::Find()
 {
 	std::vector<uintptr_t> ret;
 	// dwStart = !_memory->Is64Bit ? 0x100000 : static_cast<uintptr_t>(0x7FF00000);
-	dwEnd = !Utils::MemoryObj->Is64Bit ? 0x7FEFFFFF : uintptr_t(0x7fffffffffff);
+	dwEnd = !Utils::MemoryObj->Is64 ? 0x7FEFFFFF : uintptr_t(0x7fffffffffff);
 
 	// Start scan for TArrays
 	SYSTEM_INFO si = { 0 };
@@ -82,7 +82,7 @@ std::vector<uintptr_t> GObjectsFinder::Find()
 		for (size_t index = 0; index < ret.size(); ++index)
 		{
 			auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, ret[index],
-				Utils::MemoryObj->Is64Bit ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
+				Utils::MemoryObj->Is64 ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 
 			if (address_holder.empty())
 			{

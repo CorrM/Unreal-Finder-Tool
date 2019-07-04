@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using net.r_eg.Conari.Types;
@@ -7,6 +8,13 @@ using SdkLang.Utils;
 
 namespace SdkLang
 {
+    /*
+     * NOTE:
+     * When you edit code on this project (SdkLang),
+     * You Must REBUILD not BUILD.
+     * Since DllExplore need to REBUILD every time.
+     */
+
     public static class Main
     {
         public static Dictionary<string, UftLang> SupportedLangs = new Dictionary<string, UftLang>()
@@ -58,6 +66,21 @@ namespace SdkLang
         public static void UftLangSaveFunctionParameters(IntPtr nPackage)
         {
             Lang.SaveFunctionParameters(GetPackageFromPtr(nPackage));
+        }
+        [DllExport]
+        public static void UftLangSdkAfterFinish(Native.StructArray packages, Native.StructArray missing)
+        {
+            var packagesList = new CTypes.UftArrayPtr(packages.Ptr, packages.Count, packages.ItemSize)
+                .ToPtrStructList<Native.Package>()
+                .Select(nVar => new SdkPackage(nVar))
+                .ToList();
+
+            var missingList = new CTypes.UftArrayPtr(missing.Ptr, missing.Count, missing.ItemSize)
+                .ToPtrStructList<Native.UStruct>()
+                .Select(nVar => new SdkUStruct(nVar))
+                .ToList();
+
+            Lang.SdkAfterFinish(packagesList, missingList);
         }
     }
 }

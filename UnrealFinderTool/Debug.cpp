@@ -23,7 +23,7 @@ void Debugging::EnterDebugMode(const bool bConsole)
 LONG WINAPI Debugging::ExceptionHandler(EXCEPTION_POINTERS* e)
 {
 	//UNREFERENCED_PARAMETER(e);
-	if (e->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION && CreateMiniDump(e))
+	if (e->ExceptionRecord->ExceptionCode == static_cast<DWORD>(EXCEPTION_ACCESS_VIOLATION) && CreateMiniDump(e))
 	{
 		MessageBox(HWND_DESKTOP,
 			"Program encountered an issue and was terminated. Dump information is located in Dumps folder in program directory.",
@@ -41,13 +41,13 @@ BOOL Debugging::CreateMiniDump(EXCEPTION_POINTERS* e)
 	TCHAR szPath[MAX_PATH] = { 0 };
 
 	GetLocalTime(&st);
-	CreateDirectory(_T("Dumps"), nullptr);
+	CreateDirectory("Dumps", nullptr);
 
 	sprintf_s(szPath, MAX_PATH, "Dumps\\%04d%02d%02d-%02d%02d%02d-%ld-%ld.mdmp",
 	        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
 	        GetCurrentProcessId(), GetCurrentThreadId());
 
-	HANDLE hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE,
+	const HANDLE hDump = CreateFile(szPath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_WRITE,
 							 nullptr,
 	                         CREATE_ALWAYS,
 							 0,
@@ -57,11 +57,11 @@ BOOL Debugging::CreateMiniDump(EXCEPTION_POINTERS* e)
 	md.ExceptionPointers = e;
 	md.ClientPointers = TRUE;
 
-	BOOL bSuccess = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump, MiniDumpWithDataSegs, &md, nullptr, nullptr);
+	const BOOL bSuccess = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump, MiniDumpWithDataSegs, &md, nullptr, nullptr);
 	return bSuccess;
 }
 
-void Debugging::Log(const char* format, ...)
+void Debugging::Log(const char* format, ...) const
 {
 	if (!bConsoleEnabled)
 		return;

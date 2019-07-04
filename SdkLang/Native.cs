@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using net.r_eg.Conari.Types;
-using SdkLang.Utils;
-using static SdkLang.Utils.CTypes;
 
 namespace SdkLang
 {
@@ -15,7 +8,7 @@ namespace SdkLang
         [StructLayout(LayoutKind.Sequential)]
         public struct StructArray
         {
-            public IntPtr Ptr; // NativeArrayType**
+            public IntPtr Ptr; // Pointer to Pointer [in cpp will be (Type** ptr)]
             public IntPtr Count;
             public IntPtr ItemSize;
         }

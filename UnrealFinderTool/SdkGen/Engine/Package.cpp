@@ -936,7 +936,7 @@ void Package::PrintClass(std::ostream & os, const Class & c) const
 	os << "};\n\n";
 }
 
-std::string Package::BuildMethodSignature(const Method& m, const Class& c, bool inHeader) const
+std::string Package::BuildMethodSignature(const Method& m, const Class& c, const bool inHeader) const
 {
 	using namespace cpplinq;
 	using Type = Method::Parameter::Type;

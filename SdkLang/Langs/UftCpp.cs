@@ -198,11 +198,16 @@ namespace SdkLang.Langs
 
             // Parameters
             text += "(";
-            text += m.Parameters
-                .Where(p => p.ParamType != Native.Method.Parameter.Type.Return)
-                .OrderBy(p => p.ParamType)
-                .Select(p => (p.PassByReference ? "const " : "") + p.CppType + (p.PassByReference ? "& " : p.ParamType == Native.Method.Parameter.Type.Out ? "* " : " ") + p.Name)
-                .Aggregate((cur, next) => cur + ", " + next);
+            if (m.Parameters.Count > 0)
+            {
+                var paramList = m.Parameters
+                    .Where(p => p.ParamType != Native.Method.Parameter.Type.Return)
+                    .OrderBy(p => p.ParamType)
+                    .Select(p => (p.PassByReference ? "const " : "") + p.CppType + (p.PassByReference ? "& " :
+                                     p.ParamType == Native.Method.Parameter.Type.Out ? "* " : " ") + p.Name).ToList();
+                if (paramList.Count > 0)
+                    text += paramList.Aggregate((cur, next) => cur + ", " + next);
+            }
             text += ")";
 
             return text;
@@ -540,8 +545,8 @@ namespace SdkLang.Langs
         public override void SdkAfterFinish(List<SdkPackage> packages, List<SdkUStruct> missing)
         {
             // Copy Include File
-            new BasicHeader().Process(Main.IncludePath);
-            new BasicCpp().Process(Main.IncludePath);
+            //new BasicHeader().Process(Main.IncludePath);
+            //new BasicCpp().Process(Main.IncludePath);
 
             string text =
                 $"// ------------------------------------------------\n" +
@@ -567,10 +572,10 @@ namespace SdkLang.Langs
                     IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h", GetFileHeader(true));
 
                     missingText += $"// {s.FullName}\n// ";
-                    missingText += $"0x{(long)s.PropertySize:X4}\n";
+                    missingText += $"0x{s.PropertySize.ToInt64():X4}\n";
 
                     missingText += $"struct {MakeValidName(s.CppName)}\n{{\n";
-                    missingText += $"\tunsigned char UnknownData[0x{(long)s.PropertySize:X}];\n}};\n\n";
+                    missingText += $"\tunsigned char UnknownData[0x{s.PropertySize.ToInt64():X}];\n}};\n\n";
                 }
 
                 missingText += GetFileFooter();
@@ -583,14 +588,14 @@ namespace SdkLang.Langs
             text += "\n";
             foreach (var package in packages)
             {
-                text += $"(#include \"SDK /){GenerateFileName(FileContentType.Structs, package.Name)}\"\n";
-                text += $"(#include \"SDK /){GenerateFileName(FileContentType.Classes, package.Name)}\"\n";
+                text += $"#include \"SDK/{GenerateFileName(FileContentType.Structs, package.Name)}\"\n";
+                text += $"#include \"SDK/{GenerateFileName(FileContentType.Classes, package.Name)}\"\n";
 
                 if (Main.GenInfo.ShouldGenerateFunctionParametersFile)
-                    text += $"(#include \"SDK /){GenerateFileName(FileContentType.FunctionParameters, package.Name)}\"\n";
+                    text += $"#include \"SDK/{GenerateFileName(FileContentType.FunctionParameters, package.Name)}\"\n";
             }
 
-            // 
+            // Write SDK.h
             IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", text);
         }
         #endregion
