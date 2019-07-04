@@ -19,8 +19,8 @@ namespace SdkLang.Langs
             var fileStr = ReadThisFile(includePath);
 
             // Replace Main stuff
-            fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_pragmas, _include, true));
-            fileStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
+            fileStr.BaseStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_pragmas, _include, true));
+            fileStr.BaseStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
 
             var jStruct = UtilsFunctions.GetStruct("FUObjectItem");
             string fUObjectItemStr = string.Empty;
@@ -33,9 +33,9 @@ namespace SdkLang.Langs
                     : $"\t{mem.Type} {mem.Name};\n";
             }
 
-            fileStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", Main.GenInfo.IsGObjectsChunks ? "#define GOBJECTS_CHUNKS" : "");
-            fileStr.Replace("/*!!POINTER_SIZE_PLACEHOLDER!!*/", Main.GenInfo.PointerSize.ToString());
-            fileStr.Replace("/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
+            fileStr.BaseStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", Main.GenInfo.IsGObjectsChunks ? "#define GOBJECTS_CHUNKS" : "");
+            fileStr.BaseStr.Replace("/*!!POINTER_SIZE_PLACEHOLDER!!*/", Main.GenInfo.PointerSize.ToString());
+            fileStr.BaseStr.Replace("/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
 
             // Write File
             CopyToSdk(fileStr);
@@ -55,11 +55,11 @@ namespace SdkLang.Langs
             var fileStr = ReadThisFile(includePath);
 
             // Replace Main stuff
-            fileStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_include, false));
-            fileStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
+            fileStr.BaseStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_include, false));
+            fileStr.BaseStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
 
             // Replace
-            fileStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", "");
+            fileStr.BaseStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", "");
 
             // Write File
             CopyToSdk(fileStr);
@@ -79,31 +79,31 @@ namespace SdkLang.Langs
         public string GetFileHeader(List<string> pragmas, List<string> includes, bool isHeaderFile)
         {
             var genInfo = Main.GenInfo;
-            var sb = new StringBuilder();
+            var sb = new UftStringBuilder();
 
             // Pragmas
             if (isHeaderFile)
             {
-                sb.Append("#pragma once\n");
+                sb.BaseStr.Append("#pragma once\n");
                 if (pragmas.Count > 0)
-                    foreach (string i in pragmas) { sb.Append("#pragma " + i + "\n"); }
-                sb.Append("\n");
+                    foreach (string i in pragmas) { sb.BaseStr.Append("#pragma " + i + "\n"); }
+                sb.BaseStr.Append("\n");
             }
 
             if (genInfo.IsExternal)
-                sb.Append("#include \"../Memory.h\"\n");
+                sb.BaseStr.Append("#include \"../Memory.h\"\n");
 
             // Includes
             if (includes.Count > 0)
-                foreach (string i in includes) { sb.Append("#include " + i + "\n"); }
-            sb.Append("\n");
+                foreach (string i in includes) { sb.BaseStr.Append("#include " + i + "\n"); }
+            sb.BaseStr.Append("\n");
 
             // 
-            sb.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
-            sb.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment:X2})\n#endif\n\n");
-            sb.Append($"namespace {genInfo.NamespaceName}\n{{\n");
+            sb.BaseStr.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
+            sb.BaseStr.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment:X2})\n#endif\n\n");
+            sb.BaseStr.Append($"namespace {genInfo.NamespaceName}\n{{\n");
 
-            return sb.ToString();
+            return sb;
         }
         public string GetFileHeader(List<string> includes, bool isHeaderFile)
         {
@@ -174,7 +174,7 @@ namespace SdkLang.Langs
         }
         public string BuildMethodSignature(SdkMethod m, SdkClass c, bool inHeader)
         {
-            string text = string.Empty;
+            var text = new UftStringBuilder();
 
             // static
             if (m.IsStatic && inHeader && Main.GenInfo.ShouldConvertStaticMethods)
@@ -209,7 +209,7 @@ namespace SdkLang.Langs
         }
         public string BuildMethodBody(SdkClass c, SdkMethod m)
         {
-            string text = string.Empty;
+            UftStringBuilder text = new UftStringBuilder();
 
             // Function Pointer
             text += "{\n\tstatic auto fn";
@@ -296,7 +296,7 @@ namespace SdkLang.Langs
         }
         public void PrintEnum(string fileName, SdkEnum e)
         {
-            string text = $"// {e.FullName}\nenum class {e.Name} : uint8_t\n{{\n";
+            UftStringBuilder text = new UftStringBuilder($"// {e.FullName}\nenum class {e.Name} : uint8_t\n{{\n");
 
             for (int i = 0; i < e.Values.Count; i++)
                 text += $"\t{e.Values[i],-30} = {i},\n";
@@ -307,7 +307,7 @@ namespace SdkLang.Langs
         }
         public void PrintStruct(string fileName, SdkScriptStruct ss)
         {
-            string text = $"// {ss.FullName}\n// ";
+            var text = new UftStringBuilder($"// {ss.FullName}\n// ");
 
             if (ss.InheritedSize.ToInt32() > 0)
                 text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} ({(long)ss.Size:X4} - 0x{(long)ss.InheritedSize:X4})\n";
@@ -346,7 +346,7 @@ namespace SdkLang.Langs
         }
         public void PrintClass(string fileName, SdkClass c)
         {
-            string text = $"// {c.FullName}\n// ";
+            var text = new UftStringBuilder($"// {c.FullName}\n// ");
 
             if (c.InheritedSize.ToInt32() > 0)
                 text += $"0x{c.Size.ToInt32() - c.InheritedSize.ToInt32():X4} ({(long)c.Size:X4} - 0x{(long)c.InheritedSize:X4})\n";
@@ -465,7 +465,7 @@ namespace SdkLang.Langs
             IncludeFile<UftCpp>.CreateFile(Main.GenInfo.SdkPath, fileName);
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, false));
 
-            string text = GetSectionHeader("Functions");
+            var text = new UftStringBuilder(GetSectionHeader("Functions"));
             foreach (var s in package.ScriptStructs)
             {
                 foreach (var m in s.PredefinedMethods)
@@ -516,7 +516,7 @@ namespace SdkLang.Langs
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, GetFileHeader(new List<string>() { "\"../SDK.h\"" }, true));
 
             // Section
-            string text = GetSectionHeader("Parameters");
+            var text = new UftStringBuilder(GetSectionHeader("Parameters"));
 
             // Method Params
             foreach (var c in package.Classes)
@@ -543,16 +543,16 @@ namespace SdkLang.Langs
             new BasicHeader().Process(Main.IncludePath);
             new BasicCpp().Process(Main.IncludePath);
 
-            string text =
-                $"// ------------------------------------------------\n" +
-                $"// Sdk Generated By ( Unreal Finder Tool By CorrM )\n" +
-                $"// ------------------------------------------------\n" +
-
-                $"#pragma once\n\n" +
-                $"// Name: {Main.GenInfo.GameName}, Version: {Main.GenInfo.GameVersion}\n\n" +
-
-                $"#include <set>\n" +
-                $"#include <string>\n";
+            var text = new UftStringBuilder();
+            text += $"// ------------------------------------------------\n";
+            text += $"// Sdk Generated By ( Unreal Finder Tool By CorrM )\n";
+            text += $"// ------------------------------------------------\n";
+            text += $"\n";
+            text += $"#pragma once\n\n";
+            text += $"// Name: {Main.GenInfo.GameName}, Version: {Main.GenInfo.GameVersion}\n\n";
+            text += "\n";
+            text += $"#include <set>\n";
+            text += $"#include <string>\n";
 
             // Check for missing structs
             if (missing.Count > 0)

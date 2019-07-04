@@ -53,32 +53,36 @@ namespace SdkLang.Utils
         }
         public class UftArrayPtr
         {
+            public enum ArrayType
+            {
+                UnKnown,
+                ArrayList, // Address To First Data
+                PtrToStructList // Pointer To First Data Pointer
+            }
+
             public IntPtr Ptr;
             private readonly IntPtr[] _data;
 
-            public bool IsStructArray { get; private set; }
+            public ArrayType PtrType { get; private set; }
             public int ItemSize { get; }
             public int Count { get; }
 
             public UftArrayPtr(IntPtr arrayPtr, IntPtr itemCount, IntPtr itemSize) 
-                : this(arrayPtr, itemCount.ToInt32(), itemSize.ToInt32())
-            {
-
-            }
+                : this(arrayPtr, itemCount.ToInt32(), itemSize.ToInt32()) { }
             public UftArrayPtr(IntPtr arrayPtr, int itemCount, int itemSize)
             {
                 Ptr = arrayPtr;
                 Count = itemCount;
                 ItemSize = itemSize;
                 _data = new IntPtr[Count];
-
-                Init(arrayPtr, false);
+                PtrType = ArrayType.UnKnown;
             }
 
             private void Init(IntPtr arrayPtr, bool isStructArray)
             {
                 Ptr = arrayPtr;
-                IsStructArray = isStructArray;
+                PtrType = isStructArray ? ArrayType.PtrToStructList : ArrayType.ArrayList;
+
                 for (int i = 0; i < Count; i++)
                 {
                     if (isStructArray)
@@ -93,17 +97,35 @@ namespace SdkLang.Utils
                     }
                 }
             }
+
             public IntPtr this[int index] => GetItemPtr(index);
             public IntPtr GetItemPtr(int index)
             {
+                if (PtrType == ArrayType.UnKnown)
+                    throw new Exception("You must call `ToPtrStructList` or `ToArrayList` FIRST.");
+
                 return _data[index];
             }
+
             public List<TNativeType> ToPtrStructList<TNativeType>()
             {
                 if (Ptr == IntPtr.Zero)
                     return new List<TNativeType>();
 
                 Init(Ptr, true);
+
+                return _data
+                    .Where(ptr => ptr != IntPtr.Zero)
+                    .Select(ptr => (TNativeType)new UnmanagedStructure(ptr, typeof(TNativeType)).Managed)
+                    .ToList();
+            }
+
+            public List<TNativeType> ToArrayList<TNativeType>()
+            {
+                if (Ptr == IntPtr.Zero)
+                    return new List<TNativeType>();
+
+                Init(Ptr, false);
 
                 return _data
                     .Where(ptr => ptr != IntPtr.Zero)

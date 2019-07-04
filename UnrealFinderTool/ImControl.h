@@ -132,6 +132,7 @@ static void DisabledAll()
 
 	il_start_disabled = true;
 
+	sg_lang_disabled = true;
 	sg_module_disabled = true;
 	sg_type_disabled = true;
 	sg_game_name_disabled = true;
@@ -148,6 +149,7 @@ static void EnabledAll()
 
 	il_start_disabled = false;
 
+	sg_lang_disabled = false;
 	sg_module_disabled = false;
 	sg_type_disabled = false;
 	sg_game_name_disabled = false;

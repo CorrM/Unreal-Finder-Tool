@@ -9,6 +9,7 @@ class DotNetConnect
 public:
 	explicit DotNetConnect();
 	~DotNetConnect();
+	bool Loaded() const;
 	bool Load(const std::wstring& dllPath);
 	void Free();
 	template<typename Fn>

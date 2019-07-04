@@ -31,11 +31,11 @@ namespace SdkLang.Utils
         {
             File.CreateText($@"{sdkPah}\{fileName}").Close();
         }
-        public StringBuilder ReadThisFile(string includePath)
+        public UftStringBuilder ReadThisFile(string includePath)
         {
-            return new StringBuilder(File.ReadAllText($@"{includePath}\{FileName}"));
+            return new UftStringBuilder(File.ReadAllText($@"{includePath}\{FileName}"));
         }
-        public void CopyToSdk(StringBuilder fileStr)
+        public void CopyToSdk(UftStringBuilder fileStr)
         {
             File.WriteAllText($@"{SdkPath}\{FileName}", fileStr.ToString());
         }

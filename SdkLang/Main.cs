@@ -10,10 +10,17 @@ using SdkLang.Utils;
 namespace SdkLang
 {
     /*
-     * NOTE:
-     * When you edit code on this project (SdkLang),
-     * You Must REBUILD not BUILD.
-     * Since DllExplore need to REBUILD every time.
+     * NOTEs:
+     * 1-
+     *      When you edit code on this project (SdkLang),
+     *      You Must REBUILD not BUILD.
+     *      Since DllExplore need to REBUILD every time.
+     *
+     * 2-
+     *      Don't use string as file container
+     *      (Read file or contact string to write a file),
+     *      use UftStringBuilder instead,
+     *      it's way faster and less resources.
      */
 
     public static class Main
@@ -71,11 +78,13 @@ namespace SdkLang
         [DllExport]
         public static void UftLangSdkAfterFinish(Native.StructArray packages, Native.StructArray missing)
         {
+            // Init packages
             var packagesList = new CTypes.UftArrayPtr(packages.Ptr, packages.Count, packages.ItemSize)
                 .ToPtrStructList<Native.Package>()
                 .Select(nVar => new SdkPackage(nVar))
                 .ToList();
 
+            // Init missing
             var missingList = new CTypes.UftArrayPtr(missing.Ptr, missing.Count, missing.ItemSize)
                 .ToPtrStructList<Native.UStruct>()
                 .Select(nVar => new SdkUStruct(nVar))

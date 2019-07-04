@@ -9,6 +9,34 @@ using net.r_eg.Conari.Types;
 
 namespace SdkLang.Utils
 {
+    public class UftStringBuilder
+    {
+        public readonly StringBuilder BaseStr;
+
+        public UftStringBuilder() : this(string.Empty) { }
+
+        public UftStringBuilder(string str)
+        {
+            BaseStr = new StringBuilder(str);
+        }
+
+        public static UftStringBuilder operator +(UftStringBuilder sBuilder, string str)
+        {
+            sBuilder.BaseStr.Append(str);
+            return sBuilder;
+        }
+
+        public static implicit operator string(UftStringBuilder builder)
+        {
+            return builder.ToString();
+        }
+
+        public override string ToString()
+        {
+            return BaseStr.ToString();
+        }
+    }
+
     public static class UtilsFunctions
     {
         public static JsonStruct GetStruct(string structName)
