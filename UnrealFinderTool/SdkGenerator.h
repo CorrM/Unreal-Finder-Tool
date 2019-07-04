@@ -41,11 +41,6 @@ private:
 	/// <param name="state"></param>
 	/// <param name="packagesDone"></param>
 	void ProcessPackages(const fs::path& path, size_t* pPackagesCount, size_t* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone);
-	/// <summary>
-	/// Generates the sdk header.
-	/// </summary>
-	/// <param name="path">The path where to create the sdk header.</param>
-	/// <param name="processedObjects">The list of processed objects.</param>
-	/// <param name="packages">The package order info.</param>
-	void SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const;
+
+	void SdkAfterFinish(const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const;
 };

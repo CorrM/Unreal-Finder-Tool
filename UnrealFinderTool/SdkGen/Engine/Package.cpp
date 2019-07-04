@@ -1,9 +1,4 @@
 #include "pch.h"
-
-#include <fstream>
-#include <unordered_set>
-#include <cinttypes>
-
 #include "tinyformat.h"
 #include "cpplinq.hpp"
 #include "Logger.h"
@@ -12,12 +7,14 @@
 #include "ObjectsStore.h"
 #include "PropertyFlags.h"
 #include "FunctionFlags.h"
-#include "PrintHelper.h"
 #include "ParallelWorker.h"
 #include "DotNetConnect.h"
 #include "Package.h"
 #include "Native.h"
 #include "Utils.h"
+
+#include <unordered_set>
+#include <cinttypes>
 
 std::unordered_map<UEObject, const Package*> Package::PackageMap;
 
@@ -96,7 +93,7 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std
 	}
 }
 
-bool Package::Save(const fs::path& path) const
+bool Package::Save() const
 {
 	using namespace cpplinq;
 
@@ -107,9 +104,9 @@ bool Package::Save(const fs::path& path) const
 		|| from(Classes) >> where([](Class&& c) {return !c.Members.empty() || !c.PredefinedMethods.empty() || !c.Methods.empty(); }) >> any())
 		)
 	{
-		SaveStructs(path);
-		SaveClasses(path);
-		SaveFunctions(path);
+		SaveStructs();
+		SaveClasses();
+		SaveFunctions();
 
 		return true;
 	}
@@ -757,7 +754,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 	}
 }
 
-void Package::SaveStructs(const fs::path & path) const
+void Package::SaveStructs() const
 {
 	const auto uftLangSaveStructs = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
 	if (!uftLangSaveStructs)
@@ -770,7 +767,7 @@ void Package::SaveStructs(const fs::path & path) const
 	uftLangSaveStructs(&pack);
 }
 
-void Package::SaveClasses(const fs::path& path) const
+void Package::SaveClasses() const
 {
 	const auto uftLangSaveClasses = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveClasses");
 	if (!uftLangSaveClasses)
@@ -783,7 +780,7 @@ void Package::SaveClasses(const fs::path& path) const
 	uftLangSaveClasses(&pack);
 }
 
-void Package::SaveFunctions(const fs::path & path) const
+void Package::SaveFunctions() const
 {
 	const auto uftSaveFunctions = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctions");
 	if (!uftSaveFunctions)
@@ -796,7 +793,7 @@ void Package::SaveFunctions(const fs::path & path) const
 	uftSaveFunctions(&pack);
 }
 
-void Package::SaveFunctionParameters(const fs::path & path) const
+void Package::SaveFunctionParameters() const
 {
 	const auto uftLangSaveFunctionParameters = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctionParameters");
 	if (!uftLangSaveFunctionParameters)
@@ -807,279 +804,4 @@ void Package::SaveFunctionParameters(const fs::path & path) const
 
 	NativePackage pack(*this);
 	uftLangSaveFunctionParameters(&pack);
-}
-
-void Package::PrintConstant(std::ostream& os, const Constant& c) const
-{
-	tfm::format(os, "#define CONST_%-50s %s\n", c.Name, c.Value);
-}
-
-void Package::PrintEnum(std::ostream& os, const Enum& e) const
-{
-	using namespace cpplinq;
-
-	os << "// " << e.FullName << "\nenum class " << e.Name << " : uint8_t\n{\n";
-	os << (from(e.Values)
-		>> select([](auto && name, auto && i) { return tfm::format("\t%-30s = %d", name, i); })
-		>> concatenate(",\n"))
-		<< "\n};\n\n";
-}
-
-void Package::PrintStruct(std::ostream& os, const ScriptStruct& ss) const
-{
-	using namespace cpplinq;
-
-	os << "// " << ss.FullName << "\n// ";
-	if (ss.InheritedSize)
-	{
-		os << tfm::format("0x%04X (0x%04X - 0x%04X)\n", ss.Size - ss.InheritedSize, ss.Size, ss.InheritedSize);
-	}
-	else
-	{
-		os << tfm::format("0x%04X\n", ss.Size);
-	}
-
-	os << ss.NameCppFull << "\n{\n";
-
-	//Member
-	os << (from(ss.Members)
-		>> select([](Member&& m) {
-			return
-			tfm::format("\t%-50s %-58s// 0x%04X(0x%04X)", (m.IsStatic ? "static " + m.Type : m.Type), m.Name + ";", m.Offset, m.Size)
-				+ (!m.Comment.empty() ? " " + m.Comment : "")
-				+ (!m.FlagsString.empty() ? " (" + m.FlagsString + ")" : "");
-			})
-		>> concatenate("\n"))
-		<< "\n";
-
-	//Predefined Methods
-	if (!ss.PredefinedMethods.empty())
-	{
-		os << "\n";
-		for (auto&& m : ss.PredefinedMethods)
-		{
-			if (m.MethodType == PredefinedMethod::Type::Inline)
-			{
-				os << m.Body;
-			}
-			else
-			{
-				os << "\t" << m.Signature << ";";
-			}
-			os << "\n\n";
-		}
-	}
-
-	os << "};\n";
-}
-
-void Package::PrintClass(std::ostream & os, const Class & c) const
-{
-	using namespace cpplinq;
-
-	os << "// " << c.FullName << "\n// ";
-	if (c.InheritedSize)
-	{
-		tfm::format(os, "0x%04X (0x%04X - 0x%04X)\n", c.Size - c.InheritedSize, c.Size, c.InheritedSize);
-	}
-	else
-	{
-		tfm::format(os, "0x%04X\n", c.Size);
-	}
-
-	os << c.NameCppFull << "\n{\npublic:\n";
-
-	//Member
-	for (auto&& m : c.Members)
-	{
-		tfm::format(os, "\t%-50s %-58s// 0x%04X(0x%04X)", (m.IsStatic ? "static " + m.Type : m.Type), m.Name + ";", m.Offset, m.Size);
-		if (!m.Comment.empty())
-		{
-			os << " " << m.Comment;
-		}
-		if (!m.FlagsString.empty())
-		{
-			os << " (" << m.FlagsString << ")";
-		}
-		os << "\n";
-	}
-
-	//Predefined Methods
-	if (!c.PredefinedMethods.empty())
-	{
-		os << "\n";
-		for (auto&& m : c.PredefinedMethods)
-		{
-			if (m.MethodType == PredefinedMethod::Type::Inline)
-			{
-				os << m.Body;
-			}
-			else
-			{
-				os << "\t" << m.Signature << ";";
-			}
-
-			os << "\n\n";
-		}
-	}
-
-	//Methods
-	if (!c.Methods.empty())
-	{
-		os << "\n";
-		for (auto&& m : c.Methods)
-		{
-			os << "\t" << BuildMethodSignature(m, {}, true) << ";\n";
-		}
-	}
-
-	os << "};\n\n";
-}
-
-std::string Package::BuildMethodSignature(const Method& m, const Class& c, const bool inHeader) const
-{
-	using namespace cpplinq;
-	using Type = Method::Parameter::Type;
-
-	std::ostringstream ss;
-
-	if (m.IsStatic && inHeader && !Utils::GenObj->ShouldConvertStaticMethods())
-	{
-		ss << "static ";
-	}
-
-	//Return Type
-	const auto retn = from(m.Parameters) >> where([](Method::Parameter && param) { return param.ParamType == Type::Return; });
-	if (retn >> any())
-	{
-		ss << (retn >> first()).CppType;
-	}
-	else
-	{
-		ss << "void";
-	}
-	ss << " ";
-
-	if (!inHeader)
-	{
-		ss << c.NameCpp << "::";
-	}
-	if (m.IsStatic && Utils::GenObj->ShouldConvertStaticMethods())
-	{
-		ss << "STATIC_";
-	}
-	ss << m.Name;
-
-	//Parameters
-	ss << "(";
-	ss << (from(m.Parameters)
-		>> where([](auto && param) { return param.ParamType != Type::Return; })
-		>> orderby([](auto && param) { return param.ParamType; })
-		>> select([](auto && param) { return (param.PassByReference ? "const " : "") + param.CppType + (param.PassByReference ? "& " : param.ParamType == Type::Out ? "* " : " ") + param.Name; })
-		>> concatenate(", "));
-	ss << ")";
-
-	return ss.str();
-}
-
-std::string Package::BuildMethodBody(const Class & c, const Method & m) const
-{
-	using namespace cpplinq;
-	using Type = Method::Parameter::Type;
-
-	std::ostringstream ss;
-
-	//Function Pointer
-	ss << "{\n\tstatic auto fn";
-
-	if (Utils::GenObj->ShouldUseStrings())
-	{
-		ss << " = UObject::FindObject<UFunction>(";
-
-		if (Utils::GenObj->ShouldXorStrings())
-		{
-			ss << "_xor_(\"" << m.FullName << "\")";
-		}
-		else
-		{
-			ss << "\"" << m.FullName << "\"";
-		}
-
-		ss << ");\n\n";
-	}
-	else
-	{
-		ss << " = UObject::GetObjectCasted<UFunction>(" << m.Index << ");\n\n";
-	}
-
-	//Parameters
-	if (Utils::GenObj->ShouldGenerateFunctionParametersFile())
-	{
-		ss << "\t" << c.NameCpp << "_" << m.Name << "_Params params;\n";
-	}
-	else
-	{
-		ss << "\tstruct\n\t{\n";
-		for (auto&& param : m.Parameters)
-		{
-			tfm::format(ss, "\t\t%-30s %s;\n", param.CppType, param.Name);
-		}
-		ss << "\t} params;\n";
-	}
-
-	const auto defaultParameters = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Default; });
-	if (defaultParameters >> any())
-	{
-		for (auto&& param : defaultParameters >> experimental::container())
-		{
-			ss << "\tparams." << param.Name << " = " << param.Name << ";\n";
-		}
-	}
-
-	ss << "\n";
-
-	//Function Call
-	ss << "\tauto flags = fn->FunctionFlags;\n";
-	if (m.IsNative)
-	{
-		ss << "\tfn->FunctionFlags |= 0x" << tfm::format("%X", static_cast<std::underlying_type_t<UEFunctionFlags>>(UEFunctionFlags::Native)) << ";\n";
-	}
-
-	ss << "\n";
-
-	if (m.IsStatic && !Utils::GenObj->ShouldConvertStaticMethods())
-	{
-		ss << "\tstatic auto defaultObj = StaticClass()->CreateDefaultObject();\n";
-		ss << "\tdefaultObj->ProcessEvent(fn, &params);\n\n";
-	}
-	else
-	{
-		ss << "\tUObject::ProcessEvent(fn, &params);\n\n";
-	}
-
-	ss << "\tfn->FunctionFlags = flags;\n";
-
-	//Out Parameters
-	const auto out = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Out; });
-	if (out >> any())
-	{
-		ss << "\n";
-
-		for (auto&& param : out >> experimental::container())
-		{
-			ss << "\tif (" << param.Name << " != nullptr)\n";
-			ss << "\t\t*" << param.Name << " = params." << param.Name << ";\n";
-		}
-	}
-
-	//Return Value
-	const auto retn = from(m.Parameters) >> where([](auto && param) { return param.ParamType == Type::Return; });
-	if (retn >> any())
-	{
-		ss << "\n\treturn params." << (retn >> first()).Name << ";\n";
-	}
-
-	ss << "}\n";
-
-	return ss.str();
 }

@@ -98,7 +98,7 @@ public:
 	/// Constructor.
 	/// </summary>
 	/// <param name="packageObj">The package object.</param>
-	Package(UEObject* packageObj);
+	explicit Package(UEObject* packageObj);
 
 	std::string GetName() const { return packageObj->GetName(); }
 
@@ -111,9 +111,8 @@ public:
 	/// Saves the package classes as C++ code.
 	/// Files are only generated if there is code present or the generator forces the generation of empty files.
 	/// </summary>
-	/// <param name="path">The path to save to.</param>
 	/// <returns>true if files got saved, else false.</returns>
-	bool Save(const fs::path& path) const;
+	bool Save() const;
 
 private:
 	bool AddDependency(UEObject* package) const;
@@ -160,50 +159,25 @@ private:
 	/// <summary>
 	/// Writes all structs into the appropriate file.
 	/// </summary>
-	/// <param name="path">The path to save to.</param>
-	void SaveStructs(const fs::path& path) const;
+	void SaveStructs() const;
 
 	/// <summary>
 	/// Writes all classes into the appropriate file.
 	/// </summary>
-	/// <param name="path">The path to save to.</param>
-	void SaveClasses(const fs::path& path) const;
+	void SaveClasses() const;
 
 	/// <summary>
 	/// Writes all functions into the appropriate file.
 	/// </summary>
-	/// <param name="path">The path to save to.</param>
-	void SaveFunctions(const fs::path& path) const;
+	void SaveFunctions() const;
 
 	/// <summary>
 	/// Writes all function parameters into the appropriate file.
 	/// </summary>
-	/// <param name="path">The path to save to.</param>
-	void SaveFunctionParameters(const fs::path& path) const;
+	void SaveFunctionParameters() const;
 
 	UEObject* packageObj;
 	mutable std::unordered_set<UEObject> dependencies;
-
-	/*
-	 * Constant
-	 */
-	/// <summary>
-	/// Prints the c++ code of the constant.
-	/// </summary>
-	/// <param name="os">[in] The stream to print to.</param>
-	/// <param name="c">The constant to print.</param>
-	void PrintConstant(std::ostream& os, const Constant& c) const;
-
-	/*
-	 * ENUMS
-	 */
-	/// <summary>
-	/// Prints the c++ code of the enum.
-	/// </summary>
-	/// <param name="os">[in] The stream to print to.</param>
-	/// <param name="e">The enum to print.</param>
-	void PrintEnum(std::ostream& os, const Enum& e) const;
-
 
 	/*
 	 * MEMBER
@@ -238,16 +212,6 @@ private:
 	void GenerateMembers(const UEStruct& structObj, size_t offset, const std::vector<UEProperty>& properties, std::vector<Member>& members) const;
 
 	/*
-	 * SCRIPT_STRUCT
-	 */
-	/// <summary>
-	/// Print the C++ code of the structure.
-	/// </summary>
-	/// <param name="os">[in] The stream to print to.</param>
-	/// <param name="ss">The structure to print.</param>
-	void PrintStruct(std::ostream& os, const ScriptStruct& ss) const;
-
-	/*
 	 * METHODS
 	 */
 	/// <summary>
@@ -256,35 +220,6 @@ private:
 	/// <param name="classObj">The class object.</param>
 	/// <param name="methods">[out] The methods of the class.</param>
 	void GenerateMethods(const UEClass& classObj, std::vector<Method>& methods) const;
-
-	/*
-	 * CLASS
-	 */
-
-	/// <summary>
-	/// Builds the C++ method signature.
-	/// </summary>
-	/// <param name="m">The Method to process.</param>
-	/// <param name="c">Name of the class.</param>
-	/// <param name="inHeader">true if the signature is used as deceleration.</param>
-	/// <returns>The method signature.</returns>
-	std::string BuildMethodSignature(const Method& m, const Class& c, bool inHeader) const;
-
-	/// <summary>
-	/// Builds the c++ method body.
-	/// </summary>
-	/// <param name="c"></param>
-	/// <param name="m">The Method to process.</param>
-	/// <returns>The method body.</returns>
-	std::string BuildMethodBody(const Class& c, const Method& m) const;
-
-	/// <summary>
-	/// Print the C++ code of the class.
-	/// </summary>
-	/// <param name="os">[in] The stream to print to.</param>
-	/// <param name="c">The class to print.</param>
-	void PrintClass(std::ostream& os, const Class& c) const;
-
 public:
 	static std::unordered_map<UEObject, const Package*> PackageMap;
 	std::vector<Constant> Constants;

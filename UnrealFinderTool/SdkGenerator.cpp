@@ -243,7 +243,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		auto package = std::make_unique<Package>(coreUObject);
 		std::mutex tmp_lock;
 		package->Process(processedObjects, tmp_lock);
-		if (package->Save(sdkPath))
+		if (package->Save())
 		{
 			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ " +
 				"C: " + std::to_string(package->Classes.size()) + ", " +
@@ -280,7 +280,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 			"E: " + std::to_string(package->Enums.size()) + " ]"
 		);
 
-		if (package->Save(sdkPath))
+		if (package->Save())
 		{
 			Package::PackageMap[*obj] = package.get();
 			packages.emplace_back(std::move(package));
@@ -306,10 +306,10 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		}
 	}
 
-	SaveSdkHeader(path, processedObjects, packages);
+	SdkAfterFinish(processedObjects, packages);
 }
 
-void SdkGenerator::SaveSdkHeader(const fs::path& path, const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const
+void SdkGenerator::SdkAfterFinish(const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const
 {
 	const auto uftLangSdkAfterFinish = Utils::Dnc->GetFunction<void(_cdecl*)(StructArray<NativePackage>, StructArray<NativeUStruct>)>("UftLangSdkAfterFinish");
 	if (!uftLangSdkAfterFinish)
