@@ -7,11 +7,16 @@ namespace SdkLang.Utils
 {
     public abstract class IncludeFile<TLang> where TLang : UftLang
     {
-        public TLang TargetLang { get; private set; }
-        public string SdkPath { get; private set; }
+        public TLang TargetLang { get; }
+        public string SdkPath { get; }
 
-        public abstract string FileName();
-        public void Init(TLang targetLang, string sdkPath)
+        public abstract string FileName { get; set; }
+
+        protected IncludeFile() : this((TLang)Main.Lang, Main.GenInfo.SdkPath)
+        {
+        }
+
+        protected IncludeFile(TLang targetLang, string sdkPath)
         {
             TargetLang = targetLang;
             SdkPath = sdkPath;
@@ -20,7 +25,7 @@ namespace SdkLang.Utils
 
         public void CreateFile()
         {
-            File.CreateText($@"{SdkPath}\{FileName()}").Close();
+            File.CreateText($@"{SdkPath}\{FileName}").Close();
         }
         public static void CreateFile(string sdkPah, string fileName)
         {
@@ -28,19 +33,19 @@ namespace SdkLang.Utils
         }
         public StringBuilder ReadThisFile(string includePath)
         {
-            return new StringBuilder(File.ReadAllText($@"{includePath}\{FileName()}"));
+            return new StringBuilder(File.ReadAllText($@"{includePath}\{FileName}"));
         }
         public void CopyToSdk(StringBuilder fileStr)
         {
-            File.WriteAllText($@"{SdkPath}\{FileName()}", fileStr.ToString());
+            File.WriteAllText($@"{SdkPath}\{FileName}", fileStr.ToString());
         }
         public void CopyToSdk(string fileStr)
         {
-            File.WriteAllText($@"{SdkPath}\{FileName()}", fileStr);
+            File.WriteAllText($@"{SdkPath}\{FileName}", fileStr);
         }
         public void AppendToSdk(string text)
         {
-            File.AppendAllText($@"{SdkPath}\{FileName()}", text);
+            File.AppendAllText($@"{SdkPath}\{FileName}", text);
         }
         public static void AppendToSdk(string sdkPath, string fileName, string text)
         {

@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "DotNetConnect.h"
 #include "Utils.h"
+#include "DotNetConnect.h"
 
 DotNetConnect::DotNetConnect(): lib(nullptr), freed(false)
 {

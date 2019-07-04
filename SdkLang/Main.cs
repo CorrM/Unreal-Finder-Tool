@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using net.r_eg.Conari.Types;
 using SdkLang.Langs;
 using SdkLang.Utils;

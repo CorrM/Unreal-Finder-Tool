@@ -756,7 +756,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 
 void Package::SaveStructs() const
 {
-	const auto uftLangSaveStructs = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
+	static auto uftLangSaveStructs = Utils::Dnc->GetFunction<void(_cdecl *)(NativePackage*)>("UftLangSaveStructs");
 	if (!uftLangSaveStructs)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSaveStructs`", "ERROR", MB_OK | MB_ICONERROR);
@@ -769,7 +769,7 @@ void Package::SaveStructs() const
 
 void Package::SaveClasses() const
 {
-	const auto uftLangSaveClasses = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveClasses");
+	static auto uftLangSaveClasses = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveClasses");
 	if (!uftLangSaveClasses)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSaveClasses`", "ERROR", MB_OK | MB_ICONERROR);
@@ -782,7 +782,7 @@ void Package::SaveClasses() const
 
 void Package::SaveFunctions() const
 {
-	const auto uftSaveFunctions = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctions");
+	static auto uftSaveFunctions = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctions");
 	if (!uftSaveFunctions)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSaveFunctions`", "ERROR", MB_OK | MB_ICONERROR);
@@ -795,7 +795,7 @@ void Package::SaveFunctions() const
 
 void Package::SaveFunctionParameters() const
 {
-	const auto uftLangSaveFunctionParameters = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctionParameters");
+	static auto uftLangSaveFunctionParameters = Utils::Dnc->GetFunction<void(_cdecl*)(NativePackage*)>("UftLangSaveFunctionParameters");
 	if (!uftLangSaveFunctionParameters)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSaveFunctionParameters`", "ERROR", MB_OK | MB_ICONERROR);

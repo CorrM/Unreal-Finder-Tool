@@ -1,13 +1,8 @@
-﻿using SdkLang;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using net.r_eg.Conari;
 using SdkLang.Utils;
 
 namespace SdkLang.Langs
@@ -16,8 +11,8 @@ namespace SdkLang.Langs
     {
         private readonly List<string> _pragmas = new List<string>() { "warning(disable: 4267)" };
         private readonly List<string> _include = new List<string>() { "<vector>", "<locale>", "<set>" };
+        public override string FileName { get; set; } = "Basic.h";
 
-        public override string FileName() => "Basic.h";
         public override void Process(string includePath)
         {
             // Read File
@@ -46,14 +41,14 @@ namespace SdkLang.Langs
             CopyToSdk(fileStr);
 
             // Append To SdkHeader file
-            AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName()}\"\n");
+            AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName}\"\n");
         }
     }
     public class BasicCpp : IncludeFile<UftCpp>
     {
         private readonly List<string> _include = new List<string>() { "\"../SDK.h\"", "<Windows.h>" };
+        public override string FileName { get; set; } = "Basic.cpp";
 
-        public override string FileName() => "Basic.cpp";
         public override void Process(string includePath)
         {
             // Read File
@@ -105,7 +100,7 @@ namespace SdkLang.Langs
 
             // 
             sb.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
-            sb.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{(long)genInfo.MemberAlignment:X2})\n#endif\n\n");
+            sb.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment:X2})\n#endif\n\n");
             sb.Append($"namespace {genInfo.NamespaceName}\n{{\n");
 
             return sb.ToString();
@@ -545,8 +540,8 @@ namespace SdkLang.Langs
         public override void SdkAfterFinish(List<SdkPackage> packages, List<SdkUStruct> missing)
         {
             // Copy Include File
-            //new BasicHeader().Process(Main.IncludePath);
-            //new BasicCpp().Process(Main.IncludePath);
+            new BasicHeader().Process(Main.IncludePath);
+            new BasicCpp().Process(Main.IncludePath);
 
             string text =
                 $"// ------------------------------------------------\n" +

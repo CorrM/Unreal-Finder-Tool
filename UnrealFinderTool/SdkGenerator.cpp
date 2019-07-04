@@ -334,7 +334,8 @@ void SdkGenerator::SdkAfterFinish(const std::unordered_map<uintptr_t, bool>& pro
 	const auto missing = from(processedObjects) >> where([](std::pair<uintptr_t, bool>&& kv) { return !kv.second; });
 	if (missing >> any())
 	{
-		for (UEStruct&& s : missing >> select([](std::pair<uintptr_t, bool>&& kv) { return ObjectsStore::GetByAddress(kv.first)->Cast<UEStruct>(); }) >> experimental::container())
+		auto missed = missing >> select([](std::pair<uintptr_t, bool> && kv) { return ObjectsStore::GetByAddress(kv.first)->Cast<UEStruct>(); }) >> experimental::container();
+		for (UEStruct&& s : missed)
 			missingList.push_back(s);
 	}
 	NativeHelper::HeapNativeStructArray(missingList, missingToPush);
