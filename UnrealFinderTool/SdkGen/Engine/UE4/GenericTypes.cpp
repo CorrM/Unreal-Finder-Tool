@@ -46,7 +46,7 @@ std::string UEObject::GetName() const
 	if (!name.empty() && (Object->Name.Number > 0 && Object->Name.ComparisonIndex != Object->Name.Number))
 		name += '_' + std::to_string(Object->Name.Number);
 
-	auto pos = name.rfind('/');
+	const auto pos = name.rfind('/');
 	if (pos == std::string::npos)
 	{
 		// Update original and local
@@ -80,7 +80,7 @@ std::string UEObject::GetFullName() const
 	if (!obj->fullName.empty())
 		return obj->fullName;
 
-	auto cClass = GetClass();
+	const auto cClass = GetClass();
 	if (cClass.IsValid())
 	{
 		std::string temp;
@@ -233,19 +233,19 @@ std::vector<std::string> UEEnum::GetNames() const
 		objEnum = Object->Cast<UEnum>();
 
 	// Get Names
-	uintptr_t dataAddress = objEnum.Names.Data;
+	const uintptr_t dataAddress = objEnum.Names.Data;
 	if (objEnum.Names.Count > 300)
 	{
 		MessageBoxA(nullptr, "UEnum looks bad.", "Problem", MB_OK);
 		ExitProcess(-1);
 	}
-	auto cls = new FUEnumItem[objEnum.Names.Count];
+	const auto cls = new FUEnumItem[objEnum.Names.Count];
 	Utils::MemoryObj->ReadBytes(dataAddress, cls, sizeof(FUEnumItem) * objEnum.Names.Count);
 
 	buffer.reserve(objEnum.Names.Count);
 	for (auto i = 0; i < objEnum.Names.Count; ++i)
 	{
-		size_t index = cls[i].Key.ComparisonIndex;
+		const size_t index = cls[i].Key.ComparisonIndex;
 		if (index > NamesStore().GetNamesNum() || index == 0)
 			continue;
 
@@ -1063,7 +1063,7 @@ UEProperty UEArrayProperty::GetInner() const
 
 UEProperty::Info UEArrayProperty::GetInfo() const
 {
-	auto inner = GetInner().GetInfo();
+	const auto inner = GetInner().GetInfo();
 	if (inner.Type != PropertyType::Unknown)
 	{
 		return Info::Create(PropertyType::Container, sizeof(TArray), false, "TArray<" + Utils::GenObj->GetOverrideType(inner.CppType) + ">");
@@ -1112,8 +1112,8 @@ UEProperty UEMapProperty::GetValueProperty() const
 
 UEProperty::Info UEMapProperty::GetInfo() const
 {
-	auto key = GetKeyProperty().GetInfo();
-	auto value = GetValueProperty().GetInfo();
+	const auto key = GetKeyProperty().GetInfo();
+	const auto value = GetValueProperty().GetInfo();
 	if (key.Type != PropertyType::Unknown && value.Type != PropertyType::Unknown)
 	{
 		return Info::Create(PropertyType::Container, 0x50, false, "TMap<" + Utils::GenObj->GetOverrideType(key.CppType) + ", " + Utils::GenObj->GetOverrideType(value.CppType) + ">");
@@ -1283,15 +1283,15 @@ UEClass UEByteProperty::StaticClass()
 #pragma region UEBoolProperty
 int GetBitPosition(uint8_t value)
 {
-	int i4 = !(value & 0xf) << 2;
+	const int i4 = !(value & 0xf) << 2;
 	value >>= i4;
 
-	int i2 = !(value & 0x3) << 1;
+	const int i2 = !(value & 0x3) << 1;
 	value >>= i2;
 
-	int i1 = !(value & 0x1);
+	const int i1 = !(value & 0x1);
 
-	int i0 = (value >> i1) & 1 ? 0 : -8;
+	const int i0 = (value >> i1) & 1 ? 0 : -8;
 
 	return i4 + i2 + i1 + i0;
 }

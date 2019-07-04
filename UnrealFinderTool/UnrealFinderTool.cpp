@@ -57,7 +57,7 @@ void BeforeWork()
 		Utils::DetectUnrealGame(window_title);
 		if (!window_title.empty() && sg_game_name_buf[0] == '\0')
 		{
-			sg_game_name_buf = window_title;
+			sg_game_name_buf.insert(0, window_title);
 		}
 	}
 
