@@ -29,12 +29,12 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
 		return { GeneratorState::BadGName };
-	*pNamesCount = NamesStore().GetNamesNum();
+	*pNamesCount = NamesStore::GetNamesNum();
 
 	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
 		return { GeneratorState::BadGObject };
-	*pObjCount = ObjectsStore().GetObjectsNum();
+	*pObjCount = ObjectsStore::GetObjectsNum();
 
 	// Init Generator Settings
 	if (!Utils::GenObj->Initialize())
@@ -134,12 +134,12 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state) const
 		std::ofstream o(path / "NamesDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
 
-		const size_t vecSize = NamesStore().GetNamesNum();
+		const size_t vecSize = NamesStore::GetNamesNum();
 		for (size_t i = 0; i < vecSize; ++i)
 		{
-			std::string str = NamesStore().GetByIndex(i);
+			std::string str = NamesStore::GetByIndex(i);
 			if (!str.empty())
-				tfm::format(o, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
+				tfm::format(o, "[%06i] %s\n", int(i), NamesStore::GetByIndex(i).c_str());
 			state = "Names [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
 		}
 	}
@@ -151,12 +151,12 @@ void SdkGenerator::Dump(const fs::path& path, std::string& state) const
 		std::ofstream o(path / "ObjectsDump.txt");
 		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
 
-		const size_t vecSize = ObjectsStore().GetObjectsNum();
+		const size_t vecSize = ObjectsStore::GetObjectsNum();
 		for (size_t i = 0; i < vecSize; ++i)
 		{
-			if (ObjectsStore().GetByIndex(i)->IsValid())
+			if (ObjectsStore::GetByIndex(i)->IsValid())
 			{
-				const UEObject* obj = ObjectsStore().GetByIndex(i);
+				const UEObject* obj = ObjectsStore::GetByIndex(i);
 				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
 			}
 			state = "Objects [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
@@ -321,6 +321,7 @@ void SdkGenerator::SdkAfterFinish(const std::unordered_map<uintptr_t, bool>& pro
 	// Init Packages
 	StructArray<NativePackage> packagesToPush;
 	std::vector<Package> packagesList;
+	packagesList.reserve(packages.size());
 	for (auto& pack : packages)
 		packagesList.push_back(*pack);
 	NativeHelper::HeapNativeStructArray(packagesList, packagesToPush);
