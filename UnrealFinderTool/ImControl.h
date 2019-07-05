@@ -3,9 +3,9 @@
 #include <vector>
 
 #define TOOL_VERSION		"3.2.0"
-#define TOOL_VERSION_TITLE	"SDK PULLER"
+#define TOOL_VERSION_TITLE	"More Languages More Power"
 
-#define IM_COL4(R, G, B, A) ImVec4((float)R / 255.f, (float)G / 255.f, (float)B / 255.f, (float)A / 255.f)
+#define IM_COL4(R, G, B, A) ImVec4((float)(R) / 255.f, (float)(G) / 255.f, (float)(B) / 255.f, (float)(A) / 255.f)
 
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 #define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);} if(uiCode) body if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
@@ -35,6 +35,10 @@ inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernel_disabled = false;
 inline bool use_kernel;
+
+inline bool process_module_disabled = false;
+inline std::vector<std::string> process_module_items;
+inline int process_module_item_current = 0;
 
 inline bool g_objects_disabled = false;
 inline bool g_names_disabled = false;
@@ -98,10 +102,6 @@ inline bool sg_type_disabled = false;
 inline std::vector<std::string> sg_type_items = { "Internal", "External" };
 inline int sg_type_item_current = 0;
 
-inline bool sg_module_disabled = false;
-inline std::vector<std::string> sg_module_items;
-inline int sg_module_item_current = 0;
-
 inline bool sg_lang_disabled = false;
 inline std::vector<std::string> sg_lang_items = { "Cpp" };
 inline int sg_lang_item_current = 0;
@@ -137,7 +137,7 @@ static void DisabledAll()
 	il_start_disabled = true;
 
 	sg_lang_disabled = true;
-	sg_module_disabled = true;
+	process_module_disabled = true;
 	sg_type_disabled = true;
 	sg_game_name_disabled = true;
 	sg_game_version_disabled = true;
@@ -154,7 +154,7 @@ static void EnabledAll()
 	il_start_disabled = false;
 
 	sg_lang_disabled = false;
-	sg_module_disabled = false;
+	process_module_disabled = false;
 	sg_type_disabled = false;
 	sg_game_name_disabled = false;
 	sg_game_version_disabled = false;

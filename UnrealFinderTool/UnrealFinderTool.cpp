@@ -49,27 +49,6 @@ void BeforeWork()
 			break;
 		}
 	}
-
-	// Get Game Window Title
-	if (process_id != NULL && Memory::IsValidProcess(process_id))
-	{
-		Utils::DetectUnrealGame(window_title);
-		if (!window_title.empty() && sg_game_name_buf[0] == '\0')
-		{
-			sg_game_name_buf.insert(0, window_title);
-		}
-	}
-
-	// Get Game Modules
-	if (sg_module_items.empty())
-	{
-		auto modList = Utils::MemoryObj->GetModuleList();
-		for (auto& mod : modList)
-		{
-			if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
-				sg_module_items.emplace_back(mod.szModule);
-		}
-	}
 }
 
 void AfterWork()
@@ -721,6 +700,27 @@ void InformationSectionUi(UiWindow* thiz)
 			g_objects_disabled = false;
 			g_names_disabled = false;
 			game_ue_disabled = false;
+
+			// Get Game Window Title
+			if (process_id != NULL && Memory::IsValidProcess(process_id))
+			{
+				Utils::DetectUnrealGame(window_title);
+				if (!window_title.empty() && sg_game_name_buf[0] == '\0')
+				{
+					sg_game_name_buf.insert(0, window_title);
+				}
+			}
+
+			// Get Game Modules
+			if (process_module_items.empty())
+			{
+				auto modList = Utils::MemoryObj->GetModuleList();
+				for (auto& mod : modList)
+				{
+					if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
+						process_module_items.emplace_back(mod.szModule);
+				}
+			}
 		});
 
 		ui::SameLine();
@@ -738,6 +738,15 @@ void InformationSectionUi(UiWindow* thiz)
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : ");
 		ui::SameLine();
 		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernel), use_kernel_disabled);
+	}
+
+	// Game Module
+	{
+		ui::AlignTextToFramePadding();
+		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Module     : ");
+		ui::SameLine();
+		ui::SetNextItemWidth(MidWidth / 1.8f);
+		ENABLE_DISABLE_WIDGET(ui::Combo("##GameModule", &process_module_item_current, VectorGetter, static_cast<void*>(&process_module_items), static_cast<int>(process_module_items.size()), 4), process_module_disabled);
 	}
 
 	// GObjects Address
@@ -840,7 +849,7 @@ void InformationSectionUi(UiWindow* thiz)
 
 void MemoryInterfaceUi(UiWindow* thiz)
 {
-	if (ui::BeginChild("AddressViewer", { 0, 210 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+	if (ui::BeginChild("AddressViewer", { 0, 180 }, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 	{
 		mem_edit.DrawContents(nullptr, BufSize, CurrentViewerAddress);
 		ui::EndChild();
@@ -1134,15 +1143,6 @@ void SdkGeneratorUi(UiWindow* thiz)
 		ui::SameLine();
 		HelpMarker("- Internal: Generate functions for class/struct.\n- External: Don't gen functions for class/struct,\n    But generate ReadAsMe for every class/struct.");
 
-		// Game Module
-		ui::AlignTextToFramePadding();
-		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Module   : ");
-		ui::SameLine();
-		ui::SetNextItemWidth(MidWidth / 1.8f);
-		ENABLE_DISABLE_WIDGET(ui::Combo("##GameModule", &sg_module_item_current, VectorGetter, static_cast<void*>(&sg_module_items), static_cast<int>(sg_module_items.size()), 4), sg_module_disabled);
-		ui::SameLine();
-		HelpMarker("Pick base module for your game.\nThat's to put on 'initSDK' function.");
-
 		// Game Name
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Game Name     : ");
@@ -1169,7 +1169,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 5, true);
+			static_cast<int>(sg_packages_items.size()), 7, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { MidWidth, 0.0f }), sg_start_disabled,
