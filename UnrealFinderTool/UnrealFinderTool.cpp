@@ -16,7 +16,6 @@
 #include "Generator.h"
 
 #include "Midi/MIDI.h"
-#include "Midi/MIDI_Resource.h"
 
 #include <shellapi.h>
 
@@ -223,14 +222,14 @@ void GoToAddress(const uintptr_t address)
 #pragma endregion
 
 #pragma region Memory
-void SetupMemoryStuff(const HANDLE pHandle)
+void SetupMemoryStuff(HANDLE pHandle)
 {
 	// Setup Memory Stuff
 	if (!memory_init)
 	{
 		memory_init = true;
-		Utils::MemoryObj = new Memory(pHandle, use_kernal);
-		if (!use_kernal) Utils::MemoryObj->GetDebugPrivileges();
+		Utils::MemoryObj = new Memory(pHandle, use_kernel);
+		if (!use_kernel) Utils::MemoryObj->GetDebugPrivileges();
 
 		// Grab engine version information
 		Utils::UnrealEngineVersion(game_ue_version);
@@ -673,6 +672,11 @@ void TitleBarUi(UiWindow* thiz)
 		
 		if (ui::Button(!MidiPlayer || (MidiPlayer->IsPaused() || !MidiPlayer->IsPlaying()) ? ICON_FA_PLAY : ICON_FA_PAUSE))
 		{
+			if (!MidiPlayer)
+			{
+				MidiPlayer = new CMIDI();
+				MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof midi_track1);
+			}
 			if (MidiPlayer->IsPaused())
 				MidiPlayer->Continue();
 			else if (MidiPlayer->IsPlaying())
@@ -697,13 +701,34 @@ void InformationSectionUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Process ID : ");
 		ui::SameLine();
-		ui::SetNextItemWidth(LeftWidth / 2.f);
+		ui::SetNextItemWidth(LeftWidth / 2.55f);
 		ENABLE_DISABLE_WIDGET(ui::InputInt("##ProcessID", &process_id), process_id_disabled);
+		ui::SameLine();
+
+		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_LOCK "##ProcessSubmit"), process_lock_disabled,
+		{
+			if (!IsReadyToGo())
+			{
+				popup_not_valid_process = true;
+				return;
+			}
+
+			process_id_disabled = true;
+			process_detector_disabled = true;
+			process_lock_disabled = true;
+			EnabledAll();
+			use_kernel_disabled = false;
+			g_objects_disabled = false;
+			g_names_disabled = false;
+			game_ue_disabled = false;
+		});
+
 		ui::SameLine();
 
 		ENABLE_DISABLE_WIDGET_IF(ui::Button(ICON_FA_SEARCH "##ProcessAutoDetector"), process_detector_disabled,
 		{
-			process_id = Utils::DetectUnrealGame();
+			DWORD pid = Utils::DetectUnrealGame();
+			process_id = pid ? pid : process_id;
 		});
 	}
 
@@ -712,7 +737,7 @@ void InformationSectionUi(UiWindow* thiz)
 		ui::AlignTextToFramePadding();
 		ui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Use Kernel : ");
 		ui::SameLine();
-		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernal), use_kernal_disabled);
+		ENABLE_DISABLE_WIDGET(ui::Checkbox("##UseKernal", &use_kernel), use_kernel_disabled);
 	}
 
 	// GObjects Address
@@ -1356,10 +1381,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	Debugging d;
 	d.EnterDebugMode();
 
-	// Launch the main window
-	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 1050, 530);
-	Utils::UiMainWindow->Show(MainUi);
-
 #if defined(MIDI_h) && !defined(_DEBUG)
 	// Auto play MIDI
 	MidiPlayer = new CMIDI();
@@ -1372,8 +1393,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	CheckLastVer();
 #endif // _DEBUG
 
+	// Patreon
 	InitPatreon();
 
+	// Setup ui
+	DisabledAll();
+	process_id_disabled = false;
+	process_lock_disabled = false;
+	process_detector_disabled = false;
+
+	// Launch the main window
+	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 1050, 530);
+	Utils::UiMainWindow->Show(MainUi);
+
+	// Wait Window to close
 	while (!Utils::UiMainWindow->Closed())
 		Sleep(1);
 

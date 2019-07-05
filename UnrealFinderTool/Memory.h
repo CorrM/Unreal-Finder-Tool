@@ -54,16 +54,16 @@ public:
 	static bool IsValidProcess(int p_id);
 	static bool IsHandleValid(HANDLE processHandle);
 
-	bool IsStaticAddress(uintptr_t address);
+	bool IsStaticAddress(uintptr_t address) const;
 	void UpdateHandle(HANDLE processHandle);
-	BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
+	static BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
-	std::vector<MODULEENTRY32> GetModuleList();
-	MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
-	bool SuspendProcess();
-	bool ResumeProcess();
-	bool TerminateProcess();
-	bool IsSuspend();
+	std::vector<MODULEENTRY32> GetModuleList() const;
+	static MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
+	bool SuspendProcess() const;
+	bool ResumeProcess() const;
+	bool TerminateProcess() const;
+	static bool IsSuspend();
 
 	template<typename T>
 	size_t Read(uintptr_t address, T& ret);

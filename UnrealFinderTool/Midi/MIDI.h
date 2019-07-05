@@ -4,8 +4,7 @@
 
 #include <mmsystem.h>
 #include <vector>
-using namespace std;
-
+#include "Midi/MIDI_Resource.h"
 
 // This message is sent to the controlling window, if the volume changes in
 // another way than explicitly set by the owner of the CMIDI object.
@@ -115,9 +114,9 @@ struct TempEvent
 class CMIDI
 {
 protected:
-	typedef vector<Track> TrackArray;
-	typedef vector<size_t> VolumeArray;
-	typedef vector<ConvertInfo> ConvertArray;
+	typedef std::vector<Track> TrackArray;
+	typedef std::vector<size_t> VolumeArray;
+	typedef std::vector<ConvertInfo> ConvertArray;
 
 	enum
 	{

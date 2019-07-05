@@ -18,19 +18,19 @@ public:
 		this->assign(begin, end);
 	}
 
-	UnsortedMapIt find(const K& ref)
+	UnsortedMapIt find(const K& obj)
 	{
-		return std::find_if(this->begin(), this->end(), [&ref](const std::pair<K, V>& vecItem)
+		return std::find_if(this->begin(), this->end(), [&obj](const std::pair<K, V>& vecItem)
 		{
-			return vecItem.first == ref;
+			return vecItem.first == obj;
 		});
 	}
 
-	V* Find(const K& ref, bool& success)
+	V* Find(const K& obj, bool& success)
 	{
-		auto it = std::find_if(this->begin(), this->end(), [&](const std::pair<K, V>& vecItem) -> bool
+		auto it = std::find_if(this->begin(), this->end(), [&obj](const std::pair<K, V>& vecItem) -> bool
 		{
-			return vecItem.first == ref;
+			return vecItem.first == obj;
 		});
 
 		success = it != this->end();

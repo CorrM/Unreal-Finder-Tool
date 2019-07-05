@@ -34,9 +34,9 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 		if (gPd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 		{
 			pUiWindow->render = true;
-			pUiWindow->CleanupRenderTarget();
+			CleanupRenderTarget();
 			gPSwapChain->ResizeBuffers(0, static_cast<UINT>(LOWORD(lParam)), static_cast<UINT>(HIWORD(lParam)), DXGI_FORMAT_UNKNOWN, 0);
-			pUiWindow->CreateRenderTarget();
+			CreateRenderTarget();
 		}
 		if (GetWindowRect(pUiWindow->hWindow, &rect))
 		{
@@ -60,6 +60,7 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 			MessageBox(nullptr, "Wait for current task finish first.", "", MB_OK | MB_ICONWARNING);
 			return 0;
 		}
+	default:;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
@@ -95,12 +96,12 @@ void UiWindow::Show(UiFunc uiForm)
 	}
 }
 
-bool UiWindow::Closed()
+bool UiWindow::Closed() const
 {
 	return closed;
 }
 
-void UiWindow::CenterPos()
+void UiWindow::CenterPos() const
 {
 	RECT rectScreen;
 	HWND hwndScreen = GetDesktopWindow();
@@ -118,7 +119,7 @@ void UiWindow::SetSize(const int newWidth, const int newHeight)
 	SetWindowPos(hWindow, nullptr, 0, 0, settings.Width, settings.Height, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOREDRAW);
 }
 
-ImVec2 UiWindow::GetSize()
+ImVec2 UiWindow::GetSize() const
 {
 	return { static_cast<float>(settings.Width), static_cast<float>(settings.Height) };
 }
@@ -366,17 +367,17 @@ void UiWindow::SetStyle()
 	*/
 }
 
-ImGuiStyle& UiWindow::GetUiStyle()
+ImGuiStyle& UiWindow::GetUiStyle() const
 {
 	return *uiStyle;
 }
 
-HWND UiWindow::GetWindowHandle()
+HWND UiWindow::GetWindowHandle() const
 {
 	return hWindow;
 }
 
-void UiWindow::FlashWindow()
+void UiWindow::FlashWindow() const
 {
 	::FlashWindow(hWindow, TRUE);
 }

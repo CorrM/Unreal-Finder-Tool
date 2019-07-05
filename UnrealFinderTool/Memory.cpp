@@ -7,7 +7,7 @@
 
 BypaPH* Memory::bypaPh = nullptr;
 
-Memory::Memory(const HANDLE processHandle, const bool useKernel)
+Memory::Memory(HANDLE processHandle, const bool useKernel)
 {
 	if (processHandle == nullptr || processHandle == INVALID_HANDLE_VALUE)
 		throw std::exception("processId can't be NULL");
@@ -37,7 +37,7 @@ Memory::Memory(const int processId, const bool useKernel)
 	Is64 = !Is64;
 }
 
-void Memory::UpdateHandle(const HANDLE processHandle)
+void Memory::UpdateHandle(HANDLE processHandle)
 {
 	ProcessHandle = processHandle;
 }
@@ -95,7 +95,7 @@ std::string Memory::GetProcessNameById(const DWORD pId)
 	return ret;
 }
 
-std::vector<MODULEENTRY32> Memory::GetModuleList()
+std::vector<MODULEENTRY32> Memory::GetModuleList() const
 {
 	std::vector<MODULEENTRY32> ret;
 	MODULEENTRY32 mod;
@@ -126,7 +126,7 @@ MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
 	return miInfos;
 }
 
-bool Memory::IsHandleValid(const HANDLE processHandle)
+bool Memory::IsHandleValid(HANDLE processHandle)
 {
 	if (!processHandle || processHandle == INVALID_HANDLE_VALUE)
 		return false;
@@ -135,11 +135,11 @@ bool Memory::IsHandleValid(const HANDLE processHandle)
 	return GetHandleInformation(processHandle, &handleInformation) == TRUE;
 }
 
-bool Memory::IsValidProcess(const int p_id, const PHANDLE pHandle)
+bool Memory::IsValidProcess(const int p_id, PHANDLE pHandle)
 {
 	DWORD exitCode;
-	HANDLE p = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
-	bool valid = p_id != 0 && GetExitCodeProcess(p, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
+	const HANDLE p = OpenProcess(PROCESS_ALL_ACCESS, false, p_id);
+	const bool valid = p_id != 0 && GetExitCodeProcess(p, &exitCode) != FALSE && exitCode == STILL_ACTIVE;
 
 	if (pHandle && valid)
 		*pHandle = p;
@@ -154,12 +154,12 @@ bool Memory::IsValidProcess(const int p_id)
 	return IsValidProcess(p_id, nullptr);
 }
 
-bool Memory::IsStaticAddress(const uintptr_t address)
+bool Memory::IsStaticAddress(const uintptr_t address) const
 {
 	if (ProcessId == NULL || address == NULL)
 		return false;
 
-	auto queryVirtualMemory = reinterpret_cast<hsNtQueryVirtualMemory>(GetProcAddress(LoadLibraryW(L"ntdll.dll"), "NtQueryVirtualMemory"));
+	const auto queryVirtualMemory = reinterpret_cast<hsNtQueryVirtualMemory>(GetProcAddress(LoadLibraryW(L"ntdll.dll"), "NtQueryVirtualMemory"));
 
 	if (!queryVirtualMemory)
 		return false;
@@ -169,7 +169,7 @@ bool Memory::IsStaticAddress(const uintptr_t address)
 
 	SECTION_INFO sectionInformation;
 
-	NTSTATUS returnStatus = queryVirtualMemory(ProcessHandle, reinterpret_cast<PVOID>(address), MemoryMappedFilenameInformation, &sectionInformation, sizeof(sectionInformation), nullptr);
+	const NTSTATUS returnStatus = queryVirtualMemory(ProcessHandle, reinterpret_cast<PVOID>(address), MemoryMappedFilenameInformation, &sectionInformation, sizeof(sectionInformation), nullptr);
 
 	if (!NT_SUCCESS(returnStatus))
 		return false;
@@ -226,23 +226,23 @@ bool Memory::IsStaticAddress(const uintptr_t address)
 	return false;
 }
 
-bool Memory::SuspendProcess()
+bool Memory::SuspendProcess() const
 {
-	typedef LONG (NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
+	typedef LONG (NTAPI *NtSuspendProcess)(HANDLE ProcessHandle);
 	static auto pfnNtSuspendProcess = reinterpret_cast<NtSuspendProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtSuspendProcess"));
 
 	return NT_SUCCESS(pfnNtSuspendProcess(ProcessHandle));
 }
 
-bool Memory::ResumeProcess()
+bool Memory::ResumeProcess() const
 {
-	typedef LONG(NTAPI *NtResumeProcess)(IN HANDLE ProcessHandle);
+	typedef LONG(NTAPI *NtResumeProcess)(HANDLE ProcessHandle);
 	static auto pfnNtResumeProcess = reinterpret_cast<NtResumeProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtResumeProcess"));
 
 	return NT_SUCCESS(pfnNtResumeProcess(ProcessHandle));
 }
 
-bool Memory::TerminateProcess()
+bool Memory::TerminateProcess() const
 {
 	typedef LONG(NTAPI* NtTerminateProcess)(IN HANDLE ProcessHandle, NTSTATUS ExitStatus);
 	static auto pfnNtTerminateProcess = reinterpret_cast<NtTerminateProcess>(GetProcAddress(GetModuleHandle("ntdll"), "NtTerminateProcess"));
@@ -255,7 +255,7 @@ bool Memory::IsSuspend()
 	return false;
 }
 
-BOOL Memory::SetPrivilegeM(const HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)
+BOOL Memory::SetPrivilegeM(HANDLE hToken, const LPCTSTR lpszPrivilege, const BOOL bEnablePrivilege)
 {
 	TOKEN_PRIVILEGES tp;
 	LUID luid;

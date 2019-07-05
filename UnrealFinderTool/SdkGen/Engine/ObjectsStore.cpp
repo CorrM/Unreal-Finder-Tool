@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Memory.h"
-#include "ObjectsStore.h"
 #include "EngineClasses.h"
 #include "NamesStore.h"
+#include "ObjectsStore.h"
 #include <cassert>
 
 GObjectInfo ObjectsStore::GInfo;
@@ -30,7 +30,7 @@ bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReIni
 	return tmp.FetchData();
 }
 
-bool ObjectsStore::FetchData()
+bool ObjectsStore::FetchData() const
 {
 	if (!GetGObjectInfo()) return false;
 	return ReadUObjectArray();
@@ -88,7 +88,7 @@ bool ObjectsStore::GetGObjectInfo()
 	return true;
 }
 
-bool ObjectsStore::ReadUObjectArray()
+bool ObjectsStore::ReadUObjectArray() const
 {
 	uintptr_t lastObj = NULL;
 	for (int i = 0; i < GInfo.ChunksCount; ++i)
@@ -155,12 +155,12 @@ uintptr_t ObjectsStore::GetAddress()
 	return GInfo.GObjAddress;
 }
 
-size_t ObjectsStore::GetObjectsNum() const 
+size_t ObjectsStore::GetObjectsNum()
 {
 	return GInfo.Count;
 }
 
-UEObject* ObjectsStore::GetByIndex(const size_t index) const
+UEObject* ObjectsStore::GetByIndex(const size_t index)
 {
 	return GObjObjects[index].second.get();
 }

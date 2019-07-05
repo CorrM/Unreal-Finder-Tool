@@ -28,12 +28,13 @@ inline PatreonPost LastNews;
 
 // => Main Options Section
 inline bool process_id_disabled = false;
+inline bool process_lock_disabled = false;
 inline bool process_detector_disabled = false;
 inline int process_id;
 inline bool process_controller_toggles[] = { false };
 
-inline bool use_kernal_disabled = false;
-inline bool use_kernal;
+inline bool use_kernel_disabled = false;
+inline bool use_kernel;
 
 inline bool g_objects_disabled = false;
 inline bool g_names_disabled = false;
@@ -121,12 +122,15 @@ inline int sg_packages_item_current = 0;
 static void DisabledAll()
 {
 	process_id_disabled = true;
+	process_lock_disabled = true;
 	process_detector_disabled = true;
-	use_kernal_disabled = true;
-
+	use_kernel_disabled = true;
+	game_ue_disabled = true;
 	g_objects_disabled = true;
 	g_names_disabled = true;
 
+	g_objects_find_disabled = true;
+	g_names_find_disabled = true;
 	class_find_disabled = true;
 	class_find_input_disabled = true;
 

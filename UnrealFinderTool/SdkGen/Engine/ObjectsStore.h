@@ -23,10 +23,10 @@ class ObjectsStore
 	size_t numElementsPerChunk = 0x11000;
 	size_t minZeroAddress = 150;
 
-	bool FetchData();
-	bool GetGObjectInfo();
-	bool ReadUObjectArray();
-	bool ReadUObject(uintptr_t uObjectAddress, UEObject& retUObj);
+	bool FetchData() const;
+	static bool GetGObjectInfo();
+	bool ReadUObjectArray() const;
+	static bool ReadUObject(uintptr_t uObjectAddress, UEObject& retUObj);
 
 public:
 	static GObjectInfo GInfo;
@@ -48,14 +48,14 @@ public:
 	/// Gets the number of available objects.
 	/// </summary>
 	/// <returns>The number of objects.</returns>
-	size_t GetObjectsNum() const;
+	static size_t GetObjectsNum();
 
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
 	/// <param name="index">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject* GetByIndex(size_t index) const;
+	static UEObject* GetByIndex(size_t index);
 
 	/// <summary>
 	/// Gets the object by id.
