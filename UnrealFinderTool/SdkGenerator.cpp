@@ -16,9 +16,7 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
-SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
-								   const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
-								   std::string& state, std::vector<std::string>& packagesDone, const std::string& sdkLang)
+SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 {
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
@@ -29,12 +27,12 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	// Dump GNames
 	if (!NamesStore::Initialize(gNamesAddress))
 		return { GeneratorState::BadGName };
-	*pNamesCount = NamesStore::GetNamesNum();
+	*startInfo.PNamesCount = NamesStore::GetNamesNum();
 
 	// Dump GObjects
 	if (!ObjectsStore::Initialize(gObjAddress))
 		return { GeneratorState::BadGObject };
-	*pObjCount = ObjectsStore::GetObjectsNum();
+	*startInfo.PObjCount = ObjectsStore::GetObjectsNum();
 
 	// Init Generator Settings
 	if (!Utils::GenObj->Initialize())
@@ -42,11 +40,11 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
 		return { GeneratorState::Bad };
 	}
-	Utils::GenObj->SetGameName(gameName);
-	Utils::GenObj->SetGameVersion(gameVersion);
-	Utils::GenObj->SetSdkType(sdkType);
+	Utils::GenObj->SetGameName(startInfo.GameName);
+	Utils::GenObj->SetGameVersion(startInfo.GameVersion);
+	Utils::GenObj->SetSdkType(startInfo.TargetSdkType);
 	Utils::GenObj->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
-	Utils::GenObj->SetSdkLang(sdkLang);
+	Utils::GenObj->SetSdkLang(startInfo.SdkLang);
 
 	// Get Current Dir
 	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectoryA());
@@ -66,15 +64,15 @@ SdkInfo SdkGenerator::Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPac
 	// Dump To Files
 	if (Utils::GenObj->ShouldDumpArrays())
 	{
-		state = "Dumping (GNames/GObjects).";
-		Dump(outputDirectory, state);
-		state = "Dump (GNames/GObjects) Done.";
+		startInfo.State = "Dumping (GNames/GObjects).";
+		Dump(outputDirectory, startInfo.State);
+		startInfo.State = "Dump (GNames/GObjects) Done.";
 		Sleep(2 * 1000);
 	}
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
-	ProcessPackages(outputDirectory, pPackagesCount, pPackagesDone, state, packagesDone);
+	ProcessPackages(outputDirectory, startInfo.PPackagesCount, startInfo.PPackagesDone, startInfo.State, startInfo.PackagesDone);
 
 	// Get Time
 	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());

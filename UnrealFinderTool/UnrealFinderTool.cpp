@@ -398,16 +398,20 @@ void StartSdkGenerator()
 	{
 		LoadOverrideEngine();
 
+		StartInfo startInfo;
+		startInfo.PObjCount = &sg_objects_count;
+		startInfo.PNamesCount = &sg_names_count;
+		startInfo.PPackagesCount = &sg_packages_count;
+		startInfo.PPackagesDone = &sg_packages_done_count;
+		startInfo.GameName = sg_game_name_buf;
+		startInfo.GameVersion = std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]);
+		startInfo.TargetSdkType = static_cast<SdkType>(sg_type_item_current);
+		startInfo.State = sg_state;
+		startInfo.PackagesDone = &sg_packages_items;
+		startInfo.SdkLang = sg_lang_items[sg_lang_item_current];
+
 		SdkGenerator sg(g_objects_address, g_names_address);
-		const SdkInfo ret = sg.Start(&sg_objects_count,
-		                       &sg_names_count,
-		                       &sg_packages_count,
-		                       &sg_packages_done_count,
-		                       sg_game_name_buf,
-		                       std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) +
-		                       "." + std::to_string(sg_game_version[2]),
-		                       static_cast<SdkType>(sg_type_item_current),
-		                       sg_state, sg_packages_items, sg_lang_items[sg_lang_item_current]);
+		const SdkInfo ret = sg.Start(startInfo);
 
 		if (ret.State == GeneratorState::Good)
 		{

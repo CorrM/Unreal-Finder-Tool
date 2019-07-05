@@ -16,14 +16,28 @@ struct SdkInfo
 	std::tm TookTime;
 };
 
+struct StartInfo
+{
+	size_t* PObjCount;
+	size_t* PNamesCount;
+	size_t* PPackagesCount;
+	size_t* PPackagesDone;
+
+	std::string GameName;
+	std::string GameVersion;
+	std::string State;
+	std::string SdkLang;
+
+	SdkType TargetSdkType;
+	std::vector<std::string>* PackagesDone;
+};
+
 class SdkGenerator
 {
 	uintptr_t gObjAddress, gNamesAddress;
 public:
 	SdkGenerator(uintptr_t gObjAddress, uintptr_t gNamesAddress);
-	SdkInfo Start(size_t* pObjCount, size_t* pNamesCount, size_t* pPackagesCount, size_t* pPackagesDone,
-	              const std::string& gameName, const std::string& gameVersion, const SdkType sdkType,
-	              std::string& state, std::vector<std::string>& packagesDone, const std::string& sdkLang);
+	SdkInfo Start(StartInfo& startInfo);
 	static bool InitSdkLang(const std::string& sdkPath, const std::string& langPath);
 private:
 	/// <summary>
