@@ -34,21 +34,21 @@ public:
 	/// Gets the number of available names.
 	/// </summary>
 	/// <returns>The number of names.</returns>
-	size_t GetNamesNum() const;
+	static size_t GetNamesNum();
 
 	/// <summary>
 	/// Test if the given id is valid.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>true if valid, false if not.</returns>
-	bool IsValid(size_t id);
+	static bool IsValid(size_t id);
 
 	/// <summary>
 	/// Gets a name by id.
 	/// </summary>
 	/// <param name="id">The identifier.</param>
 	/// <returns>The name.</returns>
-	std::string GetByIndex(size_t id);
+	static std::string GetByIndex(size_t id);
 
 	/// <summary>
 	/// Gets id by a name.

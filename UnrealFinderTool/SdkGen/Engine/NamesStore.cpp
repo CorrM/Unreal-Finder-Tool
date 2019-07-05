@@ -105,7 +105,7 @@ uintptr_t NamesStore::GetAddress()
 	return gNamesAddress;
 }
 
-size_t NamesStore::GetNamesNum() const
+size_t NamesStore::GetNamesNum()
 {
 	return chunkCount * gNamesChunks;
 }
@@ -117,7 +117,7 @@ bool NamesStore::IsValid(const size_t id)
 
 std::string NamesStore::GetByIndex(const size_t id)
 {
-	// TODO: i think here is a problem, set BP at (return "") and check call stack. (why wrong id)
+	// i think here is a problem, set BP at (return "") and check call stack. (why wrong id)
 	if (id > GetNamesNum())
 		return "";
 

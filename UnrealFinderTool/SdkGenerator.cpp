@@ -8,7 +8,7 @@
 #include "SdkGenerator.h"
 #include "DotNetConnect.h"
 
-// ToDo: Instated of crash just popup a msg that's tell the user to use another GObjects address
+// TODO: Instated of crash just popup a msg that's tell the user to use another GObjects address
 
 SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAddress) :
 	gObjAddress(gObjAddress),
