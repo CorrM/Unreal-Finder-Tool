@@ -446,114 +446,80 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	return !resVec.empty();
 }
 
-bool Utils::IsValidGObjectsAddress(const uintptr_t address, bool* isChunks)
+bool Utils::IsTArray(const uintptr_t address)
 {
-	uintptr_t addressHolder = address;
-	if (isChunks)
-		*isChunks = false;
+	// Check PreAllocatedObjects it's always null, it's only on new TUObjectArray then it's good to check
+	return MemoryObj->ReadAddress(address + PointerSize()) != NULL;
+}
 
+bool Utils::IsTUobjectArray(const uintptr_t address)
+{
+	// if game have chunks, then it's not TArray
+	uintptr_t gObjectArray = MemoryObj->ReadAddress(MemoryObj->ReadAddress(address));
+	if (!IsTArray(address) && IsValidGObjectsAddress(gObjectArray))
+		return true;
+
+	// if game don't use chunks, then it's must be TArray
+	gObjectArray = MemoryObj->ReadAddress(address);
+	return IsTArray(address) && IsValidGObjectsAddress(gObjectArray);
+}
+
+bool Utils::IsValidGObjectsAddress(const uintptr_t address)
+{
+	// => Get information
+	static auto objectItem = JsonReflector::GetStruct("FUObjectItem");
+	static auto objectItemSize = objectItem.GetSize();
+
+	static auto objectInfo = JsonReflector::GetStruct("UObject");
+	static auto objOuter = objectInfo["Outer"].Offset;
+	static auto objInternalIndex = objectInfo["InternalIndex"].Offset;
+	static auto objNameIndex = objectInfo["Name"].Offset;
+	// => Get information
+
+	uintptr_t addressHolder = address;
 	if (MemoryObj == nullptr || !IsValidRemoteAddress(MemoryObj, addressHolder))
 		return false;
+	/*
+	 * NOTE:
+	 * Nested loops will be slow, spitted best.
+	 */
+	const size_t objCount = 2;
+	uintptr_t objects[objCount] = { 0 }; // Store Object Address
+	uintptr_t vTables[objCount] = { 0 }; // Store VTable Address
 
-	bool firstCheck = true;
-	uintptr_t ptrUObject0, ptrUObject1, ptrUObject2, ptrUObject3, ptrUObject4, ptrUObject5;
-	uintptr_t ptrVfTableObject0, ptrVfTableObject1, ptrVfTableObject2, ptrVfTableObject3, ptrVfTableObject4,
-	          ptrVfTableObject5;
-
-CheckAgian:
-	for (int i = 0x0; i <= 0x20; i += 0x4)
+	// Check (UObject*) Is Valid Pointer
+	for (size_t i = 0; i <= objCount - 1; ++i)
 	{
-		// Check (UObject*) Is Valid Pointer
-		if (!IsValidRemotePointer(addressHolder + (i * 0), &ptrUObject0)) continue;
-		if (!IsValidRemotePointer(addressHolder + (i * 1), &ptrUObject1)) continue;
-		if (!IsValidRemotePointer(addressHolder + (i * 2), &ptrUObject2)) continue;
-		if (!IsValidRemotePointer(addressHolder + (i * 3), &ptrUObject3)) continue;
-		if (!IsValidRemotePointer(addressHolder + (i * 4), &ptrUObject4)) continue;
-		if (!IsValidRemotePointer(addressHolder + (i * 5), &ptrUObject5)) continue;
-
-		// Check vfTableObject Is Valid Pointer
-		if (!IsValidRemotePointer(ptrUObject0, &ptrVfTableObject0)) continue;
-		if (!IsValidRemotePointer(ptrUObject1, &ptrVfTableObject1)) continue;
-		if (!IsValidRemotePointer(ptrUObject2, &ptrVfTableObject2)) continue;
-		if (!IsValidRemotePointer(ptrUObject3, &ptrVfTableObject3)) continue;
-		if (!IsValidRemotePointer(ptrUObject4, &ptrVfTableObject4)) continue;
-		if (!IsValidRemotePointer(ptrUObject5, &ptrVfTableObject5)) continue;
-
-		// Check Objects (InternalIndex)
-		for (int io = 0x0; io < 0x1C; io += 0x4)
-		{
-			const int uObject0InternalIndex = MemoryObj->ReadInt(ptrUObject0 + io);
-			const int uObject1InternalIndex = MemoryObj->ReadInt(ptrUObject1 + io);
-			const int uObject2InternalIndex = MemoryObj->ReadInt(ptrUObject2 + io);
-			const int uObject3InternalIndex = MemoryObj->ReadInt(ptrUObject3 + io);
-			const int uObject4InternalIndex = MemoryObj->ReadInt(ptrUObject4 + io);
-			const int uObject5InternalIndex = MemoryObj->ReadInt(ptrUObject5 + io);
-
-			if (uObject0InternalIndex != 0) continue;
-			if (!(uObject1InternalIndex == 1 || uObject1InternalIndex == 3)) continue;
-			if (!(uObject2InternalIndex == 2 || uObject2InternalIndex == 6)) continue;
-			if (!(uObject3InternalIndex == 3 || uObject3InternalIndex == 9)) continue;
-			if (!(uObject4InternalIndex == 4 || uObject4InternalIndex == 12)) continue;
-			if (!(uObject5InternalIndex == 5 || uObject5InternalIndex == 15)) continue;
-
-			// Check if 2nd UObject have FName_Index == 100
-			bool bFoundNameIndex = false;
-			for (int j = 0x4; j < 0x1C; j += 0x4)
-			{
-				const int uFNameIndex = MemoryObj->ReadInt(ptrUObject1 + j);
-				if (uFNameIndex == 100)
-				{
-					bFoundNameIndex = true;
-					break;
-				}
-			}
-
-			// Check if it's chunks address
-			if (isChunks && !firstCheck)
-			{
-				int skipCount = 0;
-				for (size_t uIndex = 0; uIndex <= 20 && skipCount <= 5; ++uIndex)
-				{
-					const uintptr_t curAddress = address + uIndex * PointerSize();
-					const uintptr_t chunk = MemoryObj->ReadAddress(curAddress);
-
-					// Skip null address and bad address
-					if (chunk == 0)
-					{
-						++skipCount;
-						continue;
-					}
-					if (!IsValidRemoteAddress(MemoryObj, chunk)) break;
-
-					skipCount = 0;
-				}
-
-				if (skipCount >= 5)
-				{
-					*isChunks = true;
-				}
-				else
-				{
-					*isChunks = false;
-				}
-			}
-
-			return bFoundNameIndex;
-		}
+		size_t offset = objectItemSize * i;
+		if (!IsValidRemotePointer(addressHolder + offset, &objects[i]))
+			return false;
 	}
 
-	// If it's GObjects Chunks
-	if (firstCheck)
+	// Check (VTable) Is Valid Pointer
+	for (size_t i = 0; i <= objCount - 1; ++i)
 	{
-		firstCheck = false;
-		addressHolder = MemoryObj->ReadAddress(addressHolder);
-		goto CheckAgian;
+		if (!IsValidRemotePointer(objects[i], &vTables[i]))
+			return false;
 	}
 
-	if (isChunks)
-		*isChunks = !firstCheck;
+	// Check (InternalIndex) Is Valid
+	for (size_t i = 0; i <= objCount - 1; ++i)
+	{
+		size_t internalIndex = MemoryObj->ReadInt(objects[i] + objInternalIndex);
+		if (internalIndex != i)
+			return false;
+	}
 
-	return false;
+	// Check (Outer) Is Valid
+	// first object must have Outer == nullptr(0x0000000000)
+	const int uOuter = MemoryObj->ReadInt(objects[0] + objOuter);
+	if (uOuter != NULL)
+		return false;
+
+	// Check (FName_index) Is Valid
+	// 2nd object must have FName_index == 100
+	const int uFNameIndex = MemoryObj->ReadInt(objects[1] + objNameIndex);
+	return uFNameIndex == 100;
 }
 
 void Utils::FixStructPointer(void* structBase, const int varOffset, const size_t structSize)

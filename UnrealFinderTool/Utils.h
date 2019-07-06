@@ -149,8 +149,12 @@ public:
 	static bool IsValidRemotePointer(uintptr_t pointer, uintptr_t *address = nullptr);
 	// Check if Address is point GNames Array
 	static bool IsValidGNamesAddress(uintptr_t address);
+	// Must used with valid 'UObjectArray' address, use `IsValidGObjectsAddress` to check.
+	static bool IsTArray(uintptr_t address);
+	// Check if it's IsTUObjectArray
+	static bool IsTUobjectArray(uintptr_t address);
 	// Check if Address is point GObjects Array
-	static bool IsValidGObjectsAddress(uintptr_t address, bool* isChunks = nullptr);
+	static bool IsValidGObjectsAddress(uintptr_t address);
 	// Sleep when counter hit each selected ms
 	static void SleepEvery(int ms, int& counter, int every);
 	// Clean heap pointers before close the tool

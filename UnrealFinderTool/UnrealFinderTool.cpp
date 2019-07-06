@@ -32,23 +32,6 @@ CMIDI* MidiPlayer = nullptr;
 void BeforeWork()
 {
 	DisabledAll();
-
-	// Get JsonEngine to override
-	for (size_t i = 0; i < unreal_versions.size(); i++)
-	{
-		std::string toLowerTitle = window_title;
-		std::string toLowerJson = unreal_versions[i];
-
-		std::transform(toLowerTitle.begin(), toLowerTitle.end(), toLowerTitle.begin(), ::tolower);
-		std::transform(toLowerJson.begin(), toLowerJson.end(), toLowerJson.begin(), ::tolower);
-
-		if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
-			Utils::ContainsString(toLowerTitle, toLowerJson))
-		{
-			ue_selected_version = i;
-			break;
-		}
-	}
 }
 
 void AfterWork()
@@ -247,8 +230,11 @@ void StartGObjFinder(const bool easyMethod)
 
 	std::thread t([=]()
 	{
+		std::vector<uintptr_t> ret;
+
 		GObjectsFinder taf(easyMethod);
-		std::vector<uintptr_t> ret = taf.Find();
+		taf.Find(ret);
+
 		g_obj_listbox_items.clear();
 
 		for (auto v : ret)
@@ -704,6 +690,7 @@ void InformationSectionUi(UiWindow* thiz)
 			g_objects_disabled = false;
 			g_names_disabled = false;
 			game_ue_disabled = false;
+			process_module_disabled = false;
 
 			// Get Game Window Title
 			if (process_id != NULL && Memory::IsValidProcess(process_id))
@@ -723,6 +710,23 @@ void InformationSectionUi(UiWindow* thiz)
 				{
 					if (!Utils::EndsWith(mod.szModule, ".dll") && !Utils::EndsWith(mod.szModule, ".DLL"))
 						process_module_items.emplace_back(mod.szModule);
+				}
+			}
+
+			// Get JsonEngine to override
+			for (size_t i = 0; i < unreal_versions.size(); ++i)
+			{
+				std::string toLowerTitle = window_title;
+				std::string toLowerJson = unreal_versions[i];
+
+				std::transform(toLowerTitle.begin(), toLowerTitle.end(), toLowerTitle.begin(), ::tolower);
+				std::transform(toLowerJson.begin(), toLowerJson.end(), toLowerJson.begin(), ::tolower);
+
+				if (Utils::ContainsString(unreal_versions[i], game_ue_version) ||
+					Utils::ContainsString(toLowerTitle, toLowerJson))
+				{
+					ue_selected_version = i;
+					break;
 				}
 			}
 		});
@@ -761,15 +765,12 @@ void InformationSectionUi(UiWindow* thiz)
 		ui::SetNextItemWidth(LeftWidth / 2.4f);
 
 		bool style_pushed = false;
-		bool isChunks;
 		if (!g_objects_disabled && g_objects_address != 0)
 		{
 			style_pushed = true;
-			const bool isValid = Utils::IsValidGObjectsAddress(g_objects_address, &isChunks);
-			if (isValid && isChunks)
+			const bool isValid = Utils::IsTUobjectArray(g_objects_address);
+			if (isValid)
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-			else if (isValid)
-				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
 			else
 				ui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 		}

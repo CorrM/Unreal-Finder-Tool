@@ -6,7 +6,6 @@
 #define TOOL_VERSION_TITLE	"More Languages More Power"
 
 #define IM_COL4(R, G, B, A) ImVec4((float)(R) / 255.f, (float)(G) / 255.f, (float)(B) / 255.f, (float)(A) / 255.f)
-
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 #define ENABLE_DISABLE_WIDGET_IF(uiCode, disabledBool, body) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);} if(uiCode) body if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }
 
@@ -125,6 +124,7 @@ static void DisabledAll()
 	process_lock_disabled = true;
 	process_detector_disabled = true;
 	use_kernel_disabled = true;
+	process_module_disabled = true;
 	game_ue_disabled = true;
 	g_objects_disabled = true;
 	g_names_disabled = true;
@@ -137,7 +137,6 @@ static void DisabledAll()
 	il_start_disabled = true;
 
 	sg_lang_disabled = true;
-	process_module_disabled = true;
 	sg_type_disabled = true;
 	sg_game_name_disabled = true;
 	sg_game_version_disabled = true;
@@ -146,6 +145,8 @@ static void DisabledAll()
 
 static void EnabledAll()
 {
+	g_objects_disabled = false;
+	g_names_disabled = false;
 	g_objects_find_disabled = false;
 	g_names_find_disabled = false;
 	class_find_disabled = false;
@@ -154,7 +155,6 @@ static void EnabledAll()
 	il_start_disabled = false;
 
 	sg_lang_disabled = false;
-	process_module_disabled = false;
 	sg_type_disabled = false;
 	sg_game_name_disabled = false;
 	sg_game_version_disabled = false;
@@ -182,7 +182,7 @@ static void HelpMarker(const char* desc)
 	}
 }
 
-static void WarningPopup(const std::string& title, const std::string& message, bool& opener, const std::function<void()> okCallBack = nullptr)
+static void WarningPopup(const std::string& title, const std::string& message, bool& opener, const std::function<void()>& okCallBack)
 {
 	std::string id = title + "##" + message;
 
@@ -205,6 +205,11 @@ static void WarningPopup(const std::string& title, const std::string& message, b
 		ui::EndPopup();
 
 	}
+}
+
+static void WarningPopup(const std::string& title, const std::string& message, bool& opener)
+{
+	WarningPopup(title, message, opener,  nullptr);
 }
 
 #pragma region Custoum Controls
@@ -249,5 +254,4 @@ namespace ImGui
 		return value_changed;
 	}
 }
-
 #pragma endregion

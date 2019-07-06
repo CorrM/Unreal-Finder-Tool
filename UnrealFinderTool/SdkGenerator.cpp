@@ -72,7 +72,7 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
-	ProcessPackages(outputDirectory, startInfo.PPackagesCount, startInfo.PPackagesDone, startInfo.State, startInfo.PackagesDone);
+	ProcessPackages(outputDirectory, startInfo.PPackagesCount, startInfo.PPackagesDone, startInfo.State, *startInfo.PackagesDone);
 
 	// Get Time
 	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());

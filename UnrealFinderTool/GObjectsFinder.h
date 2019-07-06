@@ -1,8 +1,12 @@
 #pragma once
 
-#define OBJECT_ERROR 1
-#define VFTABLE_ERROR 2
-#define INDEX_ERROR 3
+enum class FinderError
+{
+	ObjectError,
+	VfTableError,
+	IndexError
+};
+
 #include <vector>
 
 class GObjectsFinder
@@ -13,5 +17,5 @@ class GObjectsFinder
 
 public:
 	explicit GObjectsFinder(bool easyMethod);
-	std::vector<uintptr_t> Find();
+	void Find(std::vector<uintptr_t>& out);
 };
