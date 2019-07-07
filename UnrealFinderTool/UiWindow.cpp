@@ -203,6 +203,8 @@ void UiWindow::SetupImGui()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ui::GetIO();
+	io.IniFilename = nullptr;
+	io.DeltaTime = 3.0f / 60.0f;
 	uiStyle = &ui::GetStyle();
 	SetStyle();
 
@@ -219,7 +221,7 @@ void UiWindow::SetupImGui()
 
 	if (fontAwesome == nullptr)
 	{
-		std::string msg = "Unable to load " + std::string(FONT_ICON_FILE_NAME_FAS) + ".";
+		std::string msg = "Unable to load " FONT_ICON_FILE_NAME_FAS ".";
 		ShowWindow(hWindow, SW_HIDE);
 		MessageBox(HWND_DESKTOP, msg.c_str(), "Error!", MB_OK | MB_ICONERROR);
 		PostQuitMessage(-1);
