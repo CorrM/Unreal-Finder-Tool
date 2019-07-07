@@ -409,7 +409,7 @@ bool Utils::IsValidRemotePointer(const uintptr_t pointer, uintptr_t *address)
 	//const uintptr_t pointerVal = _memory->ReadInt(pointer);
 	if (VirtualQueryEx(MemoryObj->ProcessHandle, LPVOID(pointer), &info, sizeof info) == sizeof info)
 	{
-		return (info.State & MEM_COMMIT) && !(info.Protect & PAGE_NOACCESS);
+		return (info.State & MEM_COMMIT) && !(info.Protect & PAGE_NOACCESS)/* && info.RegionSize < 0x300000*/;
 	}
 
 	return false;

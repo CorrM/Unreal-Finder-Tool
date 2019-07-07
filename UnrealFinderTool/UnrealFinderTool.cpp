@@ -1249,12 +1249,13 @@ void PatreonSection(UiWindow* thiz)
 	ui::TextColored(IM_COL4(231, 76, 60, 255), "Patreon Goals [%d]", Goals.size());
 	if (ui::BeginChild("goals"))
 	{
-		for (auto& goal : Goals)
+		for (size_t goal = 0; goal < Goals.size(); ++goal)
 		{
-			ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_FLAG " %d%% Complete", goal.CompletedPercentage);
-			ui::ProgressBar(static_cast<float>(goal.CompletedPercentage) * .01f);
-			ui::TextWrapped("%ls", goal.Description.c_str());
-			ui::Separator();
+			ui::TextColored(IM_COL4(22, 160, 133, 255), ICON_FA_FLAG " %d%% Complete", Goals[goal].CompletedPercentage);
+			ui::ProgressBar(static_cast<float>(Goals[goal].CompletedPercentage) * .01f);
+			ui::TextWrapped("%ls", Goals[goal].Description.c_str());
+			if (goal != Goals.size() - 1)
+				ui::Separator();
 		}
 
 		ui::EndChild();

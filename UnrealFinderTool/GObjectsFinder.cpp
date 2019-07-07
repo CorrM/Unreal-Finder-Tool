@@ -40,7 +40,7 @@ void GObjectsFinder::Find(std::vector<uintptr_t>& out)
 	{
 		uintptr_t currentAddress = dwStart;
 		bool exitLoop;
-
+		// TODO: to make HARD method faster create a vector and add address for each 0x1000, then use Parallel Class
 		do
 		{
 			exitLoop = !(VirtualQueryEx(Utils::MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(currentAddress), &info, sizeof info) == sizeof info && currentAddress < dwEnd);
