@@ -1,5 +1,5 @@
 # These are the available config settings.
-
-keyword: ["@todo", "TODO:"]     # string|string[]
-bodyKeyword: ["@body", "BODY:"] # string|string[]
-autoAssign: CorrM               # string|string[]|boolean
+todo:
+  keyword: ["@todo", "TODO:"]
+  bodyKeyword: ["@body", "BODY:"]
+  autoAssign: CorrM
