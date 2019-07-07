@@ -1237,5 +1237,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		delete Utils::MemoryObj;
 	}
 
+	// TODO: don't do anything :D
 	return ERROR_SUCCESS;
 }
