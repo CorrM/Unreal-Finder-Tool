@@ -79,7 +79,7 @@ PatternScanResult PatternScan::FindPattern(Memory* mem, uintptr_t dwStart, uintp
 			const size_t allocSize = dwEnd - dwStart >= info.RegionSize ? info.RegionSize : dwEnd - dwStart;
 
 			// Bad Memory
-			if (!(info.State & MEM_COMMIT) || info.Protect & (PAGE_NOACCESS | PAGE_WRITECOPY | PAGE_TARGETS_INVALID))
+			if (!(info.State & MEM_COMMIT) || info.Protect & (PAGE_NOACCESS | PAGE_WRITECOPY | PAGE_TARGETS_INVALID) || info.RegionSize > 0x300000)
 			{
 				// Get next address
 				currentAddress += allocSize;
