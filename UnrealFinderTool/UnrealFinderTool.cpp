@@ -1344,9 +1344,6 @@ void MainUi(UiWindow* thiz)
 		WarningPopup("Warning", "Not Valid GNames Address. !!", popup_not_valid_gnames);
 		WarningPopup("Warning", "Not Valid GObjects Address. !!", popup_not_valid_gobjects);
 	}
-
-	// Ez to limit fps :3
-	Sleep(20);
 }
 #pragma endregion
 

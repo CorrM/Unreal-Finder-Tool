@@ -23,7 +23,7 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	// Get UiWindow Pointer
 	RECT rect;
 	auto pUiWindow = reinterpret_cast<UiWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-	if (pUiWindow == nullptr)
+	if (!pUiWindow)
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 
 	switch (msg)
@@ -31,7 +31,7 @@ LRESULT WINAPI UiWindow::WndProc(const HWND hWnd, const UINT msg, const WPARAM w
 	case WM_SIZE:
 		if (wParam == SIZE_MINIMIZED)
 			pUiWindow->render = false;
-		if (gPd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
+		if (gPd3dDevice && wParam != SIZE_MINIMIZED)
 		{
 			pUiWindow->render = true;
 			CleanupRenderTarget();
@@ -261,6 +261,9 @@ void UiWindow::WinLoop()
 
 		if (render)
 			RenderFrame();
+
+		// Ez to limit fps :3
+		Sleep(20);
 	}
 
 	ImGui_ImplDX11_Shutdown();
