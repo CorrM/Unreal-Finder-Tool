@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Memory.h"
 #include "EngineClasses.h"
-#include "NamesStore.h"
 #include "ObjectsStore.h"
 #include <cassert>
 
@@ -25,7 +24,7 @@ bool ObjectsStore::Initialize(const uintptr_t gObjAddress, const bool forceReIni
 	// Clear
 	GObjObjects.clear();
 	GInfo.Count = 0;
-	GInfo.GObjAddress = gObjAddress;
+	GInfo.GObjAddress = Utils::MemoryObj->ReadAddress(gObjAddress);
 
 	return tmp.FetchData();
 }
@@ -48,7 +47,7 @@ bool ObjectsStore::GetGObjectInfo()
 			uintptr_t chunk = Utils::MemoryObj->ReadAddress(curAddress);
 
 			// Skip null address
-			if (chunk == 0)
+			if (chunk == NULL)
 			{
 				++skipCount;
 				continue;
@@ -110,7 +109,7 @@ bool ObjectsStore::ReadUObjectArray() const
 			else
 			{
 				FUObjectItem fUObjectItem;
-				fUObject = chunkAddress + uIndex * fUObjectItem.StructSize();
+				fUObject = chunkAddress + uIndex * FUObjectItem::StructSize();
 				fUObjectItem.ReadData(fUObject);
 				dwUObject = fUObjectItem.Object;
 			}
@@ -128,7 +127,7 @@ bool ObjectsStore::ReadUObjectArray() const
 
 			// Break if found bad object in GObjects array, GObjects shouldn't have bad object
 			// check is not a static address !
-			if (Utils::MemoryObj->IsStaticAddress(dwUObject) || !ReadUObject(dwUObject, *curObject))
+			if (!ReadUObject(dwUObject, *curObject))
 				break;
 
 			lastObj = fUObject;
@@ -150,9 +149,9 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, UEObject& retUObj
 	return true;
 }
 
-uintptr_t ObjectsStore::GetAddress()
+uintptr_t ObjectsStore::GetBaseGObjectAddress() const
 {
-	return GInfo.GObjAddress;
+	return staticGObjAddress;
 }
 
 size_t ObjectsStore::GetObjectsNum()

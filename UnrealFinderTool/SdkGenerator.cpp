@@ -21,7 +21,7 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 	// Check Address
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
 		return { GeneratorState::BadGName };
-	if (!Utils::IsValidGObjectsAddress(gObjAddress))
+	if (!Utils::IsTUobjectArray(gObjAddress))
 		return { GeneratorState::BadGObject };
 
 	// Dump GNames
@@ -64,15 +64,15 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 	// Dump To Files
 	if (Utils::GenObj->ShouldDumpArrays())
 	{
-		startInfo.State = "Dumping (GNames/GObjects).";
-		Dump(outputDirectory, startInfo.State);
-		startInfo.State = "Dump (GNames/GObjects) Done.";
+		*startInfo.State = "Dumping (GNames/GObjects).";
+		Dump(outputDirectory, *startInfo.State);
+		*startInfo.State = "Dump (GNames/GObjects) Done.";
 		Sleep(2 * 1000);
 	}
 
 	// Dump Packages
 	const auto begin = std::chrono::system_clock::now();
-	ProcessPackages(outputDirectory, startInfo.PPackagesCount, startInfo.PPackagesDone, startInfo.State, *startInfo.PackagesDone);
+	ProcessPackages(outputDirectory, startInfo.PPackagesCount, startInfo.PPackagesDone, *startInfo.State, *startInfo.PackagesDone);
 
 	// Get Time
 	std::time_t took_seconds = std::time_t(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin).count());

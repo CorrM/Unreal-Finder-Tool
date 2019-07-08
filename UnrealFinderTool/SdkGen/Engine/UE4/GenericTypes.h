@@ -249,7 +249,7 @@ class UEUInt16Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -261,7 +261,7 @@ class UEUInt32Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -273,7 +273,7 @@ class UEUInt64Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -285,7 +285,7 @@ class UEInt8Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -297,7 +297,7 @@ class UEInt16Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -309,7 +309,7 @@ class UEIntProperty : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -321,7 +321,7 @@ class UEInt64Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -335,7 +335,7 @@ public:
 
 	static size_t TypeId();
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static UEClass StaticClass();
 };
@@ -345,7 +345,7 @@ class UEDoubleProperty : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -492,7 +492,7 @@ public:
 
 	UEClass GetMetaClass() const;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -504,7 +504,7 @@ class UENameProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -532,7 +532,7 @@ class UEStrProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -544,7 +544,7 @@ class UETextProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -593,7 +593,7 @@ public:
 
 	UEFunction GetSignatureFunction() const;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 
@@ -609,7 +609,7 @@ public:
 
 	UEFunction GetSignatureFunction() const;
 
-	UEProperty::Info GetInfo() const;
+	static UEProperty::Info GetInfo();
 
 	static size_t TypeId();
 

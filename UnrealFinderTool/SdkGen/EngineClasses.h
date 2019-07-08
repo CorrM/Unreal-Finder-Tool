@@ -3,6 +3,7 @@
 #pragma warning(disable: 4311)
 
 #include <string>
+#include <utility>
 #include <windows.h>
 #include "../Utils.h"
 #include "Memory.h"
@@ -144,7 +145,7 @@ public:
 		return ObjectPointer != NULL ? InterfacePointer : NULL;
 	}
 
-	std::string TypeName() { return "FScriptInterface"; }
+	static std::string TypeName() { return "FScriptInterface"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -204,13 +205,13 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
 	}
 
-	bool IsInit()
+	bool IsInit() const
 	{
 		return init;
 	}
@@ -261,7 +262,7 @@ public:
 
 	uintptr_t Object = NULL;
 
-	std::string TypeName() { return "FUObjectItem"; }
+	static std::string TypeName() { return "FUObjectItem"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -317,13 +318,13 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
 	}
 
-	bool IsInit()
+	bool IsInit() const
 	{
 		return init;
 	}
@@ -343,9 +344,9 @@ public:
 	std::string AnsiName;
 
 	FNameEntity() = default;
-	explicit FNameEntity(const int index, const std::string& ansiName) : Index(index), AnsiName(ansiName) { }
+	explicit FNameEntity(const int index, std::string ansiName) : Index(index), AnsiName(std::move(ansiName)) { }
 
-	std::string TypeName() { return "FNameEntity"; }
+	static std::string TypeName() { return "FNameEntity"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -394,7 +395,7 @@ public:
 		return ReadData(ObjAddress, ansiNameOffset);
 	}
 
-	bool IsInit()
+	bool IsInit() const
 	{
 		return init;
 	}
@@ -419,7 +420,7 @@ public:
 	FName Name{};
 	uintptr_t Outer = 0;
 
-	std::string TypeName() { return "UObject"; }
+	static std::string TypeName() { return "UObject"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -478,7 +479,10 @@ public:
 			delete pData;
 			pData = nullptr;
 		}
-		return true;
+
+		return
+			(Outer == NULL || Utils::IsValidRemoteAddress(Utils::MemoryObj, Outer)) &&
+			Utils::IsValidRemoteAddress(Utils::MemoryObj, VfTable);
 	}
 
 	bool ReadData()
@@ -486,7 +490,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -497,7 +501,7 @@ public:
 		return toCheck.InternalIndex == this->InternalIndex && toCheck.Name.ComparisonIndex == this->Name.ComparisonIndex;
 	}
 
-	bool IsInit()
+	bool IsInit() const
 	{
 		return init;
 	}
@@ -526,7 +530,7 @@ class UField : public UObject
 public:
 	uintptr_t Next = 0;
 
-	std::string TypeName() { return "UField"; }
+	static std::string TypeName() { return "UField"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -577,7 +581,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -591,7 +595,7 @@ public:
 	TArray Names; /*TArray<TPair<FName, uint64_t>> */
 	int64_t CppForm = 0;
 
-	std::string TypeName() { return "UEnum"; }
+	static std::string TypeName() { return "UEnum"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -652,7 +656,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -667,7 +671,7 @@ public:
 	int32_t PropertySize = 0;
 	int32_t MinAlignment = 0;
 
-	std::string TypeName() { return "UStruct"; }
+	static std::string TypeName() { return "UStruct"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -730,7 +734,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -740,7 +744,7 @@ public:
 class UScriptStruct : public UStruct
 {
 public:
-	std::string TypeName() { return "UScriptStruct"; }
+	static std::string TypeName() { return "UScriptStruct"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -786,7 +790,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -801,7 +805,7 @@ public:
 	uintptr_t EventGraphFunction = 0;
 	uintptr_t Func = 0;
 
-	std::string TypeName() { return "UFunction"; }
+	static std::string TypeName() { return "UFunction"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -866,7 +870,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -876,7 +880,7 @@ public:
 class UClass : public UStruct
 {
 public:
-	std::string TypeName() { return "UClass"; }
+	static std::string TypeName() { return "UClass"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -922,7 +926,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -941,7 +945,7 @@ public:
 	uintptr_t DestructorLinkNext = 0;
 	uintptr_t PostConstructLinkNext = 0;
 
-	std::string TypeName() { return "UProperty"; }
+	static std::string TypeName() { return "UProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1014,7 +1018,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1024,7 +1028,7 @@ public:
 class UNumericProperty : public UProperty
 {
 public:
-	std::string TypeName() { return "UNumericProperty"; }
+	static std::string TypeName() { return "UNumericProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1070,7 +1074,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1082,7 +1086,7 @@ class UByteProperty : public UNumericProperty
 public:
 	uintptr_t Enum = 0;
 
-	std::string TypeName() { return "UByteProperty"; }
+	static std::string TypeName() { return "UByteProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1133,7 +1137,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1143,7 +1147,7 @@ public:
 class UUInt16Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UUInt16Property"; }
+	static std::string TypeName() { return "UUInt16Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1189,7 +1193,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1199,7 +1203,7 @@ public:
 class UUInt32Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UUInt32Property"; }
+	static std::string TypeName() { return "UUInt32Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1245,7 +1249,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1255,7 +1259,7 @@ public:
 class UUInt64Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UUInt64Property"; }
+	static std::string TypeName() { return "UUInt64Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1301,7 +1305,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1311,7 +1315,7 @@ public:
 class UInt8Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UInt8Property"; }
+	static std::string TypeName() { return "UInt8Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1357,7 +1361,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1367,7 +1371,7 @@ public:
 class UInt16Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UInt16Property"; }
+	static std::string TypeName() { return "UInt16Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1413,7 +1417,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1423,7 +1427,7 @@ public:
 class UIntProperty : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UIntProperty"; }
+	static std::string TypeName() { return "UIntProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1469,7 +1473,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1479,7 +1483,7 @@ public:
 class UInt64Property : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UInt64Property"; }
+	static std::string TypeName() { return "UInt64Property"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1525,7 +1529,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1535,7 +1539,7 @@ public:
 class UFloatProperty : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UFloatProperty"; }
+	static std::string TypeName() { return "UFloatProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1581,7 +1585,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1591,7 +1595,7 @@ public:
 class UDoubleProperty : public UNumericProperty
 {
 public:
-	std::string TypeName() { return "UDoubleProperty"; }
+	static std::string TypeName() { return "UDoubleProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1637,7 +1641,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1652,7 +1656,7 @@ public:
 	uint8_t ByteMask = 0;
 	uint8_t FieldMask = 0;
 
-	std::string TypeName() { return "UBoolProperty"; }
+	static std::string TypeName() { return "UBoolProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1711,7 +1715,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1723,7 +1727,7 @@ class UObjectPropertyBase : public UProperty
 public:
 	uintptr_t PropertyClass = 0;
 
-	std::string TypeName() { return "UObjectPropertyBase"; }
+	static std::string TypeName() { return "UObjectPropertyBase"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1774,7 +1778,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1784,7 +1788,7 @@ public:
 class UObjectProperty : public UObjectPropertyBase
 {
 public:
-	std::string TypeName() { return "UObjectProperty"; }
+	static std::string TypeName() { return "UObjectProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1830,7 +1834,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1842,7 +1846,7 @@ class UClassProperty : public UObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
-	std::string TypeName() { return "UClassProperty"; }
+	static std::string TypeName() { return "UClassProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1893,7 +1897,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1905,7 +1909,7 @@ class UInterfaceProperty : public UProperty
 public:
 	uintptr_t InterfaceClass = 0;
 
-	std::string TypeName() { return "UInterfaceProperty"; }
+	static std::string TypeName() { return "UInterfaceProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -1956,7 +1960,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -1966,7 +1970,7 @@ public:
 class UWeakObjectProperty : public UObjectPropertyBase
 {
 public:
-	std::string TypeName() { return "UWeakObjectProperty"; }
+	static std::string TypeName() { return "UWeakObjectProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2012,7 +2016,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2022,7 +2026,7 @@ public:
 class ULazyObjectProperty : public UObjectPropertyBase
 {
 public:
-	std::string TypeName() { return "ULazyObjectProperty"; }
+	static std::string TypeName() { return "ULazyObjectProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2068,7 +2072,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2078,7 +2082,7 @@ public:
 class UAssetObjectProperty : public UObjectPropertyBase
 {
 public:
-	std::string TypeName() { return "UAssetObjectProperty"; }
+	static std::string TypeName() { return "UAssetObjectProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2124,7 +2128,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2136,7 +2140,7 @@ class UAssetClassProperty : public UAssetObjectProperty
 public:
 	uintptr_t MetaClass = 0;
 
-	std::string TypeName() { return "UAssetClassProperty"; }
+	static std::string TypeName() { return "UAssetClassProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2187,7 +2191,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2197,7 +2201,7 @@ public:
 class UNameProperty : public UProperty
 {
 public:
-	std::string TypeName() { return "UNameProperty"; }
+	static std::string TypeName() { return "UNameProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2243,7 +2247,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2255,7 +2259,7 @@ class UStructProperty : public UProperty
 public:
 	uintptr_t Struct = 0;
 
-	std::string TypeName() { return "UStructProperty"; }
+	static std::string TypeName() { return "UStructProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2306,7 +2310,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2316,7 +2320,7 @@ public:
 class UStrProperty : public UProperty
 {
 public:
-	std::string TypeName() { return "UStrProperty"; }
+	static std::string TypeName() { return "UStrProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2362,7 +2366,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2372,7 +2376,7 @@ public:
 class UTextProperty : public UProperty
 {
 public:
-	std::string TypeName() { return "UTextProperty"; }
+	static std::string TypeName() { return "UTextProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2418,7 +2422,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2430,7 +2434,7 @@ class UArrayProperty : public UProperty
 public:
 	uintptr_t Inner = 0;
 
-	std::string TypeName() { return "UArrayProperty"; }
+	static std::string TypeName() { return "UArrayProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2481,7 +2485,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2494,7 +2498,7 @@ public:
 	uintptr_t KeyProp = 0;
 	uintptr_t ValueProp = 0;
 
-	std::string TypeName() { return "UMapProperty"; }
+	static std::string TypeName() { return "UMapProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2553,7 +2557,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2565,7 +2569,7 @@ class UDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
-	std::string TypeName() { return "UDelegateProperty"; }
+	static std::string TypeName() { return "UDelegateProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2616,7 +2620,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2628,7 +2632,7 @@ class UMulticastDelegateProperty : public UProperty
 public:
 	uintptr_t SignatureFunction = 0;
 
-	std::string TypeName() { return "UMulticastDelegateProperty"; }
+	static std::string TypeName() { return "UMulticastDelegateProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2679,7 +2683,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();
@@ -2692,7 +2696,7 @@ public:
 	uintptr_t UnderlyingProp = 0;
 	uintptr_t Enum = 0;
 
-	std::string TypeName() { return "UEnumProperty"; }
+	static std::string TypeName() { return "UEnumProperty"; }
 
 	void FixPointers(const size_t fullCppStructSize)
 	{
@@ -2752,7 +2756,7 @@ public:
 		return ReadData(ObjAddress);
 	}
 
-	int StructSize()
+	static int StructSize()
 	{
 		static JsonStruct jStruct = JsonReflector::GetStruct(TypeName());
 		return jStruct.GetSize();

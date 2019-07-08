@@ -27,7 +27,7 @@ uintptr_t UEObject::GetAddress() const
 
 bool UEObject::IsValid() const
 {
-	return Object->ObjAddress != NULL && Object->VfTable != NULL && (Object->Name.ComparisonIndex > 0 && size_t(Object->Name.ComparisonIndex) <= NamesStore().GetNamesNum());
+	return Object->ObjAddress != NULL && Object->VfTable != NULL && (Object->Name.ComparisonIndex > 0 && size_t(Object->Name.ComparisonIndex) <= NamesStore::GetNamesNum());
 }
 
 size_t UEObject::GetIndex() const
@@ -42,7 +42,7 @@ std::string UEObject::GetName() const
 	if (!obj->objName.empty())
 		return obj->objName;
 
-	auto name = NamesStore().GetByIndex(Object->Name.ComparisonIndex);
+	auto name = NamesStore::GetByIndex(Object->Name.ComparisonIndex);
 	if (!name.empty() && (Object->Name.Number > 0 && Object->Name.ComparisonIndex != Object->Name.Number))
 		name += '_' + std::to_string(Object->Name.Number);
 
@@ -246,10 +246,10 @@ std::vector<std::string> UEEnum::GetNames() const
 	for (auto i = 0; i < objEnum.Names.Count; ++i)
 	{
 		const size_t index = cls[i].Key.ComparisonIndex;
-		if (index > NamesStore().GetNamesNum() || index == 0)
+		if (index > NamesStore::GetNamesNum() || index == 0)
 			continue;
 
-		buffer.push_back(NamesStore().GetByIndex(index));
+		buffer.push_back(NamesStore::GetByIndex(index));
 	}
 
 	delete[] cls;
@@ -432,47 +432,47 @@ UEProperty::Info UEProperty::GetInfo() const
 		else if (IsA<UEUInt16Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEUInt16Property>().GetInfo();
+			curInfo = UEUInt16Property::GetInfo();
 		}
 		else if (IsA<UEUInt32Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEUInt32Property>().GetInfo();
+			curInfo = UEUInt32Property::GetInfo();
 		}
 		else if (IsA<UEUInt64Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEUInt64Property>().GetInfo();
+			curInfo = UEUInt64Property::GetInfo();
 		}
 		else if (IsA<UEInt8Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEInt8Property>().GetInfo();
+			curInfo = UEInt8Property::GetInfo();
 		}
 		else if (IsA<UEInt16Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEInt16Property>().GetInfo();
+			curInfo = UEInt16Property::GetInfo();
 		}
 		else if (IsA<UEIntProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEIntProperty>().GetInfo();
+			curInfo = UEIntProperty::GetInfo();
 		}
 		else if (IsA<UEInt64Property>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEInt64Property>().GetInfo();
+			curInfo = UEInt64Property::GetInfo();
 		}
 		else if (IsA<UEFloatProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEFloatProperty>().GetInfo();
+			curInfo = UEFloatProperty::GetInfo();
 		}
 		else if (IsA<UEDoubleProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEDoubleProperty>().GetInfo();
+			curInfo = UEDoubleProperty::GetInfo();
 		}
 		else if (IsA<UEBoolProperty>())
 		{
@@ -512,12 +512,12 @@ UEProperty::Info UEProperty::GetInfo() const
 		else if (IsA<UEAssetClassProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEAssetClassProperty>().GetInfo();
+			curInfo = UEAssetClassProperty::GetInfo();
 		}
 		else if (IsA<UENameProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UENameProperty>().GetInfo();
+			curInfo = UENameProperty::GetInfo();
 		}
 		else if (IsA<UEStructProperty>())
 		{
@@ -527,12 +527,12 @@ UEProperty::Info UEProperty::GetInfo() const
 		else if (IsA<UEStrProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEStrProperty>().GetInfo();
+			curInfo = UEStrProperty::GetInfo();
 		}
 		else if (IsA<UETextProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UETextProperty>().GetInfo();
+			curInfo = UETextProperty::GetInfo();
 		}
 		else if (IsA<UEArrayProperty>())
 		{
@@ -547,12 +547,12 @@ UEProperty::Info UEProperty::GetInfo() const
 		else if (IsA<UEDelegateProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEDelegateProperty>().GetInfo();
+			curInfo = UEDelegateProperty::GetInfo();
 		}
 		else if (IsA<UEMulticastDelegateProperty>())
 		{
 			infoChanged = true;
-			curInfo = Cast<UEMulticastDelegateProperty>().GetInfo();
+			curInfo = UEMulticastDelegateProperty::GetInfo();
 		}
 		else if (IsA<UEEnumProperty>())
 		{
@@ -595,7 +595,7 @@ UEClass UENumericProperty::StaticClass()
 #pragma endregion
 
 #pragma region UEUInt16Property
-UEProperty::Info UEUInt16Property::GetInfo() const
+UEProperty::Info UEUInt16Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint16_t), false, "uint16_t");
 }
@@ -614,7 +614,7 @@ UEClass UEUInt16Property::StaticClass()
 #pragma endregion
 
 #pragma region UEUInt32Property
-UEProperty::Info UEUInt32Property::GetInfo() const
+UEProperty::Info UEUInt32Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint32_t), false, "uint32_t");
 }
@@ -633,7 +633,7 @@ UEClass UEUInt32Property::StaticClass()
 #pragma endregion
 
 #pragma region UEUInt64Property
-UEProperty::Info UEUInt64Property::GetInfo() const
+UEProperty::Info UEUInt64Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint64_t), false, "uint64_t");
 }
@@ -652,7 +652,7 @@ UEClass UEUInt64Property::StaticClass()
 #pragma endregion
 
 #pragma region UEInt8Property
-UEProperty::Info UEInt8Property::GetInfo() const
+UEProperty::Info UEInt8Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(int8_t), false, "int8_t");
 }
@@ -671,7 +671,7 @@ UEClass UEInt8Property::StaticClass()
 #pragma endregion
 
 #pragma region UEInt16Property
-UEProperty::Info UEInt16Property::GetInfo() const
+UEProperty::Info UEInt16Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(int16_t), false, "int16_t");
 }
@@ -690,7 +690,7 @@ UEClass UEInt16Property::StaticClass()
 #pragma endregion
 
 #pragma region UEIntProperty
-UEProperty::Info UEIntProperty::GetInfo() const
+UEProperty::Info UEIntProperty::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(int), false, "int");
 }
@@ -709,7 +709,7 @@ UEClass UEIntProperty::StaticClass()
 #pragma endregion
 
 #pragma region UEInt64Property
-UEProperty::Info UEInt64Property::GetInfo() const
+UEProperty::Info UEInt64Property::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(int64_t), false, "int64_t");
 }
@@ -728,7 +728,7 @@ UEClass UEInt64Property::StaticClass()
 #pragma endregion
 
 #pragma region UEFloatProperty
-UEProperty::Info UEFloatProperty::GetInfo() const
+UEProperty::Info UEFloatProperty::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(float), false, "float");
 }
@@ -747,7 +747,7 @@ UEClass UEFloatProperty::StaticClass()
 #pragma endregion
 
 #pragma region UEDoubleProperty
-UEProperty::Info UEDoubleProperty::GetInfo() const
+UEProperty::Info UEDoubleProperty::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(double), false, "double");
 }
@@ -794,7 +794,11 @@ UEClass UEObjectPropertyBase::StaticClass()
 #pragma region UEObjectProperty
 UEProperty::Info UEObjectProperty::GetInfo() const
 {
-	return Info::Create(PropertyType::Primitive, sizeof(void*), false, "class " + MakeValidName(GetPropertyClass().GetNameCpp()) + "*");
+	auto pClass = GetPropertyClass();
+	if (!pClass.IsValid())
+		return { PropertyType::Unknown };
+
+	return Info::Create(PropertyType::Primitive, sizeof(void*), false, "class " + MakeValidName(pClass.GetNameCpp()) + "*");
 }
 
 size_t UEObjectProperty::TypeId()
@@ -942,7 +946,7 @@ UEClass UEAssetClassProperty::GetMetaClass() const
 	// return UEClass(metaClass);
 }
 
-UEProperty::Info UEAssetClassProperty::GetInfo() const
+UEProperty::Info UEAssetClassProperty::GetInfo()
 {
 	return Info::Create(PropertyType::Primitive, sizeof(uint8_t), false, "");
 }
@@ -961,7 +965,7 @@ UEClass UEAssetClassProperty::StaticClass()
 #pragma endregion
 
 #pragma region UENameProperty
-UEProperty::Info UENameProperty::GetInfo() const
+UEProperty::Info UENameProperty::GetInfo()
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FName), true, "struct FName");
 }
@@ -1011,7 +1015,7 @@ UEClass UEStructProperty::StaticClass()
 #pragma endregion
 
 #pragma region UEStrProperty
-UEProperty::Info UEStrProperty::GetInfo() const
+UEProperty::Info UEStrProperty::GetInfo()
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FString), true, "struct FString");
 }
@@ -1030,7 +1034,7 @@ UEClass UEStrProperty::StaticClass()
 #pragma endregion
 
 #pragma region UETextProperty
-UEProperty::Info UETextProperty::GetInfo() const
+UEProperty::Info UETextProperty::GetInfo()
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FText), true, "struct FText");
 }
@@ -1148,7 +1152,7 @@ UEFunction UEDelegateProperty::GetSignatureFunction() const
 	// return UEFunction(signatureFunction);
 }
 
-UEProperty::Info UEDelegateProperty::GetInfo() const
+UEProperty::Info UEDelegateProperty::GetInfo()
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FScriptDelegate), true, "struct FScriptDelegate");
 }
@@ -1179,7 +1183,7 @@ UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 	// return UEFunction(signatureFunction);
 }
 
-UEProperty::Info UEMulticastDelegateProperty::GetInfo() const
+UEProperty::Info UEMulticastDelegateProperty::GetInfo()
 {
 	return Info::Create(PropertyType::PredefinedStruct, sizeof(FScriptMulticastDelegate), true, "struct FScriptMulticastDelegate");
 }

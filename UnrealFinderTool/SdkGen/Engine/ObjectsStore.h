@@ -20,6 +20,7 @@ struct GObjectInfo
 
 class ObjectsStore
 {
+	uintptr_t staticGObjAddress = NULL;
 	size_t numElementsPerChunk = 0x11000;
 	size_t minZeroAddress = 150;
 
@@ -42,7 +43,7 @@ public:
 
 	/// <summary>Gets the address of the global objects store.</summary>
 	/// <returns>The address of the global objects store.</returns>
-	static uintptr_t GetAddress();
+	uintptr_t GetBaseGObjectAddress() const;
 
 	/// <summary>
 	/// Gets the number of available objects.

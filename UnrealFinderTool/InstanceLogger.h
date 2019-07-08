@@ -22,10 +22,10 @@ class InstanceLogger
 {
 	uintptr_t gObjectsAddress, gNamesAddress;
 
-	LoggerState FetchData();
-	bool ObjectDump();
-	bool NameDump();
+	LoggerState FetchData() const;
+	static bool ObjectDump();
+	static bool NameDump();
 public:
 	InstanceLogger(uintptr_t gObjObjectsAddress, uintptr_t gNamesAddress);
-	LoggerRetState Start();
+	LoggerRetState Start() const;
 };

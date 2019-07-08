@@ -370,7 +370,7 @@ bool Utils::IsValidRemoteAddress(Memory* mem, const uintptr_t address)
 	if (VirtualQueryEx(mem->ProcessHandle, LPVOID(address), &info, sizeof info) == sizeof info)
 	{
 		// Bad Memory
-		return !(info.Protect & PAGE_NOACCESS);
+		return (info.State & MEM_COMMIT) && !(info.Protect & PAGE_NOACCESS);
 	}
 
 	return false;

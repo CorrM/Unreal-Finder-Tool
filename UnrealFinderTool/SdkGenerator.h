@@ -25,11 +25,12 @@ struct StartInfo
 
 	std::string GameName;
 	std::string GameVersion;
-	std::string State;
 	std::string SdkLang;
 
 	SdkType TargetSdkType;
 	std::vector<std::string>* PackagesDone;
+
+	std::string* State;
 };
 
 class SdkGenerator

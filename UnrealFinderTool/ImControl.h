@@ -29,7 +29,7 @@ inline PatreonPost LastNews;
 inline bool process_id_disabled = false;
 inline bool process_lock_disabled = false;
 inline bool process_detector_disabled = false;
-inline int process_id;
+inline int process_id = 19804;
 inline bool process_controller_toggles[] = { false };
 
 inline bool use_kernel_disabled = false;
@@ -88,6 +88,8 @@ inline std::string il_state = "Ready ..!!";
 // => Instance Logger
 
 // => Sdk Generator
+inline bool sg_delete_old_popup = false;
+inline bool sg_suspend_popup = false;
 inline bool sg_start_disabled = false;
 inline bool sg_finished = false;
 inline std::tm sg_finished_time;

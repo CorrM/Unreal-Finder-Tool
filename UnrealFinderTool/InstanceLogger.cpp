@@ -23,11 +23,11 @@ bool InstanceLogger::ObjectDump()
 		return false;
 	}
 
-	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
+	for (size_t i = 0; i < ObjectsStore::GetObjectsNum(); ++i)
 	{
-		if (ObjectsStore().GetByIndex(i)->GetAddress() != NULL)
+		if (ObjectsStore::GetByIndex(i)->GetAddress() != NULL)
 		{
-			const UEObject* obj = ObjectsStore().GetByIndex(i);
+			const UEObject* obj = ObjectsStore::GetByIndex(i);
 			fprintf(log, "[%06i] %-100s 0x%" PRIXPTR "\n", int(i), obj->GetName().c_str(), obj->GetAddress());
 		}
 	}
@@ -47,18 +47,18 @@ bool InstanceLogger::NameDump()
 		return false;
 	}
 
-	for (size_t i = 0; i < NamesStore().GetNamesNum(); ++i)
+	for (size_t i = 0; i < NamesStore::GetNamesNum(); ++i)
 	{
-		std::string str = NamesStore().GetByIndex(i);
+		std::string str = NamesStore::GetByIndex(i);
 		if (!str.empty())
-			fprintf(log, "[%06i] %s\n", int(i), NamesStore().GetByIndex(i).c_str());
+			fprintf(log, "[%06i] %s\n", int(i), NamesStore::GetByIndex(i).c_str());
 	}
 
 	fclose(log);
 	return true;
 }
 
-LoggerRetState InstanceLogger::Start()
+LoggerRetState InstanceLogger::Start() const
 {
 	LoggerState s = FetchData();
 	if (s != LoggerState::Good)
@@ -67,15 +67,15 @@ LoggerRetState InstanceLogger::Start()
 	NameDump();
 	ObjectDump();
 
-	return { LoggerState::Good, ObjectsStore().GetObjectsNum(), NamesStore().GetNamesNum() };
+	return { LoggerState::Good, ObjectsStore::GetObjectsNum(), NamesStore::GetNamesNum() };
 }
 
-LoggerState InstanceLogger::FetchData()
+LoggerState InstanceLogger::FetchData() const
 {
 	if (!Utils::IsValidGNamesAddress(gNamesAddress))
 		return LoggerState::BadGNameAddress;
 
-	if (!Utils::IsValidGObjectsAddress(gObjectsAddress))
+	if (!Utils::IsTUobjectArray(gObjectsAddress))
 		return LoggerState::BadGObjectAddress;
 
 	// GNames

@@ -392,7 +392,7 @@ void StartSdkGenerator()
 		startInfo.GameName = sg_game_name_buf;
 		startInfo.GameVersion = std::to_string(sg_game_version[0]) + "." + std::to_string(sg_game_version[1]) + "." + std::to_string(sg_game_version[2]);
 		startInfo.TargetSdkType = static_cast<SdkType>(sg_type_item_current);
-		startInfo.State = sg_state;
+		startInfo.State = &sg_state;
 		startInfo.PackagesDone = &sg_packages_items;
 		startInfo.SdkLang = sg_lang_items[sg_lang_item_current];
 
@@ -1174,25 +1174,20 @@ void SdkGeneratorUi(UiWindow* thiz)
 			&sg_packages_item_current,
 			VectorGetter,
 			static_cast<void*>(&sg_packages_items),
-			static_cast<int>(sg_packages_items.size()), 7, true);
+			static_cast<int>(sg_packages_items.size()), 6, true);
 
 		// Start Generator
 		ENABLE_DISABLE_WIDGET_IF(ui::Button("Start##SdkGenerator", { MidWidth, 0.0f }), sg_start_disabled,
 		{
-			if (Utils::FileExists(Utils::GetWorkingDirectoryA() + "\\Results"))
-			{
-				ui::OpenPopup("Delete Old SDK?");
-			}
-			else
-			{
-				if (IsReadyToGo())
-					StartSdkGenerator();
-				else
-					popup_not_valid_process = true;
-			}
+			sg_suspend_popup = true;
 		});
 
 		// Popup
+		if (sg_suspend_popup)
+			ui::OpenPopup("Suspend?");
+		else if (sg_delete_old_popup)
+			ui::OpenPopup("Delete Old SDK?");
+
 		if (ui::BeginPopupModal("Delete Old SDK?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 		{
 			ui::Text("There is an old sdk !, Delete it .?\n\n");
@@ -1206,6 +1201,8 @@ void SdkGeneratorUi(UiWindow* thiz)
 					StartSdkGenerator();
 				else
 					popup_not_valid_process = true;
+
+				sg_delete_old_popup = false;
 			}
 
 			ui::SetItemDefaultFocus();
@@ -1217,15 +1214,72 @@ void SdkGeneratorUi(UiWindow* thiz)
 					StartSdkGenerator();
 				else
 					popup_not_valid_process = true;
+
+				sg_delete_old_popup = false;
 			}
 
 			ui::SameLine();
 			if (ui::Button("Cancel", ImVec2(75, 0)))
+			{
 				ui::CloseCurrentPopup();
+				sg_delete_old_popup = false;
+			}
 
 			ui::EndPopup();
 		}
+		if (ui::BeginPopupModal("Suspend?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ui::Text("For some reasons UFT love to Suspend target process.\nIf you want to suspend click yes !!\n\n");
+			ui::Separator();
 
+			if (ui::Button("Yes", ImVec2(115, 0)))
+			{
+				ui::CloseCurrentPopup();
+				Utils::MemoryObj->SuspendProcess();
+				if (Utils::FileExists(Utils::GetWorkingDirectoryA() + "\\Results"))
+				{
+					sg_delete_old_popup = true;
+				}
+				else
+				{
+					if (IsReadyToGo())
+						StartSdkGenerator();
+					else
+						popup_not_valid_process = true;
+				}
+
+				sg_suspend_popup = false;
+			}
+
+			ui::SetItemDefaultFocus();
+			ui::SameLine();
+			if (ui::Button("No", ImVec2(115, 0)))
+			{
+				ui::CloseCurrentPopup();
+				if (Utils::FileExists(Utils::GetWorkingDirectoryA() + "\\Results"))
+				{
+					sg_delete_old_popup = true;
+				}
+				else
+				{
+					if (IsReadyToGo())
+						StartSdkGenerator();
+					else
+						popup_not_valid_process = true;
+				}
+
+				sg_suspend_popup = false;
+			}
+
+			ui::SameLine();
+			if (ui::Button("Cancel", ImVec2(115, 0)))
+			{
+				ui::CloseCurrentPopup();
+				sg_suspend_popup = false;
+			}
+
+			ui::EndPopup();
+		}
 		ui::EndTabItem();
 	}
 }
@@ -1362,7 +1416,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadEngineCore(unreal_versions)) return 0;
 
 	// Autodetect in case game already open
-	process_id = Utils::DetectUnrealGame();
+	int pid = static_cast<int>(Utils::DetectUnrealGame());
+	process_id = pid ? pid : process_id;
 
 	// Setup Address Viewer
 	mem_edit.Cols = 8;
