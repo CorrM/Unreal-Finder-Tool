@@ -3,14 +3,43 @@
 #include "JsonReflector.h"
 #include "Generator.h"
 
+std::vector<PredefinedMember> Generator::GetJsonStructPreMembers(const std::string& jStructName)
+{
+	auto jStruct = JsonReflector::GetStruct(jStructName);
+	std::vector<PredefinedMember> varList;
+	for (const auto& object_container : jStruct.Vars)
+	{
+		auto object_json = object_container.second;
+		if (object_json.FromSuper)
+			continue;
+
+		PredefinedMember cur;
+		if (Utils::IsNumber(object_json.Type))
+		{
+			cur.Name = object_json.Name + "[" + object_json.Type + "]";
+			cur.Type = "unsigned char ";
+		}
+		else
+		{
+			cur.Name = object_json.Name;
+			cur.Type = object_json.IsPointer && !Utils::ContainsString(object_json.Type, "void*") ? "class "s + object_json.Type : object_json.Type;
+		}
+
+		varList.push_back(cur);
+	}
+
+	return varList;
+}
+
 bool Generator::Initialize()
 {
-	keywordsName =
+	badKeywords =
 	{
 		{"return", "returnValue"},
 		{"continue", "continueValue"},
 		{"break", "breakValue"},
-		{"int", "intValue"}
+		{"int", "intValue"},
+		{"bool", "boolValue"}
 	};
 
 	badChars =
@@ -51,34 +80,16 @@ bool Generator::Initialize()
 		}
 	};
 
-	predefinedMembers["Class CoreUObject.Object"] =
-	{
-		{"void*", "Vtable"},
-		{"int32_t", "ObjectFlags"},
-		{"int32_t", "InternalIndex"},
-		{"class UClass*", "Class"},
-		{"FName", "Name"},
-		{"class UObject*", "Outer"}
-	};
+	predefinedMembers["Class CoreUObject.Object"] = GetJsonStructPreMembers("UObject");
 
 	predefinedStaticMembers["Class CoreUObject.Object"] =
 	{
-		{"FUObjectArray*", "GObjects"}
-	};
+			{"FUObjectArray*", "GObjects"}
+		};
 
-	predefinedMembers["Class CoreUObject.Field"] =
-	{
-		{"class UField*", "Next"}
-	};
+	predefinedMembers["Class CoreUObject.Field"] = GetJsonStructPreMembers("UField");
 
-	predefinedMembers["Class CoreUObject.Struct"] =
-	{
-		{"class UStruct*", "SuperField"},
-		{"class UField*", "Children"},
-		{"int32_t", "PropertySize"},
-		{"int32_t", "MinAlignment"},
-		{"unsigned char", "UnknownData0x0048[0x40]"}
-	};
+	predefinedMembers["Class CoreUObject.Struct"] = GetJsonStructPreMembers("UStruct");
 
 	predefinedMembers["Class CoreUObject.Function"] =
 	{
@@ -373,8 +384,8 @@ std::string Generator::GetOverrideType(const std::string& type) const
 std::string Generator::GetSafeKeywordsName(const std::string& name) const
 {
 	std::string ret = name;
-	auto it = keywordsName.find(ret);
-	if (it == std::end(keywordsName))
+	auto it = badKeywords.find(ret);
+	if (it == badKeywords.end())
 	{
 		for (const auto& badChar : badChars)
 			ret = Utils::ReplaceString(ret, badChar.first, badChar.second);

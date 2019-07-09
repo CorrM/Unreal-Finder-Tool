@@ -5,7 +5,7 @@
       "name": "UObject",
       "super": "",
       "vars": [
-        { "VfTable": "FPointer" },
+        { "VfTable": "void*" },
         { "Flags": "int" },
         { "InternalIndex": "int" },
         { "Class": "UClass*" },

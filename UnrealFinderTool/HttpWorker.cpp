@@ -3,7 +3,7 @@
 #include <map>
 #include "HttpWorker.h"
 
-pplx::task<http_response> HttpWorker::Get(const std::wstring& url, const bool autoRedirect, std::wstring cookies)
+pplx::task<http_response> HttpWorker::Get(const std::wstring& url, const bool autoRedirect, const std::wstring& cookies)
 {
 	http_client_config config;
 	if (!autoRedirect)
@@ -21,6 +21,7 @@ pplx::task<http_response> HttpWorker::Get(const std::wstring& url, const bool au
 
 	httpRequest.headers().add(L"User-Agent", L"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0");
 	httpRequest.headers().add(L"Accept", L"*/*");
+	httpRequest.headers().add(L"Connection", L"keep-alive");
 	if (!cookies.empty())
 		httpRequest.headers().add(L"Cookie", cookies);
 

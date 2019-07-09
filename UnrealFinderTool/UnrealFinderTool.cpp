@@ -97,6 +97,9 @@ void GetGoals()
 	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379")
 	.then([&](http_response& res)
 	{
+		if (res.status_code() != status_codes::OK)
+			return;
+
 		// to solve json problem
 		res.headers()[L"Content-Type"] = L"application/json";
 		auto json = res.extract_json().get();
@@ -112,21 +115,6 @@ void GetGoals()
 
 			Goals.push_back({ completed_percentage, description });
 		}
-	})
-	.then([=](const pplx::task<void>& previous_task) mutable 
-	{
-		if (previous_task._GetImpl()->_HasUserException())
-		{
-			auto holder = previous_task._GetImpl()->_GetExceptionHolder(); // Probably should put in try
-
-			try {
-				// Need to make sure you try/catch here, as _RethrowUserException can throw
-				holder->_RethrowUserException();
-			}
-			catch (std::exception&) {
-				// Do what you need to do here
-			}
-		}
 	});
 }
 
@@ -135,6 +123,9 @@ void GetLastNews()
 	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379/posts")
 	.then([&](http_response& res)
 	{
+		if (res.status_code() != status_codes::OK)
+			return;
+
 		// to solve json problem
 		res.headers()[L"Content-Type"] = L"application/json";
 		auto json = res.extract_json().get();
@@ -146,7 +137,7 @@ void GetLastNews()
 
 			std::wstring title = item.at(L"attributes").at(L"title").as_string();
 			std::wstring content = item.at(L"attributes").at(L"content").as_string();
-			content = Utils::ReplaceString(content, L"</p>", L"\n"); 
+			content = Utils::ReplaceString(content, L"</p>", L"\n");
 			content = Utils::ReplaceString(content, L"</li>", L"\n");
 			content = Utils::ReplaceString(content, L"</ul>", L"\n");
 			content = Utils::ReplaceString(content, L"\xa0", L""); // &nbsp; for html
@@ -154,23 +145,8 @@ void GetLastNews()
 
 			LastNews = { title, content };
 		}
-	})
-	.then([=](const pplx::task<void>& previous_task) mutable
-	{
-		if (previous_task._GetImpl()->_HasUserException())
-		{
-			auto holder = previous_task._GetImpl()->_GetExceptionHolder(); // Probably should put in try
-
-			try
-			{
-				// Need to make sure you try/catch here, as _RethrowUserException can throw
-				holder->_RethrowUserException();
-			}
-			catch (std::exception&) {
-				// Do what you need to do here
-			}
-		}
 	});
+	
 }
 
 void InitPatreon()
@@ -1253,10 +1229,10 @@ void SdkGeneratorUi(UiWindow* thiz)
 		}
 		if (ui::BeginPopupModal("Suspend?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 		{
-			ui::Text("For some reasons UFT love to Suspend target process.\nIf you want to suspend click yes !!\n\n");
+			ui::Text("For some reasons UFT love to\nSuspend target process.\nIf you want to suspend click yes !!\n\n");
 			ui::Separator();
 
-			if (ui::Button("Yes", ImVec2(115, 0)))
+			if (ui::Button("Yes", ImVec2(75, 0)))
 			{
 				ui::CloseCurrentPopup();
 				Utils::MemoryObj->SuspendProcess();
@@ -1277,7 +1253,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 
 			ui::SetItemDefaultFocus();
 			ui::SameLine();
-			if (ui::Button("No", ImVec2(115, 0)))
+			if (ui::Button("No", ImVec2(75, 0)))
 			{
 				ui::CloseCurrentPopup();
 				if (Utils::FileExists(Utils::GetWorkingDirectoryA() + "\\Results"))
@@ -1296,7 +1272,7 @@ void SdkGeneratorUi(UiWindow* thiz)
 			}
 
 			ui::SameLine();
-			if (ui::Button("Cancel", ImVec2(115, 0)))
+			if (ui::Button("Cancel", ImVec2(75, 0)))
 			{
 				ui::CloseCurrentPopup();
 				sg_suspend_popup = false;

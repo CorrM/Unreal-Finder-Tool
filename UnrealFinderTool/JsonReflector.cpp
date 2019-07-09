@@ -85,7 +85,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, nlohmann::json* js
 							const std::string& name = variable.Name;
 							std::string type = variable.Type;
 
-							auto jVar = JsonVar(name, type, offset, IsStructType(type));
+							auto jVar = JsonVar(name, type, offset, IsStructType(type), Utils::EndsWith(type, "*"), true);
 							vars.push_back({ name , jVar });
 
 							offset += jVar.Size;
@@ -114,7 +114,7 @@ bool JsonReflector::LoadStruct(const std::string& structName, nlohmann::json* js
 				const std::string& name = it.key();
 				std::string type = it.value();
 
-				JsonVar jVar(name, type, offset, IsStructType(type));
+				JsonVar jVar(name, type, offset, IsStructType(type), Utils::EndsWith(type, "*"), false);
 				vars.push_back({ name , jVar });
 
 
@@ -187,7 +187,7 @@ bool JsonReflector::Load(nlohmann::json* jsonObj, const bool overrideOld)
 						const std::string& name = variable.Name;
 						std::string type = variable.Type;
 
-						auto jVar = JsonVar(name, type, offset, IsStructType(type));
+						auto jVar = JsonVar(name, type, offset, IsStructType(type), Utils::EndsWith(type, "*"), true);
 						vars.push_back({ name , jVar });
 
 						offset += jVar.Size;
@@ -216,7 +216,7 @@ bool JsonReflector::Load(nlohmann::json* jsonObj, const bool overrideOld)
 			const std::string& name = it.key();
 			std::string type = it.value();
 
-			auto jVar = JsonVar(name, type, offset, IsStructType(type));
+			auto jVar = JsonVar(name, type, offset, IsStructType(type), Utils::EndsWith(type, "*"), false);
 			vars.push_back({ name , jVar });
 
 			offset += jVar.Size;
@@ -397,13 +397,15 @@ JsonVar& JsonStruct::GetVar(const std::string& varName)
 #pragma endregion
 
 #pragma region JsonVar
-JsonVar::JsonVar(const std::string& name, const std::string& type, const int offset, const bool isStruct)
+JsonVar::JsonVar(const std::string& name, const std::string& type, const int offset, const bool isStruct, const bool isPointer, const bool fromSuper)
 {
 	Name = name;
 	Type = type;
 	Size = JsonReflector::VarSizeFromJson(Type, false);
 	Offset = offset;
 	IsStruct = isStruct;
+	IsPointer = isPointer;
+	FromSuper = fromSuper;
 
 	if (IsStruct)
 		LoadStructVars();

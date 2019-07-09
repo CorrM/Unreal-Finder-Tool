@@ -11,6 +11,6 @@ using namespace concurrency::streams;       // Asynchronous streams
 class HttpWorker
 {
 public:
-	static pplx::task<http_response> Get(const std::wstring& url, bool autoRedirect = true, std::wstring cookies = L"");
+	static pplx::task<http_response> Get(const std::wstring& url, bool autoRedirect = true, const std::wstring& cookies = L"");
 	static pplx::task<http_response> Post(const std::wstring& url, const std::map<std::wstring, std::wstring>& params);
 };

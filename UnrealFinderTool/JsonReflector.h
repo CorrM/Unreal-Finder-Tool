@@ -78,10 +78,14 @@ public:
 	int Offset = 0;
 	// Variable is struct
 	bool IsStruct = false;
+	// Variable is pointer
+	bool IsPointer = false;
+	// Variable from super struct
+	bool FromSuper = false;
 	// If this variable is struct this is struct contains variables
 	JsonStruct Struct{};
 
-	JsonVar(const std::string& name, const std::string& type, int offset, bool isStruct);
+	JsonVar(const std::string& name, const std::string& type, int offset, bool isStruct, bool isPointer, bool fromSuper);
 
 	// Access variable inside this variable, ONLY work if this variable is struct
 	JsonVar& operator[](const std::string& varName);

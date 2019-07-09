@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using SdkLang.Utils;
 
 namespace SdkLang.Langs
@@ -310,7 +309,7 @@ namespace SdkLang.Langs
             var text = new UftStringBuilder($"// {ss.FullName}\n// ");
 
             if (ss.InheritedSize.ToInt32() > 0)
-                text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} ({(long)ss.Size:X4} - 0x{(long)ss.InheritedSize:X4})\n";
+                text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} (0x{ss.Size.ToInt64():X4} - 0x{ss.InheritedSize.ToInt64():X4})\n";
             else
                 text += $"0x{(long)ss.Size:X4}\n";
 

@@ -58,7 +58,7 @@ class Generator
 
 	std::unordered_map<std::string, size_t> alignasClasses;
 	std::unordered_map<std::string, std::string> badChars;
-	std::unordered_map<std::string, std::string> keywordsName;
+	std::unordered_map<std::string, std::string> badKeywords;
 	std::unordered_map<std::string, std::string> overrideTypes;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedMembers;
 	std::unordered_map<std::string, std::vector<PredefinedMember>> predefinedStaticMembers;
@@ -66,6 +66,7 @@ class Generator
 	std::unordered_map<std::string, VirtualFunctionPatterns> virtualFunctionPattern;
 
 public:
+	static std::vector<PredefinedMember> GetJsonStructPreMembers(const std::string& jStructName);
 	/// <summary>
 	/// Initializes this object.
 	/// Add predefined types, ...
