@@ -92,10 +92,10 @@ void CheckLastVer()
 }
 
 #pragma region Patreon
-pplx::task<http_response> GetGoals()
+void GetGoals()
 {
-	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379");
-	jsonReq.then([&](http_response& res)
+	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379")
+	.then([&](http_response& res)
 	{
 		// to solve json problem
 		res.headers()[L"Content-Type"] = L"application/json";
@@ -112,15 +112,28 @@ pplx::task<http_response> GetGoals()
 
 			Goals.push_back({ completed_percentage, description });
 		}
-	});
+	})
+	.then([=](const pplx::task<void>& previous_task) mutable 
+	{
+		if (previous_task._GetImpl()->_HasUserException())
+		{
+			auto holder = previous_task._GetImpl()->_GetExceptionHolder(); // Probably should put in try
 
-	return jsonReq;
+			try {
+				// Need to make sure you try/catch here, as _RethrowUserException can throw
+				holder->_RethrowUserException();
+			}
+			catch (std::exception&) {
+				// Do what you need to do here
+			}
+		}
+	});
 }
 
-pplx::task<http_response> GetLastNews()
+void GetLastNews()
 {
-	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379/posts");
-	jsonReq.then([&](http_response& res)
+	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379/posts")
+	.then([&](http_response& res)
 	{
 		// to solve json problem
 		res.headers()[L"Content-Type"] = L"application/json";
@@ -141,18 +154,29 @@ pplx::task<http_response> GetLastNews()
 
 			LastNews = { title, content };
 		}
-	});
+	})
+	.then([=](const pplx::task<void>& previous_task) mutable
+	{
+		if (previous_task._GetImpl()->_HasUserException())
+		{
+			auto holder = previous_task._GetImpl()->_GetExceptionHolder(); // Probably should put in try
 
-	return jsonReq;
+			try
+			{
+				// Need to make sure you try/catch here, as _RethrowUserException can throw
+				holder->_RethrowUserException();
+			}
+			catch (std::exception&) {
+				// Do what you need to do here
+			}
+		}
+	});
 }
 
 void InitPatreon()
 {
-	try { GetGoals().wait(); }
-	catch (const std::exception&) {}
-
-	try { GetLastNews().wait(); }
-	catch (const std::exception&) {}
+	GetGoals();
+	GetLastNews();
 }
 #pragma endregion
 
