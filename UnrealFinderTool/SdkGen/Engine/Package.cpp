@@ -670,100 +670,98 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 	//some classes (AnimBlueprintGenerated...) have multiple members with the same name, so filter them out
 	std::unordered_set<std::string> uniqueMethods;
 
-	for (auto prop = classObj.GetChildren().Cast<UEProperty>(); prop.IsValid(); prop = prop.GetNext().Cast<UEProperty>())
+	for (auto prop = classObj.GetChildren().Cast<UEField>(); prop.IsValid(); prop = prop.GetNext())
 	{
-		if (prop.IsA<UEFunction>())
+		if (!prop.IsA<UEFunction>())
+			continue;
+
+		auto function = prop.Cast<UEFunction>();
+
+		Method m;
+		m.Index = function.GetIndex();
+		m.FullName = function.GetFullName();
+		m.Name = MakeValidName(function.GetName());
+
+		m.Name = generator->GetSafeKeywordsName(m.Name);
+		if (uniqueMethods.find(m.FullName) != std::end(uniqueMethods))
+			continue;
+
+		uniqueMethods.insert(m.FullName);
+
+		m.IsNative = function.GetFunctionFlags() & UEFunctionFlags::Native;
+		m.IsStatic = function.GetFunctionFlags() & UEFunctionFlags::Static;
+		m.FlagsString = StringifyFlags(function.GetFunctionFlags());
+
+		std::vector<std::pair<UEProperty, Method::Parameter>> parameters;
+
+		std::unordered_map<std::string, size_t> unique;
+		for (auto param = function.GetChildren().Cast<UEProperty>(); param.IsValid(); param = param.GetNext().Cast<UEProperty>())
 		{
-			auto function = prop.Cast<UEFunction>();
-
-			Method m;
-			m.Index = function.GetIndex();
-			m.FullName = function.GetFullName();
-			m.Name = MakeValidName(function.GetName());
-
-			m.Name = generator->GetSafeKeywordsName(m.Name);
-			if (uniqueMethods.find(m.FullName) != std::end(uniqueMethods))
+			if (param.GetElementSize() == 0)
 				continue;
 
-			uniqueMethods.insert(m.FullName);
-
-			m.IsNative = function.GetFunctionFlags() & UEFunctionFlags::Native;
-			m.IsStatic = function.GetFunctionFlags() & UEFunctionFlags::Static;
-			m.FlagsString = StringifyFlags(function.GetFunctionFlags());
-
-			std::vector<std::pair<UEProperty, Method::Parameter>> parameters;
-
-			std::unordered_map<std::string, size_t> unique;
-			for (auto param = function.GetChildren().Cast<UEProperty>(); param.IsValid(); param = param.GetNext().Cast<UEProperty>())
+			const auto info = param.GetInfo();
+			if (info.Type != UEProperty::PropertyType::Unknown)
 			{
-				if (param.GetElementSize() == 0)
+				using Type = Method::Parameter::Type;
+
+				Method::Parameter p;
+
+				if (!Method::Parameter::MakeType(param.GetPropertyFlags(), p.ParamType))
 				{
+					//child isn't a parameter
 					continue;
 				}
 
-				const auto info = param.GetInfo();
-				if (info.Type != UEProperty::PropertyType::Unknown)
+				p.PassByReference = false;
+				p.Name = MakeValidName(param.GetName());
+
+				const auto it = unique.find(p.Name);
+				if (it == std::end(unique))
 				{
-					using Type = Method::Parameter::Type;
-
-					Method::Parameter p;
-
-					if (!Method::Parameter::MakeType(param.GetPropertyFlags(), p.ParamType))
-					{
-						//child isn't a parameter
-						continue;
-					}
-
-					p.PassByReference = false;
-					p.Name = MakeValidName(param.GetName());
-
-					const auto it = unique.find(p.Name);
-					if (it == std::end(unique))
-					{
-						unique[p.Name] = 1;
-					}
-					else
-					{
-						++unique[p.Name];
-
-						p.Name += tfm::format("%02d", it->second);
-					}
-
-					p.FlagsString = StringifyFlags(param.GetPropertyFlags());
-
-					p.CppType = info.CppType;
-					if (param.IsA<UEBoolProperty>())
-					{
-						p.CppType = generator->GetOverrideType("bool");
-					}
-
-					if (p.ParamType == Type::Default)
-					{
-						if (prop.GetArrayDim() > 1)
-						{
-							p.CppType = p.CppType + "*";
-						}
-						else if (info.CanBeReference)
-						{
-							p.PassByReference = true;
-						}
-					}
-
-					p.Name = generator->GetSafeKeywordsName(p.Name);
-
-					parameters.emplace_back(std::make_pair(prop, std::move(p)));
+					unique[p.Name] = 1;
 				}
+				else
+				{
+					++unique[p.Name];
+
+					p.Name += tfm::format("%02d", it->second);
+				}
+
+				p.FlagsString = StringifyFlags(param.GetPropertyFlags());
+
+				p.CppType = info.CppType;
+				if (param.IsA<UEBoolProperty>())
+				{
+					p.CppType = generator->GetOverrideType("bool");
+				}
+
+				if (p.ParamType == Type::Default)
+				{
+					if (param.GetArrayDim() > 1)
+					{
+						p.CppType = p.CppType + "*";
+					}
+					else if (info.CanBeReference)
+					{
+						p.PassByReference = true;
+					}
+				}
+
+				p.Name = generator->GetSafeKeywordsName(p.Name);
+
+				parameters.emplace_back(std::make_pair(param, std::move(p)));
 			}
-
-			std::sort(std::begin(parameters), std::end(parameters), [](auto && lhs, auto && rhs) { return ComparePropertyLess(lhs.first, rhs.first); });
-
-			for (auto& param : parameters)
-			{
-				m.Parameters.emplace_back(std::move(param.second));
-			}
-
-			methods.emplace_back(std::move(m));
 		}
+
+		std::sort(std::begin(parameters), std::end(parameters), [](auto && lhs, auto && rhs) { return ComparePropertyLess(lhs.first, rhs.first); });
+
+		for (auto& param : parameters)
+		{
+			m.Parameters.emplace_back(std::move(param.second));
+		}
+
+		methods.emplace_back(std::move(m));
 	}
 }
 
