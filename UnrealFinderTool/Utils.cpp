@@ -446,6 +446,22 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	return !resVec.empty();
 }
 
+size_t Utils::CalcNameOffset(const uintptr_t address)
+{
+	uintptr_t curAddress = address;
+	MEMORY_BASIC_INFORMATION info;
+
+	while (
+		VirtualQueryEx(MemoryObj->ProcessHandle, reinterpret_cast<LPVOID>(curAddress), &info, sizeof info) == sizeof(info) &&
+		info.BaseAddress != reinterpret_cast<PVOID>(curAddress) &&
+		curAddress >= address - 0x10)
+	{
+		--curAddress;
+	}
+
+	return address - curAddress;
+}
+
 bool Utils::IsTArray(const uintptr_t address)
 {
 	// Check PreAllocatedObjects it's always null, it's only on new TUObjectArray then it's good to check

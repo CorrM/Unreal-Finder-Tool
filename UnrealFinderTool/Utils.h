@@ -149,6 +149,8 @@ public:
 	static bool IsValidRemotePointer(uintptr_t pointer, uintptr_t *address = nullptr);
 	// Check if Address is point GNames Array
 	static bool IsValidGNamesAddress(uintptr_t address);
+	// Get GNames Name Offset, Take NONE address pulled from GNameFinder
+	static size_t CalcNameOffset(uintptr_t address);
 	// Must used with valid 'UObjectArray' address, use `IsValidGObjectsAddress` to check.
 	static bool IsTArray(uintptr_t address);
 	// Check if it's IsTUObjectArray
