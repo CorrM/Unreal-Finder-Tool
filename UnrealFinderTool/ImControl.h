@@ -1,9 +1,10 @@
 #pragma once
-#include "ImGUI/imgui.h"
 #include <vector>
+#include "ImGUI/imgui.h"
+#include "IconsFontAwesome.h"
 
 #define TOOL_VERSION		"3.2.0"
-#define TOOL_VERSION_TITLE	"More Languages More Power"
+#define TOOL_VERSION_TITLE	"Unreal Suspender"
 
 #define IM_COL4(R, G, B, A) ImVec4((float)(R) / 255.f, (float)(G) / 255.f, (float)(B) / 255.f, (float)(A) / 255.f)
 #define ENABLE_DISABLE_WIDGET(uiCode, disabledBool) { static bool disCheck = false; if (disabledBool) { disCheck = true; ui::PushItemFlag(ImGuiItemFlags_Disabled, true); ui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); } uiCode; if (disCheck && disabledBool) { ImGui::PopItemFlag(); ImGui::PopStyleVar(); disCheck = false; } }

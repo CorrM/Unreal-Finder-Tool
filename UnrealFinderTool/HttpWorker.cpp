@@ -20,7 +20,8 @@ pplx::task<http_response> HttpWorker::Get(const std::wstring& url, const bool au
 	httpRequest.set_method(methods::GET);
 
 	httpRequest.headers().add(L"User-Agent", L"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0");
-	httpRequest.headers().add(L"Accept", L"*/*");
+	httpRequest.headers().add(L"Accept", L"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	httpRequest.headers().add(L"Upgrade-Insecure-Requests", L"1");
 	httpRequest.headers().add(L"Connection", L"keep-alive");
 	if (!cookies.empty())
 		httpRequest.headers().add(L"Cookie", cookies);

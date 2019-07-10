@@ -7,7 +7,6 @@
 
 #include "UiWindow.h"
 #include "ImControl.h"
-#include "IconsFontAwesome.h"
 #include "MemoryEditor.h"
 
 #include "Memory.h"
@@ -120,31 +119,21 @@ void GetGoals()
 
 void GetLastNews()
 {
-	auto jsonReq = HttpWorker::Get(L"https://www.patreon.com/api/campaigns/2879379/posts")
+	// https://www.patreon.com/api/campaigns/2879379/posts
+	auto jsonReq = HttpWorker::Get(L"https://pastebin.com/raw/FWsCD2k1")
 	.then([&](http_response& res)
 	{
 		if (res.status_code() != status_codes::OK)
 			return;
 
-		// to solve json problem
-		res.headers()[L"Content-Type"] = L"application/json";
-		auto json = res.extract_json().get();
+		std::wstring content = res.extract_string().get();
+		content = Utils::ReplaceString(content, L"</p>", L"\n");
+		content = Utils::ReplaceString(content, L"</li>", L"\n");
+		content = Utils::ReplaceString(content, L"</ul>", L"\n");
+		content = Utils::ReplaceString(content, L"\xa0", L""); // &nbsp; for html
+		content = Utils::RemoveStringBetween(content, L"<", L">");
 
-		auto data = json.at(L"data").as_array();
-		for (auto& item : data)
-		{
-			if (item.at(L"id").as_string() != L"27973158") continue;
-
-			std::wstring title = item.at(L"attributes").at(L"title").as_string();
-			std::wstring content = item.at(L"attributes").at(L"content").as_string();
-			content = Utils::ReplaceString(content, L"</p>", L"\n");
-			content = Utils::ReplaceString(content, L"</li>", L"\n");
-			content = Utils::ReplaceString(content, L"</ul>", L"\n");
-			content = Utils::ReplaceString(content, L"\xa0", L""); // &nbsp; for html
-			content = Utils::RemoveStringBetween(content, L"<", L">");
-
-			LastNews = { title, content };
-		}
+		LastNews = { L"PinPost"s, content };
 	});
 	
 }
