@@ -48,8 +48,9 @@ Name | Reason
 ---- | ------
 [@CorrM](https://github.com/CorrM) | Build This Tool :v:
 [@WheresMyRide](https://github.com/WheresMyRide) | Bug Haunter :joy:
-@KN4CK3R | Base SDK Generator
-[@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html) | BypassPH (Read/Write Kernal)
+[@johmarjac](https://github.com/johmarjac) | UnSupported Games Puller :anger:
+[@KN4CK3R](https://github.com/KN4CK3R) | Base SDK Generator :heart:
+[@harakirinox](https://www.unknowncheats.me/forum/members/1692305.html) | BypassPH (Read/Write Kernal) :star:
 
 ## Change Log
 ##### 25-06-2019 - 3.1.0
