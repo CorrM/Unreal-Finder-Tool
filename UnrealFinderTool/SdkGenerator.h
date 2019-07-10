@@ -18,19 +18,19 @@ struct SdkInfo
 
 struct StartInfo
 {
-	size_t* PObjCount;
-	size_t* PNamesCount;
-	size_t* PPackagesCount;
-	size_t* PPackagesDone;
+	size_t* PObjCount		= nullptr;
+	size_t* PNamesCount		= nullptr;
+	size_t* PPackagesCount	= nullptr;
+	size_t* PPackagesDone	= nullptr;
 
 	std::string GameName;
 	std::string GameVersion;
 	std::string SdkLang;
 
 	SdkType TargetSdkType;
-	std::vector<std::string>* PackagesDone;
+	std::vector<std::string>* PackagesDone = nullptr;
 
-	std::string* State;
+	std::string* State	= nullptr;
 };
 
 class SdkGenerator

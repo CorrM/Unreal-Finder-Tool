@@ -272,22 +272,27 @@ void StartGNamesFinder()
 	std::thread t([&]()
 	{
 		GNamesFinder gf;
-		const uintptr_t gname_address = gf.Find()[0]; // always return one address
+		std::vector<uintptr_t> retAddress = gf.Find(); // always return one address
 
 		g_names_listbox_items.clear();
 
-		if (gname_address != NULL)
+		if (!retAddress.empty())
 		{
-			// Convert to hex string
-			std::stringstream ss; ss << std::hex << gname_address;
+			for (auto ret_address : retAddress)
+			{
+				// Convert to hex string
+				std::stringstream ss; ss << std::hex << ret_address;
 
-			// Make hex char is Upper
-			std::string tmpUpper = ss.str();
-			std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
+				// Make hex char Upper
+				std::string tmpUpper = ss.str();
+				std::transform(tmpUpper.begin(), tmpUpper.end(), tmpUpper.begin(), ::toupper);
 
-			// Set value for UI
-			g_names_listbox_items.push_back(tmpUpper);
-			strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[0].data());
+				// Set value for UI
+				g_names_listbox_items.push_back(tmpUpper);
+			}
+
+			if (retAddress.size() > 1)
+				strcpy_s(g_names_buf, sizeof g_names_buf, g_names_listbox_items[1].data());
 		}
 
 		Utils::WorkingNow.GNamesFinder = false;

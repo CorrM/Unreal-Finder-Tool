@@ -43,10 +43,30 @@ std::vector<uintptr_t> GNamesFinder::Find()
 	if (!cmp3.empty())
 		nameOffset = Utils::CalcNameOffset(cmp3[0]);
 
-	for (uintptr_t i : cmp3)
+	// Get Static Address
 	{
-		i = i - nameOffset;
-		ret.push_back(GetChunksAddress(i));
+		using namespace Hyperscan;
+		std::vector<uintptr_t> search_result;
+		for (size_t index = 0; index < cmp3.size(); ++index)
+		{
+			auto scanVal = GetChunksAddress(cmp3[index] - nameOffset);
+
+			auto address_holder = HYPERSCAN_SCANNER::Scan(Utils::MemoryObj->ProcessId, scanVal,
+				Utils::MemoryObj->Is64 ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
+
+			if (address_holder.empty())
+			{
+				ret.erase(index == 0 ? ret.begin() : ret.begin() + index);
+				continue;
+			}
+
+			for (size_t iStatic = 0; iStatic < address_holder.size() && iStatic < 3; ++iStatic)
+			{
+				search_result.push_back(address_holder[iStatic]);
+			}
+		}
+
+		ret.insert(ret.end(), search_result.begin(), search_result.end());
 	}
 
 	return ret;
@@ -75,7 +95,7 @@ uintptr_t GNamesFinder::GetChunksAddress(const uintptr_t fNameAddress)
 				Utils::MemoryObj->Is64 ? HyperscanAllignment8Bytes : HyperscanAllignment4Bytes, HyperscanTypeExact);
 			for (uintptr_t chunk_address : gname_array_address)
 			{
-				if (Utils::IsValidGNamesAddress(chunk_address))
+				if (Utils::IsValidGNamesChunksAddress(chunk_address))
 				{
 					ret = chunk_address;
 					break;

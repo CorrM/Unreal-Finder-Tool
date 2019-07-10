@@ -3,8 +3,8 @@
 #include "NamesStore.h"
 
 std::vector<FNameEntity> NamesStore::gNames;
-int NamesStore::chunkCount = 16384;
-int NamesStore::gNamesChunks;
+size_t NamesStore::chunkCount = 16384;
+size_t NamesStore::gNamesChunks;
 uintptr_t NamesStore::gNamesAddress;
 
 #pragma region NamesStore
@@ -20,10 +20,11 @@ bool NamesStore::Initialize(const uintptr_t gNamesAddress, const bool forceReIni
 	return ReadGNameArray(gNamesAddress);
 }
 
-bool NamesStore::ReadGNameArray(const uintptr_t address)
+bool NamesStore::ReadGNameArray(uintptr_t address)
 {
 	size_t ptrSize = Utils::PointerSize();
 	size_t nameOffset = 0;
+	address = Utils::MemoryObj->ReadAddress(address); // Dereference Static Pointer, now it's chunks address
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
@@ -44,7 +45,7 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 		uintptr_t noneNameAddress = Utils::MemoryObj->ReadAddress(gChunks[0]);
 
 		Pattern none_sig = PatternScan::Parse("None", 0, "4E 6F 6E 65 00", 0xFF);
-		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x100, { none_sig }, true);
+		auto result = PatternScan::FindPattern(Utils::MemoryObj, noneNameAddress, noneNameAddress + 0x18, { none_sig }, true);
 		auto it = result.find("None");
 		if (it != result.end() && !it->second.empty())
 			nameOffset = it->second[0] - noneNameAddress;

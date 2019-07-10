@@ -9,7 +9,7 @@ class NamesStore
 {
 	friend NamesIterator;
 	static std::vector<FNameEntity> gNames;
-	static int chunkCount, gNamesChunks;
+	static size_t chunkCount, gNamesChunks;
 	static uintptr_t gNamesAddress;
 	static bool ReadGNameArray(uintptr_t address);
 	static bool IsValidAddress(uintptr_t address);

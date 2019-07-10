@@ -415,10 +415,16 @@ bool Utils::IsValidRemotePointer(const uintptr_t pointer, uintptr_t *address)
 	return false;
 }
 
-bool Utils::IsValidGNamesAddress(const uintptr_t address)
+bool Utils::IsValidGNamesAddress(uintptr_t address, const bool chunkCheck)
 {
 	if (MemoryObj == nullptr || !IsValidRemoteAddress(MemoryObj, address))
 		return false;
+
+	if (!chunkCheck && !IsValidRemoteAddress(MemoryObj, MemoryObj->ReadAddress(address)))
+		return false;
+
+	if (!chunkCheck)
+		address = MemoryObj->ReadAddress(address);
 
 	int null_count = 0;
 
@@ -444,6 +450,16 @@ bool Utils::IsValidGNamesAddress(const uintptr_t address)
 	const auto result = PatternScan::FindPattern(MemoryObj, noneFName, noneFName + 0x50, { pattern }, true);
 	const auto resVec = result.find("NoneSig")->second;
 	return !resVec.empty();
+}
+
+bool Utils::IsValidGNamesAddress(const uintptr_t address)
+{
+	return IsValidGNamesAddress(address, false);
+}
+
+bool Utils::IsValidGNamesChunksAddress(const uintptr_t address)
+{
+	return IsValidGNamesAddress(address, true);
 }
 
 size_t Utils::CalcNameOffset(const uintptr_t address)
