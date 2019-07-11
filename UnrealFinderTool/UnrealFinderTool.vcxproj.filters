@@ -232,7 +232,7 @@
       <Filter>Misc</Filter>
     </ClInclude>
     <ClInclude Include="Native.h">
-      <Filter>Misc</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

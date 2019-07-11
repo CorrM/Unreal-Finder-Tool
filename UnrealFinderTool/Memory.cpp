@@ -117,13 +117,19 @@ std::vector<MODULEENTRY32> Memory::GetModuleList() const
 	return ret;
 }
 
-MODULEINFO Memory::GetModuleInfo(const LPCTSTR lpModuleName)
+bool Memory::GetModuleInfo(const std::string& lpModuleName, MODULEENTRY32& moduleInfo) const
 {
-	MODULEINFO miInfos = {nullptr};
-	const HMODULE hModule = GetModuleHandle(lpModuleName);
-	if (hModule) GetModuleInformation(GetCurrentProcess(), hModule, &miInfos, sizeof MODULEINFO);
+	auto modules = GetModuleList();
+	for (auto& module : modules)
+	{
+		if (lpModuleName == module.szModule)
+		{
+			moduleInfo = module;
+			return true;
+		}
+	}
 
-	return miInfos;
+	return false;
 }
 
 bool Memory::IsHandleValid(HANDLE processHandle)

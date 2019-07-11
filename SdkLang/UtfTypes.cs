@@ -13,8 +13,8 @@ namespace SdkLang
     {
         public string UftPath, SdkPath, LangPath, SdkLang;
 
-        public string GameName, GameVersion, NamespaceName;
-        public long MemberAlignment, PointerSize;
+        public string GameName, GameVersion, NamespaceName, ModuleName;
+        public IntPtr MemberAlignment, PointerSize, ModuleBase, GNameAddress, GObjectsAddress;
         public bool IsExternal, IsGObjectsChunks, ShouldConvertStaticMethods, ShouldUseStrings;
         public bool ShouldXorStrings, ShouldGenerateFunctionParametersFile;
 
@@ -29,9 +29,14 @@ namespace SdkLang
             GameName = nGenInfo.GameName;
             GameVersion = nGenInfo.GameVersion;
             NamespaceName = nGenInfo.NamespaceName;
+            ModuleName = nGenInfo.ModuleName;
 
-            MemberAlignment = nGenInfo.MemberAlignment.ToInt64();
-            PointerSize = nGenInfo.PointerSize.ToInt64();
+            MemberAlignment = nGenInfo.MemberAlignment;
+            PointerSize = nGenInfo.PointerSize;
+            ModuleBase = nGenInfo.ModuleBase;
+            GNameAddress = nGenInfo.GNameAddress;
+            GObjectsAddress = nGenInfo.GObjectsAddress;
+
             IsExternal = nGenInfo.IsExternal;
             IsGObjectsChunks = nGenInfo.IsGObjectsChunks;
             ShouldConvertStaticMethods = nGenInfo.ShouldConvertStaticMethods;

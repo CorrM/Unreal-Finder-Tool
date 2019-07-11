@@ -466,6 +466,26 @@ bool Generator::GetIsGObjectsChunks() const
 	return isGObjectsChunks;
 }
 
+void Generator::SetGameModule(const std::string& modName) const
+{
+	gameModule = modName;
+}
+
+std::string Generator::GetGameModule() const
+{
+	return gameModule;
+}
+
+void Generator::SetGameModuleBase(uintptr_t moduleBase) const
+{
+	gameModuleBase = moduleBase;
+}
+
+uintptr_t Generator::GetGameModuleBase() const
+{
+	return gameModuleBase;
+}
+
 bool Generator::ShouldDumpArrays() const
 {
 	return false;

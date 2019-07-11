@@ -59,7 +59,7 @@ public:
 	static BOOL SetPrivilegeM(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 	BOOL GetDebugPrivileges();
 	std::vector<MODULEENTRY32> GetModuleList() const;
-	static MODULEINFO GetModuleInfo(LPCTSTR lpModuleName);
+	bool GetModuleInfo(const std::string& lpModuleName, OUT MODULEENTRY32& moduleInfo) const;
 	bool SuspendProcess() const;
 	bool ResumeProcess() const;
 	bool TerminateProcess() const;

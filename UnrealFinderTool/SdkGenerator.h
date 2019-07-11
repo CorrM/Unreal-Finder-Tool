@@ -26,8 +26,9 @@ struct StartInfo
 	std::string GameName;
 	std::string GameVersion;
 	std::string SdkLang;
+	std::string GameModule;
 
-	SdkType TargetSdkType;
+	SdkType TargetSdkType = SdkType::None;
 	std::vector<std::string>* PackagesDone = nullptr;
 
 	std::string* State	= nullptr;
@@ -39,7 +40,7 @@ class SdkGenerator
 public:
 	SdkGenerator(uintptr_t gObjAddress, uintptr_t gNamesAddress);
 	SdkInfo Start(StartInfo& startInfo);
-	static bool InitSdkLang(const std::string& sdkPath, const std::string& langPath);
+	bool InitSdkLang(const std::string& sdkPath, const std::string& langPath) const;
 private:
 	/// <summary>
 	/// Dumps the objects and names to files.

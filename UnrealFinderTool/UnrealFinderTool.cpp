@@ -389,6 +389,7 @@ void StartSdkGenerator()
 		startInfo.State = &sg_state;
 		startInfo.PackagesDone = &sg_packages_items;
 		startInfo.SdkLang = sg_lang_items[sg_lang_item_current];
+		startInfo.GameModule = process_module_items[process_module_item_current];
 
 		SdkGenerator sg(g_objects_address, g_names_address);
 		const SdkInfo ret = sg.Start(startInfo);

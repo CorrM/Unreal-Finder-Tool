@@ -126,9 +126,13 @@ struct NativeGenInfo
 	TCHAR* GameName;
 	TCHAR* GameVersion;
 	TCHAR* NamespaceName;
+	TCHAR* ModuleName;
 
 	size_t MemberAlignment;
 	size_t PointerSize;
+	uintptr_t ModuleBase;
+	uintptr_t GNameAddress;
+	uintptr_t GObjectsAddress;
 
 	BOOL IsExternal;
 	BOOL IsGObjectsChunks;
@@ -140,8 +144,8 @@ struct NativeGenInfo
 	NativeGenInfo() = default;
 	explicit NativeGenInfo(
 		const std::string& uftPath, const std::string& sdkPath, const std::string& langPath, const std::string& sdkLang,
-		const std::string& gameName, const std::string& gameVersion, const std::string& namespaceName,
-		const size_t memberAlignment, const size_t pointerSize,
+		const std::string& gameName, const std::string& gameVersion, const std::string& namespaceName, const std::string& moduleName,
+		const size_t memberAlignment, const size_t pointerSize, const uintptr_t moduleBase, const uintptr_t gNameAddress, const uintptr_t gObjectsAddress,
 		const BOOL isExternal, const BOOL isGObjectsChunks, const BOOL shouldConvertStaticMethods, const BOOL shouldUseStrings,
 		const BOOL shouldXorStrings, const BOOL shouldGenerateFunctionParametersFile
 	)
@@ -153,9 +157,13 @@ struct NativeGenInfo
 		GameName = NativeHelper::CreateHeapStr(gameName);
 		GameVersion = NativeHelper::CreateHeapStr(gameVersion);
 		NamespaceName = NativeHelper::CreateHeapStr(namespaceName);
+		ModuleName = NativeHelper::CreateHeapStr(moduleName);
 
 		MemberAlignment = memberAlignment;
 		PointerSize = pointerSize;
+		ModuleBase = moduleBase;
+		GNameAddress = gNameAddress;
+		GObjectsAddress = gObjectsAddress;
 
 		IsExternal = isExternal;
 		IsGObjectsChunks = isGObjectsChunks;

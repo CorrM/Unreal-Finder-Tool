@@ -40,11 +40,18 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 		MessageBoxA(nullptr, "Initialize failed", "Error", 0);
 		return { GeneratorState::Bad };
 	}
+
+	// Init Generator info
+	MODULEENTRY32 mod = {};
+	Utils::MemoryObj->GetModuleInfo(startInfo.GameModule, mod);
+
 	Utils::GenObj->SetGameName(startInfo.GameName);
 	Utils::GenObj->SetGameVersion(startInfo.GameVersion);
 	Utils::GenObj->SetSdkType(startInfo.TargetSdkType);
 	Utils::GenObj->SetIsGObjectsChunks(ObjectsStore::GInfo.IsChunksAddress);
 	Utils::GenObj->SetSdkLang(startInfo.SdkLang);
+	Utils::GenObj->SetGameModule(startInfo.GameModule);
+	Utils::GenObj->SetGameModuleBase(reinterpret_cast<uintptr_t>(mod.modBaseAddr));
 
 	// Get Current Dir
 	fs::path outputDirectory = fs::path(Utils::GetWorkingDirectoryA());
@@ -85,7 +92,7 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 	return { GeneratorState::Good, took_time };
 }
 
-bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath)
+bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath) const
 {
 	if (!Utils::Dnc->Load(Utils::GetWorkingDirectoryW() + L"\\" VER_BIT_STR "\\SdkLang.dll"))
 	{
@@ -110,8 +117,12 @@ bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& la
 		Utils::GenObj->GetGameName(),
 		Utils::GenObj->GetGameVersion(),
 		Utils::GenObj->GetNamespaceName(),
+		Utils::GenObj->GetGameModule(),
 		Utils::GenObj->GetGlobalMemberAlignment(),
 		Utils::PointerSize(),
+		Utils::GenObj->GetGameModuleBase(),
+		gNamesAddress,
+		gObjAddress,
 		Utils::GenObj->GetSdkType() == SdkType::External,
 		Utils::GenObj->GetIsGObjectsChunks(),
 		Utils::GenObj->ShouldConvertStaticMethods(),

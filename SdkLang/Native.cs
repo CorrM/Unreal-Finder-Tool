@@ -38,9 +38,14 @@ namespace SdkLang
             public string GameVersion;
             [MarshalAs(UnmanagedType.LPStr)]
             public string NamespaceName;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string ModuleName;
 
             public IntPtr MemberAlignment;
             public IntPtr PointerSize;
+            public IntPtr ModuleBase;
+            public IntPtr GNameAddress;
+            public IntPtr GObjectsAddress;
 
             public bool IsExternal;
             public bool IsGObjectsChunks;

@@ -6,6 +6,7 @@
 
 enum class SdkType
 {
+	None,
 	Internal,
 	External
 };
@@ -50,8 +51,10 @@ using VirtualFunctionPatterns = std::vector<std::tuple<Pattern, const char*>>;
 
 class Generator
 {
+	mutable std::string gameModule;
 	mutable std::string gameName;
 	mutable std::string gameVersion;
+	mutable uintptr_t gameModuleBase;
 	mutable bool isGObjectsChunks = false;
 	mutable SdkType sdkType = SdkType::Internal;
 	mutable std::string sdkLang;
@@ -84,25 +87,22 @@ public:
 	/// <summary>
 	/// Gets the name of the game.
 	/// </summary>
-	/// <returns>The game name. </returns>
-	std::string GetGameName() const;
+	void SetGameName(const std::string& gameName) const;
 
 	/// <summary>
 	/// Gets the name of the game.
 	/// </summary>
 	/// <returns>The game name. </returns>
-	void SetGameName(const std::string& gameName) const;
+	std::string GetGameName() const;
 
 	/// <summary>
 	/// Sets the version of the game.
 	/// </summary>
-	/// <returns>The version of the game.</returns>
 	void SetGameVersion(const std::string& gameVersion) const;
 
 	/// <summary>
 	/// Gets the version of the game.
 	/// </summary>
-	/// <returns>The version of the game.</returns>
 	std::string GetGameVersion() const;
 
 	/// <summary>
@@ -125,8 +125,35 @@ public:
 	/// </summary>
 	std::string GetSdkLang() const;
 
+	/// <summary>
+	/// Set GObjects Address is point Chunks
+	/// </summary>
 	void SetIsGObjectsChunks(bool isChunks) const;
+
+	/// <summary>
+	/// Get GObjects Address is point Chunks
+	/// </summary>
 	bool GetIsGObjectsChunks() const;
+
+	/// <summary>
+	/// Set Game Module Name
+	/// </summary>
+	void SetGameModule(const std::string& modName) const;
+
+	/// <summary>
+	/// Get Game Module Name
+	/// </summary>
+	std::string GetGameModule() const;
+
+	/// <summary>
+	/// Set Game Module Base
+	/// </summary>
+	void SetGameModuleBase(uintptr_t moduleBase) const;
+
+	/// <summary>
+	/// Get Game Module Base
+	/// </summary>
+	uintptr_t GetGameModuleBase() const;
 
 	/// <summary>
 	/// Check if the generator should dump the object and name arrays.
