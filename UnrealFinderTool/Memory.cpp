@@ -128,7 +128,6 @@ bool Memory::GetModuleInfo(const std::string& lpModuleName, MODULEENTRY32& modul
 			return true;
 		}
 	}
-
 	return false;
 }
 

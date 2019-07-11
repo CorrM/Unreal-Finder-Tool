@@ -1,5 +1,5 @@
-/*!!INCLUDE_PLACEHOLDER!!*/
-/*!!DEFINE_PLACEHOLDER!!*/
+/*!!INCLUDE!!*/
+/*!!DEFINE!!*/
 TNameEntryArray* FName::GNames = nullptr;
 FUObjectArray* UObject::GObjects = nullptr;
 
@@ -10,6 +10,10 @@ void InitSdk(const std::string& moduleName, const size_t gObjectsOffset, const s
 
 	UObject::GObjects = reinterpret_cast<SDK::FUObjectArray*>(mBaseAddress + gObjectsOffset - 0x10);
 	FName::GNames = reinterpret_cast<SDK::TNameEntryArray*>(mBaseAddress + gNamesOffset);
+}
+void InitSdk()
+{
+	/*!!AUTO_INIT_SDK!!*/
 }
 //---------------------------------------------------------------------------
 bool FWeakObjectPtr::IsValid() const
@@ -48,4 +52,4 @@ UObject* FWeakObjectPtr::Get() const
 }
 //---------------------------------------------------------------------------
 
-/*!!FOOTER_PLACEHOLDER!!*/
+/*!!FOOTER!!*/

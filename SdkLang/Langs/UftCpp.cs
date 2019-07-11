@@ -18,8 +18,8 @@ namespace SdkLang.Langs
             var fileStr = ReadThisFile(includePath);
 
             // Replace Main stuff
-            fileStr.BaseStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_pragmas, _include, true));
-            fileStr.BaseStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
+            fileStr.BaseStr.Replace("/*!!INCLUDE!!*/", TargetLang.GetFileHeader(_pragmas, _include, true));
+            fileStr.BaseStr.Replace("/*!!FOOTER!!*/", TargetLang.GetFileFooter());
 
             var jStruct = UtilsFunctions.GetStruct("FUObjectItem");
             string fUObjectItemStr = string.Empty;
@@ -32,9 +32,20 @@ namespace SdkLang.Langs
                     : $"\t{mem.Type} {mem.Name};\n";
             }
 
-            fileStr.BaseStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", Main.GenInfo.IsGObjectsChunks ? "#define GOBJECTS_CHUNKS" : "");
-            fileStr.BaseStr.Replace("/*!!POINTER_SIZE_PLACEHOLDER!!*/", Main.GenInfo.PointerSize.ToString());
-            fileStr.BaseStr.Replace("/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/", fUObjectItemStr);
+            fileStr.BaseStr.Replace("/*!!DEFINE!!*/", Main.GenInfo.IsGObjectsChunks ? "#define GOBJECTS_CHUNKS" : "");
+            fileStr.BaseStr.Replace("/*!!POINTER_SIZE!!*/", Main.GenInfo.PointerSize.ToString());
+            fileStr.BaseStr.Replace("/*!!FUObjectItem_MEMBERS!!*/", fUObjectItemStr);
+
+            if (!string.IsNullOrWhiteSpace(Main.GenInfo.ModuleName))
+            {
+                long gObjectsOffset = Main.GenInfo.GObjectsAddress.ToInt64() - Main.GenInfo.ModuleBase.ToInt64();
+                long gNamesOffset = Main.GenInfo.GNameAddress.ToInt64() - Main.GenInfo.ModuleBase.ToInt64();
+                fileStr.BaseStr.Replace("/*!!AUTO_INIT_SDK!!*/", $"InitSdk({Main.GenInfo.ModuleName}, 0x{gObjectsOffset:X}, 0x{gNamesOffset:X});");
+            }
+            else
+            {
+                fileStr.BaseStr.Replace("/*!!MODULE_NAME!!*/", "throw std::exception(\"Don't use this func.\");");
+            }
 
             // Write File
             CopyToSdk(fileStr);
@@ -54,11 +65,11 @@ namespace SdkLang.Langs
             var fileStr = ReadThisFile(includePath);
 
             // Replace Main stuff
-            fileStr.BaseStr.Replace("/*!!INCLUDE_PLACEHOLDER!!*/", TargetLang.GetFileHeader(_include, false));
-            fileStr.BaseStr.Replace("/*!!FOOTER_PLACEHOLDER!!*/", TargetLang.GetFileFooter());
+            fileStr.BaseStr.Replace("/*!!INCLUDE!!*/", TargetLang.GetFileHeader(_include, false));
+            fileStr.BaseStr.Replace("/*!!FOOTER!!*/", TargetLang.GetFileFooter());
 
             // Replace
-            fileStr.BaseStr.Replace("/*!!DEFINE_PLACEHOLDER!!*/", "");
+            fileStr.BaseStr.Replace("/*!!DEFINE!!*/", "");
 
             // Write File
             CopyToSdk(fileStr);
@@ -99,7 +110,7 @@ namespace SdkLang.Langs
 
             // 
             sb.BaseStr.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
-            sb.BaseStr.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment:X2})\n#endif\n\n");
+            sb.BaseStr.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment.ToInt64():X2})\n#endif\n\n");
             sb.BaseStr.Append($"namespace {genInfo.NamespaceName}\n{{\n");
 
             return sb;

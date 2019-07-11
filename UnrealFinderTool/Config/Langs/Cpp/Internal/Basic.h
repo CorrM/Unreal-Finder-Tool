@@ -1,6 +1,7 @@
-/*!!INCLUDE_PLACEHOLDER!!*/
-/*!!DEFINE_PLACEHOLDER!!*/
+/*!!INCLUDE!!*/
+/*!!DEFINE!!*/
 void InitSdk(const std::string& moduleName, size_t gObjectsOffset, size_t gNamesOffset);
+void InitSdk();
 
 template<typename Fn>
 inline Fn GetVFunction(const void* instance, std::size_t index)
@@ -14,7 +15,7 @@ class UObject;
 class FUObjectItem
 {
 public:
-/*!!FUObjectItem_MEMBERS_PLACEHOLDER!!*/
+/*!!FUObjectItem_MEMBERS!!*/
 	enum class ObjectFlags : int32_t
 	{
 		None = 0,
@@ -235,7 +236,7 @@ private:
 		int32_t ChunkIndex = Index / ElementsPerChunk;
 		int32_t WithinChunkIndex = Index % ElementsPerChunk;
 		ElementType* Chunk = (*Chunks)[ChunkIndex];
-		int offset = WithinChunkIndex * /*!!POINTER_SIZE_PLACEHOLDER!!*/;
+		int offset = WithinChunkIndex * /*!!POINTER_SIZE!!*/;
 		uintptr_t ptrAddress = *reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(Chunk) + offset);
 		ElementType* ItemPtr = reinterpret_cast<ElementType*>(ptrAddress);
 		return ItemPtr;
@@ -574,4 +575,4 @@ class TLazyObjectPtr : FLazyObjectPtr
 
 };
 
-/*!!FOOTER_PLACEHOLDER!!*/
+/*!!FOOTER!!*/
