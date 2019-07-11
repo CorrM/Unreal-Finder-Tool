@@ -28,8 +28,8 @@ namespace SdkLang.Langs
             foreach (var mem in jStruct.Members)
             {
                 fUObjectItemStr += mem.Type.All(char.IsDigit)
-                    ? $"\tunsigned char {mem.Name} [{mem.Type}];\n"
-                    : $"\t{mem.Type} {mem.Name};\n";
+                    ? $"\tunsigned char {mem.Name} [{mem.Type}];{Environment.NewLine}"
+                    : $"\t{mem.Type} {mem.Name};{Environment.NewLine}";
             }
 
             fileStr.BaseStr.Replace("/*!!DEFINE!!*/", Main.GenInfo.IsGObjectsChunks ? "#define GOBJECTS_CHUNKS" : "");
@@ -51,7 +51,7 @@ namespace SdkLang.Langs
             CopyToSdk(fileStr);
 
             // Append To SdkHeader file
-            AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", $"\n#include \"SDK/{FileName}\"\n");
+            AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "SDK.h", $"{Environment.NewLine}#include \"SDK/{FileName}\"{Environment.NewLine}");
         }
     }
     public class BasicCpp : IncludeFile<UftCpp>
@@ -94,24 +94,24 @@ namespace SdkLang.Langs
             // Pragmas
             if (isHeaderFile)
             {
-                sb.BaseStr.Append("#pragma once\n");
+                sb.BaseStr.Append("#pragma once{Environment.NewLine}");
                 if (pragmas.Count > 0)
-                    foreach (string i in pragmas) { sb.BaseStr.Append("#pragma " + i + "\n"); }
-                sb.BaseStr.Append("\n");
+                    foreach (string i in pragmas) { sb.BaseStr.Append("#pragma " + i + "{Environment.NewLine}"); }
+                sb.BaseStr.Append("{Environment.NewLine}");
             }
 
             if (genInfo.IsExternal)
-                sb.BaseStr.Append("#include \"../Memory.h\"\n");
+                sb.BaseStr.Append("#include \"../Memory.h\"{Environment.NewLine}");
 
             // Includes
             if (includes.Count > 0)
-                foreach (string i in includes) { sb.BaseStr.Append("#include " + i + "\n"); }
-            sb.BaseStr.Append("\n");
+                foreach (string i in includes) { sb.BaseStr.Append("#include " + i + "{Environment.NewLine}"); }
+            sb.BaseStr.Append("{Environment.NewLine}");
 
             // 
-            sb.BaseStr.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}\n\n");
-            sb.BaseStr.Append($"#ifdef _MSC_VER\n\t#pragma pack(push, 0x{genInfo.MemberAlignment.ToInt64():X2})\n#endif\n\n");
-            sb.BaseStr.Append($"namespace {genInfo.NamespaceName}\n{{\n");
+            sb.BaseStr.Append($"// Name: {genInfo.GameName}, Version: {genInfo.GameVersion}{Environment.NewLine}{Environment.NewLine}");
+            sb.BaseStr.Append($"#ifdef _MSC_VER{Environment.NewLine}\t#pragma pack(push, 0x{genInfo.MemberAlignment.ToInt64():X2}){Environment.NewLine}#endif{Environment.NewLine}{Environment.NewLine}");
+            sb.BaseStr.Append($"namespace {genInfo.NamespaceName}{Environment.NewLine}{{{Environment.NewLine}");
 
             return sb;
         }
@@ -125,14 +125,14 @@ namespace SdkLang.Langs
         }
         public string GetFileFooter()
         {
-            return "}\n\n#ifdef _MSC_VER\n\t#pragma pack(pop)\n#endif\n";
+            return "}{Environment.NewLine}{Environment.NewLine}#ifdef _MSC_VER{Environment.NewLine}\t#pragma pack(pop){Environment.NewLine}#endif{Environment.NewLine}";
         }
         public string GetSectionHeader(string name)
         {
             return
-                $"//---------------------------------------------------------------------------\n" +
-                $"// {name}\n" +
-                $"//---------------------------------------------------------------------------\n\n";
+                $"//---------------------------------------------------------------------------{Environment.NewLine}" +
+                $"// {name}{Environment.NewLine}" +
+                $"//---------------------------------------------------------------------------{Environment.NewLine}{Environment.NewLine}";
         }
         public string GenerateFileName(FileContentType type, string packageName)
         {
@@ -222,7 +222,7 @@ namespace SdkLang.Langs
             UftStringBuilder text = new UftStringBuilder();
 
             // Function Pointer
-            text += "{\n\tstatic auto fn";
+            text += "{{Environment.NewLine}\tstatic auto fn";
             if (Main.GenInfo.ShouldUseStrings)
             {
                 text += " = UObject::FindObject<UFunction>(";
@@ -232,68 +232,68 @@ namespace SdkLang.Langs
                 else
                     text += "\"{m.FullName}\"";
 
-                text += ");\n\n";
+                text += ");{Environment.NewLine}{Environment.NewLine}";
             }
             else
             {
-                text += $" = UObject::GetObjectCasted<UFunction>({m.Index});\n\n";
+                text += $" = UObject::GetObjectCasted<UFunction>({m.Index});{Environment.NewLine}{Environment.NewLine}";
             }
 
             // Parameters
             if (Main.GenInfo.ShouldGenerateFunctionParametersFile)
             {
-                text += $"\t{c.NameCpp}_{m.Name}_Params params;\n";
+                text += $"\t{c.NameCpp}_{m.Name}_Params params;{Environment.NewLine}";
             }
             else
             {
-                text += "\tstruct\n\t{\n";
+                text += "\tstruct{Environment.NewLine}\t{{Environment.NewLine}";
                 foreach (var param in m.Parameters)
-                    text += $"\t\t{param.CppType,-30} {param.Name};\n";
-                text += "\t} params;\n";
+                    text += $"\t\t{param.CppType,-30} {param.Name};{Environment.NewLine}";
+                text += "\t} params;{Environment.NewLine}";
             }
 
             var retn = m.Parameters.Where(item => item.ParamType == Native.Method.Parameter.Type.Default).ToList();
             if (retn.Any())
             {
                 foreach (var param in retn)
-                    text += $"\tparams.{param.Name} = {param.Name};\n";
+                    text += $"\tparams.{param.Name} = {param.Name};{Environment.NewLine}";
             }
-            text += "\n";
+            text += "{Environment.NewLine}";
 
             //Function Call
-            text += "\tauto flags = fn->FunctionFlags;\n";
+            text += "\tauto flags = fn->FunctionFlags;{Environment.NewLine}";
             if (m.IsNative)
-                text += $"\tfn->FunctionFlags |= 0x{UEFunctionFlags.Native:X};\n";
-            text += "\n";
+                text += $"\tfn->FunctionFlags |= 0x{UEFunctionFlags.Native:X};{Environment.NewLine}";
+            text += "{Environment.NewLine}";
 
             if (m.IsStatic && !Main.GenInfo.ShouldConvertStaticMethods)
             {
-                text += "\tstatic auto defaultObj = StaticClass()->CreateDefaultObject();\n";
-                text += "\tdefaultObj->ProcessEvent(fn, &params);\n\n";
+                text += "\tstatic auto defaultObj = StaticClass()->CreateDefaultObject();{Environment.NewLine}";
+                text += "\tdefaultObj->ProcessEvent(fn, &params);{Environment.NewLine}{Environment.NewLine}";
             }
             else
             {
-                text += "\tUObject::ProcessEvent(fn, &params);\n\n";
+                text += "\tUObject::ProcessEvent(fn, &params);{Environment.NewLine}{Environment.NewLine}";
             }
-            text += "\tfn->FunctionFlags = flags;\n";
+            text += "\tfn->FunctionFlags = flags;{Environment.NewLine}";
 
             //Out Parameters
             var rOut = m.Parameters.Where(item => item.ParamType == Native.Method.Parameter.Type.Out).ToList();
             if (rOut.Any())
             {
-                text += "\n";
+                text += "{Environment.NewLine}";
                 foreach (var param in rOut)
-                    text += $"\tif ({param.Name} != nullptr)\n" +
-                            $"\t\t*{param.Name} = params.{param.Name};\n";
+                    text += $"\tif ({param.Name} != nullptr){Environment.NewLine}" +
+                            $"\t\t*{param.Name} = params.{param.Name};{Environment.NewLine}";
             }
-            text += "\n";
+            text += "{Environment.NewLine}";
 
 	        //Return Value
             var ret = m.Parameters.Where(item => item.ParamType == Native.Method.Parameter.Type.Return).ToList();
             if (ret.Any())
-                text += $"\n\treturn params.{ret.First().Name};\n";
+                text += $"{Environment.NewLine}\treturn params.{ret.First().Name};{Environment.NewLine}";
 
-            text += "}\n";
+            text += "}{Environment.NewLine}";
 
             return text;
         }
@@ -302,29 +302,29 @@ namespace SdkLang.Langs
         #region Print
         public void PrintConstant(string fileName, SdkConstant c)
         {
-            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, $"#define CONST_{c.Name,-50} {c.Value}\n");
+            IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, $"#define CONST_{c.Name,-50} {c.Value}{Environment.NewLine}");
         }
         public void PrintEnum(string fileName, SdkEnum e)
         {
-            UftStringBuilder text = new UftStringBuilder($"// {e.FullName}\nenum class {e.Name} : uint8_t\n{{\n");
+            UftStringBuilder text = new UftStringBuilder($"// {e.FullName}{Environment.NewLine}enum class {e.Name} : uint8_t{Environment.NewLine}{{{Environment.NewLine}");
 
             for (int i = 0; i < e.Values.Count; i++)
-                text += $"\t{e.Values[i],-30} = {i},\n";
+                text += $"\t{e.Values[i],-30} = {i},{Environment.NewLine}";
 
-            text += $"\n}};\n\n";
+            text += $"{Environment.NewLine}}};{Environment.NewLine}{Environment.NewLine}";
 
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public void PrintStruct(string fileName, SdkScriptStruct ss)
         {
-            var text = new UftStringBuilder($"// {ss.FullName}\n// ");
+            var text = new UftStringBuilder($"// {ss.FullName}{Environment.NewLine}// ");
 
             if (ss.InheritedSize.ToInt32() > 0)
-                text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} (0x{ss.Size.ToInt64():X4} - 0x{ss.InheritedSize.ToInt64():X4})\n";
+                text += $"0x{(ss.Size.ToInt32() - ss.InheritedSize.ToInt32()):X4} (0x{ss.Size.ToInt64():X4} - 0x{ss.InheritedSize.ToInt64():X4}){Environment.NewLine}";
             else
-                text += $"0x{(long)ss.Size:X4}\n";
+                text += $"0x{(long)ss.Size:X4}{Environment.NewLine}";
 
-            text += $"{ss.NameCppFull}\n{{\n";
+            text += $"{ss.NameCppFull}{Environment.NewLine}{{{Environment.NewLine}";
 
             //Member
             foreach (var m in ss.Members)
@@ -333,37 +333,37 @@ namespace SdkLang.Langs
                     $"\t{(m.IsStatic ? "static " + m.Type : m.Type),-50} {m.Name + ";",-58} // 0x{(long)m.Offset:X4}(0x{(long)m.Size:X4})" +
                     (!string.IsNullOrEmpty(m.Comment) ? " " + m.Comment : "") +
                     (!string.IsNullOrEmpty(m.FlagsString) ? " (" + m.FlagsString + ")" : "") +
-                    "\n";
+                    "{Environment.NewLine}";
             }
-            text += "\n";
+            text += "{Environment.NewLine}";
 
             //Predefined Methods
             if (ss.PredefinedMethods.Count > 0)
             {
-                text += "\n";
+                text += "{Environment.NewLine}";
                 foreach (var m in ss.PredefinedMethods)
                 {
                     if (m.MethodType == Native.PredefinedMethod.Type.Inline)
                         text += m.Body;
                     else
                         text += $"\t{m.Signature};";
-                    text += "\n\n";
+                    text += "{Environment.NewLine}{Environment.NewLine}";
                 }
             }
-            text += "};\n";
+            text += "};{Environment.NewLine}";
 
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
         public void PrintClass(string fileName, SdkClass c)
         {
-            var text = new UftStringBuilder($"// {c.FullName}\n// ");
+            var text = new UftStringBuilder($"// {c.FullName}{Environment.NewLine}// ");
 
             if (c.InheritedSize.ToInt32() > 0)
-                text += $"0x{c.Size.ToInt32() - c.InheritedSize.ToInt32():X4} ({(long)c.Size:X4} - 0x{(long)c.InheritedSize:X4})\n";
+                text += $"0x{c.Size.ToInt32() - c.InheritedSize.ToInt32():X4} ({(long)c.Size:X4} - 0x{(long)c.InheritedSize:X4}){Environment.NewLine}";
             else
-                text += $"0x{(long)c.Size:X4}\n";
+                text += $"0x{(long)c.Size:X4}{Environment.NewLine}";
 
-            text += $"{c.NameCppFull}\n{{\npublic:\n";
+            text += $"{c.NameCppFull}{Environment.NewLine}{{{Environment.NewLine}public:{Environment.NewLine}";
 
             // Member
             foreach (var m in c.Members)
@@ -372,14 +372,14 @@ namespace SdkLang.Langs
                     $"\t{(m.IsStatic ? "static " + m.Type : m.Type),-50} {m.Name,-58}; // 0x{(long)m.Offset:X4}(0x{(long)m.Size:X4})" +
                     (!string.IsNullOrEmpty(m.Comment) ? " " + m.Comment : "") +
                     (!string.IsNullOrEmpty(m.FlagsString) ? " (" + m.FlagsString + ")" : "") +
-                    "\n";
+                    "{Environment.NewLine}";
             }
-            text += "\n";
+            text += "{Environment.NewLine}";
 
             // Predefined Methods
             if (c.PredefinedMethods.Count > 0)
             {
-                text += "\n";
+                text += "{Environment.NewLine}";
                 foreach (var m in c.PredefinedMethods)
                 {
                     if (m.MethodType == Native.PredefinedMethod.Type.Inline)
@@ -387,21 +387,21 @@ namespace SdkLang.Langs
                     else
                         text += $"\t{m.Signature};";
 
-                    text += "\n\n";
+                    text += "{Environment.NewLine}{Environment.NewLine}";
                 }
             }
 
             // Methods
             if (c.PredefinedMethods.Count > 0)
             {
-                text += "\n";
+                text += "{Environment.NewLine}";
                 foreach (var m in c.Methods)
                 {
-                    text += $"\t{BuildMethodSignature(m, new SdkClass(),  true)};\n";
+                    text += $"\t{BuildMethodSignature(m, new SdkClass(),  true)};{Environment.NewLine}";
                 }
             }
 
-            text += "};\n\n";
+            text += "};{Environment.NewLine}{Environment.NewLine}";
 
             IncludeFile<UftCpp>.AppendToSdk(Main.GenInfo.SdkPath, fileName, text);
         }
@@ -481,7 +481,7 @@ namespace SdkLang.Langs
                 foreach (var m in s.PredefinedMethods)
                 {
                     if (m.MethodType != Native.PredefinedMethod.Type.Inline)
-                        text += $"{m.Body}\n\n";
+                        text += $"{m.Body}{Environment.NewLine}{Environment.NewLine}";
                 }
             }
 
@@ -490,24 +490,24 @@ namespace SdkLang.Langs
                 foreach (var m in c.PredefinedMethods)
                 {
                     if (m.MethodType != Native.PredefinedMethod.Type.Inline)
-                        text += $"{m.Body}\n\n";
+                        text += $"{m.Body}{Environment.NewLine}{Environment.NewLine}";
                 }
 
                 foreach (var m in c.Methods)
                 {
                     //Method Info
-                    text += $"// {m.FullName}\n" + $"// ({m.FlagsString})\n";
+                    text += $"// {m.FullName}{Environment.NewLine}" + $"// ({m.FlagsString}){Environment.NewLine}";
 
                     if (m.Parameters.Count > 0)
                     {
-                        text += $"// Parameters:\n";
+                        text += $"// Parameters:{Environment.NewLine}";
                         foreach (var param in m.Parameters)
-                            text += $"// {param.CppType,-30} {param.Name,-30} ({param.FlagsString})\n";
+                            text += $"// {param.CppType,-30} {param.Name,-30} ({param.FlagsString}){Environment.NewLine}";
                     }
 
-                    text += "\n";
-                    text += BuildMethodSignature(m, c, false) + "\n";
-                    text += BuildMethodBody(c, m) + "\n\n";
+                    text += "{Environment.NewLine}";
+                    text += BuildMethodSignature(m, c, false) + "{Environment.NewLine}";
+                    text += BuildMethodBody(c, m) + "{Environment.NewLine}{Environment.NewLine}";
                 }
             }
 
@@ -533,12 +533,12 @@ namespace SdkLang.Langs
             {
                 foreach (var m in c.Methods)
                 {
-                    text += $"// {m.FullName}\n" +
-                            $"struct {c.NameCpp}_{m.Name}_Params\n{{\n";
+                    text += $"// {m.FullName}{Environment.NewLine}" +
+                            $"struct {c.NameCpp}_{m.Name}_Params{Environment.NewLine}{{{Environment.NewLine}";
 
                     foreach (var param in m.Parameters)
-                        text += $"\t{param.CppType,-50} {param.Name + ";",-58} // ({param.FlagsString})\n";
-                    text += "};\n\n";
+                        text += $"\t{param.CppType,-50} {param.Name + ";",-58} // ({param.FlagsString}){Environment.NewLine}";
+                    text += "};{Environment.NewLine}{Environment.NewLine}";
                 }
             }
 
@@ -554,15 +554,15 @@ namespace SdkLang.Langs
             new BasicCpp().Process(Main.IncludePath);
 
             var text = new UftStringBuilder();
-            text += $"// ------------------------------------------------\n";
-            text += $"// Sdk Generated By ( Unreal Finder Tool By CorrM )\n";
-            text += $"// ------------------------------------------------\n";
-            text += $"\n";
-            text += $"#pragma once\n\n";
-            text += $"// Name: {Main.GenInfo.GameName}, Version: {Main.GenInfo.GameVersion}\n\n";
-            text += "\n";
-            text += $"#include <set>\n";
-            text += $"#include <string>\n";
+            text += $"// ------------------------------------------------{Environment.NewLine}";
+            text += $"// Sdk Generated By ( Unreal Finder Tool By CorrM ){Environment.NewLine}";
+            text += $"// ------------------------------------------------{Environment.NewLine}";
+            text += $"{Environment.NewLine}";
+            text += $"#pragma once{Environment.NewLine}{Environment.NewLine}";
+            text += $"// Name: {Main.GenInfo.GameName}, Version: {Main.GenInfo.GameVersion}{Environment.NewLine}{Environment.NewLine}";
+            text += "{Environment.NewLine}";
+            text += $"#include <set>{Environment.NewLine}";
+            text += $"#include <string>{Environment.NewLine}";
 
             // Check for missing structs
             if (missing.Count > 0)
@@ -576,28 +576,28 @@ namespace SdkLang.Langs
                 {
                     IncludeFile<UftCpp>.AppendToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h", GetFileHeader(true));
 
-                    missingText += $"// {s.FullName}\n// ";
-                    missingText += $"0x{s.PropertySize.ToInt64():X4}\n";
+                    missingText += $"// {s.FullName}{Environment.NewLine}// ";
+                    missingText += $"0x{s.PropertySize.ToInt64():X4}{Environment.NewLine}";
 
-                    missingText += $"struct {MakeValidName(s.CppName)}\n{{\n";
-                    missingText += $"\tunsigned char UnknownData[0x{s.PropertySize.ToInt64():X}];\n}};\n\n";
+                    missingText += $"struct {MakeValidName(s.CppName)}{Environment.NewLine}{{{Environment.NewLine}";
+                    missingText += $"\tunsigned char UnknownData[0x{s.PropertySize.ToInt64():X}];{Environment.NewLine}}};{Environment.NewLine}{Environment.NewLine}";
                 }
 
                 missingText += GetFileFooter();
                 IncludeFile<UftCpp>.WriteToSdk(Path.GetDirectoryName(Main.GenInfo.SdkPath), "MISSING.h", missingText);
 
                 // Append To Sdk Header
-                text += "\n#include \"SDK/MISSING.h\"\n";
+                text += "{Environment.NewLine}#include \"SDK/MISSING.h\"{Environment.NewLine}";
             }
 
-            text += "\n";
+            text += "{Environment.NewLine}";
             foreach (var package in packages)
             {
-                text += $"#include \"SDK/{GenerateFileName(FileContentType.Structs, package.Name)}\"\n";
-                text += $"#include \"SDK/{GenerateFileName(FileContentType.Classes, package.Name)}\"\n";
+                text += $"#include \"SDK/{GenerateFileName(FileContentType.Structs, package.Name)}\"{Environment.NewLine}";
+                text += $"#include \"SDK/{GenerateFileName(FileContentType.Classes, package.Name)}\"{Environment.NewLine}";
 
                 if (Main.GenInfo.ShouldGenerateFunctionParametersFile)
-                    text += $"#include \"SDK/{GenerateFileName(FileContentType.FunctionParameters, package.Name)}\"\n";
+                    text += $"#include \"SDK/{GenerateFileName(FileContentType.FunctionParameters, package.Name)}\"{Environment.NewLine}";
             }
 
             // Write SDK.h
