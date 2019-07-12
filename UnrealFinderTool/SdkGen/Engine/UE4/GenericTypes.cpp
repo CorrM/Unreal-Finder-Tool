@@ -148,8 +148,8 @@ std::string UEObject::GetNameCpp() const
 UEClass UEObject::GetClass() const
 {
 	// Must have a class
-	/*if (INVALID_POINTER_VALUE(Object->Class))
-		return UEClass();*/
+	if (INVALID_POINTER_VALUE(Object->Class))
+		return UEClass();
 
 	return GetObjByAddress(Object->Class)->Cast<UEClass>();
 	// return UEClass(objClass);

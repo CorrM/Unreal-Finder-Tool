@@ -68,18 +68,12 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std
 		worker.WaitAll();
 	}
 
-	for (auto& obj : objsInPack)
+	for (UEObject* obj : objsInPack)
 	{
 		if (obj->IsA<UEEnum>())
 		{
 			GenerateEnum(obj->Cast<UEEnum>());
 		}
-		/* in UE4 there is no UEConst
-		else if (obj.IsA<UEConst>())
-		{
-			GenerateConst(obj.Cast<UEConst>());
-		}
-		*/
 		else if (obj->IsA<UEClass>())
 		{
 			GeneratePrerequisites(*obj, processedObjects);
@@ -88,7 +82,10 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std
 		{
 			GeneratePrerequisites(*obj, processedObjects);
 		}
-
+		else if (obj->IsA<UEConst>())
+		{
+			GenerateConst(obj->Cast<UEConst>());
+		}
 		Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 }
@@ -657,6 +654,7 @@ void Package::GenerateMethods(const UEClass& classObj, std::vector<Method>& meth
 	//some classes (AnimBlueprintGenerated...) have multiple members with the same name, so filter them out
 	std::unordered_set<std::string> uniqueMethods;
 
+	// prop can be UEObject, UEField, UEProperty
 	for (auto prop = classObj.GetChildren().Cast<UEField>(); prop.IsValid(); prop = prop.GetNext())
 	{
 		if (!prop.IsA<UEFunction>())

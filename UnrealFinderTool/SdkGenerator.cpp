@@ -94,7 +94,7 @@ SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 
 bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& langPath) const
 {
-	if (!Utils::Dnc->Load(Utils::GetWorkingDirectoryW() + L"\\" VER_BIT_STR "\\SdkLang.dll"))
+	if (!Utils::Dnc->Loaded() && !Utils::Dnc->Load(Utils::GetWorkingDirectoryW() + L"\\" VER_BIT_STR "\\SdkLang.dll"))
 	{
 		MessageBox(nullptr, "Can't Load `SdkLang.dll`.", "ERROR", MB_OK | MB_ICONERROR);
 		return false;
@@ -228,7 +228,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	 * First we must complete Core Package.
 	 * it's contains all important stuff, (like we need it in 'StaticClass' function)
 	 * so before go parallel we must get 'CoreUObject'
-	 * it's the first package always (packageObjects[0])
 	*/
 	{
 		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
@@ -254,7 +253,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		package->Process(processedObjects, tmp_lock);
 		if (package->Save())
 		{
-			packagesDone.emplace_back(std::string("(") + std::to_string(1) + ") " + package->GetName() + " [ " +
+			auto packName = package->GetName();
+			packagesDone.push_back("("s + std::to_string(1) + ") " + packName + " [ " +
 				"C: " + std::to_string(package->Classes.size()) + ", " +
 				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
 				"E: " + std::to_string(package->Enums.size()) + " ]"
@@ -274,7 +274,6 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
-	// Start From 1 because core package is already done
 	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 0, threadCount, [&](UEObject* obj, ParallelOptions& options)
 	{
 		auto package = std::make_unique<Package>(obj);
@@ -283,7 +282,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		std::lock_guard lock(Utils::MainMutex);
 		++*pPackagesDone;
 
-		packagesDone.emplace_back(std::string("(") + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
+		packagesDone.push_back("("s + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
 			"C: " + std::to_string(package->Classes.size()) + ", " +
 			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
 			"E: " + std::to_string(package->Enums.size()) + " ]"

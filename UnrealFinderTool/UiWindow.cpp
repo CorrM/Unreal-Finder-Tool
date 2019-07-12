@@ -263,7 +263,7 @@ void UiWindow::WinLoop()
 			RenderFrame();
 
 		// Ez to limit fps :3
-		Sleep(20);
+		Sleep(8);
 	}
 
 	ImGui_ImplDX11_Shutdown();
