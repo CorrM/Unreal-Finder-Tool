@@ -16,6 +16,45 @@ SdkGenerator::SdkGenerator(const uintptr_t gObjAddress, const uintptr_t gNamesAd
 {
 }
 
+void SdkGenerator::Dump(const fs::path& path, std::string& state) const
+{
+	if (Utils::Settings.SdkGen.DumpNames)
+	{
+		state = "Dumping Names.";
+
+		std::ofstream o(path / "NamesDump.txt");
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
+
+		const size_t vecSize = NamesStore::GetNamesNum();
+		for (size_t i = 0; i < vecSize; ++i)
+		{
+			std::string str = NamesStore::GetByIndex(i);
+			if (!str.empty())
+				tfm::format(o, "[%06i] %s\n", int(i), NamesStore::GetByIndex(i).c_str());
+			state = "Names [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
+		}
+	}
+
+	if (Utils::Settings.SdkGen.DumpObjects)
+	{
+		state = "Dumping Objects.";
+
+		std::ofstream o(path / "ObjectsDump.txt");
+		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
+
+		const size_t vecSize = ObjectsStore::GetObjectsNum();
+		for (size_t i = 0; i < vecSize; ++i)
+		{
+			if (ObjectsStore::GetByIndex(i)->IsValid())
+			{
+				const UEObject* obj = ObjectsStore::GetByIndex(i);
+				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
+			}
+			state = "Objects [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
+		}
+	}
+}
+
 SdkInfo SdkGenerator::Start(StartInfo& startInfo)
 {
 	// Check Address
@@ -134,123 +173,110 @@ bool SdkGenerator::InitSdkLang(const std::string& sdkPath, const std::string& la
 	return sdkLangInit(&genInfo);
 }
 
-void SdkGenerator::Dump(const fs::path& path, std::string& state) const
+std::vector<UEObject*> SdkGenerator::GetObjsInPack(UEObject* packageObj)
 {
-	if (Utils::Settings.SdkGen.DumpNames)
+	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
+
+	std::vector<UEObject*> objsInPack;
+	for (size_t i = 0; i < ObjectsStore::GObjObjects.size(); i++)
 	{
-		state = "Dumping Names.";
+		ObjectItem& curObj = ObjectsStore::GObjObjects[i];
 
-		std::ofstream o(path / "NamesDump.txt");
-		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", NamesStore::GetAddress());
+		UEObject* obj = curObj.second.get();
+		UEObject* package = obj->GetPackageObject();
 
-		const size_t vecSize = NamesStore::GetNamesNum();
-		for (size_t i = 0; i < vecSize; ++i)
-		{
-			std::string str = NamesStore::GetByIndex(i);
-			if (!str.empty())
-				tfm::format(o, "[%06i] %s\n", int(i), NamesStore::GetByIndex(i).c_str());
-			state = "Names [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
-		}
+		if (packageObj == package)
+			objsInPack.push_back(obj);
 	}
 
-	if (Utils::Settings.SdkGen.DumpObjects)
+	return objsInPack;
+}
+
+void SdkGenerator::CollectPackages(std::vector<PackageContainer>& packageObjects, std::string& state)
+{
+	int threadCount = Utils::Settings.SdkGen.Threads;
+	size_t index = 0;
+	ParallelSingleShot worker(1, [&](ParallelOptions& options)
 	{
-		state = "Dumping Objects.";
-
-		std::ofstream o(path / "ObjectsDump.txt");
-		tfm::format(o, "Address: 0x%" PRIXPTR "\n\n", ObjectsStore::GInfo.GObjAddress);
-
-		const size_t vecSize = ObjectsStore::GetObjectsNum();
-		for (size_t i = 0; i < vecSize; ++i)
+		const size_t vecSize = ObjectsStore::GObjObjects.size();
+		while (index < vecSize)
 		{
-			if (ObjectsStore::GetByIndex(i)->IsValid())
+			UEObject* curObj;
+			// Get current object
 			{
-				const UEObject* obj = ObjectsStore::GetByIndex(i);
-				tfm::format(o, "[%06i] %-100s 0x%" PRIXPTR "\n", obj->GetIndex(), obj->GetFullName(), obj->GetAddress());
+				std::lock_guard lock(options.Locker);
+				curObj = ObjectsStore::GObjObjects[index].second.get();
+				++index;
 			}
-			state = "Objects [ " + std::to_string(i) + " / " + std::to_string(vecSize) + " ].";
+
+			if (!curObj)
+				continue;
+
+			UEObject* package = curObj->GetPackageObject();
+			bool inVector = std::find_if(packageObjects.begin(), packageObjects.end(), 
+				[&](PackageContainer& packContainer) -> bool { return *packContainer.PackagePtr == *package; }) != packageObjects.end();
+
+			if (!inVector && package->IsValid())
+			{
+				auto objsInPack = GetObjsInPack(package);
+
+				std::lock_guard lock(options.Locker);
+				packageObjects.push_back({ package, objsInPack });
+				state = "Progress [ " + std::to_string(index) + " / " + std::to_string(vecSize) + " ].";
+			}
 		}
-	}
+	});
+	worker.Start();
+	worker.WaitAll();
+
+	// Sort vector
+	// std::sort(packageObjects.begin(), packageObjects.end());
+	// packageObjects.erase(std::unique(packageObjects.begin(), packageObjects.end()), packageObjects.end());
 }
 
 void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount, size_t* pPackagesDone, std::string& state, std::vector<std::string>& packagesDone)
 {
 	int threadCount = Utils::Settings.SdkGen.Threads;
-	const auto sdkPath = path / "SDK";
-	fs::create_directories(sdkPath);
-	
 	std::vector<std::unique_ptr<Package>> packages;
 	std::unordered_map<uintptr_t, bool> processedObjects;
+	std::vector<PackageContainer> packageObjects;
+	const auto sdkPath = path / "SDK";
+
+	fs::create_directories(sdkPath);
 
 	state = "Start Collecting Packages.";
-	std::vector<UEObject*> packageObjects;
-
-	// Collecting Packages
-	{
-		size_t index = 0;
-		ParallelSingleShot worker(threadCount, [&](ParallelOptions& options)
-		{
-			const size_t vecSize = ObjectsStore::GObjObjects.size();
-			while (index < vecSize)
-			{
-				UEObject* curObj;
-				// Get current object
-				{
-					std::lock_guard lock(options.Locker);
-					curObj = ObjectsStore::GObjObjects[index].second.get();
-					++index;
-				}
-
-				if (!curObj)
-					continue;
-
-				UEObject* package = curObj->GetPackageObject();
-				if (package->IsValid())
-				{
-					std::lock_guard lock(options.Locker);
-					packageObjects.push_back(package);
-					state = "Progress [ " + std::to_string(index) + " / " + std::to_string(vecSize) + " ].";
-				}
-			}
-		});
-		worker.Start();
-		worker.WaitAll();
-
-		// Make vector distinct
-		std::sort(packageObjects.begin(), packageObjects.end());
-		packageObjects.erase(std::unique(packageObjects.begin(), packageObjects.end()), packageObjects.end());
-	}
-
-	state = "Getting Packages Done.";
+	CollectPackages(packageObjects, state);
 	*pPackagesCount = packageObjects.size();
 
-	/*
-	 * First we must complete Core Package.
-	 * it's contains all important stuff, (like we need it in 'StaticClass' function)
-	 * so before go parallel we must get 'CoreUObject'
-	*/
+	// CoreUObject
 	{
+		/*
+		* First we must complete Core Package.
+		* It's contains all important stuff, (like we need it in 'StaticClass' function)
+		* So before go parallel we must get 'CoreUObject'
+		* Some times CoreUObject not the first Package
+		*/
+
 		state = "Dumping '" + Utils::Settings.SdkGen.CorePackageName + "'.";
 
-		// Get CoreUObject, Some times CoreUObject not the first Package
-		UEObject* coreUObject;
+		// Get CoreUObject
+		PackageContainer coreUObject;
 		size_t coreUObjectIndex = 0;
 		for (size_t i = 0; i < packageObjects.size(); ++i)
 		{
-			auto pack = packageObjects[i];
+			auto packContainer = packageObjects[i];
 
-			if(pack->GetName() == Utils::Settings.SdkGen.CorePackageName)
+			if(packContainer.PackagePtr->GetName() == Utils::Settings.SdkGen.CorePackageName)
 			{
-				coreUObject = pack;
+				coreUObject = packContainer;
 				coreUObjectIndex = i;
 				break;
 			}
 		}
 
 		// Process CoreUObject
-		auto package = std::make_unique<Package>(coreUObject);
-		std::mutex tmp_lock;
-		package->Process(processedObjects, tmp_lock);
+		auto package = std::make_unique<Package>(coreUObject.PackagePtr);
+		package->Process(processedObjects, coreUObject.ObjsInPackage);
 		if (package->Save())
 		{
 			auto packName = package->GetName();
@@ -260,7 +286,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 				"E: " + std::to_string(package->Enums.size()) + " ]"
 			);
 
-			Package::PackageMap[*coreUObject] = package.get();
+			Package::PackageMap[*coreUObject.PackagePtr] = package.get();
 			packages.emplace_back(std::move(package));
 		}
 
@@ -274,10 +300,11 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	++*pPackagesDone;
 	state = "Dumping with " + std::to_string(threadCount) + " Threads.";
 
-	ParallelQueue<std::vector<UEObject*>, UEObject*>packageProcess(packageObjects, 0, threadCount, [&](UEObject* obj, ParallelOptions& options)
+	ParallelQueue<std::vector<PackageContainer>, PackageContainer>
+	packageProcess(packageObjects, 0, threadCount, [&](PackageContainer& packObj, ParallelOptions& options)
 	{
-		auto package = std::make_unique<Package>(obj);
-		package->Process(processedObjects, Utils::MainMutex);
+		auto package = std::make_unique<Package>(packObj.PackagePtr);
+		package->Process(processedObjects, packObj.ObjsInPackage);
 		
 		std::lock_guard lock(Utils::MainMutex);
 		++*pPackagesDone;
@@ -290,7 +317,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 
 		if (package->Save())
 		{
-			Package::PackageMap[*obj] = package.get();
+			Package::PackageMap[*packObj.PackagePtr] = package.get();
 			packages.emplace_back(std::move(package));
 		}
 	});

@@ -105,7 +105,7 @@ public:
 	/// <summary>
 	/// Process the classes the package contains.
 	/// </summary>
-	void Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::mutex& packageLocker);
+	void Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::vector<UEObject*>& objsInPack);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.
