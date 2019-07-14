@@ -37,10 +37,8 @@ size_t UEObject::GetIndex() const
 
 std::string UEObject::GetName() const
 {
-	// Get Original Object, if not have a value update it
-	UEObject* obj = GetObjByAddress(GetAddress());
-	if (!obj->objName.empty())
-		return obj->objName;
+	if (!objName.empty())
+		return this->objName;
 
 	auto name = NamesStore::GetByIndex(Object->Name.ComparisonIndex);
 	if (!name.empty() && (Object->Name.Number > 0 && Object->Name.ComparisonIndex != Object->Name.Number))
@@ -49,17 +47,11 @@ std::string UEObject::GetName() const
 	const auto pos = name.rfind('/');
 	if (pos == std::string::npos)
 	{
-		// Update original and local
-		obj->objName = name;
-		this->objName = obj->objName;
-
+		this->objName = name;
 		return name;
 	}
 
-	// Update original and local
-	obj->objName = name.substr(pos + 1);
-	this->objName = obj->objName;
-
+	this->objName = name.substr(pos + 1);
 	return objName;
 }
 

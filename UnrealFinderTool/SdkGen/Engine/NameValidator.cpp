@@ -59,7 +59,7 @@ template<typename T>
 std::string MakeUniqueCppNameImpl(const T& t)
 {
 	std::string name;
-	if (ObjectsStore().CountObjects<T>(t.GetName()) > 1)
+	if (ObjectsStore::CountObjects<T>(t.GetName()) > 1)
 	{
 		name += MakeValidName(t.GetOuter()->GetName()) + "_";
 	}
