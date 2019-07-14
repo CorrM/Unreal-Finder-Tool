@@ -86,7 +86,7 @@ std::string MakeUniqueCppName(const UEStruct& ss)
 	std::string name;
 	if (ss.IsValid())
 	{
-		if (ObjectsStore().CountObjects<UEStruct>(ss.GetName()) > 1)
+		if (ObjectsStore::CountObjects<UEStruct>(ss.GetName()) > 1)
 		{
 			name += MakeValidName(ss.GetOuter()->GetNameCpp()) + "_";
 		}

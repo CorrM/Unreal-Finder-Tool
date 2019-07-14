@@ -41,9 +41,37 @@ Package::Package(UEObject* packageObj)
 {
 }
 
-void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::vector<UEObject*>& objsInPack)
+std::vector<UEObject*> Package::GetObjsInPack(UEObject* packageObj)
+{
+	static int threadCount = Utils::Settings.SdkGen.Threads;
+	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
+	std::vector<UEObject*> objsInPack;
+
+	// Wait to get package object's, just to use 6 threads
+	std::lock_guard lock(Utils::MainMutex);
+
+	ParallelQueue<GObjectContainer<UEObject>, ObjectItem>
+	worker(ObjectsStore::GObjObjects, 0, threadCount, [&](ObjectItem& curObj, ParallelOptions& options)
+	{
+		UEObject* obj = curObj.second.get();
+		UEObject* package = obj->GetPackageObject();
+
+		if (packageObj == package)
+		{
+			std::lock_guard push_lock(options.Locker);
+			objsInPack.push_back(obj);
+		}
+	});
+	worker.Start();
+	worker.WaitAll();
+
+	return objsInPack;
+}
+
+void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects)
 {
 	static int process_sleep_counter = 0;
+	auto objsInPack = GetObjsInPack(packageObj);
 
 	for (UEObject* obj : objsInPack)
 	{

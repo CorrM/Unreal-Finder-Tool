@@ -21,6 +21,9 @@ struct ParallelOptions
 	std::mutex Locker;
 };
 
+/*
+ * DON't USE THIS CLASS
+ */
 template <typename IndexType, typename ItemType>
 class ParallelWorker
 {

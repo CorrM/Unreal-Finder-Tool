@@ -34,12 +34,6 @@ struct StartInfo
 	std::string* State	= nullptr;
 };
 
-struct PackageContainer
-{
-	UEObject* PackagePtr;
-	std::vector<UEObject*> ObjsInPackage;
-};
-
 class SdkGenerator
 {
 	uintptr_t gObjAddress, gNamesAddress;
@@ -55,8 +49,7 @@ private:
 	/// <param name="state"></param>
 	void Dump(const fs::path& path, std::string& state) const;
 
-	static std::vector<UEObject*> GetObjsInPack(UEObject* packageObj);
-	void CollectPackages(std::vector<PackageContainer>& packageObjects, std::string& state);
+	void CollectPackages(std::vector<UEObject*>& packageObjects, std::string& state);
 
 	/// <summary>
 	/// Process the packages.

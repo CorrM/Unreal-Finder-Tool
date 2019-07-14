@@ -1449,12 +1449,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	Utils::UiMainWindow = new UiWindow("Unreal Finder Tool. Version: " TOOL_VERSION " - " TOOL_VERSION_TITLE, "CorrMFinder", 1050, 530);
 	Utils::UiMainWindow->Show(MainUi);
 
-// If this is called before the window is created: kaboom!
 #if defined(MIDI_h) && !defined(_DEBUG)
 	// Auto play MIDI
 	MidiPlayer = new CMIDI();
 	MidiPlayer->Create(const_cast<LPBYTE>(midi_track1), sizeof midi_track1);
-	MidiPlayer->Play();
 #endif // MIDI_h
 
 #ifndef _DEBUG

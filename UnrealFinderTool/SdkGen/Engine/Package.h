@@ -100,12 +100,14 @@ public:
 	/// <param name="packageObj">The package object.</param>
 	explicit Package(UEObject* packageObj);
 
+	static std::vector<UEObject*> GetObjsInPack(UEObject* packageObj);
+
 	std::string GetName() const { return packageObj->GetName(); }
 
 	/// <summary>
 	/// Process the classes the package contains.
 	/// </summary>
-	void Process(std::unordered_map<uintptr_t, bool>& processedObjects, std::vector<UEObject*>& objsInPack);
+	void Process(std::unordered_map<uintptr_t, bool>& processedObjects);
 
 	/// <summary>
 	/// Saves the package classes as C++ code.

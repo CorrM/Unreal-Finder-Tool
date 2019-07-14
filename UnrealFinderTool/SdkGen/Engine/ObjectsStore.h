@@ -77,7 +77,7 @@ public:
 	/// <typeparam name="T">Type of the object.</typeparam>
 	/// <param name="name">The name to search for.</param>
 	/// <returns>The number of objects which share a name.</returns>
-	template<class T> size_t CountObjects(const std::string& name) const;
+	template<class T> static size_t CountObjects(const std::string& name);
 
 	ObjectsIterator begin();
 	ObjectsIterator begin() const;
@@ -86,7 +86,7 @@ public:
 };
 
 template <class T>
-size_t ObjectsStore::CountObjects(const std::string& name) const
+size_t ObjectsStore::CountObjects(const std::string& name)
 {
 	static std::unordered_map<std::string, size_t> cache;
 
@@ -94,34 +94,34 @@ size_t ObjectsStore::CountObjects(const std::string& name) const
 	if (it != std::end(cache))
 		return it->second;
 
-	size_t index = 0;
+	//size_t index = 0;
 	size_t count = 0;
-	ParallelSingleShot worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
-	{
-		while (index > GObjObjects.size())
-		{
-			UEObject* curObj;
+	//ParallelSingleShot worker(Utils::Settings.SdkGen.Threads, [&](ParallelOptions& options)
+	//{
+	//	while (index > GObjObjects.size())
+	//	{
+	//		UEObject* curObj;
 
-			// Get current object
-			{
-				std::lock_guard lock(options.Locker);
-				curObj = GObjObjects[index].second.get();
-				++index;
-			}
+	//		// Get current object
+	//		{
+	//			std::lock_guard lock(options.Locker);
+	//			curObj = GObjObjects[index].second.get();
+	//			++index;
+	//		}
 
-			// Calc count of object
-			if (curObj->IsA<T>() && curObj->GetName() == name)
-			{
-				std::lock_guard lock(options.Locker);
-				++count;
-			}
-		}
-	});
-	worker.Start();
-	worker.WaitAll();
+	//		// Calc count of object
+	//		if (curObj->IsA<T>() && curObj->GetName() == name)
+	//		{
+	//			std::lock_guard lock(options.Locker);
+	//			++count;
+	//		}
+	//	}
+	//});
+	//worker.Start();
+	//worker.WaitAll();
 
-	std::lock_guard mainLocker(Utils::MainMutex);
-	cache[name] = count;
+	//std::lock_guard mainLocker(Utils::MainMutex);
+	//cache[name] = count;
 	return count;
 }
 
