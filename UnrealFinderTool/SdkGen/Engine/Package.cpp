@@ -148,7 +148,7 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<uint
 	}
 
 	{
-		std::lock_guard mainLocker(Utils::MainMutex);
+		//std::lock_guard mainLocker(Utils::MainMutex);
 		processedObjects[obj.GetAddress()] |= false;
 	}
 

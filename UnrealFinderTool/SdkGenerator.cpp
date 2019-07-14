@@ -284,18 +284,21 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 	{
 		auto package = std::make_unique<Package>(packObj);
 		package->Process(processedObjects);
-		
-		std::lock_guard lock(Utils::MainMutex);
-		++*pPackagesDone;
 
-		packagesDone.push_back("("s + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
-			"C: " + std::to_string(package->Classes.size()) + ", " +
-			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-			"E: " + std::to_string(package->Enums.size()) + " ]"
-		);
+		{
+			std::lock_guard lock(options.Locker);
+			++*pPackagesDone;
+
+			packagesDone.push_back("("s + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
+				"C: " + std::to_string(package->Classes.size()) + ", " +
+				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+				"E: " + std::to_string(package->Enums.size()) + " ]"
+			);
+		}
 
 		if (package->Save())
 		{
+			std::lock_guard lock(options.Locker);
 			Package::PackageMap[*packObj] = package.get();
 			packages.emplace_back(std::move(package));
 		}
@@ -308,13 +311,13 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		// std::sort doesn't work, so use a simple bubble sort
 		//std::sort(std::begin(packages), std::end(packages), PackageDependencyComparer());
 		const PackageDependencyComparer comparer;
-		for (auto i = 0u; i < packages.size() - 1; ++i)
+		for (size_t i = 0u; i < packages.size() - 1; ++i)
 		{
-			for (auto j = 0u; j < packages.size() - i - 1; ++j)
+			for (size_t j = 0; j < packages.size() - i - 1; ++j)
 			{
-				if (!comparer(packages[j], packages[j + 1]))
+				if (!comparer(packages[j], packages[j + size_t(1)]))
 				{
-					std::swap(packages[j], packages[j + 1]);
+					std::swap(packages[j], packages[j + size_t(1)]);
 				}
 			}
 		}
