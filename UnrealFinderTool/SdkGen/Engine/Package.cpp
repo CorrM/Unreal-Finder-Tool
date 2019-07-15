@@ -41,14 +41,12 @@ Package::Package(UEObject* packageObj)
 {
 }
 
-std::vector<UEObject*> Package::GetObjsInPack(UEObject* packageObj)
+void Package::GetObjsInPack(UEObject* packageObj, std::vector<UEObject*>& out)
 {
-	static int threadCount = Utils::Settings.SdkGen.Threads;
 	using ObjectItem = std::pair<uintptr_t, std::unique_ptr<UEObject>>;
-	std::vector<UEObject*> objsInPack;
 
-	// Wait to get package object's, just to use 6 threads
-	std::lock_guard lock(Utils::MainMutex);
+	static int threadCount = Utils::Settings.SdkGen.Threads;
+	std::lock_guard lock(Utils::MainMutex); // Wait to get package object's, just to use 6 threads
 
 	ParallelQueue<GObjectContainer<UEObject>, ObjectItem>
 	worker(ObjectsStore::GObjObjects, 0, threadCount, [&](ObjectItem& curObj, ParallelOptions& options)
@@ -59,19 +57,18 @@ std::vector<UEObject*> Package::GetObjsInPack(UEObject* packageObj)
 		if (packageObj == package)
 		{
 			std::lock_guard push_lock(options.Locker);
-			objsInPack.push_back(obj);
+			out.push_back(obj);
 		}
 	});
 	worker.Start();
 	worker.WaitAll();
-
-	return objsInPack;
 }
 
 void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects)
 {
 	static int process_sleep_counter = 0;
-	auto objsInPack = GetObjsInPack(packageObj);
+	std::vector<UEObject*> objsInPack;
+	GetObjsInPack(packageObj, objsInPack);
 
 	for (UEObject* obj : objsInPack)
 	{
@@ -114,9 +111,7 @@ bool Package::Save() const
 	}
 
 	if (Utils::Settings.SdkGen.LoggerShowSkip)
-	{
 		Logger::Log("Skip Empty:    %s", packageObj->GetFullName());
-	}
 	
 	return false;
 }

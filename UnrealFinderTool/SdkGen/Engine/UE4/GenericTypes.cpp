@@ -30,6 +30,7 @@ bool UEObject::IsValid() const
 	return Object->ObjAddress != NULL && Object->VfTable != NULL && (Object->Name.ComparisonIndex > 0 && size_t(Object->Name.ComparisonIndex) <= NamesStore::GetNamesNum());
 }
 
+// Don't USE IT
 size_t UEObject::GetIndex() const
 {
 	return Object->InternalIndex;
@@ -57,7 +58,8 @@ std::string UEObject::GetName() const
 
 std::string UEObject::GetInstanceClassName() const
 {
-	if (!IsValid()) return "";
+	if (!IsValid())
+		return "";
 
 	bool find;
 	UEObject* obj = ObjectsStore::GetByAddress(GetAddress(), find);
@@ -67,10 +69,8 @@ std::string UEObject::GetInstanceClassName() const
 
 std::string UEObject::GetFullName() const
 {
-	// Get Original Object, if not have a value update it
-	UEObject* obj = GetObjByAddress(GetAddress());
-	if (!obj->fullName.empty())
-		return obj->fullName;
+	if (!fullName.empty())
+		return fullName;
 
 	const auto cClass = GetClass();
 	if (cClass.IsValid())
@@ -80,27 +80,21 @@ std::string UEObject::GetFullName() const
 		for (auto outer = GetOuter(); outer->IsValid(); outer = outer->GetOuter())
 			temp.insert(0, outer->GetName() + ".");
 
-		std::string name = cClass.GetName();
-		name += " ";
-		name += temp;
-		name += GetName();
-
-		// Update original and local
-		obj->fullName = name;
-		this->fullName = name;
+		this->fullName = cClass.GetName() +
+			" " +
+			temp +
+			GetName();
 
 		return fullName;
 	}
 
-	return std::string("(null)");
+	return "(null)"s;
 }
 
 std::string UEObject::GetNameCpp() const
 {
-	// Get Original Object, if not have a value update it
-	UEObject* obj = GetObjByAddress(GetAddress());
-	if (!obj->nameCpp.empty())
-		return obj->nameCpp;
+	if (!nameCpp.empty())
+		return nameCpp;
 
 	std::string name;
 	if (IsA<UEClass>())
@@ -130,10 +124,7 @@ std::string UEObject::GetNameCpp() const
 
 	name += GetName();
 
-	// Update original and local
-	obj->nameCpp = name;
 	this->nameCpp = name;
-
 	return name;
 }
 
@@ -160,9 +151,9 @@ UEObject* UEObject::GetOuter() const
 
 UEObject* UEObject::GetPackageObject() const
 {
-	// Package Is The Last Outer
 	if (!package)
 	{
+		// Package Is The Last Outer
 		for (UEObject* outer = GetOuter(); outer->IsValid(); outer = outer->GetOuter())
 			package = outer;
 
@@ -175,7 +166,7 @@ UEObject* UEObject::GetPackageObject() const
 
 size_t UEObject::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UObject");
+	static size_t ret = NamesStore::GetByName("UObject");
 	return ret;
 }
 
@@ -206,7 +197,7 @@ UEField UEField::GetNext() const
 
 size_t UEField::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UField");
+	static size_t ret = NamesStore::GetByName("UField");
 	return ret;
 }
 
@@ -250,7 +241,7 @@ std::vector<std::string> UEEnum::GetNames() const
 
 size_t UEEnum::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Enum");
+	static size_t ret = NamesStore::GetByName("Enum");
 	return ret;
 }
 
@@ -269,7 +260,7 @@ std::string UEConst::GetValue() const
 
 size_t UEConst::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UConst");
+	static size_t ret = NamesStore::GetByName("UConst");
 	return ret;
 }
 
@@ -315,7 +306,7 @@ size_t UEStruct::GetPropertySize() const
 
 size_t UEStruct::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Struct");
+	static size_t ret = NamesStore::GetByName("Struct");
 	return ret;
 }
 
@@ -329,7 +320,7 @@ UEClass UEStruct::StaticClass()
 #pragma region UEScriptStruct
 size_t UEScriptStruct::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ScriptStruct");
+	static size_t ret = NamesStore::GetByName("ScriptStruct");
 	return ret;
 }
 
@@ -351,7 +342,7 @@ UEFunctionFlags UEFunction::GetFunctionFlags() const
 
 size_t UEFunction::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Function");
+	static size_t ret = NamesStore::GetByName("Function");
 	return ret;
 }
 
@@ -365,7 +356,7 @@ UEClass UEFunction::StaticClass()
 #pragma region UEClass
 size_t UEClass::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Class");
+	static size_t ret = NamesStore::GetByName("Class");
 	return ret;
 }
 
@@ -561,7 +552,7 @@ UEProperty::Info UEProperty::GetInfo() const
 
 size_t UEProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Property");
+	static size_t ret = NamesStore::GetByName("Property");
 	return ret;
 }
 
@@ -575,7 +566,7 @@ UEClass UEProperty::StaticClass()
 #pragma region UENumericProperty
 size_t UENumericProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("NumericProperty");
+	static size_t ret = NamesStore::GetByName("NumericProperty");
 	return ret;
 }
 
@@ -594,7 +585,7 @@ UEProperty::Info UEUInt16Property::GetInfo()
 
 size_t UEUInt16Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UInt16Property");
+	static size_t ret = NamesStore::GetByName("UInt16Property");
 	return ret;
 }
 
@@ -613,7 +604,7 @@ UEProperty::Info UEUInt32Property::GetInfo()
 
 size_t UEUInt32Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UInt32Property");
+	static size_t ret = NamesStore::GetByName("UInt32Property");
 	return ret;
 }
 
@@ -632,7 +623,7 @@ UEProperty::Info UEUInt64Property::GetInfo()
 
 size_t UEUInt64Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("UInt64Property");
+	static size_t ret = NamesStore::GetByName("UInt64Property");
 	return ret;
 }
 
@@ -651,7 +642,7 @@ UEProperty::Info UEInt8Property::GetInfo()
 
 size_t UEInt8Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Int8Property");
+	static size_t ret = NamesStore::GetByName("Int8Property");
 	return ret;
 }
 
@@ -670,7 +661,7 @@ UEProperty::Info UEInt16Property::GetInfo()
 
 size_t UEInt16Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Int16Property");
+	static size_t ret = NamesStore::GetByName("Int16Property");
 	return ret;
 }
 
@@ -689,7 +680,7 @@ UEProperty::Info UEIntProperty::GetInfo()
 
 size_t UEIntProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("IntProperty");
+	static size_t ret = NamesStore::GetByName("IntProperty");
 	return ret;
 }
 
@@ -708,7 +699,7 @@ UEProperty::Info UEInt64Property::GetInfo()
 
 size_t UEInt64Property::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("Int64Property");
+	static size_t ret = NamesStore::GetByName("Int64Property");
 	return ret;
 }
 
@@ -727,7 +718,7 @@ UEProperty::Info UEFloatProperty::GetInfo()
 
 size_t UEFloatProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("FloatProperty");
+	static size_t ret = NamesStore::GetByName("FloatProperty");
 	return ret;
 }
 
@@ -746,7 +737,7 @@ UEProperty::Info UEDoubleProperty::GetInfo()
 
 size_t UEDoubleProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("DoubleProperty");
+	static size_t ret = NamesStore::GetByName("DoubleProperty");
 	return ret;
 }
 
@@ -772,7 +763,7 @@ UEClass UEObjectPropertyBase::GetPropertyClass() const
 
 size_t UEObjectPropertyBase::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ObjectPropertyBase");
+	static size_t ret = NamesStore::GetByName("ObjectPropertyBase");
 	return ret;
 }
 
@@ -795,7 +786,7 @@ UEProperty::Info UEObjectProperty::GetInfo() const
 
 size_t UEObjectProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ObjectProperty");
+	static size_t ret = NamesStore::GetByName("ObjectProperty");
 	return ret;
 }
 
@@ -826,7 +817,7 @@ UEProperty::Info UEClassProperty::GetInfo() const
 
 size_t UEClassProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ClassProperty");
+	static size_t ret = NamesStore::GetByName("ClassProperty");
 	return ret;
 }
 
@@ -857,7 +848,7 @@ UEProperty::Info UEInterfaceProperty::GetInfo() const
 
 size_t UEInterfaceProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("InterfaceProperty");
+	static size_t ret = NamesStore::GetByName("InterfaceProperty");
 	return ret;
 }
 
@@ -876,7 +867,7 @@ UEProperty::Info UEWeakObjectProperty::GetInfo() const
 
 size_t UEWeakObjectProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("WeakObjectProperty");
+	static size_t ret = NamesStore::GetByName("WeakObjectProperty");
 	return ret;
 }
 
@@ -895,7 +886,7 @@ UEProperty::Info UELazyObjectProperty::GetInfo() const
 
 size_t UELazyObjectProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("LazyObjectProperty");
+	static size_t ret = NamesStore::GetByName("LazyObjectProperty");
 	return ret;
 }
 
@@ -914,7 +905,7 @@ UEProperty::Info UEAssetObjectProperty::GetInfo() const
 
 size_t UEAssetObjectProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("AssetObjectProperty");
+	static size_t ret = NamesStore::GetByName("AssetObjectProperty");
 	return ret;
 }
 
@@ -945,7 +936,7 @@ UEProperty::Info UEAssetClassProperty::GetInfo()
 
 size_t UEAssetClassProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("AssetClassProperty");
+	static size_t ret = NamesStore::GetByName("AssetClassProperty");
 	return ret;
 }
 
@@ -964,7 +955,7 @@ UEProperty::Info UENameProperty::GetInfo()
 
 size_t UENameProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("NameProperty");
+	static size_t ret = NamesStore::GetByName("NameProperty");
 	return ret;
 }
 
@@ -995,7 +986,7 @@ UEProperty::Info UEStructProperty::GetInfo() const
 
 size_t UEStructProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("StructProperty");
+	static size_t ret = NamesStore::GetByName("StructProperty");
 	return ret;
 }
 
@@ -1014,7 +1005,7 @@ UEProperty::Info UEStrProperty::GetInfo()
 
 size_t UEStrProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("StrProperty");
+	static size_t ret = NamesStore::GetByName("StrProperty");
 	return ret;
 }
 
@@ -1033,7 +1024,7 @@ UEProperty::Info UETextProperty::GetInfo()
 
 size_t UETextProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("TextProperty");
+	static size_t ret = NamesStore::GetByName("TextProperty");
 	return ret;
 }
 
@@ -1070,7 +1061,7 @@ UEProperty::Info UEArrayProperty::GetInfo() const
 
 size_t UEArrayProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ArrayProperty");
+	static size_t ret = NamesStore::GetByName("ArrayProperty");
 	return ret;
 }
 
@@ -1120,7 +1111,7 @@ UEProperty::Info UEMapProperty::GetInfo() const
 
 size_t UEMapProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("MapProperty");
+	static size_t ret = NamesStore::GetByName("MapProperty");
 	return ret;
 }
 
@@ -1151,7 +1142,7 @@ UEProperty::Info UEDelegateProperty::GetInfo()
 
 size_t UEDelegateProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("DelegateProperty");
+	static size_t ret = NamesStore::GetByName("DelegateProperty");
 	return ret;
 }
 
@@ -1182,7 +1173,7 @@ UEProperty::Info UEMulticastDelegateProperty::GetInfo()
 
 size_t UEMulticastDelegateProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("MulticastDelegateProperty");
+	static size_t ret = NamesStore::GetByName("MulticastDelegateProperty");
 	return ret;
 }
 
@@ -1225,7 +1216,7 @@ UEProperty::Info UEEnumProperty::GetInfo() const
 
 size_t UEEnumProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("EnumProperty");
+	static size_t ret = NamesStore::GetByName("EnumProperty");
 	return ret;
 }
 
@@ -1265,7 +1256,7 @@ UEProperty::Info UEByteProperty::GetInfo() const
 
 size_t UEByteProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("ByteProperty");
+	static size_t ret = NamesStore::GetByName("ByteProperty");
 	return ret;
 }
 
@@ -1357,7 +1348,7 @@ UEProperty::Info UEBoolProperty::GetInfo() const
 
 size_t UEBoolProperty::TypeId()
 {
-	static size_t ret = NamesStore().GetByName("BoolProperty");
+	static size_t ret = NamesStore::GetByName("BoolProperty");
 	return ret;
 }
 

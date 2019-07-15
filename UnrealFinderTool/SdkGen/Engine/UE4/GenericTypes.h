@@ -641,7 +641,7 @@ bool UEObject::IsA() const
 	size_t cmpTypeId = T::TypeId();
 	for (UEClass super = GetClass(); super.IsValid(); super = super.GetSuper().Cast<UEClass>())
 	{
-		if (super.Object->Name.ComparisonIndex == static_cast<int>(cmpTypeId))
+		if (super.Object->Name.ComparisonIndex == int(cmpTypeId))
 			return true;
 	}
 	return false;

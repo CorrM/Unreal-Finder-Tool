@@ -55,7 +55,7 @@ public:
 	/// </summary>
 	/// <param name="name">Name of object.</param>
 	/// <returns>Id of name.</returns>
-	size_t GetByName(const std::string& name);
+	static size_t GetByName(const std::string& name);
 };
 
 class NamesIterator : public std::iterator<std::forward_iterator_tag, FNameEntity>

@@ -100,7 +100,10 @@ public:
 	/// <param name="packageObj">The package object.</param>
 	explicit Package(UEObject* packageObj);
 
-	static std::vector<UEObject*> GetObjsInPack(UEObject* packageObj);
+	/// <summary>
+	/// Get all objects in this package
+	/// </summary>
+	static void GetObjsInPack(UEObject* packageObj, std::vector<UEObject*>& out);
 
 	std::string GetName() const { return packageObj->GetName(); }
 

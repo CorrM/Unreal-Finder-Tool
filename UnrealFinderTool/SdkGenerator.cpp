@@ -256,15 +256,15 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		// Process CoreUObject
 		auto package = std::make_unique<Package>(coreUObject);
 		package->Process(processedObjects);
+
+		packagesDone.push_back("("s + std::to_string(1) + ") " + package->GetName() + " [ " +
+			"C: " + std::to_string(package->Classes.size()) + ", " +
+			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+			"E: " + std::to_string(package->Enums.size()) + " ]"
+		);
+
 		if (package->Save())
 		{
-			auto packName = package->GetName();
-			packagesDone.push_back("("s + std::to_string(1) + ") " + packName + " [ " +
-				"C: " + std::to_string(package->Classes.size()) + ", " +
-				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-				"E: " + std::to_string(package->Enums.size()) + " ]"
-			);
-
 			Package::PackageMap[*coreUObject] = package.get();
 			packages.emplace_back(std::move(package));
 		}
@@ -285,15 +285,15 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 		auto package = std::make_unique<Package>(packObj);
 		package->Process(processedObjects);
 
+		std::string packStr = "("s + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
+			"C: " + std::to_string(package->Classes.size()) + ", " +
+			"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
+			"E: " + std::to_string(package->Enums.size()) + " ]";
+
 		{
 			std::lock_guard lock(options.Locker);
 			++*pPackagesDone;
-
-			packagesDone.push_back("("s + std::to_string(*pPackagesDone) + ") " + package->GetName() + " [ " +
-				"C: " + std::to_string(package->Classes.size()) + ", " +
-				"S: " + std::to_string(package->ScriptStructs.size()) + ", " +
-				"E: " + std::to_string(package->Enums.size()) + " ]"
-			);
+			packagesDone.push_back(packStr);
 		}
 
 		if (package->Save())
