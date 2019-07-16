@@ -328,7 +328,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, size_t* pPackagesCount,
 
 void SdkGenerator::SdkAfterFinish(const std::unordered_map<uintptr_t, bool>& processedObjects, const std::vector<std::unique_ptr<Package>>& packages) const
 {
-	const auto uftLangSdkAfterFinish = Utils::Dnc->GetFunction<void(_cdecl*)(StructArray<NativePackage>, StructArray<NativeUStruct>)>("UftLangSdkAfterFinish");
+	static auto uftLangSdkAfterFinish = Utils::Dnc->GetFunction<void(_cdecl*)(StructArray<NativePackage>, StructArray<NativeUStruct>)>("UftLangSdkAfterFinish");
 	if (!uftLangSdkAfterFinish)
 	{
 		MessageBox(nullptr, "Can't Load Func `UftLangSdkAfterFinish`", "ERROR", MB_OK | MB_ICONERROR);

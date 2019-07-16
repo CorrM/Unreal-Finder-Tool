@@ -52,9 +52,8 @@ void Package::GetObjsInPack(UEObject* packageObj, std::vector<UEObject*>& out)
 	worker(ObjectsStore::GObjObjects, 0, threadCount, [&](ObjectItem& curObj, ParallelOptions& options)
 	{
 		UEObject* obj = curObj.second.get();
-		UEObject* package = obj->GetPackageObject();
 
-		if (packageObj == package)
+		if (packageObj == obj->GetPackageObject())
 		{
 			std::lock_guard push_lock(options.Locker);
 			out.push_back(obj);
@@ -88,7 +87,7 @@ void Package::Process(std::unordered_map<uintptr_t, bool>& processedObjects)
 		{
 			GenerateConst(obj->Cast<UEConst>());
 		}
-		Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
+		//Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 	}
 }
 
