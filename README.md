@@ -9,7 +9,6 @@ Website | Link
 ------- | ----
 PayPal  | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
 patron  | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
-ko-fi   | [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O4O0YIDU)
 
 ## Features
 | Feature           | Description |
