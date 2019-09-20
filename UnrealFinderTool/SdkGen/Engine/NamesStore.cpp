@@ -27,7 +27,7 @@ bool NamesStore::ReadGNameArray(const uintptr_t address)
 
 	// Get GNames Chunks
 	std::vector<uintptr_t> gChunks;
-	for (int i = 0; i < 15; ++i)
+	for (int i = 0; i < 30; ++i)
 	{
 		uintptr_t addr;
 		const int offset = ptrSize * i;

@@ -1,0 +1,55 @@
+{
+    "engine version": "4.22.3",
+    "structs": [
+        {
+            "name": "UStruct",
+            "super": "UField",
+            "vars": [
+                {"Pad0": "int64"},
+                {"Pad1": "int64"},
+              { "SuperField": "UStruct*" },
+              { "Children": "UField*" },
+              { "PropertySize": "int" },
+              { "MinAlignment": "int" },
+              { "pad_1": "64" }
+            ],
+            "note": ""
+          },
+          {
+            "name": "UFunction",
+            "super": "UStruct",
+            "vars": [
+              { "FunctionFlags": "int32" },
+              { "NumParms": "int16" },
+              { "ParmsSize": "int8" },
+              { "pad_1": "int8" },
+              { "iNative": "uint16" },
+              { "pad_2": "30" },
+              { "Func": "*" }
+            ],
+            "note": ""
+          },
+          {
+            "name": "UClass",
+            "super": "UStruct",
+            "vars": [
+              { "pad_1": "416‬" }
+            ],
+            "note": ""
+          },
+          {
+            "name": "UProperty",
+            "super": "UField",
+            "vars": [
+              { "ArrayDim": "int" },
+              { "ElementSize": "int" },
+              { "PropertyFlags": "FQWord" },
+              { "unknown": "int" },
+              { "Offset": "int" },
+              { "FirstChild": "UProperty" },
+              { "NextChild": "UField" }
+            ],
+            "note": "no PropertySize"
+          }
+    ]
+  }
