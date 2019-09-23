@@ -1,0 +1,37 @@
+{
+  "engine version": "4.22.1",
+  "structs": [
+    {
+      "name": "UStruct",
+      "super": "UField",
+      "vars": [
+        { "pad_0": "16"},
+        { "SuperField": "UStruct*" },
+        { "Children": "UField*" },
+        { "PropertySize": "int" },
+        { "MinAlignment": "int" },
+        { "pad_1": "64" }
+      ],
+      "note": ""
+    },
+    {
+      "name": "UClass",
+      "super": "UStruct",
+      "vars": [
+        { "pad_1": "512" }
+      ],
+      "note": ""
+    },
+    {
+      "name": "UScriptStruct",
+      "super": "UStruct",
+      "vars": [
+        { "StructFlags": "int32" },
+        { "PrepareCppStructOpsCompleted": "bool" },
+        { "CppStructOps": "ICppStructOps*" },
+        { "pad_0": "3"}
+      ],
+      "note": ""
+    }
+  ]
+}
