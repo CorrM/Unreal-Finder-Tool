@@ -1,3 +1,8 @@
+## Deprecated
+
+this version is deprecated use version 4 for more fixes and featuer
+[Unreal Finder Tool V4](https://github.com/CorrM/uft)
+
 # Unreal Finder Tool
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 
