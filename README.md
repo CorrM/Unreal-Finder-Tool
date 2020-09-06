@@ -1,6 +1,6 @@
 ## Deprecated
 
-this version is deprecated use version 4 for more fixes and featuer
+**This version is deprecated use version 4 for more fixes and featuer**
 [Unreal Finder Tool V4](https://github.com/CorrM/uft)
 
 # Unreal Finder Tool
