@@ -1,7 +1,9 @@
 ## Deprecated
 
 **This version is deprecated use version 4 for more fixes and featuer**
-[Unreal Finder Tool V4](https://github.com/CorrM/uft)
+[Unreal Finder Tool V4](https://github.com/CorrM/uft)  
+The new UFT(v4) is not associated in anyway with the old UFT tool(v3) and has been completely rewritten.  
+The old tool(v3) will not be updated but will remain open source for anyone wanting to learn.
 
 # Unreal Finder Tool
 Useful tool to help you fetch and dump Unreal Engine 4 Games information.
@@ -13,7 +15,7 @@ Useful tool to help you fetch and dump Unreal Engine 4 Games information.
 Website | Link
 ------- | ----
 PayPal  | [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://paypal.me/IslamNofl)
-patron  | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
+Patron  | [![patron_button](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=16013498)
 
 ## Features
 | Feature           | Description |
