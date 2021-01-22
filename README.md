@@ -1,8 +1,8 @@
 ## Deprecated
 
 **This version is deprecated use version 4 for more fixes and featuer**
-[Unreal Finder Tool V4](https://github.com/CorrM/uft)  
-The new UFT(v4) is not associated in anyway with the old UFT tool(v3) and has been completely rewritten.  
+[CheatGear](https://github.com/CorrM/cg)  
+Cheat Gear is not associated in anyway with the old UFT tool(v3) and has been completely rewritten.  
 The old tool(v3) will not be updated but will remain open source for anyone wanting to learn.
 
 # Unreal Finder Tool
